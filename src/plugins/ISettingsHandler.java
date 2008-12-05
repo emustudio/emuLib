@@ -86,5 +86,21 @@ public interface ISettingsHandler {
 
     }
 
+    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
+    // #[regen=yes,id=DCE.854772DA-03CA-899B-7E02-2F554DA49B15]
+    // </editor-fold> 
+    /**
+     * Remove specified setting to from a config file. Be careful, setting can 
+     * be arbitrary. It uses config file that user chosed after start of the
+     * emulator.
+     * @param plType       plugin type
+     * @param pluginID     this parameter is relevant only for device plugins. It is
+     *                     a filename of the device, without extension (e.g.
+     *                     if 'terminal.jar' is a filename of a device, then 
+     *                     'terminal' should be used as the parameter)
+     * @param settingName  name of wanted setting (without spaces) to be removed
+     */
+    public void removeSetting (ISettingsHandler.pluginType plType, String pluginID, String settingName);
+
 }
 
