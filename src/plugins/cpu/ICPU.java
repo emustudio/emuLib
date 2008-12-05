@@ -156,5 +156,39 @@ public interface ICPU extends IPlugin {
      */
     public Object getDebugValue (int row, int col);
 
+    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
+    // #[regen=yes,id=DCE.22934380-D6C4-4764-B51C-5D8C17D9C46C]
+    // </editor-fold> 
+    /**
+     * Determine whether breakpoints are supported by CPU.
+     * @return true if breakpoints are supported, false otherwise
+     */
+    public boolean isBreakpointSupported ();
+
+    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
+    // #[regen=yes,id=DCE.91AC5518-6503-4A36-0B6F-E76DBDC1AB60]
+    // </editor-fold> 
+    /**
+     * Set/unset a breakpoint to specified memory position (address). It should
+     * be called only if breakpoints are supported
+     * (<code>isBreakpointSupported()</code>).
+     * @param pos  memory address where breakpoint should be set/unset
+     * @param set  true if breakpoint should be set, false otherwise
+     */
+    public void setBreakpoint (int pos, boolean set);
+
+    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
+    // #[regen=yes,id=DCE.BC871301-D62D-BF1B-9BCC-F460E76A6D59]
+    // </editor-fold> 
+    /**
+     * Determine breakpoint on specified address. It should be called only if
+     * breakpoints are supported (<code>isBreakpointSupported()</code>), otherwise
+     * the method should return false always.
+     * @param pos  memory position (address), from where we try to determine 
+     *             breakpoint
+     * @return true if breakpoint exists on specified address, false otherwise
+     */
+    public boolean getBreakpoint (int pos);
+
 }
 
