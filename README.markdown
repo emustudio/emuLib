@@ -12,4 +12,4 @@ Installation
 Plugin has to be compiled into single "jar" file and then it should be
 inserted in `lib` directory where *emuStudio* is installed.
 
-For example: `emuStudio/lib/emu_runtime.jar`.
+For example: `emuStudio/lib/emu_ifaces.jar`.
