@@ -1,3 +1,11 @@
+/**
+ * IDeviceContext.java
+ * 
+ * (c) Copyright 2008-2009, P.Jakubčo
+ * 
+ * KISS, YAGNI
+ * 
+ */
 package plugins.device;
 
 import java.util.EventListener;
@@ -6,36 +14,36 @@ import plugins.IContext;
 
 /**
  * Interface for basic context of the device. If device support more functionality
- * than input or output, it should be extended an then make public.
+ * than input or output, it should be extended (or implemented by an abstract class),
+ * and then make public.
  */
-// <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-// #[regen=yes,id=DCE.CE696B41-3B8C-9E41-4158-EEE3BE149D5F]
-// </editor-fold> 
 public interface IDeviceContext extends IContext, EventListener {
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.EE0F6F96-BBDE-FFFB-F641-AC15C3578DC3]
-    // </editor-fold> 
     /**
      * Perform "IN" operation, it reads data from this device. The device should
      * return one byte of its input data. I/O operations are considered as
-     * events that occured to this device.
+     * events that occurred to this device.
      * @param evt  event object
      * @return input data read from device
      */
-    public int in (EventObject evt);
+    public Object in (EventObject evt);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.1EFBD6E7-034E-9B5D-21D8-2314EED897E6]
-    // </editor-fold> 
     /**
-     * Perform "OUT" operation, it writes a data to this device. The device schould
-     * accept one byte of the data that parameter val offers. I/O operations are
-     * considered as events that occured to this device.
+     * Perform "OUT" operation, it writes a data to this device. The device should
+     * accept one byte of the data that parameter <code>val</code> offers. I/O operations are
+     * considered as events that occurred to this device.
      * @param evt  event object
      * @param val  data to be written to a device
      */
-    public void out (EventObject evt, int val);
+    public void out (EventObject evt, Object val);
+    
+    /**
+     * Get the type of transferred data. As you can see, methods <code>in</code> and
+     * <code>out</code> use <code>Object</code> as the data type. This method should
+     * make the data type specific.
+     * @return data type of transferred data
+     */
+    public Class getDataType();
 
 }
 

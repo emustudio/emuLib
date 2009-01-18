@@ -1,11 +1,13 @@
 /*
  * StaticDialogs.java
  *
+ * (c) Copyright 2008-2009, P.Jakubčo
+ * 
  * Created on 17.6.2008, 12:36:08
- * hold to: KISS, YAGNI
+ * 
+ * KISS, YAGNI
  *
  */
-
 package runtime;
 
 /**
@@ -34,5 +36,24 @@ public class StaticDialogs {
         javax.swing.JOptionPane.showMessageDialog(null, message, "Message",
                 javax.swing.JOptionPane.INFORMATION_MESSAGE);
     }
+    
+    /**
+     * Get communication model version number. It's a part of its identification
+     * for plugins. Plugins can identify the model and if they are not compatible
+     * with it, they can raise an error.
+     * 
+     * @return major version number
+     */
+    public int getModelVersion () { return 3; }
+    
+    /**
+     * Get communication model minor version number. It's a part of its identification
+     * for plugins. Plugins can identify the model and if they are not compatible
+     * with it, they can raise an error.
+     * 
+     * @return minor version number
+     */
+    public int getModelMinor () { return 5; }
+    
 
 }
