@@ -24,35 +24,6 @@ import plugins.IContext;
  * implementation, etc.
  */
 public interface ICPUContext extends IContext {
-
-    /**
-     * CPU is stopped (naturally or by user) and should not be run until its
-     * reset.
-     */
-    public static final int STATE_STOPPED_NORMAL       = 1;
-
-    /**
-     * CPU is in breakpoint state (paused).
-     */
-    public static final int STATE_STOPPED_BREAK        = 2;
-
-    /**
-     * CPU is stopped because of address fallout error. It should not be
-     * run until its reset.
-     */
-    public static final int STATE_STOPPED_ADDR_FALLOUT = 3;
-
-    /**
-     * CPU is stopped because of instruction fallout (unknown instruction) 
-     * error. It should not be run until its reset.
-     */
-    public static final int STATE_STOPPED_BAD_INSTR    = 4;
-
-    /**
-     * CPU is running.
-     */
-    public static final int STATE_RUNNING              = 5;
-	
 	
     /**
      * Adds the specified CPU listener to receive CPU events from this CPU.

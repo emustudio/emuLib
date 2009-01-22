@@ -25,7 +25,7 @@ public interface ISettingsHandler {
      * @return setting if it exists (as a <code>String</code>), or 
      *         <code>null</code> if not
      */
-    public String readSetting (String pluginHash, String settingName);
+    public String readSetting (long pluginHash, String settingName);
 
     /**
      * Write specified setting to a configuration file. Setting can be arbitrary. It 
@@ -34,7 +34,7 @@ public interface ISettingsHandler {
      * @param settingName  name of wanted setting (without spaces) to be written
      * @param val          value of the setting (has to be <code>String</code> type)
      */
-    public void writeSetting (String pluginHash, String settingName, String val);
+    public void writeSetting (long pluginHash, String settingName, String val);
 
     /**
      * Remove specified setting to from a configuration file. Be careful, setting can 
@@ -43,7 +43,7 @@ public interface ISettingsHandler {
      * @param pluginHash   hash of a plugin
      * @param settingName  name of wanted setting (without spaces) to be removed
      */
-    public void removeSetting (String pluginHash, String settingName);
+    public void removeSetting (long pluginHash, String settingName);
 
 }
 

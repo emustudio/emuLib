@@ -35,8 +35,8 @@ public interface ICompiler extends IPlugin {
     public boolean initialize (ISettingsHandler sHandler, Reader in, IMessageReporter reporter);
 
     /**
-     * Compile a file into output file. Output file name should compiler derive
-     * from input file name.
+     * Compile a file into output file. Output file name the compiler should 
+     * derive from input file name.
      * @param fileName  name of input file (source code)
      *
      * @return true if compile was successful, false otherwise
@@ -44,14 +44,16 @@ public interface ICompiler extends IPlugin {
     public boolean compile (String fileName);
     
     /**
-     * Compile a file to an operating memory.
+     * Compile a file into output file and into an operating memory. Output file
+     * name the compiler should derive from input file name.
+     * @param fileName  name of input file (source code)
      * @param mem       memory context object - it is used if compiler compiles
      *                  the source into memory. Compiler should check this
      *                  parameter for <code>null</code>.
      *                  
      * @return true if compile was successful, false otherwise
      */
-    public boolean compile (IMemoryContext mem);
+    public boolean compile (String fileName, IMemoryContext mem);
 
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
@@ -61,8 +63,18 @@ public interface ICompiler extends IPlugin {
      * 
      * @return lexical analyzer object
      */
-    public ILexer getLexerInstance (Reader in);
+    public ILexer getLexer(Reader in);
 
+    /**
+     * Get a lexical analyzer of the compiler. It is used by main module for
+     * syntax highlighting and of course in compile process by the compiler.
+     * For every call it should return the same object (instance created in
+     * initialize method).
+     * 
+     * @return lexical analyzer object
+     */
+    public ILexer getLexer();
+    
     /**
      * Gets starting address of compiled source. It is (or can be) called only
      * after compilation process. It should return the first occurrence of compiled

@@ -20,6 +20,34 @@ import plugins.ISettingsHandler;
 public interface ICPU extends IPlugin {
 
     /**
+     * CPU is stopped (naturally or by user) and should not be run until its
+     * reset.
+     */
+    public static final int STATE_STOPPED_NORMAL       = 1;
+
+    /**
+     * CPU is in breakpoint state (paused).
+     */
+    public static final int STATE_STOPPED_BREAK        = 2;
+
+    /**
+     * CPU is stopped because of address fallout error. It should not be
+     * run until its reset.
+     */
+    public static final int STATE_STOPPED_ADDR_FALLOUT = 3;
+
+    /**
+     * CPU is stopped because of instruction fallout (unknown instruction) 
+     * error. It should not be run until its reset.
+     */
+    public static final int STATE_STOPPED_BAD_INSTR    = 4;
+
+    /**
+     * CPU is running.
+     */
+    public static final int STATE_RUNNING              = 5;
+
+    /**
      * Perform initialization of CPU. This method is called after compiler
      * successful initialization. Initialization process of CPU can be
      * various, e.g. check for memory type, retrieve some settings from

@@ -68,14 +68,14 @@ public interface IDevice extends IPlugin {
     public void detachAll ();
     
     /**
-     * Get all contexts of this device. The device can have more than one
-     * context. Main module while connection process gets context of a device
-     * one by one if the device is connected to more plugins. If the device
-     * has less context count than connections count, the last context is taken
-     * for all the rest connections.
-     * @return an array of all device contexts
+     * Get next context of this device. The device can have more than one
+     * context. In connection process, the main module asks for next
+     * device context for each connection case. If the device
+     * has only one context, it should return only this context for each
+     * call of this method.
+     * @return next device context
      */
-    public IDeviceContext[] getAllContexts();
+    public IDeviceContext getNextContext();
 
 }
 

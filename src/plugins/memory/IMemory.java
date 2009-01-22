@@ -38,8 +38,10 @@ public interface IMemory extends IPlugin {
      * @param size      size of the memory, set in architecture configuration
      * @param sHandler  settings handler object. Memory can use this for
      *                  accessing/storing/removing its settings.
+     *
+     * @return true if initialization process was successful, false otherwise
      */
-    public void initialize (int size, ISettingsHandler sHandler);
+    public boolean initialize (int size, ISettingsHandler sHandler);
 
     /**
      * Sets program start address. This method is called by main module when

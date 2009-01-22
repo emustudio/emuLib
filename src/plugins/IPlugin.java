@@ -16,20 +16,6 @@ package plugins;
  */
 
 public interface IPlugin {
-
-    public static final int pluginCPU = 1;
-	public static final int pluginCompiler = 2;
-	public static final int pluginMemory = 3;
-	public static final int pluginDevice = 4;
-
-	/**
-	 * Get the type of the plugin. Plugin can be one of the following
-	 * types: <code>pluginCPU</code>, <code>pluginCompiler</code>,
-	 * <code>pluginMemory</code> and <code>pluginDevice</code>.
-	 * 
-	 * @return type of the plugin
-	 */
-	public int getPluginType ();
 	
     /**
      * Perform a reset of this plugin. Reset process depends on the type of
@@ -88,7 +74,7 @@ public interface IPlugin {
      * 
      * @return hash that was assigned to the plugin
      */
-    public String getHash ();
+    public long getHash ();
     
 }
 
