@@ -109,6 +109,21 @@ public interface IToken {
      * @return length of the token
      */
     public int getLength ();
+    
+    /**
+     * Gets error string for this token. If the token is not
+     * errorneous, return empty string ("").
+     * 
+     * @return error string message for this token
+     */
+    public String getErrorString ();
+    
+    /**
+     * Gets textual representation of this token (token value).
+     * 
+     * @return token value
+     */
+    public String getText ();
 
 }
 
