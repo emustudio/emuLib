@@ -8,6 +8,8 @@
  */
 package plugins.compiler;
 
+import java.io.Reader;
+
 
 /**
  * Interface that implements lexical analyzer
@@ -25,11 +27,12 @@ public interface ILexer {
      * Performs reset of the analyzer. Internal counters (actual position, actual
      * column, row, etc.) should be cleared. Lexical analyzer should prepare itself
      * for start from beginning of the document.
+     * @param in        <code>Reader</code> object of the document - source code.
      * @param yyline    from this line should lexical analyser start, usually 0
      * @param yychar    from this char should lexical analyser start, usually 0
      * @param yycolumn  from this column should lexical analyser start, usually 0
      */
-    public void reset (int yyline, int yychar, int yycolumn);
+    public void reset (Reader in, int yyline, int yychar, int yycolumn);
 
     /**
      * Gets next lexical symbol from source code, from actual position. This is
