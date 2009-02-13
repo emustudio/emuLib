@@ -44,7 +44,7 @@ public class StaticDialogs {
      * 
      * @return major version number
      */
-    public int getModelVersion () { return 3; }
+    public static int getModelVersion () { return 3; }
     
     /**
      * Get communication model minor version number. It's a part of its identification
@@ -53,7 +53,7 @@ public class StaticDialogs {
      * 
      * @return minor version number
      */
-    public int getModelMinor () { return 5; }
+    public static int getModelMinor () { return 5; }
     
 
 }

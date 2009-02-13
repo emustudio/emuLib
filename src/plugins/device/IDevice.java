@@ -18,11 +18,10 @@ import plugins.cpu.ICPUContext;
 
  * Design of the interface supports hierarchical connection of devices. Devices
  * identifies each other by context methods <code>getID()</code>,
- * <code>getVersionMajor()</code>, <code>getVersionMinor()</code> and 
- * <code>getVersionRev()</code>. The connection request can be accepted or 
+ * and <code>getHash()</code>. The connection request can be accepted or 
  * rejected if attaching device is/isn't supported. Devices that don't support
  * any connection hierarchy, invoking their <code>attachDevice()</code> method,
- * always return <code>false</code>.
+ * always return <code>true</code>.
  */
 public interface IDevice extends IPlugin {
 
