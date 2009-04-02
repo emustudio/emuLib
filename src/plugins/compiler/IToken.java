@@ -124,6 +124,17 @@ public interface IToken {
      * @return token value
      */
     public String getText ();
+    
+    /**
+     * Initial lexical state represents positions in source code
+     * from where lexical analyzer can start parsing the code
+     * as it would parse from the start. Hence they are safe positions
+     * from which syntax highlighting can be reset, too.
+     *  
+     * @return true if token is in initial lexical state, false
+     *         otherwise.
+     */
+    public boolean isInitialLexicalState();
 
 }
 
