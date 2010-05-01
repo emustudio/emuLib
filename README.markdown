@@ -4,7 +4,7 @@ What's this?
 This is library used with emuStudio platform.
 Contains all interfaces, that implements plugins
 and main module that make their communication
-possible.
+possible, within useful runtime functions support.
 
 Installation
 ------------

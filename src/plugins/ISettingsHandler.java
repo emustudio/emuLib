@@ -1,79 +1,62 @@
+/**
+ * ISettingsHandler.java
+ * 
+ * (c) Copyright 2008-2009, P. Jakubčo <pjakubco@gmail.com>
+ * 
+ * KISS, YAGNI
+ * 
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package plugins;
 
 /**
- * Interface for all plugins, it perform methods for reading/saving settings.
+ * Interface for all plugins, it perform methods for reading/storing settings.
  * It is implemented by the main module and plugins obtain its object by an
- * parameter in initialization proces.
+ * parameter in initialization process.
  */
 public interface ISettingsHandler {
 
     /**
-     * Read specified setting from config file.  Setting can be arbitrary. It 
-     * uses config file that user chosed after start of the emulator.
-     * @param plType       plugin type
-     * @param pluginID     this parameter is relevant only for device plugins. It is
-     *                     a filename of the device, without extension (e.g.
-     *                     if 'terminal.jar' is a filename of a device, then 
-     *                     'terminal' should be used as the parameter)
+     * Read specified setting from configuration file.  Setting can be arbitrary. It 
+     * uses configuration file that user chosen after start of the emulator.
+     * 
+     * @param pluginHash   hash of a plugin
      * @param settingName  name of wanted setting (without spaces)
      * @return setting if it exists (as a <code>String</code>), or 
      *         <code>null</code> if not
      */
-    public String readSetting (ISettingsHandler.pluginType plType, String pluginID, String settingName);
+    public String readSetting (long pluginHash, String settingName);
 
     /**
-     * Write specified setting to a config file. Setting can be arbitrary. It 
-     * uses config file that user chosed after start of the emulator.
-     * @param plType       plugin type
-     * @param pluginID     this parameter is relevant only for device plugins. It is
-     *                     a filename of the device, without extension (e.g.
-     *                     if 'terminal.jar' is a filename of a device, then 
-     *                     'terminal' should be used as the parameter)
+     * Write specified setting to a configuration file. Setting can be arbitrary. It 
+     * uses configuration file that user has chosen after start of the emulator.
+     * @param pluginHash   hash of a plugin
      * @param settingName  name of wanted setting (without spaces) to be written
      * @param val          value of the setting (has to be <code>String</code> type)
      */
-    public void writeSetting (ISettingsHandler.pluginType plType, String pluginID, String settingName, String val);
+    public void writeSetting (long pluginHash, String settingName, String val);
 
     /**
-     * Enumeration for available types of the plugin
-     */
-    public enum pluginType {
-
-        /**
-         * Plugin is a CPU
-         */
-        cpu,
-
-        /**
-         * Plugin is a device
-         */
-        device,
-
-        /**
-         * Plugin is a memory
-         */
-        memory,
-
-        /**
-         * Plugin is a compiler
-         */
-        compiler;
-
-
-    }
-
-    /**
-     * Remove specified setting to from a config file. Be careful, setting can 
-     * be arbitrary. It uses config file that user chosed after start of the
+     * Remove specified setting to from a configuration file. Be careful, setting can 
+     * be arbitrary. It uses configuration file that user chosen after start of the
      * emulator.
-     * @param plType       plugin type
-     * @param pluginID     this parameter is relevant only for device plugins. It is
-     *                     a filename of the device, without extension (e.g.
-     *                     if 'terminal.jar' is a filename of a device, then 
-     *                     'terminal' should be used as the parameter)
+     * @param pluginHash   hash of a plugin
      * @param settingName  name of wanted setting (without spaces) to be removed
      */
-    public void removeSetting (ISettingsHandler.pluginType plType, String pluginID, String settingName);
+    public void removeSetting (long pluginHash, String settingName);
 
 }
 

@@ -1,12 +1,30 @@
+/**
+ * ICPUContext.java
+ * 
+ * (c) Copyright 2008-2009, P. Jakubčo <pjakubco@gmail.com>
+ * 
+ * KISS, YAGNI
+ * 
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package plugins.cpu;
 
 import java.util.EventListener;
 import java.util.EventObject;
 import plugins.IContext; 
 
-// <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-// #[regen=yes,id=DCE.F6CE8CDD-D44F-97F1-EA9D-613D6755D39A]
-// </editor-fold> 
 /**
  * Basic interface for CPU context. The context is used by plugins, that are
  * connected to CPU.
@@ -16,54 +34,10 @@ import plugins.IContext;
  * could have access to it.
  * 
  * Extended context may have methods for e.g. connecting devices to CPU, interrupts
- * implementation, setting frequency, etc.
+ * implementation, etc.
  */
 public interface ICPUContext extends IContext {
-
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.4746319D-A6FE-C7B5-E873-DBB02A81EDD3]
-    // </editor-fold> 
-    /**
-     * Get actual instruction position (before its execution). Can be said,
-     * that this method should return PC (program counter) register (if CPU
-     * has one).
-     * @return memory position (address) of next instruction
-     */
-    public int getInstrPosition ();
-
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.6FB549D6-9B92-2D5D-F1A5-0C5CF4A2BB25]
-    // </editor-fold> 
-    /**
-     * Method compute address of an instruction that follows after instruction
-     * defined by given address. Main module uses this method to determine
-     * on which address should start next instruction in debug window. Several
-     * calls of this method make possible to create a list of instructions that
-     * begin on arbitrary address (debug window table).
-     * @param pos  memory position (address) of an instruction
-     * @return address of an instruction followed by specified address
-     */
-    public int getNextInstrPos (int pos);
-
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.B87678C6-5003-B76B-A684-BAE73111301F]
-    // </editor-fold> 
-    /**
-     * Set new actual instruction position (that will be executed as next). It
-     * can be said, that a parameter represents new value of PC (program counter),
-     * if CPU has one. Otherwise CPU should interpret the position in the right
-     * manner. 
-     * 
-     * This method is called by main module when user perform "jump to address"
-     * operation.
-     * @param pos  new address of actual instruction
-     * @return true if operation was successful, false otherwise
-     */
-    public boolean setInstrPosition (int pos);
-
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.0D545D63-9979-B9C0-D1D2-8429CE215429]
-    // </editor-fold> 
+	
     /**
      * Adds the specified CPU listener to receive CPU events from this CPU.
      * CPU events occur when CPU changes its state, or run state. CPU state
@@ -74,9 +48,6 @@ public interface ICPUContext extends IContext {
      */
     public void addCPUListener (ICPUContext.ICPUListener listener);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.3CC201D3-AEA9-4AA0-0354-B0DFD894331B]
-    // </editor-fold> 
     /**
      * Removes the specified CPU listener so that it no longer receives CPU
      * events from this CPU. CPU events occur when CPU changes its state, or run
@@ -87,9 +58,6 @@ public interface ICPUContext extends IContext {
      */
     public void removeCPUListener (ICPUContext.ICPUListener listener);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.1A19EB3D-5F6D-ADAC-7893-1367282844E8]
-    // </editor-fold> 
     /**
      * The listener interface for receiving CPU events. The class that is
      * interested in processing a CPU event implements this interface, and the
@@ -105,79 +73,19 @@ public interface ICPUContext extends IContext {
      */
     public interface ICPUListener extends EventListener {
 
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.16877133-B660-4267-16CA-4FD275792E2C]
-        // </editor-fold> 
         /**
          * Invoked when an CPU's run state changes.
-         * @param evt    event object
-         * @param state  new run state of the CPU
+         * @param evt       event object
+         * @param runState  new run state of the CPU
          */
-        public void runChanged (EventObject evt, ICPUContext.stateEnum state);
+        public void runChanged (EventObject evt, int runState);
 
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.3F91E9A6-BDF9-86C4-8E91-812761DA09C6]
-        // </editor-fold> 
         /**
          * Invoked when an CPU's state changes. The state can be register change,
          * flags change, or other CPU's internal state change.
          * @param evt  event object
          */
         public void stateUpdated (EventObject evt);
-
-    }
-
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.DA5AB08E-50B5-3ADD-DE06-4C12D6F7CA22]
-    // </editor-fold> 
-    /**
-     * Enumeration for available run states of CPU.
-     */
-    public enum stateEnum {
-
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.4AABD8AD-CFA8-6722-165F-B80731295173]
-        // </editor-fold> 
-        /**
-         * CPU is stopped (naturally or by user) and should not be run until its
-         * reset.
-         */
-        stoppedNormal,
-
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.6C4142B4-500A-C0C3-47BA-7D8F61132928]
-        // </editor-fold> 
-        /**
-         * CPU is in breakpoint state (paused).
-         */
-        stoppedBreak,
-
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.7A085F1E-E86D-69D5-EC50-5C9EB21AB84F]
-        // </editor-fold> 
-        /**
-         * CPU is stopped because of address fallout error. It should not be
-         * run until its reset.
-         */
-        stoppedAddrFallout,
-
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.908689D4-1BF0-D77C-5428-E1E0750CFB33]
-        // </editor-fold> 
-        /**
-         * CPU is stopped because of instruction fallout (unknown istruction) 
-         * error. It should not be run until its reset.
-         */
-        stoppedBadInstr,
-
-        // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-        // #[regen=yes,id=DCE.4198583C-DBB6-3A5D-BB93-DEC5C5A9F227]
-        // </editor-fold> 
-        /**
-         * CPU is running.
-         */
-        runned;
-
 
     }
 

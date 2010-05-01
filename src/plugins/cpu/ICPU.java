@@ -1,3 +1,24 @@
+/**
+ * ICPU.java
+ * 
+ * (c) Copyright 2008-2009, P.Jakubčo <pjakubco@gmail.com>
+ * 
+ * KISS, YAGNI
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
 package plugins.cpu;
 
 import javax.swing.JPanel; 
@@ -5,23 +26,45 @@ import plugins.memory.IMemoryContext;
 import plugins.IPlugin; 
 import plugins.ISettingsHandler; 
 
-// <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-// #[regen=yes,id=DCE.8077D3BD-16EA-AB4A-05C1-4AFA137A2043]
-// </editor-fold> 
 /**
  * Interface that covers CPU. This is the main interface that CPU plugin
  * has to implement.
  */
 public interface ICPU extends IPlugin {
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.7D11EC9A-AFA0-2DA9-DF03-1E847F1366A2]
-    // </editor-fold> 
+    /**
+     * CPU is stopped (naturally or by user) and should not be run until its
+     * reset.
+     */
+    public static final int STATE_STOPPED_NORMAL       = 1;
+
+    /**
+     * CPU is in breakpoint state (paused).
+     */
+    public static final int STATE_STOPPED_BREAK        = 2;
+
+    /**
+     * CPU is stopped because of address fallout error. It should not be
+     * run until its reset.
+     */
+    public static final int STATE_STOPPED_ADDR_FALLOUT = 3;
+
+    /**
+     * CPU is stopped because of instruction fallout (unknown instruction) 
+     * error. It should not be run until its reset.
+     */
+    public static final int STATE_STOPPED_BAD_INSTR    = 4;
+
+    /**
+     * CPU is running.
+     */
+    public static final int STATE_RUNNING              = 5;
+
     /**
      * Perform initialization of CPU. This method is called after compiler
      * successful initialization. Initialization process of CPU can be
      * various, e.g. check for memory type, retrieve some settings from
-     * config file, etc.
+     * configuration file, etc.
      * @param mem       memory context that this CPU should use. If CPU and memory
      *                  aren't connected in abstract scheme, this will be
      *                  <code>null</code>. Plugin should therefore check this
@@ -34,20 +77,14 @@ public interface ICPU extends IPlugin {
      */
     public boolean initialize (IMemoryContext mem, ISettingsHandler sHandler);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.16A7164F-9DDE-F2E0-9842-8F0E24BE8382]
-    // </editor-fold> 
     /**
      * Perform one step of CPU emulation. It means that one instruction should
      * be executed. CPU state changes to state "running", then it executes one
      * instruction, and then it should return to state "breakpoint" or "stopped".
-     * Correct timing of runned instruction isn't so important.
+     * Correct timing of executed instruction isn't so important.
      */
     public void step ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.04E4BF5F-EA8A-6549-D727-907EF2E9CEE7]
-    // </editor-fold> 
     /**
      * Runs CPU emulation. Change state of CPU to "running" and start
      * instruction fetch/decode/execute loop. Best for this purpose is to create
@@ -65,9 +102,6 @@ public interface ICPU extends IPlugin {
      */
     public void execute ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.DA479300-3825-3056-F6E4-4DD118C06199]
-    // </editor-fold> 
     /**
      * Pauses the CPU emulation. If a thread was used for CPU execution
      * and is running, then it should be stopped (destroyed) but the CPU state
@@ -75,9 +109,6 @@ public interface ICPU extends IPlugin {
      */
     public void pause ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.82807136-A8CE-0E76-79FB-B0381B36FD16]
-    // </editor-fold> 
     /**
      * Stops the CPU emulation. If a thread was used for CPU execution
      * and is running, then it should be stopped (destroyed) but the CPU state
@@ -88,9 +119,6 @@ public interface ICPU extends IPlugin {
      */
     public void stop ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.4BFFCA6C-6112-EC77-35F6-11400906D349]
-    // </editor-fold> 
     /**
      * Get CPU context. CPU context is an object that implements basic
      * <code>ICPUContext</code> interface. Often this interface is extended
@@ -101,15 +129,12 @@ public interface ICPU extends IPlugin {
      * to CPU get its context as a parameter in plugin connection process, so
      * they can (and should do it in that way) identify the (CPU context)
      * interface and other context information, such as ID or version. After
-     * this recognization process plugins recognize (or do not recognize)
+     * this recognize process plugins recognize (or do not recognize)
      * supported CPU they can be connected with.
      * @return CPU context object
      */
     public ICPUContext getContext ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.B43BCF1F-FE11-9C9B-6035-BD984D0A64FC]
-    // </editor-fold> 
     /**
      * Gets CPU GUI panel. Each CPU plugin should have GUI panel that shows
      * some important CPU status (e.g. registers, flags, run state, etc.) and
@@ -120,9 +145,6 @@ public interface ICPU extends IPlugin {
      */
     public JPanel getStatusGUI ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.64C7E8A3-DBAA-2D16-461C-BC839CA8933D]
-    // </editor-fold> 
     /**
      * Gets columns in debug window. These columns will be used in the list
      * in the debug window. Usually CPU uses these columns: "breakpoint",
@@ -131,9 +153,6 @@ public interface ICPU extends IPlugin {
      */
     public IDebugColumn[] getDebugColumns ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.F6F9D7E6-A22F-E074-0BCE-5695EB64F8E5]
-    // </editor-fold> 
     /**
      * Called when user sets a value to a cell in debug window. This method
      * should ensure proper changes in CPU's internal state, caused by this
@@ -145,9 +164,6 @@ public interface ICPU extends IPlugin {
      */
     public void setDebugValue (int row, int col, Object value);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.3001AA5A-F7B9-41AF-E4D2-B3A45049FB19]
-    // </editor-fold> 
     /**
      * Gets the value of a cell in debug window on specified position. 
      * @param row  cell's index from memory position 0 (not row in debug table)
@@ -156,18 +172,12 @@ public interface ICPU extends IPlugin {
      */
     public Object getDebugValue (int row, int col);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.22934380-D6C4-4764-B51C-5D8C17D9C46C]
-    // </editor-fold> 
     /**
      * Determine whether breakpoints are supported by CPU.
      * @return true if breakpoints are supported, false otherwise
      */
     public boolean isBreakpointSupported ();
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.91AC5518-6503-4A36-0B6F-E76DBDC1AB60]
-    // </editor-fold> 
     /**
      * Set/unset a breakpoint to specified memory position (address). It should
      * be called only if breakpoints are supported
@@ -177,9 +187,6 @@ public interface ICPU extends IPlugin {
      */
     public void setBreakpoint (int pos, boolean set);
 
-    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
-    // #[regen=yes,id=DCE.BC871301-D62D-BF1B-9BCC-F460E76A6D59]
-    // </editor-fold> 
     /**
      * Determine breakpoint on specified address. It should be called only if
      * breakpoints are supported (<code>isBreakpointSupported()</code>), otherwise
@@ -189,6 +196,49 @@ public interface ICPU extends IPlugin {
      * @return true if breakpoint exists on specified address, false otherwise
      */
     public boolean getBreakpoint (int pos);
+
+    /**
+     * Perform reset of the CPU with specific starting address. This is used
+     * when program starting address is known. Otherwise it is used standard
+     * <code>Plugin.reset()</code> method
+     * 
+     * @param startAddress
+     */
+    public void reset(int startAddress);
+    
+    /**
+     * Get actual instruction position (before its execution). Can be said,
+     * that this method should return PC (program counter) register (if CPU
+     * has one).
+     * 
+     * @return memory position (address) of next instruction
+     */
+    public int getInstrPosition ();
+
+    /**
+     * Method compute address of an instruction that follows after instruction
+     * defined by given address. Main module uses this method to determine
+     * on which address should start next instruction in debug window. Several
+     * calls of this method make possible to create a list of instructions that
+     * begin on arbitrary address (debug window table).
+     * 
+     * @param pos  memory position (address) of an instruction
+     * @return address of an instruction followed by specified address
+     */
+    public int getInstrPosition (int pos);
+
+    /**
+     * Set new actual instruction position (that will be executed as next). It
+     * can be said, that a parameter represents new value of PC (program counter),
+     * if CPU has one. Otherwise CPU should interpret the position in the right
+     * manner. 
+     * 
+     * This method is called by main module when user perform "jump to address"
+     * operation.
+     * @param pos  new address of actual instruction
+     * @return true if operation was successful, false otherwise
+     */
+    public boolean setInstrPosition (int pos);
 
 }
 
