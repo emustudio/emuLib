@@ -22,19 +22,33 @@
 package plugins.compiler;
 
 /**
- * Interface for reporting messages while running compilation process. It is
- * used for sending compiling messages to main module, e.g. warnings, errors, etc.
- * These messages are showed in bottom text area in panel "source code" in the
- * main module.
+ * Interface for reporting messages. Object implementing the interface is used
+ * by the compiler, during the compilation process. It realizes a "bridge"
+ * between the main module and a compiler. The compiler uses it for sending
+ * compile messages that should be shown in the main module (warnings,
+ * errors, informations).
+ *
+ * In the main module, these messages are shown at the bottom, in the panel
+ * "source code".
  */
 public interface IMessageReporter {
 
-	public static final int TYPE_WARNING = 1;
-	public static final int TYPE_ERROR   = 2;
-	public static final int TYPE_INFO    = 3;
+    /**
+     * The message passed from compiler is a warning.
+     */
+    public static final int TYPE_WARNING = 1;
+    /**
+     * The message passed from compiler is an error.
+     */
+    public static final int TYPE_ERROR   = 2;
+    /**
+     * The message passed from compiler is an information.
+     */
+    public static final int TYPE_INFO    = 3;
 	
     /**
-     * Method reports some message to a main module.
+     * Method for reporting a message.
+     *
      * @param message   message to report
      * @param type      type of the message (one of the
      *                  <code>TYPE_WARNING</code>, <code>TYPE_ERROR</code>,
@@ -43,7 +57,8 @@ public interface IMessageReporter {
     public void report (String message, int type);
 
     /**
-     * Method reports some message to a main module with location information.
+     * Method for reporting a message including the location (row, column in the
+     * source code) information.
      * 
      * @param row       row in the source code that is related to the message
      * @param column    column in the source code that is related to the message

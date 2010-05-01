@@ -21,6 +21,7 @@
  */
 package plugins.compiler;
 
+import java.io.IOException;
 import java.io.Reader;
 
 
@@ -52,7 +53,8 @@ public interface ILexer {
      * real implementation of lexical analyzer. After this call it should
      * increase internal counters to next unread text (actual position, actual
      * row, column, etc.)
-     * 
+     *
+     * @throws java.io.IOException
      * @return next found token
      */
     public IToken getSymbol () throws java.io.IOException;

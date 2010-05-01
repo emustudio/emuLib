@@ -23,7 +23,19 @@
 
 package plugins;
 
-
+/**
+ * Context is a sub-structure of a plugin that represents functionality that
+ * can be used by other plugins. If a plugin is connected to another plugin,
+ * female-plug plugin gets the context of the connecting plugin.
+ * 
+ * If the plugin is a device, then the context represent one connection port,
+ * therefore devices can have more than one context.
+ * 
+ * Only compiler plugins do not have a context. Each other plugin has to have
+ * at least one context.
+ *
+ * @author Peter Jakubčo <pjakubco at gmail.com>
+ */
 public interface IContext {
 
     /**
