@@ -1,7 +1,7 @@
 /**
  * IDebugColumn.java
  * 
- * (c) Copyright 2008-2009, P.Jakubčo <pjakubco@gmail.com>
+ * (c) Copyright 2008-2010, P.Jakubčo <pjakubco@gmail.com>
  * 
  * KISS, YAGNI
  * 
@@ -33,7 +33,7 @@ public interface IDebugColumn {
      * class.
      * @return Java type of this column
      */
-    public Class<?> getType ();
+    public Class getType ();
 
     /**
      * Gets name (title) of the column.

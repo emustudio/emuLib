@@ -1,7 +1,7 @@
 /*
  * StaticDialogs.java
  *
- * (c) Copyright 2008-2009, P.Jakubčo <pjakubco@gmail.com>
+ * (c) Copyright 2008-2010, P.Jakubčo <pjakubco@gmail.com>
  * 
  * Created on 17.6.2008, 12:36:08
  * 
