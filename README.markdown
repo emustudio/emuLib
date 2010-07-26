@@ -1,15 +1,18 @@
 What's this?
 ------------
 
-This is library used with emuStudio platform.
-Contains all interfaces, that implements plugins
-and main module that make their communication
-possible, within useful runtime functions support.
+This is run-time library used with the emuStudio platform.
+
+It includes all interfaces, that plug-ins and main module
+have to implement. The interfaces make their communication
+possible.
+
+Besides, some classes contain useful static methods support.
 
 Installation
 ------------
 
-Plugin has to be compiled into single "jar" file and then it should be
-inserted in `lib` directory where *emuStudio* is installed.
+The library should be put to `lib` directory where the *emuStudio*
+is installed.
 
-For example: `emuStudio/lib/emu_ifaces.jar`.
+For example: `emuStudio/lib/emuLib.jar`.
