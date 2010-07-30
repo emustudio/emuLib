@@ -23,6 +23,8 @@
  */
 package runtime;
 
+import javax.swing.JOptionPane;
+
 /**
  * This class offers static methods that show some messages on the screen.
  * Plugins should use these methods for displaying messages. Example of use:
@@ -31,42 +33,168 @@ package runtime;
  * </code>
  */
 public class StaticDialogs {
+    private final static String InputDialogMSG = "Please insert a value";
+
+    /** YES option for the confirm message dialogs */
+    public final static int YES_OPTION = JOptionPane.YES_OPTION;
+    /** NO option for the confirm message dialogs */
+    public final static int NO_OPTION = JOptionPane.NO_OPTION;
+    /** CANCEL option for the confirm message dialogs */
+    public final static int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
+
     /**
      * Show error message as <code>JOptionPane</code> dialog. Title will be "Error".
      * @param message error message to show
      */
     public static void showErrorMessage(String message) {
-        javax.swing.JOptionPane.showMessageDialog(null,
-                message,"Error",javax.swing.JOptionPane.ERROR_MESSAGE);
+        showErrorMessage(message, "Error");
     }
 
     /**
-     * Show information message as <code>JOptionPane</code> dialog. Title will
-     * be "Message".
+     * Show error message as <code>JOptionPane</code> dialog.
+     * @param message error message to show
+     * @param title title of the dialog
+     */
+    public static void showErrorMessage(String message, String title) {
+        try {
+            JOptionPane.showMessageDialog(null,
+                    message,title,javax.swing.JOptionPane.ERROR_MESSAGE);
+        } catch(Exception e) {
+            System.out.println(title + ": " + message);
+        }
+    }
+
+    /**
+     * Show information message as <code>JOptionPane</code> dialog.
+     * Title will be "Information message".
      * @param message information message to show
      */
     public static void showMessage(String message) {
-        javax.swing.JOptionPane.showMessageDialog(null, message, "Message",
-                javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        showMessage(message, "Information message");
     }
-    
+
     /**
-     * Get communication model version number. It's a part of its identification
-     * for plugins. Plugins can identify the model and if they are not compatible
-     * with it, they can raise an error.
-     * 
-     * @return major version number
+     * Show information message as <code>JOptionPane</code> dialog.
+     * @param message information message to show
+     * @param title title of the message
      */
-    public static int getModelVersion () { return 3; }
-    
+    public static void showMessage(String message, String title) {
+        try {
+            JOptionPane.showMessageDialog(null, message,
+                title, javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        } catch(Exception e) {
+            System.out.println(title + ": " + message);
+        }
+    }
+
     /**
-     * Get communication model minor version number. It's a part of its identification
-     * for plugins. Plugins can identify the model and if they are not compatible
-     * with it, they can raise an error.
-     * 
-     * @return minor version number
+     * Show dialog and asks user for integer input.
+     * @param message message to show
+     * @return null if user inserts bad value
+     *         integral input otherwise
      */
-    public static int getModelMinor () { return 5; }
-    
+    public static Integer inputIntValue(String message) {
+        return inputIntValue(message,InputDialogMSG,0);
+    }
+
+    /**
+     * Show dialog and asks user for integer input.
+     * @param message message to show
+     * @param title title of the input message
+     * @param initial initial value
+     * @return null if user inserts bad value
+     *         integral input otherwise
+     */
+    public static Integer inputIntValue(String message, String title, int initial) {
+        try {
+            String s = (String)JOptionPane.showInputDialog(null, message, title,
+                JOptionPane.QUESTION_MESSAGE, null, null, initial);
+            return Integer.decode(s);
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Show dialog and asks user for String input.
+     * @param message message to show
+     * @return null if method gets HeadlessException
+     *         string input otherwise
+     */
+    public static String inputStringValue(String message) {
+        return inputStringValue(message, InputDialogMSG, "");
+    }
+
+    /**
+     * Show dialog and asks user for String input.
+     * @param message message to show
+     * @param title title of the input message
+     * @param initial initial value
+     * @return null if method gets HeadlessException
+     *         string input otherwise
+     */
+    public static String inputStringValue(String message, String title, String initial) {
+        try {
+            String s = (String)JOptionPane.showInputDialog(null, message, title,
+                JOptionPane.QUESTION_MESSAGE, null, null, initial);
+            return s;
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Show dialog and asks user for Double input.
+     * @param message message to show
+     * @return null if user inserts bad value
+     *         double input otherwise
+     */
+    public static Double inputDoubleValue(String message) {
+        return inputDoubleValue(message, InputDialogMSG, 0);
+    }
+
+    /**
+     * Show dialog and asks user for Double input.
+     * @param message message to show
+     * @param title title of the message
+     * @initial initial value
+     * @return null if user inserts bad value
+     *         double input otherwise
+     */
+    public static Double inputDoubleValue(String message, String title, double initial) {
+        try {
+            String s = (String)JOptionPane.showInputDialog(null, message, title,
+                JOptionPane.QUESTION_MESSAGE, null, null, initial);
+            return Double.parseDouble(s);
+        } catch(Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * Show confirmation dialog. User can choose one of YES/NO or CANCEL option.
+     * @param message message to show
+     * @return CANCEL_OPTION if something goes wrong
+     *         YES_OPTION or NO_OPTION or CANCEL_OPTION otherwise
+     */
+    public static int confirmMessage(String message) {
+        return confirmMessage(message, "Confirmation");
+    }
+
+    /**
+     * Show confirmation dialog. User can choose one of YES/NO or CANCEL option.
+     * @param message message to show
+     * @param title title of the message
+     * @return CANCEL_OPTION if something goes wrong
+     *         YES_OPTION or NO_OPTION or CANCEL_OPTION otherwise
+     */
+    public static int confirmMessage(String message, String title) {
+        try {
+            return JOptionPane.showConfirmDialog(null,
+                message, title, JOptionPane.YES_NO_CANCEL_OPTION);
+        } catch (Exception e) {
+            return CANCEL_OPTION;
+        }
+    }
 
 }
