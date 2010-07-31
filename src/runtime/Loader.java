@@ -56,12 +56,12 @@ public class Loader extends ClassLoader {
 		if (inClassLoader()) throw new SecurityException();
 	}
 
-        @Override
+/*        @Override
 	public void checkCreateClassLoader() {
             super.checkCreateClassLoader();
             trusted();
         }
-
+*/
         @Override
 	public void checkExit (int status) { 
             super.checkExit(status);
@@ -85,6 +85,12 @@ public class Loader extends ClassLoader {
             super.checkSecurityAccess(provider);
             trusted();
         }
+
+        @Override
+        public void checkRead(String file) {}
+
+        @Override
+        public void checkRead(String file, Object context) {}
 
 	/** Loaded code can't define classes in java.* or javax.* or sun.*
          * packages
@@ -131,7 +137,7 @@ public class Loader extends ClassLoader {
     private Loader() {
         resources = new Hashtable<Object, URL>();
         securityManager = new PluginSecurityManager();
-        System.setSecurityManager(securityManager);
+    //    System.setSecurityManager(securityManager);
     }
 
     public static Loader getInstance() {
@@ -146,9 +152,9 @@ public class Loader extends ClassLoader {
      * @param filename name of the plugin (absolute path is better).
      *        If the filename does not contain '.jar' suffix, it will be
      *        added automatically.
-     * @return true instance object of loaded plugin
+     * @return list of loaded classes, or null when an error occured
      */
-    public boolean loadJAR(String filename) {
+    public ArrayList<Class<?>> loadJAR(String filename) {
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         Hashtable<String, Integer> sizes = new Hashtable<String, Integer>();
         Vector<String> undone = new Vector<String>();
@@ -199,6 +205,7 @@ public class Loader extends ClassLoader {
                     Class<?> cl = defineLoadedClass(ze.getName(),b,size,true);
                     classes.add(cl);
                 } catch (Exception nf) {
+                    nf.printStackTrace();
                     undone.addElement(ze.getName());
                 }
             }
@@ -209,6 +216,7 @@ public class Loader extends ClassLoader {
                     res = loadUndoneClasses(undone,classes,sizes,zis);
                 if (undone.size() > 0) {
                     // if a jar file contains some error
+                    System.out.println(undone);
                     throw new Exception();
                 }
             }
@@ -218,10 +226,10 @@ public class Loader extends ClassLoader {
             zf.close();
         }
         catch (Exception e) {
-            StaticDialogs.showErrorMessage("Error loading file: " + filename);
-            return false;
+            e.printStackTrace();
+            return null;
         }
-        return true;
+        return classes;
     }
 
     @Override
@@ -323,8 +331,8 @@ public class Loader extends ClassLoader {
             if (resolve && (c != null)) resolveClass(c);
             return c;
         }
-        catch (Error err) { throw new ClassNotFoundException(err.getMessage());}
-        catch (Exception ex) { throw new ClassNotFoundException(ex.toString());}
+        catch (Error err) {err.printStackTrace(); throw new ClassNotFoundException(err.getMessage());}
+        catch (Exception ex) { ex.printStackTrace(); throw new ClassNotFoundException(ex.toString());}
     }
 
 }
