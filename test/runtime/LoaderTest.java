@@ -61,8 +61,9 @@ public class LoaderTest {
      */
     @Test
     public void testLoadJAR() {
-        System.out.println("loadJAR\n(Supposed existing: D:\\as-8080.jar)\n");
-        String filename = "D:\\as-8080.jar";
+        System.out.println("loadJAR\n(Supposed existing: D:\\8080-cpu.jar."
+                + " Please DO NOT use SecurityManager now!)\n");
+        String filename = "D:\\8080-cpu.jar";
         Loader instance = Loader.getInstance();
         ArrayList<Class<?>> result = instance.loadJAR(filename);
         assertNotNull(result);

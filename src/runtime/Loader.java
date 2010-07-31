@@ -24,8 +24,10 @@ package runtime;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -56,12 +58,47 @@ public class Loader extends ClassLoader {
 		if (inClassLoader()) throw new SecurityException();
 	}
 
-/*        @Override
-	public void checkCreateClassLoader() {
-            super.checkCreateClassLoader();
-            trusted();
-        }
-*/
+
+/*
+
+ void	checkAwtEventQueueAccess()
+ void	checkDelete(String file)
+ void	checkPackageAccess(String pkg)
+ void	checkPermission(Permission perm)
+ void	checkPermission(Permission perm, Object context)
+ void	checkPropertiesAccess()
+ void	checkSetFactory()
+ */
+
+        @Override
+        public void checkPrintJobAccess() {}
+        @Override
+        public void checkExec(String cmd) {}
+        @Override
+        public void checkMulticast(InetAddress maddr) {}
+        @Override
+        public void checkMulticast(InetAddress maddr, byte ttl) {}
+        @Override
+        public void checkLink(String lib) {}
+        @Override
+        public void checkListen(int port) {}
+        @Override
+        public void checkConnect(String host, int port) {}
+        @Override
+        public void checkConnect(String host, int port, Object context) {}
+        @Override
+        public void checkAccept(String host, int port) {}
+        @Override
+        public void checkAccess(Thread t) {}
+        @Override
+        public void checkAccess(ThreadGroup g) {}
+        @Override
+	public void checkCreateClassLoader() {}
+        @Override
+        public void checkMemberAccess(Class<?> clazz, int which) {}
+        @Override
+        public void checkSystemClipboardAccess() {}
+
         @Override
 	public void checkExit (int status) { 
             super.checkExit(status);
@@ -75,10 +112,7 @@ public class Loader extends ClassLoader {
         }
 
         @Override
-	public void checkPropertyAccess (String key) {
-            if (!key.equals("user.dir"))
-                trusted();
-	}
+	public void checkPropertyAccess (String key) {}
 
         @Override
 	public void checkSecurityAccess (String provider) {
@@ -87,10 +121,16 @@ public class Loader extends ClassLoader {
         }
 
         @Override
+        public void checkRead(FileDescriptor fd) {}
+        @Override
         public void checkRead(String file) {}
-
         @Override
         public void checkRead(String file, Object context) {}
+        @Override
+        public void checkWrite(FileDescriptor fd) {}
+        @Override
+        public void checkWrite(String file) {}
+
 
 	/** Loaded code can't define classes in java.* or javax.* or sun.*
          * packages
@@ -117,7 +157,7 @@ public class Loader extends ClassLoader {
 	 **/
         @Override
 	public boolean checkTopLevelWindow (Object window) {
-		trusted();
+		//trusted();
 		return true;
 	}
     }
@@ -137,7 +177,7 @@ public class Loader extends ClassLoader {
     private Loader() {
         resources = new Hashtable<Object, URL>();
         securityManager = new PluginSecurityManager();
-    //    System.setSecurityManager(securityManager);
+        System.setSecurityManager(securityManager);
     }
 
     public static Loader getInstance() {
@@ -205,28 +245,25 @@ public class Loader extends ClassLoader {
                     Class<?> cl = defineLoadedClass(ze.getName(),b,size,true);
                     classes.add(cl);
                 } catch (Exception nf) {
-                    nf.printStackTrace();
                     undone.addElement(ze.getName());
-                }
-            }
-            // try to load all undone classes
-            if (undone.size() > 0) {
-                boolean res = loadUndoneClasses(undone,classes,sizes,zis);
-                while ((res == true) && (undone.size() > 0))
-                    res = loadUndoneClasses(undone,classes,sizes,zis);
-                if (undone.size() > 0) {
-                    // if a jar file contains some error
-                    System.out.println(undone);
-                    throw new Exception();
                 }
             }
             zis.close();
             bis.close();
             fis.close();
             zf.close();
+            // try to load all undone classes
+            if (undone.size() > 0) {
+                boolean res = loadUndoneClasses(undone,classes,sizes,filename);
+                while ((res == true) && (undone.size() > 0))
+                    res = loadUndoneClasses(undone,classes,sizes,filename);
+                if (undone.size() > 0) {
+                    // if a jar file contains some error
+                    throw new Exception();
+                }
+            }
         }
         catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
         return classes;
@@ -263,15 +300,17 @@ public class Loader extends ClassLoader {
      * @param undone Vector of "undone" classes
      * @param classes Where to put loaded classes objects
      * @param sizes How much size has each class in bytes
-     * @param zis Input stream of JAR file. Will be reset first.
+     * @param filename File name of the JAR file.
      * @return true if at least 1 class was loaded successfully
      */
     private boolean loadUndoneClasses(Vector<String> undone, ArrayList<Class<?>> classes,
-            Hashtable<String, Integer> sizes, JarInputStream zis) {
+            Hashtable<String, Integer> sizes, String filename) {
         JarEntry ze = null;
         boolean result = false;
         try {
-            zis.reset();
+            FileInputStream fis = new FileInputStream(filename);
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            JarInputStream zis = new JarInputStream(bis);
             while ((ze=zis.getNextJarEntry())!=null) {
                 if (ze.isDirectory()) continue;
                 if (!ze.getName().toLowerCase().endsWith(".class")) continue;
@@ -331,8 +370,8 @@ public class Loader extends ClassLoader {
             if (resolve && (c != null)) resolveClass(c);
             return c;
         }
-        catch (Error err) {err.printStackTrace(); throw new ClassNotFoundException(err.getMessage());}
-        catch (Exception ex) { ex.printStackTrace(); throw new ClassNotFoundException(ex.toString());}
+        catch (Error err) { throw new ClassNotFoundException(err.getMessage());}
+        catch (Exception ex) { throw new ClassNotFoundException(ex.toString());}
     }
 
 }
