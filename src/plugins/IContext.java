@@ -37,15 +37,6 @@ package plugins;
  * @author Peter Jakubčo <pjakubco at gmail.com>
  */
 public interface IContext {
-
-    /**
-     * Return unique ID of this context. This can be any string identifying
-     * concrete context. Usually it is related with kind of context
-     * (e.g. "cpu8080","mitsSIO-2",...) . Other plugins can identify the
-     * context by recognizing of its ID.
-     * @return ID of this context.
-     */
-    public String getID ();
     
     /**
      * Hash string (doesn't matter how long) is computed from names of all

@@ -120,22 +120,6 @@ public interface ICPU extends IPlugin {
     public void stop ();
 
     /**
-     * Get CPU context. CPU context is an object that implements basic
-     * <code>ICPUContext</code> interface. Often this interface is extended
-     * by another (not supported by this library), a concrete context for
-     * concrete CPU and gives more functionality than basic one. Context is
-     * a place, where plugin programmer should implement unsupported, but needed
-     * methods and then he should make public its interface. Plugins connected 
-     * to CPU get its context as a parameter in plugin connection process, so
-     * they can (and should do it in that way) identify the (CPU context)
-     * interface and other context information, such as ID or version. After
-     * this recognize process plugins recognize (or do not recognize)
-     * supported CPU they can be connected with.
-     * @return CPU context object
-     */
-    public ICPUContext getContext ();
-
-    /**
      * Gets CPU GUI panel. Each CPU plugin should have GUI panel that shows
      * some important CPU status (e.g. registers, flags, run state, etc.) and
      * allow to user perform some settings (e.g. set the frequency, etc.). This

@@ -33,18 +33,6 @@ package plugins.compiler;
  */
 public interface IMessageReporter {
 
-    /**
-     * The message passed from compiler is a warning.
-     */
-    public static final int TYPE_WARNING = 1;
-    /**
-     * The message passed from compiler is an error.
-     */
-    public static final int TYPE_ERROR   = 2;
-    /**
-     * The message passed from compiler is an information.
-     */
-    public static final int TYPE_INFO    = 3;
 	
     /**
      * Method for reporting a message.

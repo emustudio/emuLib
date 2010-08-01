@@ -36,15 +36,6 @@ public interface IMemory extends IPlugin {
     public void showGUI ();
 
     /**
-     * Gets memory context. Via memory context devices and CPU performs access
-     * to memory cells. If memory supports some special techniques (e.g. banking,
-     * segmentation, paging, etc.), the context should be extended by new one,
-     * that's interface will be public to all interested plugnis or CPUs.
-     * @return memory context object
-     */
-    public IMemoryContext getContext ();
-
-    /**
      * Perform initialization process of memory. The memory should physically
      * create the memory - e.g. as an array or something similar. Memory can't
      * use CPU nor devices. It is accessed BY them.

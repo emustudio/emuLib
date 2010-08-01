@@ -58,18 +58,14 @@ public class Loader extends ClassLoader {
 		if (inClassLoader()) throw new SecurityException();
 	}
 
-
 /*
-
  void	checkAwtEventQueueAccess()
  void	checkDelete(String file)
- void	checkPackageAccess(String pkg)
- void	checkPermission(Permission perm)
- void	checkPermission(Permission perm, Object context)
- void	checkPropertiesAccess()
  void	checkSetFactory()
  */
 
+        @Override
+        public void checkPackageAccess(String pkg) {}
         @Override
         public void checkPrintJobAccess() {}
         @Override
