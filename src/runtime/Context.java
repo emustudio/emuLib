@@ -26,6 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import plugins.IContext;
@@ -41,21 +42,44 @@ import plugins.memory.IMemoryContext;
  * @author vbmacher
  */
 public class Context {
-    // the following tables are of type  Long x String
-    private Hashtable<Long,Hashtable<String,ICompilerContext>> compilerContexts;
-    private Hashtable<Long,Hashtable<String,ICPUContext>> cpuContexts;
-    private Hashtable<Long,Hashtable<String,IMemoryContext>> memContexts;
-    private Hashtable<Long,Hashtable<String,IDeviceContext>> deviceContexts;
+    // the following tables store all registered contexts.
+    // Contexts implementing the same context interfaces are stored
+    // to the end of the arraylist under the same hashtable key
+    private Hashtable<Class<IContext>,ArrayList<ICompilerContext>> compilerContexts;
+    private Hashtable<Class<IContext>,ArrayList<ICPUContext>> cpuContexts;
+    private Hashtable<Class<IContext>,ArrayList<IMemoryContext>> memContexts;
+    private Hashtable<Class<IContext>,ArrayList<IDeviceContext>> deviceContexts;
 
+    // This hashtable represents owners of registered contexts (keys).
+    // It is used for checking the plug-in permissions to access them
+    private Hashtable<Long,ArrayList<IContext>> contextOwners;
+
+    // instance of this class
     private static Context instance = null;
 
+    private static String emuStudioHash = null;
+
+    /**
+     * Private constructor.
+     */
     private Context() {
-        compilerContexts = new Hashtable<Long, Hashtable<String,ICompilerContext>>();
-        cpuContexts = new Hashtable<Long, Hashtable<String,ICPUContext>>();
-        memContexts = new Hashtable<Long, Hashtable<String,IMemoryContext>>();
-        deviceContexts = new Hashtable<Long, Hashtable<String,IDeviceContext>>();
+        compilerContexts = new Hashtable<Class<IContext>,
+                ArrayList<ICompilerContext>>();
+        cpuContexts = new Hashtable<Class<IContext>, ArrayList<ICPUContext>>();
+        memContexts = new Hashtable<Class<IContext>,
+                ArrayList<IMemoryContext>>();
+        deviceContexts = new Hashtable<Class<IContext>,
+                ArrayList<IDeviceContext>>();
+
+        contextOwners = new Hashtable<Long,ArrayList<IContext>>();
     }
 
+    /**
+     * Return an instance of this class. By calling more than 1 time, the same
+     * instance is returned.
+     *
+     * @return Context instance
+     */
     public static Context getInstance() {
         if (instance == null)
             instance = new Context();
@@ -68,13 +92,15 @@ public class Context {
      *  - for connections realized by emuStudio
      *  - for check of correctness of the context hash
      *
+     * If the plug-in asks for a context, it has to know the hash of it.
+     *
      * Requirements for the context:
      *   It is allowed (and required) to implement one and the only one
      *   interface of a plug-in context type (ie. one of the ICPUContext,
      *   IMemoryContext, ICompilerContext, or IDeviceContext)
      *
      * @param pluginID
-     *        The plugin identification number
+     *        ID of the plugin
      * @param context
      *        The context that the plug-in want to register. It HAS TO
      *        be a class, not an interface.
@@ -83,26 +109,27 @@ public class Context {
      *        extended context. It HAS TO be an interface, not a class.
      * @return true if the registration is successful, false if it fails.
      */
-    public boolean registerContext(long pluginID, IContext context,
-            Class<?> contextInterface) {
+    public boolean register(long pluginID, IContext context,
+            Class<IContext> contextInterface) {
         // check if the context is class
         if (context.getClass().isInterface())
             return false;
         // check if the contextInterface is interface
         if (!contextInterface.getClass().isInterface())
             return false;
+
         // if the context is already registered, return false
-        Hashtable<String,?> t = cpuContexts.get(pluginID);
-        if ((t == null) || (t.contains(context)))
+        ArrayList tt = cpuContexts.get(contextInterface);
+        if ((tt == null) || tt.contains(context))
             return false;
-        t = memContexts.get(pluginID);
-        if ((t == null) || (t.contains(context)))
+        tt = memContexts.get(contextInterface);
+        if ((tt == null) || tt.contains(context))
             return false;
-        t = deviceContexts.get(pluginID);
-        if ((t == null) || (t.contains(context)))
+        tt = deviceContexts.get(contextInterface);
+        if ((tt == null) || tt.contains(context))
             return false;
-        t = compilerContexts.get(pluginID);
-        if ((t == null) || (t.contains(context)))
+        tt = compilerContexts.get(contextInterface);
+        if ((tt == null) || tt.contains(context))
             return false;
 
         // check if the contextInterface is implemented by context
@@ -140,85 +167,164 @@ public class Context {
             return false;
 
         // finally register context
+        ArrayList<IContext> ar = contextOwners.get(pluginID);
+        if (ar == null) {
+            ar = new ArrayList<IContext>();
+            contextOwners.put(pluginID, ar);
+        }
+        ar.add(context);
+
         if (context instanceof ICPUContext) {
-            Hashtable<String,ICPUContext> ctab = cpuContexts.get(pluginID);
-            if (ctab == null) {
-                ctab = new Hashtable<String,ICPUContext>();
-                cpuContexts.put(pluginID, ctab);
+            ArrayList<ICPUContext> arc = cpuContexts.get(contextInterface);
+            if (arc == null) {
+                arc = new ArrayList<ICPUContext>();
+                cpuContexts.put(contextInterface, arc);
             }
-            ctab.put(hash, (ICPUContext)context);
+            arc.add((ICPUContext)context);
         } else if (context instanceof ICompilerContext) {
-            Hashtable<String,ICompilerContext> ctab = compilerContexts.get(pluginID);
-            if (ctab == null) {
-                ctab = new Hashtable<String,ICompilerContext>();
-                compilerContexts.put(pluginID, ctab);
+            ArrayList<ICompilerContext> arc = compilerContexts.get(contextInterface);
+            if (arc == null) {
+                arc = new ArrayList<ICompilerContext>();
+                compilerContexts.put(contextInterface, arc);
             }
-            ctab.put(hash, (ICompilerContext)context);
+            arc.add((ICompilerContext)context);
         } else if (context instanceof IDeviceContext) {
-            Hashtable<String,IDeviceContext> ctab = deviceContexts.get(pluginID);
-            if (ctab == null) {
-                ctab = new Hashtable<String,IDeviceContext>();
-                deviceContexts.put(pluginID, ctab);
+            ArrayList<IDeviceContext> arc = deviceContexts.get(contextInterface);
+            if (arc == null) {
+                arc = new ArrayList<IDeviceContext>();
+                deviceContexts.put(contextInterface, arc);
             }
-            ctab.put(hash, (IDeviceContext)context);
+            arc.add((IDeviceContext)context);
         } else if (context instanceof IMemoryContext) {
-            Hashtable<String,IMemoryContext> ctab = memContexts.get(pluginID);
-            if (ctab == null) {
-                ctab = new Hashtable<String,IMemoryContext>();
-                memContexts.put(pluginID, ctab);
+            ArrayList<IMemoryContext> arc = memContexts.get(contextInterface);
+            if (arc == null) {
+                arc = new ArrayList<IMemoryContext>();
+                memContexts.put(contextInterface, arc);
             }
-            ctab.put(hash, (IMemoryContext)context);
+            arc.add((IMemoryContext)context);
         } else {
-            // This check IS needed
+            // This if branch IS needed
             return false;
         }
         return true;
     }
 
     /**
-     * Method removes value from a hashtable by value, not key.
+     * Method removes context from a context hashtable by value, not key.
+     * It searches through the ArrayList for the value. If the ArrayList
+     * is empty, removes also the key from the hashtable.
      *
      * @param t hashtable
      * @param context value that shall be removed
      * @return true if the value has been removed (and was found in the hashtable)
      */
-    private boolean removeValue(Hashtable<String,?> t, IContext context) {
+    private boolean removeContext(Hashtable<Class<IContext>,?> t,
+            IContext context) {
         if (t == null)
             return false;
-        Enumeration<String> e = t.keys();
+        Enumeration<Class<IContext>> e = t.keys();
         while (e.hasMoreElements()) {
-            String hash = e.nextElement();
-            if (t.get(hash) == context)
-                return (t.remove(hash) == null) ? false: true;
+            Class<IContext> intf = e.nextElement();
+            ArrayList<?> ar = (ArrayList<?>)t.get(intf);
+            if (ar == null)
+                continue;
+            if (ar.contains(context)) {
+                boolean b = ar.remove(context);
+                if (ar.isEmpty())
+                    t.remove(intf);
+                return b;
+            }
         }
         return false;
     }
 
     /**
-     * Method unregisters given context of given plug-in.
+     * Method removes all contexts from a context hashtable.
+     * It removes also the key from the hashtable.
      *
-     * @param pluginID ID if plugin
+     * @param t hashtable
+     * @return true if all contexts were removed (and was found in the hashtable)
+     */
+    private boolean removeAllContexts(Hashtable<Class<IContext>,?> t,
+            Class<IContext> contextInterface, ArrayList<IContext> owner) {
+        if ((t == null) || (contextInterface == null))
+            return false;
+
+        ArrayList<?> ar = (ArrayList<?>)t.get(contextInterface);
+        if (ar == null)
+            return false;
+
+        boolean result = false;
+        for (int i = ar.size()-1; i >= 0; i--) {
+            IContext context = (IContext)ar.get(i);
+            if (owner.contains(context)) {
+                result |= ar.remove(context);
+                owner.remove(context);
+            }
+        }
+        if (ar.isEmpty())
+            t.remove(contextInterface);
+        return result;
+    }
+
+    /**
+     * Method unregisters given context of given plug-in if the plug-in has
+     * a permission to do it. The permission is approved if and only if
+     * the context is implemented inside the requesting plug-in.
+     *
+     * @param pluginID ID of plug-in
      * @param context Context to unregister
      * @return true if the unregistration was successful, false otherwise
      */
-    public boolean unregisterContext(long pluginID, IContext context) {
+    public boolean unregister(long pluginID, IContext context) {
         // check if the context is class
         if (context.getClass().isInterface())
             return false;
 
+        // check for permission
+        ArrayList<IContext> owner = contextOwners.get(pluginID);
+        if (owner == null)
+            return false;
+        if (!owner.contains(context))
+            return false;
+
         boolean result = false;
 
-        Hashtable<String,?> t = cpuContexts.get(pluginID);
-        result = removeValue(t,context);
+        result = removeContext(cpuContexts,context);
+        result |= removeContext(memContexts,context);
+        result |= removeContext(deviceContexts,context);
+        result |= removeContext(compilerContexts,context);
 
-        t = memContexts.get(pluginID);
-        result |= removeValue(t,context);
+        if (result == true)
+            owner.remove(context);
+        return result;
+    }
 
-        t = deviceContexts.get(pluginID);
-        result |= removeValue(t,context);
+    /**
+     * This method unregisters all contexts that implements given interface,
+     * if the plug-in has permission for it. The permission is approved if and
+     * only if the contexts are implemented inside the plug-in.
+     * 
+     * @param pluginID ID of the plug-in
+     * @param contextInterface Interface that should be unregistered
+     * @return true if almost one context has been unregistered, false instead.
+     */
+    public boolean unregisterAll(long pluginID, Class<IContext> contextInterface) {
+        // check if the context is class
+        if (!contextInterface.getClass().isInterface())
+            return false;
 
-        t = compilerContexts.get(pluginID);
-        result |= removeValue(t,context);
+        // check for permission
+        ArrayList<IContext> owner = contextOwners.get(pluginID);
+        if (owner == null)
+            return false;
+
+        boolean result = false;
+
+        result = removeAllContexts(cpuContexts, contextInterface, owner);
+        result |= removeAllContexts(memContexts, contextInterface, owner);
+        result |= removeAllContexts(compilerContexts, contextInterface, owner);
+        result |= removeAllContexts(deviceContexts, contextInterface, owner);
 
         return result;
     }
@@ -301,10 +407,31 @@ public class Context {
     }
 
     /**
-     * Compute hash of a plug-in context. Use SHA-1 method.
+     * Assigns a hash to the emuStudioHash variable. This hash represents
+     * "password" by which the emuStudio is allowed to perform critical operations
+     * in the emuLib. The operations must be strictly proteted from plug-ins.
+     * They include e.g. providing information about plug-in connections.
+     *
+     * This method is called only once, by the emuStudio. After each next call,
+     * it does nothing and returns false.
+     *
+     * @param hash emuStudio hash string, the "password".
+     * @return true if the assignment was successfull (first call), false
+     *         otherwise.
+     */
+    public static boolean assignEmuStudioHash(String hash) {
+        if (emuStudioHash == null) {
+            emuStudioHash = hash;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Compute hash of a plug-in context interface. Uses SHA-1 method.
      *
      * @param inter  Interface to computer hash of
-     * @return SHA-1 hash
+     * @return SHA-1 hash string
      */
     private static String computeHash(Class<?> inter) {
         int i;
