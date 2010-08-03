@@ -60,24 +60,6 @@ public interface IDevice extends IPlugin {
      * should display information message. 
      */
     public void showGUI ();
-
-    /**
-     * Perform a connection of two devices. Male is a context of 
-     * another device (that want to be connected into this one).
-     * Method <strong>should carefully</strong> check if male can
-     * be connected to this device, by recognizing its context. This
-     * is the only way how to ensure correctness of the connection.
-     * 
-     * @param male    male-plug device context
-     * @return true if connection process was successful, false otherwise
-     */
-    public boolean attachDevice (IDeviceContext male);
-
-    /**
-     * Detach all devices from this device. This method is invoked by main module
-     * in application closing process.
-     */
-    public void detachAll ();
     
 }
 
