@@ -42,10 +42,19 @@ public interface ICompilerContext extends IContext {
     public static final int TYPE_INFO    = 3;
 
 
-    public void addCPUListener (ICompilerListener listener);
-    public void removeCPUListener (ICompilerListener listener);
+    public void addCompilerListener (ICompilerListener listener);
+    public void removeCompilerListener (ICompilerListener listener);
 
+    /**
+     * This is an interface that should be implemented by the emuStudio,
+     * and/or other plug-ins that want to process the output of the compiler.
+     */
     public interface ICompilerListener extends EventListener {
+        /**
+         * This method is called whenever a compiler begins to work.
+         *
+         * @param evt Event object
+         */
         public void onCompileStart (EventObject evt);
 
         /**
@@ -54,11 +63,11 @@ public interface ICompilerContext extends IContext {
          * character.
          *
          * @param evt The event object
-         * @param line
-         *        Line in the source code. When it is -1, then it should
-         *        NOT to be considered.
          * @param row
          *        Row in the source code. When it is -1, then it should
+         *        NOT to be considered.
+         * @param col
+         *        Column in the source code. When it is -1, then it should
          *        NOT to be considered.
          * @param message
          *        Message from the compiler
@@ -68,8 +77,16 @@ public interface ICompilerContext extends IContext {
          *        Type of the message. One of the TYPE_WARNING, TYPE_ERROR,
          *        or TYPE_INFO.
          */
-        public void onCompileInfo (EventObject evt, int line, int row,
+        public void onCompileInfo (EventObject evt, int row, int col,
                 String message, int errorCode, int messageType);
+
+        /**
+         * This method is called whenever the compiler finishes the compile
+         * job.
+         *
+         * @param evt Event object
+         * @param errorCode compiler-specific error code
+         */
         public void onCompileFinish (EventObject evt, int errorCode);
     }
 
