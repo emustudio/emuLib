@@ -23,7 +23,6 @@
 package plugins.compiler;
 
 import java.io.Reader; 
-import plugins.memory.IMemoryContext;
 import plugins.IPlugin; 
 
 /**
@@ -42,19 +41,6 @@ public interface ICompiler extends IPlugin {
      */
     public boolean compile (String fileName, Reader in);
     
-    /**
-     * Compile a file into output file and into an operating memory. Output file
-     * name the compiler should derive from input file name.
-     * @param fileName  name of input file (source code)
-     * @param in        <code>Reader</code> object of the document - source code.
-     * @param mem       memory context object - it is used if compiler compiles
-     *                  the source into memory. Compiler should check this
-     *                  parameter for <code>null</code>.
-     *                  
-     * @return true if compile was successful, false otherwise
-     */
-    public boolean compile (String fileName, Reader in, IMemoryContext mem);
-
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
      * syntax highlighting. In the compilation process the compiler should

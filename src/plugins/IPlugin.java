@@ -94,6 +94,12 @@ public interface IPlugin {
      * method invokes it.
      */
     public void showSettings ();
+    
+    /**
+     * Check whether settings GUI is supported by this plug-in.
+     * @return true if settings GUI is supported, false otherwise
+     */
+    public boolean isShowSettingsSupported();
 
 }
 

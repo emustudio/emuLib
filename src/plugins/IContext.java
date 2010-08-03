@@ -29,11 +29,11 @@ package plugins;
  * another plug-ins directly. If they are allowed to get the context, emuLib
  * returns the object (if it is found).
  *
- * Each plug-in can have one or more than one context, even implementing the
- * same interface. Plug-ins can extend standard context. Then they must give
- * speific name to it - "emustudio.context.CONTEXT_NAME", where CONTEXT_NAME
- * must start with a letter "C" following 40-byte long SHA-1 hash of all its
- * method names.
+ * Each plug-in can have none, one or more than one context, even implementing
+ * the same interface. Plug-ins can extend standard context. Then they must
+ * give speific name to it - "emustudio.context.CONTEXT_NAME", where
+ * CONTEXT_NAME must start with a letter "C" following 40-byte long SHA-1 hash
+ * of all its method names.
  *
  * Hash string is computed from names of all  methods. Hash is computed from
  * a string that consists of alphabetically sorted names of all context methods
@@ -52,7 +52,7 @@ package plugins;
  * Then the string has to be hashed by SHA-1 hash.
  * The hash is used for identifying the context by emuLib and the other plugins.
  *
- * @author Peter Jakubčo <pjakubco at gmail.com>
+ * @author Peter Jakubčo <pjakubco at gmail dot com>
  */
 public interface IContext {
 

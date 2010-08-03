@@ -123,9 +123,9 @@ public interface IMemoryContext extends IContext {
          * This method is invoked when memory event is occurred - when a single
          * cell is changed.
          * @param evt  event object
-         * @param adr  memory position (address) of changed cell
+         * @param location  memory position (address) of changed cell
          */
-        public void memChange (EventObject evt, int adr);
+        public void memChange (EventObject evt, int location);
 
     }
 
