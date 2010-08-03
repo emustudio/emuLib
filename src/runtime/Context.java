@@ -34,6 +34,7 @@ import plugins.compiler.ICompilerContext;
 import plugins.cpu.ICPUContext;
 import plugins.device.IDeviceContext;
 import plugins.memory.IMemoryContext;
+import runtime.interfaces.IConnections;
 
 /**
  * This class manages all contexts. Plug-ins should register their contexts
@@ -57,7 +58,9 @@ public class Context {
     // instance of this class
     private static Context instance = null;
 
+    // emuStudio communication
     private static String emuStudioHash = null;
+    private IConnections computer;
 
     /**
      * Private constructor.
@@ -72,6 +75,7 @@ public class Context {
                 ArrayList<IDeviceContext>>();
 
         contextOwners = new Hashtable<Long,ArrayList<IContext>>();
+        computer = null;
     }
 
     /**
@@ -330,80 +334,331 @@ public class Context {
     }
 
     /**
-     * Get registered CPU context of given plugin ID and context hash
+     * This method should be called by the emuStudio. If the password is
+     * not correct, it does nothing. It should be called after assignPassword()
+     * method.
      *
-     * @param pluginID Plug-in identification number
-     * @param hash Hash string of the plug-in
-     * @return ICPUContext object if it is found, null otherwise
+     * @param password
+     * @param computer
      */
-    public ICPUContext getCPUContext(long pluginID, String hash) {
-        Hashtable<String, ICPUContext> t = cpuContexts.get(pluginID);
-        if (t != null)
-            return t.get(hash);
-        return null;
+    public void assignComputer(String password, IConnections computer) {
+        if ((emuStudioHash == null) || (!emuStudioHash.equals(password)))
+            return;
+        this.computer = computer;
     }
 
     /**
-     * Get registered CPU context of given plugin ID and context hash
+     * Get registered CPU context, if plug-in has the permission to access it.
+     * The permission is approved, if the plug-in is connected to CPU in
+     * the abstract schema.
      *
-     * @param pluginID Plug-in identification number
-     * @param contextInterface Extended context interface
-     * @return ICPUContext object if it is found, null otherwise
+     * If CPU has more than one context implementing required context interface,
+     * the first one is returned. For specific context, use method
+     * getCPUContext(pluginID,contextInterface,contextID).
+     *
+     * @param pluginID plug-in requesting the CPU context
+     * @param contextInterface Interface of the context
+     * @return ICPUContext object if it is found and the plug-in has the
+     *         permission, null otherwise
      */
-    public ICPUContext getCPUContext(long pluginID, Class<?> contextInterface) {
-        Hashtable<String, ICPUContext> t = cpuContexts.get(pluginID);
-        if (t != null)
-            return t.get(hash);
-        return null;
+    public ICPUContext getCPUContext(long pluginID,
+            Class<IContext> contextInterface) {
+        // find the requested context
+        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext cpuContext = ar.get(0); // the first one
+
+        // check fot permission
+        if (!checkPermission(pluginID, cpuContext))
+            return null;
+        
+        return (ICPUContext)cpuContext;
     }
 
     /**
-     * Get registered compiler context of given plugin ID and context hash
+     * Get registered CPU context with the specific ID, if plug-in has the
+     * permission to access it. The permission is approved, if the plug-in
+     * is connected to CPU in the abstract schema.
      *
-     * @param pluginID Plug-in identification number
-     * @param hash Hash string of the plug-in
+     * This method should be used when requested CPU has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the CPU context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @return ICPUContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     */
+    public ICPUContext getCPUContext(long pluginID,
+            Class<ICPUContext> contextInterface, String contextID) {
+        // find the requested context
+        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find CPU context based on contextID
+        IContext cpuContext = null;
+        for (int i = 0; i < ar.size(); i++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                cpuContext = ar.get(i);
+                break;
+            }
+        }
+        if (cpuContext == null)
+            return null;
+
+        // check fot permission
+        if (!checkPermission(pluginID, cpuContext))
+            return null;
+
+        return (ICPUContext)cpuContext;
+    }
+
+    /**
+     * Get registered Compiler context.
+     *
+     * If the compiler has more than one context implementing required context
+     * interface, the first one is returned. For specific context, use method
+     * getCompilerContext(pluginID,contextInterface,contextID).
+     *
+     * @param pluginID plug-in requesting the Compiler context
+     * @param contextInterface Interface of the context
      * @return ICompilerContext object if it is found, null otherwise
      */
-    public ICompilerContext getCompilerContext(long pluginID, String hash) {
-        Hashtable<String, ICompilerContext> t = compilerContexts.get(pluginID);
-        if (t != null)
-            return t.get(hash);
-        return null;
+    public ICompilerContext getCompilerContext(long pluginID,
+            Class<IContext> contextInterface) {
+        // find owner of context implementing requested context interface
+        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext compilerContext = ar.get(0); // the first one
+
+        return (ICompilerContext)compilerContext;
     }
 
     /**
-     * Get registered memory context of given plugin ID and context hash
+     * Get registered Compiler context, with specific ID.
      *
-     * @param pluginID Plug-in identification number
-     * @param hash Hash string of the plug-in
-     * @return IMemoryContext object if it is found, null otherwise
+     * This method should be used when requested compiler has more than one
+     * context implementing the same interface.
+     * 
+     * @param pluginID plug-in requesting the Compiler context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @return ICompilerContext object if it is found, null otherwise
      */
-    public IMemoryContext getMemoryContext(long pluginID, String hash) {
-        Hashtable<String, IMemoryContext> t = memContexts.get(pluginID);
-        if (t != null)
-            return t.get(hash);
-        return null;
+    public ICompilerContext getCompilerContext(long pluginID,
+            Class<IContext> contextInterface, String contextID) {
+        // find owner of context implementing requested context interface
+        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find compiler context based on contextID
+        IContext compilerContext = null;
+        for (int i = 0; i < ar.size(); i++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                compilerContext = ar.get(i);
+                break;
+            }
+        }
+        return (ICompilerContext)compilerContext;
+    }
+
+
+    /**
+     * Get registered memory context, if plug-in has the permission to access it.
+     * The permission is approved, if the plug-in is connected to memory in
+     * the abstract schema.
+     *
+     * If the memory has more than one context implementing required context
+     * interface, the first one is returned. For specific context, use method
+     * getMemoryContext(pluginID,contextInterface,contextID).
+     *
+     * @param pluginID plug-in requesting the memory context
+     * @param contextInterface Interface of the context
+     * @return IMemoryContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     */
+    public IMemoryContext getMemoryContext(long pluginID,
+            Class<IContext> contextInterface) {
+        // find the requested context
+        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext memContext = ar.get(0); // the first one
+
+        // check fot permission
+        if (!checkPermission(pluginID, memContext))
+            return null;
+
+        return (IMemoryContext)memContext;
     }
 
     /**
-     * Get registered device context of given plugin ID and context hash
+     * Get registered memory context with the specific ID, if plug-in has the
+     * permission to access it. The permission is approved, if the plug-in
+     * is connected to memory in the abstract schema.
      *
-     * @param pluginID Plug-in identification number
-     * @param hash Hash string of the plug-in
-     * @return IDeviceContext object if it is found, null otherwise
+     * This method should be used when requested memory has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the memory context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @return IMemoryContext object if it is found and the plug-in has the
+     *         permission, null otherwise
      */
-    public IDeviceContext getDeviceContext(long pluginID, String hash) {
-        Hashtable<String, IDeviceContext> t = deviceContexts.get(pluginID);
-        if (t != null)
-            return t.get(hash);
-        return null;
+    public IMemoryContext getMemoryContext(long pluginID,
+            Class<ICPUContext> contextInterface, String contextID) {
+        // find the requested context
+        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find memory context based on contextID
+        IContext memContext = null;
+        for (int i = 0; i < ar.size(); i++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                memContext = ar.get(i);
+                break;
+            }
+        }
+        if (memContext == null)
+            return null;
+
+        // check fot permission
+        if (!checkPermission(pluginID, memContext))
+            return null;
+
+        return (IMemoryContext)memContext;
     }
 
+    /**
+     * Get registered device context, if plug-in has the permission to access it.
+     * The permission is approved, if the plug-in is connected to device in
+     * the abstract schema.
+     *
+     * If the device has more than one context implementing required context
+     * interface, the first one is returned. For specific context, use method
+     * getDeviceContext(pluginID,contextInterface,contextID).
+     *
+     * @param pluginID plug-in requesting the device context
+     * @param contextInterface Interface of the context
+     * @return IDeviceContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     */
+    public IDeviceContext getDeviceContext(long pluginID,
+            Class<IContext> contextInterface) {
+        // find the requested context
+        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext deviceContext = ar.get(0); // the first one
+
+        // check fot permission
+        if (!checkPermission(pluginID, deviceContext))
+            return null;
+
+        return (IDeviceContext)deviceContext;
+    }
+
+    /**
+     * Get registered device context with the specific ID, if plug-in has the
+     * permission to access it. The permission is approved, if the plug-in
+     * is connected to device in the abstract schema.
+     *
+     * This method should be used when requested device has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the device context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @return IDeviceContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     */
+    public IDeviceContext getDeviceContext(long pluginID,
+            Class<ICPUContext> contextInterface, String contextID) {
+        // find the requested context
+        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find device context based on contextID
+        IContext deviceContext = null;
+        for (int i = 0; i < ar.size(); i++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                deviceContext = ar.get(i);
+                break;
+            }
+        }
+        if (deviceContext == null)
+            return null;
+
+        // check fot permission
+        if (!checkPermission(pluginID, deviceContext))
+            return null;
+
+        return (IDeviceContext)deviceContext;
+    }
+
+    /**
+     * This method checks if the hash of the contextInterface equals given
+     * hash string. The contextInterface hash is computed.
+     *
+     * @param contextInterface context interface for checking its hash
+     * @param hash comparison hash
+     * @return true if the hashes match in case-isensitive manner,
+     *         false otherwise
+     */
     private static boolean checkHash(Class<?> contextInterface, String hash) {
         String computedHash = computeHash(contextInterface);
         if (computedHash == null)
             return false;
         return (computedHash.equals(hash.toUpperCase())) ? true : false;
+    }
+
+    /**
+     * This method check the plug-in for the permission to access specified
+     * context.
+     *
+     * The permission is granted if and only if context owner is connected
+     * with the requesting plug-in in the abstract schema.
+     *
+     * @param pluginID ID of requesting plug-in
+     * @param context Context wanted
+     * @return true if the plug-in is approved to access the context, false
+     *         otherwise
+     */
+    private boolean checkPermission(long pluginID, IContext context) {
+        // check if it is possible to check the plug-in for the permission
+        if (computer == null)
+            return false;
+
+        // first it must be found the owner of the memContext.
+        Long owner = null;
+        Enumeration<Long> t = contextOwners.keys();
+        while (t.hasMoreElements()) {
+            long pID = t.nextElement();
+            ArrayList<IContext> con = contextOwners.get(pID);
+            if (con == null)
+                continue;
+            if (con.equals(context)) {
+                owner = pID;
+                break;
+            }
+        }
+        // contex was not found in owners? This would be emuLib BUG!!
+        if (owner == null)
+            return false;
+
+        // THIS is the permission check
+        return computer.isConnected(pluginID, owner);
     }
 
     /**
@@ -415,13 +670,13 @@ public class Context {
      * This method is called only once, by the emuStudio. After each next call,
      * it does nothing and returns false.
      *
-     * @param hash emuStudio hash string, the "password".
+     * @param password emuStudio hash string, the "password".
      * @return true if the assignment was successfull (first call), false
      *         otherwise.
      */
-    public static boolean assignEmuStudioHash(String hash) {
+    public static boolean assignPassword(String password) {
         if (emuStudioHash == null) {
-            emuStudioHash = hash;
+            emuStudioHash = password;
             return true;
         }
         return false;
@@ -471,6 +726,14 @@ public class Context {
         return buf.toString();
     }
 
+    /**
+     * Compute MD5 hash string. Letters in the hash string are in upper-case.
+     *
+     * @param text Data to make hash from
+     * @return MD5 hash Hexadecimal string
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
+     */
     public static String MD5(String text) throws NoSuchAlgorithmException,
             UnsupportedEncodingException {
         MessageDigest md;
@@ -481,6 +744,14 @@ public class Context {
         return convertToHex(md5hash);
     }
 
+    /**
+     * Compute SHA-1 hash string. Letters in the hash string are in upper-case.
+     *
+     * @param text Data to make hash from
+     * @return SHA-1 hash Hexadecimal string
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
+     */
     public static String SHA1(String text) throws NoSuchAlgorithmException,
             UnsupportedEncodingException  {
         MessageDigest md;

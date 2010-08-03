@@ -5,12 +5,10 @@
 
 package runtime;
 
-import java.lang.reflect.Type;
 import plugins.cpu.ICPUContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -40,8 +38,8 @@ public class ContextTest {
         }
 
         @Override
-        public String getHash() {
-            throw new UnsupportedOperationException("Not supported yet.");
+        public String getID() {
+            return null;
         }
 
     }
