@@ -33,7 +33,7 @@ import plugins.ISettingsHandler;
  *
  * @author vbmacher
  */
-public abstract class CPUAbstract implements ICPU, Runnable {
+public abstract class SimpleCPU implements ICPU, Runnable {
     /**
      * breakpoints list
      */
@@ -63,7 +63,7 @@ public abstract class CPUAbstract implements ICPU, Runnable {
     /**
      * Public constructor initializes run state and some variables.
      */
-    public CPUAbstract() {
+    public SimpleCPU() {
         cpuThread = null;
         run_state = ICPU.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
@@ -94,12 +94,24 @@ public abstract class CPUAbstract implements ICPU, Runnable {
         return true;
     }
 
+    /**
+     * Set breakpoint on given memory location
+     * .
+     * @param pos memory location
+     * @param set true for set, false for unset
+     */
     @Override
     public void setBreakpoint(int pos, boolean set) {
         if (set) breaks.add(pos);
         else breaks.remove(pos);
     }
 
+    /**
+     * Get breakpoint on specified memory location
+     *
+     * @param pos memory location
+     * @return true if breakpoint is set, false otherwise
+     */
     @Override
     public boolean getBreakpoint(int pos) {
         return breaks.contains(pos);
@@ -124,42 +136,6 @@ public abstract class CPUAbstract implements ICPU, Runnable {
 
         cpuThread = new Thread(this, getTitle());
         cpuThread.start();
-    }
-
-    /**
-     * Implements pause operation - only change the run state to
-     * STATE_STOPPED_BREAK. The implementation should be finished in
-     * the final CPU class.
-     *
-     * Don't forget to call context.fireCpuRun() method.
-     */
-    @Override
-    public void pause() {
-        run_state = ICPU.STATE_STOPPED_BREAK;
-    }
-
-    /**
-     * Implements stop operation - only change the run state to
-     * STATE_STOPPED_NORMAL. The implementation should be finished in
-     * the final CPU class.
-     *
-     * Don't forget to call context.fireCpuRun() method.
-     */
-    @Override
-    public void stop() {
-        run_state = ICPU.STATE_STOPPED_NORMAL;
-    }
-
-    /**
-     * Implements destroy operation - only change the run state to
-     * STATE_STOPPED_NORMAL. The implementation should be finished in
-     * the final CPU class.
-     *
-     * Don't forget to call context.fireCpuRun() method.
-     */
-    @Override
-    public void destroy() {
-        run_state = ICPU.STATE_STOPPED_NORMAL;
     }
 
 }

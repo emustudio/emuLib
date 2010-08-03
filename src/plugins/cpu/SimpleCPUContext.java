@@ -33,7 +33,7 @@ import javax.swing.event.EventListenerList;
  *
  * @author vbmacher
  */
-public abstract class CPUContextAbstract implements ICPUContext {
+public abstract class SimpleCPUContext implements ICPUContext {
     /**
      * List of all CPU listeners
      */
@@ -44,11 +44,24 @@ public abstract class CPUContextAbstract implements ICPUContext {
      */
     private EventObject cpuEvt;
 
+    /**
+     * Add new CPU listener to the list of listeners. CPU listener is an
+     * implementation object of ICPUListener interface. The methods are
+     * called when some events are occured on CPU.
+     *
+     * @param listener ICPUListener object
+     */
     @Override
     public void addCPUListener(ICPUListener listener) {
         listenerList.add(ICPUListener.class, listener);
     }
 
+    /**
+     * Remove CPU listener object from the list of listeners. If the listener
+     * is not included in the list, nothing will be done.
+     *
+     * @param listener ICPUListener object
+     */
     @Override
     public void removeCPUListener(ICPUListener listener) {
         listenerList.remove(ICPUListener.class, listener);
