@@ -22,9 +22,7 @@
 package plugins.cpu;
 
 import javax.swing.JPanel; 
-import plugins.memory.IMemoryContext;
 import plugins.IPlugin; 
-import plugins.ISettingsHandler; 
 
 /**
  * Interface that covers CPU. This is the main interface that CPU plugin
@@ -59,23 +57,6 @@ public interface ICPU extends IPlugin {
      * CPU is running.
      */
     public static final int STATE_RUNNING              = 5;
-
-    /**
-     * Perform initialization of CPU. This method is called after compiler
-     * successful initialization. Initialization process of CPU can be
-     * various, e.g. check for memory type, retrieve some settings from
-     * configuration file, etc.
-     * @param mem       memory context that this CPU should use. If CPU and memory
-     *                  aren't connected in abstract scheme, this will be
-     *                  <code>null</code>. Plugin should therefore check this
-     *                  variable and in the case of null memory and if CPU can't
-     *                  work without memory, plugin should display error message
-     *                  and then return false.
-     * @param sHandler  settings handler object. CPU can use this for
-     *                  accessing/storing/removing its settings.
-     * @return true if initialization was successful, false otherwise
-     */
-    public boolean initialize (IMemoryContext mem, ISettingsHandler sHandler);
 
     /**
      * Perform one step of CPU emulation. It means that one instruction should

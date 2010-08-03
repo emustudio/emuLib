@@ -69,6 +69,19 @@ public interface IPlugin {
     public String getVersion ();
 
     /**
+     * Perform initialization process of this plug-in. It is called by the main
+     * module.
+     *
+     * @param pluginID Identification number assigned to this plug-in. The
+     *                 plug-in should keep this ID for future usage within the
+     *                 communication with the emuLib.
+     * @param sHandler  settings handler object. Device can use this for
+     *                  accessing/storing/removing its settings.
+     * @return true if initialization process was successful
+     */
+    public boolean initialize (long pluginID, ISettingsHandler sHandler);
+
+    /**
      * This method is called immediately after user closes the emulator. It means,
      * that after return from this method instance of the plugin will be destroyed.
      * It should contain some clean-up or destroy code for GUIs, stop timers,
@@ -77,18 +90,10 @@ public interface IPlugin {
     public void destroy ();
     
     /**
-     * Every plugin should have its own GUI for settings manipulation. This 
+     * Each plug-in can own a GUI for settings manipulation. This
      * method invokes it.
      */
     public void showSettings ();
 
-    /**
-     * The "hash" will be assigned to a plugin in their run-time, at once by its
-     * constructor. The plugins will identify themselves using given hash.
-     * 
-     * @return hash that was assigned to the plugin
-     */
-    public long getHash ();
-    
 }
 

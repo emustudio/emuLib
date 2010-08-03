@@ -22,7 +22,6 @@
 package plugins.memory;
 
 import plugins.IPlugin; 
-import plugins.ISettingsHandler; 
 
 /**
  * This is the main interface that memory plugin should implement.
@@ -30,22 +29,11 @@ import plugins.ISettingsHandler;
 public interface IMemory extends IPlugin {
 
     /**
-     * Show GUI of a memory. Every memory plugin should have a GUI, but
-     * it is not a duty.
+     * Show GUI of a memory. Each memory plugin should have a GUI, but
+     * it is not necessary. In that case, it should print the message
+     * "GUI" not supported.
      */
     public void showGUI ();
-
-    /**
-     * Perform initialization process of memory. The memory should physically
-     * create the memory - e.g. as an array or something similar. Memory can't
-     * use CPU nor devices. It is accessed BY them.
-     * @param size      size of the memory, set in architecture configuration
-     * @param sHandler  settings handler object. Memory can use this for
-     *                  accessing/storing/removing its settings.
-     *
-     * @return true if initialization process was successful, false otherwise
-     */
-    public boolean initialize (int size, ISettingsHandler sHandler);
 
     /**
      * Sets program start address. This method is called by main module when
@@ -54,9 +42,9 @@ public interface IMemory extends IPlugin {
      * operation - PC (program counter, or something similar) should be set
      * to this address, accessible via <code>IMemoryContext.getProgramStart()</code>
      * method.
-     * @param address  starting memory position (address) of a program
+     * @param location  starting memory position (address) of a program
      */
-    public void setProgramStart (int address);
+    public void setProgramStart (int location);
 
     /**
      * Gets size of memory. If memory uses some techniques as banking, real

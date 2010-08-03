@@ -22,38 +22,16 @@
 package plugins.device;
 
 import plugins.IPlugin; 
-import plugins.memory.IMemoryContext; 
-import plugins.ISettingsHandler; 
-import plugins.cpu.ICPUContext; 
 
 /**
  * Main interface that has to be implemented by device plugin.
-
- * Design of the interface supports hierarchical connection of devices. Devices
- * identifies each other by context methods <code>getID()</code>,
- * and <code>getHash()</code>. The connection request can be accepted or 
- * rejected if attaching device is/isn't supported. Devices that don't support
- * any connection hierarchy, invoking their <code>attachDevice()</code> method,
- * always return <code>true</code>.
+ *
+ * Design of the interface supports hierarchical connection of devices. Each
+ * device can implement one or more device contexts. The contexts can be
+ * identified by implemented interface, and/or the identification number (ID).
+ * 
  */
 public interface IDevice extends IPlugin {
-
-    /**
-     * Perform initialization process of this device. It is called by main module
-     * after successful initialization of compiler, CPU and memory. Device should
-     * initialize itself besides other things also in a way of checking supported
-     * CPU and memory.
-     * @param cpu       context of a CPU. Device should check this for extended
-     *                  context. Will be <code>null</code> if a device is not
-     *                  connected to CPU.
-     * @param mem       context of a memory. Device should check this for 
-     *                  extended context. Will be <code>null</code> if a device
-     *                  is not connected to memory.
-     * @param sHandler  settings handler object. Device can use this for
-     *                  accessing/storing/removing its settings.
-     * @return true if initialization process was successful
-     */
-    public boolean initialize (ICPUContext cpu, IMemoryContext mem, ISettingsHandler sHandler);
 
     /**
      * Shows GUI of a device. Device don't have to have a GUI, but instead it

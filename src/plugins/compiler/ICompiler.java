@@ -25,27 +25,12 @@ package plugins.compiler;
 import java.io.Reader; 
 import plugins.memory.IMemoryContext;
 import plugins.IPlugin; 
-import plugins.ISettingsHandler; 
 
 /**
  * This interface is the core for compiler plugin types. These plugins
  * should implement this interface once and only once.
  */
 public interface ICompiler extends IPlugin {
-
-    /**
-     * Perform initialization process of a compiler. This method is called
-     * immediately after plugins are loaded into memory.
-     * @param sHandler settings handler object. Compiler can use this for
-     *                 accessing/storing/removing its settings.
-     * @param reporter  object for reporting messages (warnings, errors, ...). 
-     *                  This object is implemented in main module and is connected
-     *                  to text area in panel "source code" in the main module.
-     *                  Plugin should use this.
-     *
-     * @return true if initialization was successful, false otherwise 
-     */
-    public boolean initialize (ISettingsHandler sHandler, IMessageReporter reporter);
 
     /**
      * Compile a file into output file. Output file name the compiler should 
@@ -72,9 +57,9 @@ public interface ICompiler extends IPlugin {
 
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
-     * syntax highlighting and of course in compile process by the compiler.
-     * For every call it should return new object (instance).
-     * 
+     * syntax highlighting. In the compilation process the compiler should
+     * use own, independent lexical analyzer.
+     *
      * @param in  <code>Reader</code> object of the document - source code.
      * @return lexical analyzer object
      */
