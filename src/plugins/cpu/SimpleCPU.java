@@ -73,6 +73,8 @@ public abstract class SimpleCPU implements ICPU, Runnable {
     public SimpleCPU() {
         run_state = ICPU.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
+        listenerList = new EventListenerList();
+        cpuEvt = new EventObject(this);
     }
 
     /**

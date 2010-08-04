@@ -23,6 +23,8 @@
 package plugins.compiler;
 
 import java.io.Reader; 
+import java.util.EventListener;
+import java.util.EventObject;
 import plugins.IPlugin; 
 
 /**
@@ -30,6 +32,79 @@ import plugins.IPlugin;
  * should implement this interface once and only once.
  */
 public interface ICompiler extends IPlugin {
+    /**
+     * The message passed from compiler is a warning.
+     */
+    public static final int TYPE_WARNING = 1;
+    /**
+     * The message passed from compiler is an error.
+     */
+    public static final int TYPE_ERROR   = 2;
+    /**
+     * The message passed from compiler is an information.
+     */
+    public static final int TYPE_INFO    = 3;
+
+    /**
+     * Adds ICompilerListener object into list of listeners.
+     * If some event is occured in the compiler, listeners methods will be
+     * called.
+     *
+     * @param listener ICompilerListener object
+     */
+    public void addCompilerListener (ICompilerListener listener);
+
+    /**
+     * Removes ICompilerListener object from the listeners list.
+     *
+     * @param listener ICompilerListener object
+     */
+    public void removeCompilerListener (ICompilerListener listener);
+
+    /**
+     * This is an interface that should be implemented by the emuStudio,
+     * and/or other plug-ins that want to process the output of the compiler.
+     */
+    public interface ICompilerListener extends EventListener {
+        /**
+         * This method is called whenever a compiler begins to work.
+         *
+         * @param evt Event object
+         */
+        public void onCompileStart (EventObject evt);
+
+        /**
+         * Method will fire when compiler wants to print something on screen.
+         * The message is usually error report, but can have information
+         * character.
+         *
+         * @param evt The event object
+         * @param row
+         *        Row in the source code. When it is -1, then it should
+         *        NOT to be considered.
+         * @param col
+         *        Column in the source code. When it is -1, then it should
+         *        NOT to be considered.
+         * @param message
+         *        Message from the compiler
+         * @param errorCode
+         *        Error code (when it is an error report)
+         * @param messageType
+         *        Type of the message. One of the TYPE_WARNING, TYPE_ERROR,
+         *        or TYPE_INFO.
+         */
+        public void onCompileInfo (EventObject evt, int row, int col,
+                String message, int errorCode, int messageType);
+
+        /**
+         * This method is called whenever the compiler finishes the compile
+         * job.
+         *
+         * @param evt Event object
+         * @param errorCode compiler-specific error code
+         */
+        public void onCompileFinish (EventObject evt, int errorCode);
+    }
 
     /**
      * Compile a file into output file. Output file name the compiler should 
