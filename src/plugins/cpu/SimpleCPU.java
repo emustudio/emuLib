@@ -22,7 +22,9 @@
 
 package plugins.cpu;
 
+import java.util.EventObject;
 import java.util.HashSet;
+import javax.swing.event.EventListenerList;
 import plugins.ISettingsHandler;
 
 /**
@@ -35,15 +37,20 @@ import plugins.ISettingsHandler;
  */
 public abstract class SimpleCPU implements ICPU, Runnable {
     /**
+     * List of all CPU listeners
+     */
+    protected EventListenerList listenerList;
+
+    /**
+     * Event object
+     */
+    private EventObject cpuEvt;
+
+    /**
      * breakpoints list
      */
     protected HashSet<Integer> breaks;
 
-    /**
-     * thread for the processor execution
-     */
-    protected Thread cpuThread;
-    
     /**
      * ID of this plug-in assigned by emuStudio.
      */
@@ -64,7 +71,6 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      * Public constructor initializes run state and some variables.
      */
     public SimpleCPU() {
-        cpuThread = null;
         run_state = ICPU.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
     }
@@ -124,18 +130,53 @@ public abstract class SimpleCPU implements ICPU, Runnable {
     public void reset() { reset(0); }
 
     /**
-     * Creates and executes the cpuThread thread. The CPU sets itself to
-     * the running state. In the thread, don't forget to call context.fireCpuRun
-     * method.
+     * Add new CPU listener to the list of listeners. CPU listener is an
+     * implementation object of ICPUListener interface. The methods are
+     * called when some events are occured on CPU.
      *
-     * This method also changes the run_state variable to STATE_RUNNING.
+     * @param listener ICPUListener object
      */
     @Override
-    public void execute() {
-        run_state = ICPU.STATE_RUNNING;
+    public void addCPUListener(ICPUListener listener) {
+        listenerList.add(ICPUListener.class, listener);
+    }
 
-        cpuThread = new Thread(this, getTitle());
-        cpuThread.start();
+    /**
+     * Remove CPU listener object from the list of listeners. If the listener
+     * is not included in the list, nothing will be done.
+     *
+     * @param listener ICPUListener object
+     */
+    @Override
+    public void removeCPUListener(ICPUListener listener) {
+        listenerList.remove(ICPUListener.class, listener);
+    }
+
+    /**
+     * This method fires up all listeners (runChanged method). It should be
+     * called by the CPU when it changes the run state.
+     *
+     * @param run_state  new processor state
+     */
+    public void fireCpuRun(int run_state) {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i=0; i<listeners.length; i+=2) {
+            if (listeners[i] == ICPUListener.class)
+                ((ICPUListener)listeners[i+1]).runChanged(cpuEvt, run_state);
+        }
+    }
+
+    /**
+     * This method should be called by the CPU, when it changes internal state,
+     * like register values or flags change. It then fires up all the listeners
+     * (stateUpdated method).
+     */
+    public void fireCpuState() {
+        Object[] listeners = listenerList.getListenerList();
+        for (int i=0; i<listeners.length; i+=2) {
+            if (listeners[i] == ICPUListener.class)
+                ((ICPUListener)listeners[i+1]).stateUpdated(cpuEvt);
+        }
     }
 
 }

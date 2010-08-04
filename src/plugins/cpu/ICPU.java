@@ -21,6 +21,8 @@
  */
 package plugins.cpu;
 
+import java.util.EventListener;
+import java.util.EventObject;
 import javax.swing.JPanel; 
 import plugins.IPlugin; 
 
@@ -59,6 +61,57 @@ public interface ICPU extends IPlugin {
     public static final int STATE_RUNNING              = 5;
 
     /**
+     * Adds the specified CPU listener to receive CPU events from this CPU.
+     * CPU events occur when CPU changes its state, or run state. CPU state
+     * events don't occur if CPU is running, only happens with run state changes.
+     * If listener is <code>null</code>, no exception is thrown and no action is
+     * performed.
+     * @param listener  the CPU listener
+     */
+    public void addCPUListener (ICPUListener listener);
+
+    /**
+     * Removes the specified CPU listener so that it no longer receives CPU
+     * events from this CPU. CPU events occur when CPU changes its state, or run
+     * state. CPU state events don't occur if CPU is running, only happens with
+     * run state changes. If listener is <code>null</code>, no exception is
+     * thrown and no action is performed.
+     * @param listener  the CPU listener to be removed
+     */
+    public void removeCPUListener (ICPUListener listener);
+
+    /**
+     * The listener interface for receiving CPU events. The class that is
+     * interested in processing a CPU event implements this interface, and the
+     * object created with that class is registered with a CPU, using the CPU's
+     * addCPUListener method.
+     * When the CPU event occurs, that:
+     * <ul>
+     *     <li>if the event is CPU's state change, then object's <code>stateUpdated()</code>
+     *         method is invoked.</li>
+     *     <li>if the event is CPU's run state change, then object's <code>runChanged()</code>
+     *         method is invoked.</li>
+     * </ul>
+     */
+    public interface ICPUListener extends EventListener {
+
+        /**
+         * Invoked when an CPU's run state changes.
+         * @param evt       event object
+         * @param runState  new run state of the CPU
+         */
+        public void runChanged (EventObject evt, int runState);
+
+        /**
+         * Invoked when an CPU's state changes. The state can be register change,
+         * flags change, or other CPU's internal state change.
+         * @param evt  event object
+         */
+        public void stateUpdated (EventObject evt);
+
+    }
+
+    /**
      * Perform one step of CPU emulation. It means that one instruction should
      * be executed. CPU state changes to state "running", then it executes one
      * instruction, and then it should return to state "breakpoint" or "stopped".
@@ -68,18 +121,16 @@ public interface ICPU extends IPlugin {
 
     /**
      * Runs CPU emulation. Change state of CPU to "running" and start
-     * instruction fetch/decode/execute loop. Best for this purpose is to create
-     * a separate thread that runs permanently and protect emulator from "freeze",
-     * the cause of started instruction execution loop. It should be possible
-     * to control the thread in future by other methods: <code>pause()</code>
-     * and <code>stop()</code>. Therefore after CPU's run the execution should
-     * return from this method. It can be assumed that while CPU is in run state,
-     * main module won't allow to call method <code>step()</code>.
+     * instruction fetch/decode/execute loop.
+     *
+     * The emuStudio creates separate thread for this purpose.
+     *
+     * While CPU is running, the emuStudio will not allow to call method
+     * <code>step()</code>.
      * 
-     * In CPU run state (a good CPU) performs right timing for instructions.
-     * Debug window isn't updated after execution of each instruction, so
-     * execution loop should be faster as it is by calling <code>step</code>
-     * method.
+     * A good CPU should performs right timing for instructions here.
+     * Debug window should not be updated after each instruction execution,
+     * in order to the execution loop would be faster.
      */
     public void execute ();
 
