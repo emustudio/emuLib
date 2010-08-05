@@ -24,6 +24,7 @@ package plugins.memory;
 
 import java.util.EventObject;
 import javax.swing.event.EventListenerList;
+import plugins.memory.IMemory.IMemListener;
 
 /**
  * This class implements some fundamental functionality of IMemoryContext

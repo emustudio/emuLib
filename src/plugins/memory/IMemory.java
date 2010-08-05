@@ -21,6 +21,8 @@
  */
 package plugins.memory;
 
+import java.util.EventListener;
+import java.util.EventObject;
 import plugins.IPlugin; 
 
 /**
@@ -65,5 +67,41 @@ public interface IMemory extends IPlugin {
      */
     public int getProgramStart ();
 
+    /**
+     * Adds the specified memory listener to receive memory events from this memory.
+     * Memory events occur even if single cell is changed in memory.
+     * If listener is <code>null</code>, no exception is thrown and no action is
+     * performed.
+     * @param listener  the memory listener
+     */
+    public void addMemoryListener (IMemListener listener);
+
+    /**
+     * Removes the specified memory listener so that it no longer receives memory
+     * events from this memory. Memory events occur even if single cell is
+     * changed in memory. If listener is <code>null</code>, no exception is
+     * thrown and no action is performed.
+     * @param listener  the memory listener to be removed
+     */
+    public void removeMemoryListener (IMemListener listener);
+
+    /**
+     * The listener interface for receiving memory events. The class that is
+     * interested in processing a memory event implements this interface, and the
+     * object created with that class is registered with a memory, using the
+     * memory's <code>addMemoryListener</code> method. Memory events occur even
+     * if single cell is changed in memory and then is invoked
+     * <code>memChange</code> method.
+     */
+    public interface IMemListener extends EventListener {
+        /**
+         * This method is invoked when memory event is occurred - when a single
+         * cell is changed.
+         * @param evt  event object
+         * @param location  memory position (address) of changed cell
+         */
+        public void memChange (EventObject evt, int location);
+
+    }
 }
 

@@ -734,14 +734,17 @@ public class Context {
      * @throws NoSuchAlgorithmException
      * @throws UnsupportedEncodingException
      */
-    public static String MD5(String text) throws NoSuchAlgorithmException,
-            UnsupportedEncodingException {
-        MessageDigest md;
-        md = MessageDigest.getInstance("MD5");
-        byte[] md5hash = new byte[32];
-        md.update(text.getBytes("iso-8859-1"), 0, text.length());
-        md5hash = md.digest();
-        return convertToHex(md5hash);
+    public static String MD5(String text) {
+        try {
+            MessageDigest md;
+            md = MessageDigest.getInstance("MD5");
+            byte[] md5hash = new byte[32];
+            md.update(text.getBytes("iso-8859-1"), 0, text.length());
+            md5hash = md.digest();
+            return convertToHex(md5hash);
+        }  catch (NoSuchAlgorithmException e) {}
+        catch (UnsupportedEncodingException r) {}
+        return null;
     }
 
     /**
@@ -752,14 +755,17 @@ public class Context {
      * @throws NoSuchAlgorithmException
      * @throws UnsupportedEncodingException
      */
-    public static String SHA1(String text) throws NoSuchAlgorithmException,
-            UnsupportedEncodingException  {
-        MessageDigest md;
-        md = MessageDigest.getInstance("SHA-1");
-        byte[] sha1hash = new byte[40];
-        md.update(text.getBytes("iso-8859-1"), 0, text.length());
-        sha1hash = md.digest();
-        return convertToHex(sha1hash);
+    public static String SHA1(String text) {
+        try {
+            MessageDigest md;
+            md = MessageDigest.getInstance("SHA-1");
+            byte[] sha1hash = new byte[40];
+            md.update(text.getBytes("iso-8859-1"), 0, text.length());
+            sha1hash = md.digest();
+            return convertToHex(sha1hash);
+        } catch (NoSuchAlgorithmException e) {}
+        catch (UnsupportedEncodingException r) {}
+        return null;
     }
 
 }

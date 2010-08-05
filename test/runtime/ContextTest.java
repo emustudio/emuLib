@@ -28,16 +28,6 @@ public class ContextTest {
         }
 
         @Override
-        public void addCPUListener(ICPUListener listener) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
-        public void removeCPUListener(ICPUListener listener) {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
-
-        @Override
         public String getID() {
             return null;
         }

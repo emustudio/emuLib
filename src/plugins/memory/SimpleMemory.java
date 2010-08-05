@@ -46,7 +46,7 @@ public abstract class SimpleMemory implements IMemory {
      * Settings manipulation object
      */
     protected ISettingsHandler settings;
-
+    
     /**
      * This method does a semi-initialization of the memory. It loads
      * variables: pluginID and ISettingsHandler object.

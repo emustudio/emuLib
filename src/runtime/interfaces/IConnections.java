@@ -34,6 +34,7 @@ public interface IConnections {
     public static final int TYPE_COMPILER = 1;
     public static final int TYPE_MEMORY = 2;
     public static final int TYPE_DEVICE = 3;
+    public static final int TYPE_UNKNOWN = 4;
 
     /**
      * Get type of given plug-in.
@@ -46,11 +47,17 @@ public interface IConnections {
 
     /**
      * Check if two plug-ins are connected within the abstract schema.
-     * 
+     *
+     * If it is said that "plugin1 is connected to plugin2", it means that
+     * the plugin1 should know plugin2, but this is not holding for the opposite
+     * direction.
+     *
+     * This method checks, if pluginID is connected to toPluginID.
+     *
      * @param pluginID
-     * @param withPluginID
-     * @return
+     * @param toPluginID
+     * @return true if pluginID is connected to withPluginID.
      */
-    public boolean isConnected(long pluginID, long withPluginID);
+    public boolean isConnected(long pluginID, long toPluginID);
 
 }
