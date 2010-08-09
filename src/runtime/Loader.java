@@ -117,6 +117,8 @@ public class Loader extends ClassLoader {
         }
 
         @Override
+        public void checkDelete(String file) {}
+        @Override
         public void checkRead(FileDescriptor fd) {}
         @Override
         public void checkRead(String file) {}
