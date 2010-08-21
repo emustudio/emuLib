@@ -31,13 +31,6 @@ import plugins.IPlugin;
 public interface IMemory extends IPlugin {
 
     /**
-     * Show GUI of a memory. Each memory plugin should have a GUI, but
-     * it is not necessary. In that case, it should print the message
-     * "GUI" not supported.
-     */
-    public void showGUI ();
-
-    /**
      * Sets program start address. This method is called by main module when
      * compiler finishes compilation process and return known start address of
      * compiled program. This start address is then used by CPU, in reset

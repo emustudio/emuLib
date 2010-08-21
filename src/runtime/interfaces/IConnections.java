@@ -30,10 +30,29 @@ package runtime.interfaces;
  */
 public interface IConnections {
 
+    /**
+     * The CPU plug-in type constant.
+     */
     public static final int TYPE_CPU = 0;
+
+    /**
+     * The Compiler plug-in type constant.
+     */
     public static final int TYPE_COMPILER = 1;
+
+    /**
+     * The Memory plug-in type constant.
+     */
     public static final int TYPE_MEMORY = 2;
+
+    /**
+     * The Device plug-in type constant.
+     */
     public static final int TYPE_DEVICE = 3;
+
+    /**
+     * The Unknown plug-in type constant.
+     */
     public static final int TYPE_UNKNOWN = 4;
 
     /**
@@ -49,8 +68,14 @@ public interface IConnections {
      * Check if two plug-ins are connected within the abstract schema.
      *
      * If it is said that "plugin1 is connected to plugin2", it means that
-     * the plugin1 should know plugin2, but this is not holding for the opposite
-     * direction.
+     * the plugin1 should know plugin2, or that the plugin1 can ask or bother
+     * the plugin2. But this is not available in the opposite direction
+     * (plugin2 can not directly call plugin1).
+     *
+     * If the bidirectional connections wants to be checked, there must be
+     * two calls made - first <code>isConnected(plugin1,plugin2)</code> and
+     * then <code>isConnected(plugin2,plugin1)</code>. Both calls must return
+     * true for the bidirectional connection.
      *
      * This method checks, if pluginID is connected to toPluginID.
      *

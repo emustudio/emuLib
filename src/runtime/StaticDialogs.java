@@ -157,11 +157,12 @@ public class StaticDialogs {
      * Show dialog and asks user for Double input.
      * @param message message to show
      * @param title title of the message
-     * @initial initial value
+     * @param initial initial value
      * @return null if user inserts bad value
      *         double input otherwise
      */
-    public static Double inputDoubleValue(String message, String title, double initial) {
+    public static Double inputDoubleValue(String message, String title,
+            double initial) {
         try {
             String s = (String)JOptionPane.showInputDialog(null, message, title,
                 JOptionPane.QUESTION_MESSAGE, null, null, initial);

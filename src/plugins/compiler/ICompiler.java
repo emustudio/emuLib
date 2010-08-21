@@ -81,10 +81,10 @@ public interface ICompiler extends IPlugin {
          * @param evt The event object
          * @param row
          *        Row in the source code. When it is -1, then it should
-         *        NOT to be considered.
+         *        be IGNORED.
          * @param col
          *        Column in the source code. When it is -1, then it should
-         *        NOT to be considered.
+         *        be IGNORED.
          * @param message
          *        Message from the compiler
          * @param errorCode

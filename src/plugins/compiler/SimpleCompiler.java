@@ -66,9 +66,10 @@ public abstract class SimpleCompiler implements ICompiler {
      * Public constructor initializes listeners list and event object for
      * event passing.
      */
-    public SimpleCompiler() {
+    public SimpleCompiler(Long pluginID) {
         changeEvent = new EventObject(this);
         listeners = new EventListenerList();
+        this.pluginID = pluginID;
     }
 
     /**
@@ -77,14 +78,12 @@ public abstract class SimpleCompiler implements ICompiler {
      *
      * It should be overriden.
      *
-     * @param pluginID ID of the compiler plug-in assigned by emuStudio
      * @param sHandler settings manipulation object
      * @return true
      */
     @Override
-    public boolean initialize(long pluginID, ISettingsHandler sHandler) {
+    public boolean initialize(ISettingsHandler sHandler) {
         this.settings = sHandler;
-        this.pluginID = pluginID;
         return true;
     }
 
@@ -178,4 +177,11 @@ public abstract class SimpleCompiler implements ICompiler {
         }
     }
 
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void reset() {
+
+    }
 }

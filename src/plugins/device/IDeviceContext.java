@@ -22,7 +22,6 @@
 package plugins.device;
 
 import java.util.EventListener;
-import java.util.EventObject;
 import plugins.IContext; 
 
 /**
@@ -42,10 +41,9 @@ public interface IDeviceContext extends IContext, EventListener {
      * (e.g. byte) of its input data. I/O operations
      * are considered as events that occurred onto this device.
      *
-     * @param evt  event object
      * @return elementary data read from device
      */
-    public Object read (EventObject evt);
+    public Object read ();
 
     /**
      * Writes/sends data to the device.
@@ -55,10 +53,9 @@ public interface IDeviceContext extends IContext, EventListener {
      * (e.g. byte) of the output data. I/O operations are
      * considered as events that occurred onto this device.
      *
-     * @param evt  event object
      * @param val  data to be written to the device
      */
-    public void write (EventObject evt, Object val);
+    public void write (Object val);
     
     /**
      * Get the type of transferred data. As you can see, methods

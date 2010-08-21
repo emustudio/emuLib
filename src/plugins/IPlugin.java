@@ -26,6 +26,13 @@ package plugins;
 /**
  * Root interface for all plugins, defines description, version, name and 
  * copyright information.
+ *
+ * Within the plug-in constructor, it gets the identification number
+ * (pluginID). The plug-in should keep this ID for future usage within the
+ * communication with the emuLib.
+ *
+ * In the constructor, the plug-in should register all implementing contexts
+ * through runtime.Context.register() method.
  * 
  */
 
@@ -72,26 +79,32 @@ public interface IPlugin {
      * Perform initialization process of this plug-in. It is called by the main
      * module.
      *
-     * @param pluginID Identification number assigned to this plug-in. The
-     *                 plug-in should keep this ID for future usage within the
-     *                 communication with the emuLib.
+     * Within this method, all required contexts should be gained through
+     * the runtime.Context class.
+     * 
      * @param sHandler  settings handler object. Device can use this for
      *                  accessing/storing/removing its settings.
      * @return true if initialization process was successful
      */
-    public boolean initialize (long pluginID, ISettingsHandler sHandler);
+    public boolean initialize (ISettingsHandler sHandler);
 
     /**
      * This method is called immediately after user closes the emulator. It means,
      * that after return from this method instance of the plugin will be destroyed.
      * It should contain some clean-up or destroy code for GUIs, stop timers,
-     * threads, etc. 
+     * threads, etc.
+     *
+     * The other thing that should be done here is to unregister all registered
+     * contexts for this plug-in.
      */
     public void destroy ();
     
     /**
      * Each plug-in can own a GUI for settings manipulation. This
      * method invokes it.
+     *
+     * In the case of memory plug-in, show GUI of a memory. Each memory plugin
+     * should have a GUI, but it is not necessary.
      */
     public void showSettings ();
     

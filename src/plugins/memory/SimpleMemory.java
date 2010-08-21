@@ -22,6 +22,8 @@
 
 package plugins.memory;
 
+import java.util.EventObject;
+import javax.swing.event.EventListenerList;
 import plugins.ISettingsHandler;
 
 /**
@@ -31,6 +33,18 @@ import plugins.ISettingsHandler;
  * @author vbmacher
  */
 public abstract class SimpleMemory implements IMemory {
+    /**
+     * List of all memory listeners. The listeners are objects implementing
+     * the IMemoryListener interface. Methods within the listeners are called
+     * on some events that happen inside memory (e.g. value change).
+     */
+    protected EventListenerList listeners;
+
+    /**
+     * Event object
+     */
+    protected EventObject changeEvent;
+
     /**
      * Start location of loaded program. This variable is changed by
      * compiler (mostly).
@@ -46,7 +60,19 @@ public abstract class SimpleMemory implements IMemory {
      * Settings manipulation object
      */
     protected ISettingsHandler settings;
-    
+
+    /**
+     * Public constructor initializes listeners list and event object for
+     * event passing.
+     *
+     * @param pluginID plug-in identification number
+     */
+    public SimpleMemory(Long pluginID) {
+        changeEvent = new EventObject(this);
+        listeners = new EventListenerList();
+        this.pluginID = pluginID;
+    }
+
     /**
      * This method does a semi-initialization of the memory. It loads
      * variables: pluginID and ISettingsHandler object.
@@ -54,13 +80,11 @@ public abstract class SimpleMemory implements IMemory {
      * It is called by emuStudio in the initialization process. Should
      * be overriden.
      *
-     * @param pluginID pluginID
      * @param sHandler settings manipulation object
      * @return true
      */
     @Override
-    public boolean initialize(long pluginID, ISettingsHandler sHandler) {
-        this.pluginID = pluginID;
+    public boolean initialize(ISettingsHandler sHandler) {
         this.settings = sHandler;
         return true;
     }
@@ -87,6 +111,52 @@ public abstract class SimpleMemory implements IMemory {
     @Override
     public void setProgramStart(int address) {
         programStart = address;
+    }
+
+    /**
+     * Adds a listener onto listeners list
+     *
+     * @param listener listener object
+     */
+    @Override
+    public void addMemoryListener(IMemListener listener) {
+        listeners.add(IMemListener.class, listener);
+    }
+
+    /**
+     * Removes the listener from listeners list
+     *
+     * @param listener listener object
+     */
+    @Override
+    public void removeMemoryListener(IMemListener listener) {
+        listeners.remove(IMemListener.class, listener);
+    }
+
+    /**
+     * This method notifies all listeners that the memory cell value changed
+     * on specific location (memory address).
+     *
+     * This method should be called whenever a some plug-in writes to the
+     * memory.
+     *
+     * @param adr memory location (address), value of that changed
+     */
+    public void fireChange(int adr) {
+        Object[] listenersList = listeners.getListenerList();
+        for (int i = listenersList.length-2; i>=0; i-=2) {
+            if (listenersList[i]==IMemListener.class) {
+                ((IMemListener)listenersList[i+1]).memChange(changeEvent, adr);
+            }
+        }
+    }
+
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void reset() {
+
     }
 
 }

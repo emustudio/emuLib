@@ -69,25 +69,26 @@ public abstract class SimpleCPU implements ICPU, Runnable {
 
     /**
      * Public constructor initializes run state and some variables.
+     *
+     * @param pluginID plug-in identification number
      */
-    public SimpleCPU() {
+    public SimpleCPU(Long pluginID) {
         run_state = ICPU.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
         listenerList = new EventListenerList();
         cpuEvt = new EventObject(this);
+        this.pluginID = pluginID;
     }
 
     /**
      * This method initializes the CPU. It stores pluginID and settings into
      * variables.
      *
-     * @param pluginID ID of this plug-in assigned by emuStudio
      * @param settings object for settings manipulation
      * @return true
      */
     @Override
-    public boolean initialize(long pluginID, ISettingsHandler settings) {
-        this.pluginID = pluginID;
+    public boolean initialize(ISettingsHandler settings) {
         this.settings = settings;
         return true;
     }

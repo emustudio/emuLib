@@ -19,7 +19,6 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
 package runtime;
 
 import java.io.BufferedInputStream;
@@ -30,6 +29,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.security.Permission;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -47,120 +47,170 @@ import java.util.jar.JarInputStream;
 public class Loader extends ClassLoader {
 
     private class PluginSecurityManager extends SecurityManager {
+
         /**
-	 * This is the basic method that tests whether there is a class loaded
-	 * by a ClassLoader anywhere on the stack. If so, it means that that
-	 * untrusted code is trying to perform some kind of sensitive operation.
-	 * We prevent it from performing that operation by throwing an exception.
-	 * trusted() is called by most of the check...() methods below.
-	 */
-	protected void trusted() {
-		if (inClassLoader()) throw new SecurityException();
-	}
+         * This is the basic method that tests whether there is a class loaded
+         * by a ClassLoader anywhere on the stack. If so, it means that that
+         * untrusted code is trying to perform some kind of sensitive operation.
+         * We prevent it from performing that operation by throwing an exception.
+         * trusted() is called by most of the check...() methods below.
+         */
+        protected void trusted() {
+            if (inClassLoader()) {
+                throw new SecurityException();
+            }
+        }
 
-/*
- void	checkAwtEventQueueAccess()
- void	checkDelete(String file)
- void	checkSetFactory()
- */
-
+        /*
+        void	checkDelete(String file)
+        void	checkSetFactory()
+         */
         @Override
-        public void checkPackageAccess(String pkg) {}
-        @Override
-        public void checkPrintJobAccess() {}
-        @Override
-        public void checkExec(String cmd) {}
-        @Override
-        public void checkMulticast(InetAddress maddr) {}
-        @Override
-        public void checkMulticast(InetAddress maddr, byte ttl) {}
-        @Override
-        public void checkLink(String lib) {}
-        @Override
-        public void checkListen(int port) {}
-        @Override
-        public void checkConnect(String host, int port) {}
-        @Override
-        public void checkConnect(String host, int port, Object context) {}
-        @Override
-        public void checkAccept(String host, int port) {}
-        @Override
-        public void checkAccess(Thread t) {}
-        @Override
-        public void checkAccess(ThreadGroup g) {}
-        @Override
-	public void checkCreateClassLoader() {}
-        @Override
-        public void checkMemberAccess(Class<?> clazz, int which) {}
-        @Override
-        public void checkSystemClipboardAccess() {}
+        public void checkAwtEventQueueAccess() {
+        }
 
         @Override
-	public void checkExit (int status) { 
+        public void checkPackageAccess(String pkg) {
+        }
+
+        @Override
+        public void checkPrintJobAccess() {
+        }
+
+        @Override
+        public void checkExec(String cmd) {
+        }
+
+        @Override
+        public void checkMulticast(InetAddress maddr) {
+        }
+
+        @Override
+        public void checkMulticast(InetAddress maddr, byte ttl) {
+        }
+
+        @Override
+        public void checkLink(String lib) {
+        }
+
+        @Override
+        public void checkListen(int port) {
+        }
+
+        @Override
+        public void checkConnect(String host, int port) {
+        }
+
+        @Override
+        public void checkConnect(String host, int port, Object context) {
+        }
+
+        @Override
+        public void checkAccept(String host, int port) {
+        }
+
+        @Override
+        public void checkAccess(Thread t) {
+        }
+
+        @Override
+        public void checkAccess(ThreadGroup g) {
+        }
+
+        @Override
+        public void checkCreateClassLoader() {
+        }
+
+        @Override
+        public void checkMemberAccess(Class<?> clazz, int which) {
+        }
+
+        @Override
+        public void checkSystemClipboardAccess() {
+        }
+
+        @Override
+        public void checkExit(int status) {
             super.checkExit(status);
             trusted();
         }
-        
-	@Override
+
+        @Override
         public void checkPropertiesAccess() {
             super.checkPropertiesAccess();
             trusted();
         }
 
         @Override
-	public void checkPropertyAccess (String key) {}
+        public void checkPropertyAccess(String key) {
+        }
 
         @Override
-	public void checkSecurityAccess (String provider) {
+        public void checkSecurityAccess(String provider) {
             super.checkSecurityAccess(provider);
             trusted();
         }
 
         @Override
-        public void checkDelete(String file) {}
-        @Override
-        public void checkRead(FileDescriptor fd) {}
-        @Override
-        public void checkRead(String file) {}
-        @Override
-        public void checkRead(String file, Object context) {}
-        @Override
-        public void checkWrite(FileDescriptor fd) {}
-        @Override
-        public void checkWrite(String file) {}
+        public void checkDelete(String file) {
+        }
 
+        @Override
+        public void checkRead(FileDescriptor fd) {
+        }
 
-	/** Loaded code can't define classes in java.* or javax.* or sun.*
+        @Override
+        public void checkRead(String file) {
+        }
+
+        @Override
+        public void checkRead(String file, Object context) {
+        }
+
+        @Override
+        public void checkWrite(FileDescriptor fd) {
+        }
+
+        @Override
+        public void checkWrite(String file) {
+        }
+
+        /** Loaded code can't define classes in java.* or javax.* or sun.*
          * packages
          * @param pkg package definition name
          * @throws SecurityException
          */
         @Override
-	public void checkPackageDefinition (String pkg) {
-		if (inClassLoader() &&
-                        ((pkg.startsWith("java.") || pkg.startsWith("javax.")
-                        || pkg.startsWith("sun."))))
-			throw new SecurityException();
-	}
+        public void checkPackageDefinition(String pkg) {
+            if (inClassLoader()
+                    && ((pkg.startsWith("java.") || pkg.startsWith("javax.")
+                    || pkg.startsWith("sun.")))) {
+                throw new SecurityException();
+            }
+        }
 
-	/**
-	 * This is the one SecurityManager method that is different from the
-	 * others. It indicates whether a top-level window should display an
-	 * "untrusted" warning. The window is always allowed to be created, so
-	 * this method is not normally meant to throw an exception. It should
-	 * return true if the window does not need to display the warning, and
-	 * false if it does. In this example, however, our text-based Service
-	 * classes should never need to create windows, so we will actually
-	 * throw an exception to prevent any windows from being opened.
-	 **/
+        /**
+         * This is the one SecurityManager method that is different from the
+         * others. It indicates whether a top-level window should display an
+         * "untrusted" warning. The window is always allowed to be created, so
+         * this method is not normally meant to throw an exception. It should
+         * return true if the window does not need to display the warning, and
+         * false if it does. In this example, however, our text-based Service
+         * classes should never need to create windows, so we will actually
+         * throw an exception to prevent any windows from being opened.
+         **/
         @Override
-	public boolean checkTopLevelWindow (Object window) {
-		//trusted();
-		return true;
-	}
+        public boolean checkTopLevelWindow(Object window) {
+            //trusted();
+            return true;
+        }
+
+        @Override
+        public void checkPermission(Permission perm) {
+            //          if (!(perm instanceof java.awt.AWTPermission))
+            //            super.checkPermission(perm);
+        }
     }
-
-
     // Instance of this class
     private static Loader instance = null;
     // loaded resources of classes
@@ -178,9 +228,16 @@ public class Loader extends ClassLoader {
         System.setSecurityManager(securityManager);
     }
 
+    /**
+     * Get the Loader instance. The instance is created only in the first
+     * call, then the same instance is returned.
+     *
+     * @return instance of the Loader class
+     */
     public static Loader getInstance() {
-        if (instance == null)
+        if (instance == null) {
             instance = new Loader();
+        }
         return instance;
     }
 
@@ -197,50 +254,58 @@ public class Loader extends ClassLoader {
         Hashtable<String, Integer> sizes = new Hashtable<String, Integer>();
         Vector<String> undone = new Vector<String>();
 
-        if (!filename.toLowerCase().endsWith(".jar")) filename += ".jar";
+        if (!filename.toLowerCase().endsWith(".jar")) {
+            filename += ".jar";
+        }
         try {
             // load all classes in jar
             JarFile zf = new JarFile(filename);
             Enumeration<JarEntry> e = zf.entries();
             while (e.hasMoreElements()) {
-                  JarEntry ze=(JarEntry)e.nextElement();
-                  sizes.put(ze.getName(),new Integer((int)ze.getSize()));
+                JarEntry ze = (JarEntry) e.nextElement();
+                sizes.put(ze.getName(), new Integer((int) ze.getSize()));
             }
             FileInputStream fis = new FileInputStream(zf.getName());
             BufferedInputStream bis = new BufferedInputStream(fis);
             JarInputStream zis = new JarInputStream(bis);
             JarEntry ze = null;
 
-            while ((ze=zis.getNextJarEntry())!=null) {
-                if (ze.isDirectory()) continue;
+            while ((ze = zis.getNextJarEntry()) != null) {
+                if (ze.isDirectory()) {
+                    continue;
+                }
                 if (!ze.getName().toLowerCase().endsWith(".class")) {
                     //for windows: "jar:file:/D:/JavaApplicat%20ion12/dist/JavaApplication12.jar!/resources/Find%2024.gif";
                     //for linux:   "jar:file:/home/vbmacher/dev/school%20projects/shit.jar!/resources/Find%2024.gif";
-                    String fN = zf.getName().replaceAll("\\\\","/");
-                    if (!fN.startsWith("/")) fN = "/" + fN;
+                    String fN = zf.getName().replaceAll("\\\\", "/");
+                    if (!fN.startsWith("/")) {
+                        fN = "/" + fN;
+                    }
                     String URLstr = URLEncoder.encode("jar:file:" + fN
-                            + "!/" + ze.getName().replaceAll("\\\\","/"),"UTF-8");
-                    URLstr = URLstr.replaceAll("%3A",":").replaceAll("%2F","/")
-                    			.replaceAll("%21","!").replaceAll("\\+","%20");
+                            + "!/" + ze.getName().replaceAll("\\\\", "/"), "UTF-8");
+                    URLstr = URLstr.replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%21", "!").replaceAll("\\+", "%20");
                     resources.put("/" + ze.getName(), new URL(URLstr));
                     continue;
                 }
                 // load class data
-                int size=(int)ze.getSize();
-                if (size == -1)
-                    size = ((Integer)sizes.get(ze.getName())).intValue();
+                int size = (int) ze.getSize();
+                if (size == -1) {
+                    size = ((Integer) sizes.get(ze.getName())).intValue();
+                }
 
-                byte[] b=new byte[(int)size];
-                int rb=0;
-                int chunk=0;
-                while (((int)size - rb) > 0) {
-                    chunk = zis.read(b,rb,(int)size - rb);
-                    if (chunk==-1) break;
-                    rb+=chunk;
+                byte[] b = new byte[(int) size];
+                int rb = 0;
+                int chunk = 0;
+                while (((int) size - rb) > 0) {
+                    chunk = zis.read(b, rb, (int) size - rb);
+                    if (chunk == -1) {
+                        break;
+                    }
+                    rb += chunk;
                 }
                 try {
                     // try to define class
-                    Class<?> cl = defineLoadedClass(ze.getName(),b,size,true);
+                    Class<?> cl = defineLoadedClass(ze.getName(), b, size, true);
                     classes.add(cl);
                 } catch (Exception nf) {
                     undone.addElement(ze.getName());
@@ -252,16 +317,16 @@ public class Loader extends ClassLoader {
             zf.close();
             // try to load all undone classes
             if (undone.size() > 0) {
-                boolean res = loadUndoneClasses(undone,classes,sizes,filename);
-                while ((res == true) && (undone.size() > 0))
-                    res = loadUndoneClasses(undone,classes,sizes,filename);
+                boolean res = loadUndoneClasses(undone, classes, sizes, filename);
+                while ((res == true) && (undone.size() > 0)) {
+                    res = loadUndoneClasses(undone, classes, sizes, filename);
+                }
                 if (undone.size() > 0) {
                     // if a jar file contains some error
                     throw new Exception();
                 }
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
         return classes;
@@ -269,21 +334,28 @@ public class Loader extends ClassLoader {
 
     @Override
     protected URL findResource(String name) {
-        if (!name.startsWith("/")) name = "/" + name;
-        if (resources.containsKey(name)) {
-            URL url = (URL)resources.get(name);
-            return url;
+        if (!name.startsWith("/")) {
+            name = "/" + name;
         }
-        else return null;
+        if (resources.containsKey(name)) {
+            URL url = (URL) resources.get(name);
+            return url;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public InputStream getResourceAsStream(String name) {
-        if (!name.startsWith("/")) name = "/" + name;
+        if (!name.startsWith("/")) {
+            name = "/" + name;
+        }
         if (resources.containsKey(name)) {
-            URL url = (URL)resources.get(name);
-            try { return url != null ? url.openStream() : null; }
-            catch (Exception e) {}
+            URL url = (URL) resources.get(name);
+            try {
+                return url != null ? url.openStream() : null;
+            } catch (Exception e) {
+            }
         }
         return null;
     }
@@ -309,31 +381,41 @@ public class Loader extends ClassLoader {
             FileInputStream fis = new FileInputStream(filename);
             BufferedInputStream bis = new BufferedInputStream(fis);
             JarInputStream zis = new JarInputStream(bis);
-            while ((ze=zis.getNextJarEntry())!=null) {
-                if (ze.isDirectory()) continue;
-                if (!ze.getName().toLowerCase().endsWith(".class")) continue;
-                if (!undone.contains(ze.getName())) continue;
+            while ((ze = zis.getNextJarEntry()) != null) {
+                if (ze.isDirectory()) {
+                    continue;
+                }
+                if (!ze.getName().toLowerCase().endsWith(".class")) {
+                    continue;
+                }
+                if (!undone.contains(ze.getName())) {
+                    continue;
+                }
                 // load class data
-                int size=(int)ze.getSize();
-                if (size == -1)
-                    size = ((Integer)sizes.get(ze.getName())).intValue();
-                byte[] b=new byte[(int)size];
-                int rb=0,chunk=0;
-                while (((int)size - rb) > 0) {
-                    chunk = zis.read(b,rb,(int)size - rb);
-                    if (chunk==-1) break;
-                    rb+=chunk;
+                int size = (int) ze.getSize();
+                if (size == -1) {
+                    size = ((Integer) sizes.get(ze.getName())).intValue();
+                }
+                byte[] b = new byte[(int) size];
+                int rb = 0, chunk = 0;
+                while (((int) size - rb) > 0) {
+                    chunk = zis.read(b, rb, (int) size - rb);
+                    if (chunk == -1) {
+                        break;
+                    }
+                    rb += chunk;
                 }
                 try {
                     // try load class data
-                    Class<?> cl = defineLoadedClass(ze.getName(),b,size,true);
+                    Class<?> cl = defineLoadedClass(ze.getName(), b, size, true);
                     classes.add(cl);
                     undone.removeElement(ze.getName());
                     result = true;
                 } catch (ClassNotFoundException nf) {
                 }
             }
-        } catch(Exception e) {}
+        } catch (Exception e) {
+        }
         return result;
     }
 
@@ -352,24 +434,31 @@ public class Loader extends ClassLoader {
     private Class<?> defineLoadedClass(String classname,
             byte[] classbytes, int length, boolean resolve)
             throws ClassNotFoundException {
-        if (classname.toLowerCase().endsWith(".class"))
-            classname = classname.substring(0,classname.length() - 6);
+        if (classname.toLowerCase().endsWith(".class")) {
+            classname = classname.substring(0, classname.length() - 6);
+        }
         classname = classname.replace('/', '.');
         classname = classname.replace(File.separatorChar, '.');
         try {
             Class<?> c = null;
             c = findLoadedClass(classname);
             if (c == null) {
-            	try { c = findSystemClass(classname); }
-            	catch (Exception e) {}
+                try {
+                    c = findSystemClass(classname);
+                } catch (Exception e) {
+                }
             }
-            if (c == null)
+            if (c == null) {
                 c = defineClass(null, classbytes, 0, length);
-            if (resolve && (c != null)) resolveClass(c);
+            }
+            if (resolve && (c != null)) {
+                resolveClass(c);
+            }
             return c;
+        } catch (Error err) {
+            throw new ClassNotFoundException(err.getMessage());
+        } catch (Exception ex) {
+            throw new ClassNotFoundException(ex.toString());
         }
-        catch (Error err) { throw new ClassNotFoundException(err.getMessage());}
-        catch (Exception ex) { throw new ClassNotFoundException(ex.toString());}
     }
-
 }
