@@ -66,6 +66,11 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      */
     protected ISettingsHandler settings;
 
+    /**
+     * This thread object. It is used for the CPU execution.
+     */
+    protected Thread cpuThread;
+
 
     /**
      * Public constructor initializes run state and some variables.
@@ -78,6 +83,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
         listenerList = new EventListenerList();
         cpuEvt = new EventObject(this);
         this.pluginID = pluginID;
+        cpuThread = null;
     }
 
     /**
@@ -133,6 +139,18 @@ public abstract class SimpleCPU implements ICPU, Runnable {
     public void reset() { reset(0); }
 
     /**
+     * Sets the run_state to STATE_STOPPED_BREAK and nulls the thread
+     * object. Should be overriden.
+     *
+     * @param addr memory location where to begin the emulation
+     */
+    @Override
+    public void reset(int addr) {
+        run_state = ICPU.STATE_STOPPED_BREAK;
+        cpuThread = null;
+    }
+
+    /**
      * Add new CPU listener to the list of listeners. CPU listener is an
      * implementation object of ICPUListener interface. The methods are
      * called when some events are occured on CPU.
@@ -182,4 +200,12 @@ public abstract class SimpleCPU implements ICPU, Runnable {
         }
     }
 
+    /**
+     * Creates and starts new thread of this class.
+     */
+    @Override
+    public void execute() {
+        cpuThread = new Thread(this, "BrainCPU");
+        cpuThread.start();
+    }
 }
