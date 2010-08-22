@@ -205,7 +205,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      */
     @Override
     public void execute() {
-        cpuThread = new Thread(this, "BrainCPU");
+        cpuThread = new Thread(this, "CPUThread");
         cpuThread.start();
     }
 }
