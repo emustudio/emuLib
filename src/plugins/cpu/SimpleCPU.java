@@ -44,7 +44,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
     /**
      * Event object
      */
-    private EventObject cpuEvt;
+    protected EventObject cpuEvt;
 
     /**
      * breakpoints list
@@ -208,4 +208,5 @@ public abstract class SimpleCPU implements ICPU, Runnable {
         cpuThread = new Thread(this, "CPUThread");
         cpuThread.start();
     }
+
 }
