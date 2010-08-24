@@ -27,6 +27,8 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import plugins.IContext;
@@ -173,6 +175,7 @@ public class Context {
         // check hash of the interface
         String hash = null;
         String contextIName = contextInterface.getSimpleName();
+
         if (contextIName.equals(ICPUContext.class.getSimpleName())
                 && (context instanceof ICPUContext))
             hash = computeHash(ICPUContext.class);
@@ -936,7 +939,7 @@ public class Context {
         String computedHash = computeHash(contextInterface);
         if (computedHash == null)
             return false;
-        return (computedHash.equals(hash.toUpperCase())) ? true : false;
+        return (computedHash.equalsIgnoreCase(hash)) ? true : false;
     }
 
     /**
@@ -1007,10 +1010,28 @@ public class Context {
      */
     private static String computeHash(Class<?> inter) {
         int i;
-        Method[] methods;
+        Method[] methods, met;
         String hash = "";
 
-        methods = inter.getMethods();
+        met = inter.getDeclaredMethods(); //  .getMethods();
+        ArrayList me = new ArrayList();
+        for (i = 0; i < met.length; i++)
+            me.add(met[i]);
+        Collections.sort(me, new Comparator() {
+
+            @Override
+            public int compare(Object o1, Object o2) {
+                Method m1 = (Method)o1;
+                Method m2 = (Method)o2;
+
+                return m1.getName().compareTo(m2.getName());
+            }
+
+        });
+        methods = (Method[])me.toArray(new Method[0]);
+        me.clear();
+        me = null;
+
         for (i = 0; i < methods.length; i++) {
             hash += methods[i].getGenericReturnType().toString() + " ";
             hash += methods[i].getName() + "(";
