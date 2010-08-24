@@ -401,6 +401,40 @@ public class Context {
     }
 
     /**
+     * Get registered CPU context, if plug-in has the permission to access it.
+     * The permission is approved, if the plug-in is connected to CPU in
+     * the abstract schema.
+     *
+     * If CPU has more than one context implementing required context interface,
+     * the one is returned that has the order of the index parameter. For
+     * specific context, use method
+     * getCPUContext(pluginID,contextInterface,contextID,index).
+     *
+     * @param pluginID plug-in requesting the CPU context
+     * @param contextInterface Interface of the context
+     * @param index the order of the context if they are more than one
+     * @return ICPUContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public ICPUContext getCPUContext(long pluginID,
+            Class<?> contextInterface, int index)
+            throws ArrayIndexOutOfBoundsException {
+        // find the requested context
+        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext cpuContext = ar.get(index);
+
+        // check fot permission
+        if (!checkPermission(pluginID, cpuContext))
+            return null;
+
+        return (ICPUContext)cpuContext;
+    }
+
+    /**
      * Get registered CPU context with the specific ID, if plug-in has the
      * permission to access it. The permission is approved, if the plug-in
      * is connected to CPU in the abstract schema.
@@ -440,6 +474,50 @@ public class Context {
     }
 
     /**
+     * Get registered CPU context with the specific ID, if plug-in has the
+     * permission to access it. The permission is approved, if the plug-in
+     * is connected to CPU in the abstract schema.
+     *
+     * This method should be used when requested CPU has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the CPU context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @param index the order of the context if they are more than one with
+     * the same ID
+     * @return ICPUContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public ICPUContext getCPUContext(long pluginID,
+            Class<?> contextInterface, String contextID, int index)
+            throws ArrayIndexOutOfBoundsException {
+        // find the requested context
+        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find CPU context based on contextID
+        IContext cpuContext = null;
+        for (int i = 0, j = 0; i < ar.size(); i++, j++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                cpuContext = ar.get(i);
+                if (j == index)
+                    break;
+            }
+        }
+        if (cpuContext == null)
+            return null;
+
+        // check fot permission
+        if (!checkPermission(pluginID, cpuContext))
+            return null;
+
+        return (ICPUContext)cpuContext;
+    }
+
+    /**
      * Get registered Compiler context.
      *
      * If the compiler has more than one context implementing required context
@@ -458,6 +536,33 @@ public class Context {
             return null;
 
         IContext compilerContext = ar.get(0); // the first one
+
+        return (ICompilerContext)compilerContext;
+    }
+
+    /**
+     * Get registered Compiler context.
+     *
+     * If the compiler has more than one context implementing required context
+     * interface, the one is returned that has the order given by the index
+     * parameter. For specific context, use method
+     * getCompilerContext(pluginID,contextInterface,contextID,index).
+     *
+     * @param pluginID plug-in requesting the Compiler context
+     * @param contextInterface Interface of the context
+     * @param index the order of the context if they are more than one
+     * @return ICompilerContext object if it is found, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public ICompilerContext getCompilerContext(long pluginID,
+            Class<?> contextInterface, int index)
+            throws ArrayIndexOutOfBoundsException {
+        // find owner of context implementing requested context interface
+        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext compilerContext = ar.get(index);
 
         return (ICompilerContext)compilerContext;
     }
@@ -491,6 +596,40 @@ public class Context {
         return (ICompilerContext)compilerContext;
     }
 
+    /**
+     * Get registered Compiler context, with specific ID.
+     *
+     * This method should be used when requested compiler has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the Compiler context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @param index the order of the context if they are more than one with the
+     * same ID
+     * @return ICompilerContext object if it is found, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of the bounds
+     */
+    public ICompilerContext getCompilerContext(long pluginID,
+            Class<?> contextInterface, String contextID, int index)
+            throws ArrayIndexOutOfBoundsException {
+        // find owner of context implementing requested context interface
+        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty()) {
+            return null;
+        }
+
+        // find compiler context based on contextID
+        IContext compilerContext = null;
+        for (int i = 0,j = 0; i < ar.size(); i++, j++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                compilerContext = ar.get(i);
+                if (j == index)
+                    break;
+            }
+        }
+        return (ICompilerContext) compilerContext;
+    }
 
     /**
      * Get registered memory context, if plug-in has the permission to access it.
@@ -514,6 +653,40 @@ public class Context {
             return null;
 
         IContext memContext = ar.get(0); // the first one
+
+        // check fot permission
+        if (!checkPermission(pluginID, memContext))
+            return null;
+
+        return (IMemoryContext)memContext;
+    }
+
+    /**
+     * Get registered memory context, if plug-in has the permission to access it.
+     * The permission is approved, if the plug-in is connected to memory in
+     * the abstract schema.
+     *
+     * If the memory has more than one context implementing required context
+     * interface, the one is returned that has the order given by the index
+     * parameter. For specific context, use method
+     * getMemoryContext(pluginID,contextInterface,contextID,index).
+     *
+     * @param pluginID plug-in requesting the memory context
+     * @param contextInterface Interface of the context
+     * @param index the index of the context if they are more than one
+     * @return IMemoryContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public IMemoryContext getMemoryContext(long pluginID,
+            Class<?> contextInterface, int index)
+            throws ArrayIndexOutOfBoundsException {
+        // find the requested context
+        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext memContext = ar.get(index);
 
         // check fot permission
         if (!checkPermission(pluginID, memContext))
@@ -562,6 +735,49 @@ public class Context {
     }
 
     /**
+     * Get registered memory context with the specific ID, if plug-in has the
+     * permission to access it. The permission is approved, if the plug-in
+     * is connected to memory in the abstract schema.
+     *
+     * This method should be used when requested memory has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the memory context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @param index the order of the specific context, if they are more than one
+     * with the same ID
+     * @return IMemoryContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public IMemoryContext getMemoryContext(long pluginID,
+            Class<?> contextInterface, String contextID, int index) {
+        // find the requested context
+        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find memory context based on contextID
+        IContext memContext = null;
+        for (int i = 0, j=0; i < ar.size(); i++, j++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                memContext = ar.get(i);
+                if (index == j)
+                    break;
+            }
+        }
+        if (memContext == null)
+            return null;
+
+        // check fot permission
+        if (!checkPermission(pluginID, memContext))
+            return null;
+
+        return (IMemoryContext)memContext;
+    }
+
+    /**
      * Get registered device context, if plug-in has the permission to access it.
      * The permission is approved, if the plug-in is connected to device in
      * the abstract schema.
@@ -583,6 +799,39 @@ public class Context {
             return null;
 
         IContext deviceContext = ar.get(0); // the first one
+
+        // check fot permission
+        if (!checkPermission(pluginID, deviceContext))
+            return null;
+
+        return (IDeviceContext)deviceContext;
+    }
+
+    /**
+     * Get registered device context, if plug-in has the permission to access it.
+     * The permission is approved, if the plug-in is connected to device in
+     * the abstract schema.
+     *
+     * If the device has more than one context implementing required context
+     * interface, the user can select the correct with the index parameter.
+     * For specific context, use method
+     * getDeviceContext(pluginID,contextInterface,contextID,index).
+     *
+     * @param pluginID plug-in requesting the device context
+     * @param contextInterface Interface of the context
+     * @param index index of the context implementation
+     * @return IDeviceContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public IDeviceContext getDeviceContext(long pluginID,
+            Class<?> contextInterface, int index) throws ArrayIndexOutOfBoundsException {
+        // find the requested context
+        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        IContext deviceContext = ar.get(index);
 
         // check fot permission
         if (!checkPermission(pluginID, deviceContext))
@@ -618,6 +867,50 @@ public class Context {
             if (ar.get(i).getID().equals(contextID)) {
                 deviceContext = ar.get(i);
                 break;
+            }
+        }
+        if (deviceContext == null)
+            return null;
+
+        // check fot permission
+        if (!checkPermission(pluginID, deviceContext))
+            return null;
+
+        return (IDeviceContext)deviceContext;
+    }
+
+    /**
+     * Get registered device context with the specific ID, if plug-in has the
+     * permission to access it. The permission is approved, if the plug-in
+     * is connected to device in the abstract schema.
+     *
+     * This method should be used when requested device has more than one
+     * context implementing the same interface.
+     *
+     * @param pluginID plug-in requesting the device context
+     * @param contextInterface Interface of the context
+     * @param contextID specific case-sensitive ID of context
+     * @param index the order of the specific context if they are more than one
+     * with the same ID
+     * @return IDeviceContext object if it is found and the plug-in has the
+     *         permission, null otherwise
+     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
+     */
+    public IDeviceContext getDeviceContext(long pluginID,
+            Class<?> contextInterface, String contextID, int index)
+            throws ArrayIndexOutOfBoundsException {
+        // find the requested context
+        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find device context based on contextID
+        IContext deviceContext = null;
+        for (int i = 0, j = 0; i < ar.size(); i++, j++) {
+            if (ar.get(i).getID().equals(contextID)) {
+                deviceContext = ar.get(i);
+                if (index == j)
+                    break;
             }
         }
         if (deviceContext == null)
