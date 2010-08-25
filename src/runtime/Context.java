@@ -379,7 +379,8 @@ public class Context {
      * the abstract schema.
      *
      * If CPU has more than one context implementing required context interface,
-     * the first one is returned. For specific context, use method
+     * the first one is returned that is allowed of access.
+     * For specific context, use method
      * getCPUContext(pluginID,contextInterface,contextID).
      *
      * @param pluginID plug-in requesting the CPU context
@@ -394,13 +395,14 @@ public class Context {
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext cpuContext = ar.get(0); // the first one
-
-        // check fot permission
-        if (!checkPermission(pluginID, cpuContext))
-            return null;
-        
-        return (ICPUContext)cpuContext;
+        int size = ar.size();
+        for (int i = 0; i < size; i++) {
+            IContext cpuContext = ar.get(i); // the first one
+            // check fot permission
+            if (checkPermission(pluginID, cpuContext))
+                return (ICPUContext)cpuContext;
+        }
+        return null;
     }
 
     /**
@@ -413,28 +415,36 @@ public class Context {
      * specific context, use method
      * getCPUContext(pluginID,contextInterface,contextID,index).
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all CPU contexts.
+     *
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
-     * @param index the order of the context if they are more than one
+     * @param index 0-based the order of the context if they are more than one.
+     * Does nothing if the index is out of the bounds.
      * @return ICPUContext object if it is found and the plug-in has the
      *         permission, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public ICPUContext getCPUContext(long pluginID,
-            Class<?> contextInterface, int index)
-            throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, int index) {
         // find the requested context
         ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext cpuContext = ar.get(index);
-
-        // check fot permission
-        if (!checkPermission(pluginID, cpuContext))
-            return null;
-
-        return (ICPUContext)cpuContext;
+        int size = ar.size();
+        for (int i = 0, j = 0; i < size; i++) {
+            IContext cpuContext = ar.get(i);
+            if (checkPermission(pluginID, cpuContext)) {
+                if (j == index)
+                    return (ICPUContext)cpuContext;
+                else
+                    j++;
+            }
+        }
+        return null;
     }
 
     /**
@@ -445,6 +455,9 @@ public class Context {
      * This method should be used when requested CPU has more than one
      * context implementing the same interface.
      *
+     * If there exist more than one interfaces that has the same ID, the first
+     * of them is returned that is allowed of access.
+     * 
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @param contextID specific case-sensitive ID of context
@@ -459,21 +472,14 @@ public class Context {
             return null;
 
         // find CPU context based on contextID
-        IContext cpuContext = null;
         for (int i = 0; i < ar.size(); i++) {
             if (ar.get(i).getID().equals(contextID)) {
-                cpuContext = ar.get(i);
-                break;
+                IContext cpuContext = ar.get(i);
+                if (checkPermission(pluginID, cpuContext))
+                    return (ICPUContext)cpuContext;
             }
         }
-        if (cpuContext == null)
-            return null;
-
-        // check fot permission
-        if (!checkPermission(pluginID, cpuContext))
-            return null;
-
-        return (ICPUContext)cpuContext;
+        return null;
     }
 
     /**
@@ -484,18 +490,21 @@ public class Context {
      * This method should be used when requested CPU has more than one
      * context implementing the same interface.
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all CPU contexts.
+     *
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @param contextID specific case-sensitive ID of context
-     * @param index the order of the context if they are more than one with
-     * the same ID
+     * @param index 0-based the order of the context if they are more than one
+     * with the same ID. Does nothing if the index is out of bounds.
      * @return ICPUContext object if it is found and the plug-in has the
      *         permission, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public ICPUContext getCPUContext(long pluginID,
-            Class<?> contextInterface, String contextID, int index)
-            throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, String contextID, int index) {
         // find the requested context
         ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
@@ -503,32 +512,32 @@ public class Context {
 
         // find CPU context based on contextID
         IContext cpuContext = null;
-        for (int i = 0, j = 0; i < ar.size(); i++, j++) {
+        for (int i = 0, j = 0; i < ar.size(); i++) {
             if (ar.get(i).getID().equals(contextID)) {
                 cpuContext = ar.get(i);
-                if (j == index)
-                    break;
+                if (checkPermission(pluginID, cpuContext)) {
+                    if (j == index) {
+                        return (ICPUContext)cpuContext;
+                    } else {
+                        j++;
+                    }
+                }
             }
         }
-        if (cpuContext == null)
-            return null;
-
-        // check fot permission
-        if (!checkPermission(pluginID, cpuContext))
-            return null;
-
-        return (ICPUContext)cpuContext;
+        return null;
     }
 
     /**
      * Get registered Compiler context.
      *
      * If the compiler has more than one context implementing required context
-     * interface, the first one is returned. For specific context, use method
+     * interface, the first one is returned that is allowed of access.
+     * For specific context, use method
      * getCompilerContext(pluginID,contextInterface,contextID).
      *
      * @param pluginID plug-in requesting the Compiler context
-     * @param contextInterface Interface of the context
+     * @param contextInterface Interface of the context, if requesting plugin
+     * has permission to acccess it
      * @return ICompilerContext object if it is found, null otherwise
      */
     public ICompilerContext getCompilerContext(long pluginID,
@@ -538,9 +547,14 @@ public class Context {
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext compilerContext = ar.get(0); // the first one
-
-        return (ICompilerContext)compilerContext;
+        int size = ar.size();
+        for (int i = 0; i < size; i++) {
+            IContext compilerContext = ar.get(i); // the first one
+            // check for permission
+            if (checkPermission(pluginID, compilerContext))
+                return (ICompilerContext)compilerContext;
+        }
+        return null;
     }
 
     /**
@@ -548,26 +562,40 @@ public class Context {
      *
      * If the compiler has more than one context implementing required context
      * interface, the one is returned that has the order given by the index
-     * parameter. For specific context, use method
+     * parameter.
+     *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all compiler contexts.
+     *
+     * For specific context, use method
      * getCompilerContext(pluginID,contextInterface,contextID,index).
      *
      * @param pluginID plug-in requesting the Compiler context
      * @param contextInterface Interface of the context
-     * @param index the order of the context if they are more than one
+     * @param index the order of the context if they are more than one. Does
+     * nothing if the index is out of bounds.
      * @return ICompilerContext object if it is found, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public ICompilerContext getCompilerContext(long pluginID,
-            Class<?> contextInterface, int index)
-            throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, int index) {
         // find owner of context implementing requested context interface
         ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext compilerContext = ar.get(index);
-
-        return (ICompilerContext)compilerContext;
+        int size = ar.size();
+        for (int i = 0, j = 0; i < size; i++) {
+            IContext compilerContext = ar.get(i);
+            if (checkPermission(pluginID, compilerContext)) {
+                if (j == index)
+                    return (ICompilerContext)compilerContext;
+                else
+                    j++;
+            }
+        }
+        return null;
     }
 
     /**
@@ -575,6 +603,9 @@ public class Context {
      *
      * This method should be used when requested compiler has more than one
      * context implementing the same interface.
+     *
+     * If there exist more than one interfaces that has the same ID, the first
+     * of them is returned that is allowed of access.
      * 
      * @param pluginID plug-in requesting the Compiler context
      * @param contextInterface Interface of the context
@@ -589,14 +620,15 @@ public class Context {
             return null;
 
         // find compiler context based on contextID
-        IContext compilerContext = null;
-        for (int i = 0; i < ar.size(); i++) {
+        int size = ar.size();
+        for (int i = 0; i < size; i++) {
             if (ar.get(i).getID().equals(contextID)) {
-                compilerContext = ar.get(i);
-                break;
+                IContext compilerContext = ar.get(i);
+                if (checkPermission(pluginID, compilerContext))
+                    return (ICompilerContext)compilerContext;
             }
         }
-        return (ICompilerContext)compilerContext;
+        return null;
     }
 
     /**
@@ -605,17 +637,20 @@ public class Context {
      * This method should be used when requested compiler has more than one
      * context implementing the same interface.
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all compiler contexts.
+     *
      * @param pluginID plug-in requesting the Compiler context
      * @param contextInterface Interface of the context
      * @param contextID specific case-sensitive ID of context
      * @param index the order of the context if they are more than one with the
-     * same ID
+     * same ID. Does nothing if the index is out of bounds.
      * @return ICompilerContext object if it is found, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of the bounds
      */
     public ICompilerContext getCompilerContext(long pluginID,
-            Class<?> contextInterface, String contextID, int index)
-            throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, String contextID, int index) {
         // find owner of context implementing requested context interface
         ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty()) {
@@ -623,15 +658,19 @@ public class Context {
         }
 
         // find compiler context based on contextID
-        IContext compilerContext = null;
-        for (int i = 0,j = 0; i < ar.size(); i++, j++) {
+        int size = ar.size();
+        for (int i = 0,j = 0; i < size; i++) {
             if (ar.get(i).getID().equals(contextID)) {
-                compilerContext = ar.get(i);
-                if (j == index)
-                    break;
+                IContext compilerContext = ar.get(i);
+                if (checkPermission(pluginID, compilerContext)) {
+                    if (j == index)
+                        return (ICompilerContext)compilerContext;
+                    else
+                        j++;
+                }
             }
         }
-        return (ICompilerContext) compilerContext;
+        return null;
     }
 
     /**
@@ -640,7 +679,8 @@ public class Context {
      * the abstract schema.
      *
      * If the memory has more than one context implementing required context
-     * interface, the first one is returned. For specific context, use method
+     * interface, the first one is returned that is allowed of access.
+     * For specific context, use method
      * getMemoryContext(pluginID,contextInterface,contextID).
      *
      * @param pluginID plug-in requesting the memory context
@@ -655,13 +695,14 @@ public class Context {
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext memContext = ar.get(0); // the first one
-
-        // check fot permission
-        if (!checkPermission(pluginID, memContext))
-            return null;
-
-        return (IMemoryContext)memContext;
+        int size = ar.size();
+        for (int i = 0; i < size; i++) {
+            IContext memContext = ar.get(i); // the first one
+            // check fot permission
+            if (checkPermission(pluginID, memContext))
+                return (IMemoryContext)memContext;
+        }
+        return null;
     }
 
     /**
@@ -674,28 +715,37 @@ public class Context {
      * parameter. For specific context, use method
      * getMemoryContext(pluginID,contextInterface,contextID,index).
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all memory contexts.
+     *
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
-     * @param index the index of the context if they are more than one
+     * @param index the index of the context if they are more than one. Does
+     * nothing if the index is out of bounds
      * @return IMemoryContext object if it is found and the plug-in has the
      *         permission, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public IMemoryContext getMemoryContext(long pluginID,
-            Class<?> contextInterface, int index)
-            throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, int index) {
         // find the requested context
         ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext memContext = ar.get(index);
-
-        // check fot permission
-        if (!checkPermission(pluginID, memContext))
-            return null;
-
-        return (IMemoryContext)memContext;
+        int size = ar.size();
+        for (int i = 0, j = 0; i < size; i++) {
+            IContext memContext = ar.get(i);
+            // check fot permission
+            if (checkPermission(pluginID, memContext)) {
+                if (j == index)
+                    return (IMemoryContext)memContext;
+                else
+                    j++;
+            }
+        }
+        return null;
     }
 
     /**
@@ -706,6 +756,9 @@ public class Context {
      * This method should be used when requested memory has more than one
      * context implementing the same interface.
      *
+     * If there exist more than one interfaces that has the same ID, the first
+     * of them is returned that is allowed of access.
+     * 
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @param contextID specific case-sensitive ID of context
@@ -720,21 +773,14 @@ public class Context {
             return null;
 
         // find memory context based on contextID
-        IContext memContext = null;
         for (int i = 0; i < ar.size(); i++) {
             if (ar.get(i).getID().equals(contextID)) {
-                memContext = ar.get(i);
-                break;
+                IContext memContext = ar.get(i);
+                if (checkPermission(pluginID, memContext))
+                   return (IMemoryContext)memContext;
             }
         }
-        if (memContext == null)
-            return null;
-
-        // check fot permission
-        if (!checkPermission(pluginID, memContext))
-            return null;
-
-        return (IMemoryContext)memContext;
+        return null;
     }
 
     /**
@@ -745,14 +791,18 @@ public class Context {
      * This method should be used when requested memory has more than one
      * context implementing the same interface.
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all memory contexts.
+     * 
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @param contextID specific case-sensitive ID of context
      * @param index the order of the specific context, if they are more than one
-     * with the same ID
+     * with the same ID. Does nothing if the index is out of bounds.
      * @return IMemoryContext object if it is found and the plug-in has the
      *         permission, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
@@ -762,22 +812,19 @@ public class Context {
             return null;
 
         // find memory context based on contextID
-        IContext memContext = null;
-        for (int i = 0, j=0; i < ar.size(); i++, j++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                memContext = ar.get(i);
-                if (index == j)
-                    break;
+        int size = ar.size();
+        for (int i = 0, j=0; i < size; i++) {
+            IContext memContext = ar.get(i);
+            if (memContext.getID().equals(contextID)) {
+                if (checkPermission(pluginID, memContext)) {
+                    if (index == j)
+                        return (IMemoryContext)memContext;
+                    else
+                        j++;
+                }
             }
         }
-        if (memContext == null)
-            return null;
-
-        // check fot permission
-        if (!checkPermission(pluginID, memContext))
-            return null;
-
-        return (IMemoryContext)memContext;
+        return null;
     }
 
     /**
@@ -786,7 +833,8 @@ public class Context {
      * the abstract schema.
      *
      * If the device has more than one context implementing required context
-     * interface, the first one is returned. For specific context, use method
+     * interface, the first one is returned that allows the access.
+     * For specific context, use method
      * getDeviceContext(pluginID,contextInterface,contextID).
      *
      * @param pluginID plug-in requesting the device context
@@ -801,13 +849,14 @@ public class Context {
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext deviceContext = ar.get(0); // the first one
-
-        // check fot permission
-        if (!checkPermission(pluginID, deviceContext))
-            return null;
-
-        return (IDeviceContext)deviceContext;
+        int size = ar.size();        
+        for (int i = 0; i < size; i++) {
+            IContext deviceContext = ar.get(i);
+            // check fot permission
+            if (checkPermission(pluginID, deviceContext))
+                return (IDeviceContext)deviceContext;
+        }
+        return null;
     }
 
     /**
@@ -820,27 +869,37 @@ public class Context {
      * For specific context, use method
      * getDeviceContext(pluginID,contextInterface,contextID,index).
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all device contexts.
+     *
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
-     * @param index index of the context implementation
+     * @param index index of the context implementation. Does nothing if the
+     * index is out of bounds.
      * @return IDeviceContext object if it is found and the plug-in has the
      *         permission, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public IDeviceContext getDeviceContext(long pluginID,
-            Class<?> contextInterface, int index) throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, int index) {
         // find the requested context
         ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
 
-        IContext deviceContext = ar.get(index);
-
-        // check fot permission
-        if (!checkPermission(pluginID, deviceContext))
-            return null;
-
-        return (IDeviceContext)deviceContext;
+        int size = ar.size();
+        for (int i = 0, j = 0; i < size; i++) {
+            IContext deviceContext = ar.get(i);
+            // check fot permission
+            if (checkPermission(pluginID, deviceContext)) {
+                if (j == index)
+                    return (IDeviceContext)deviceContext;
+                else
+                    j++;
+            }
+        }
+        return null;
     }
 
     /**
@@ -850,6 +909,9 @@ public class Context {
      *
      * This method should be used when requested device has more than one
      * context implementing the same interface.
+     *
+     * If there exist more than one interfaces that has the same ID, the first
+     * of them is returned that is allowed of access.
      *
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
@@ -865,21 +927,15 @@ public class Context {
             return null;
 
         // find device context based on contextID
-        IContext deviceContext = null;
-        for (int i = 0; i < ar.size(); i++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                deviceContext = ar.get(i);
-                break;
+        int size = ar.size();
+        for (int i = 0; i < size; i++) {
+            IContext deviceContext = ar.get(i);
+            if (deviceContext.getID().equals(contextID)) {
+                if (checkPermission(pluginID, deviceContext))
+                    return (IDeviceContext)deviceContext;
             }
         }
-        if (deviceContext == null)
-            return null;
-
-        // check fot permission
-        if (!checkPermission(pluginID, deviceContext))
-            return null;
-
-        return (IDeviceContext)deviceContext;
+        return null;
     }
 
     /**
@@ -890,40 +946,41 @@ public class Context {
      * This method should be used when requested device has more than one
      * context implementing the same interface.
      *
+     * If there are more contextes and there is some that implement required
+     * interface and some not, the index parameter is considering only wanted
+     * contexts, ignoring the others. So it is not true index to array of
+     * all device contexts.
+     *
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @param contextID specific case-sensitive ID of context
      * @param index the order of the specific context if they are more than one
-     * with the same ID
+     * with the same ID. Does nothing if the index is out of bounds.
      * @return IDeviceContext object if it is found and the plug-in has the
      *         permission, null otherwise
-     * @throws ArrayIndexOutOfBoundsException if the index is out of bounds
      */
     public IDeviceContext getDeviceContext(long pluginID,
-            Class<?> contextInterface, String contextID, int index)
-            throws ArrayIndexOutOfBoundsException {
+            Class<?> contextInterface, String contextID, int index) {
         // find the requested context
         ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
 
         // find device context based on contextID
-        IContext deviceContext = null;
-        for (int i = 0, j = 0; i < ar.size(); i++, j++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                deviceContext = ar.get(i);
-                if (index == j)
-                    break;
+        int size = ar.size();
+        for (int i = 0, j = 0; i < size; i++) {
+            IContext deviceContext = ar.get(i);
+            if (deviceContext.getID().equals(contextID)) {
+                // check fot permission
+                if (checkPermission(pluginID, deviceContext)) {
+                    if (index == j)
+                        return (IDeviceContext)deviceContext;
+                    else
+                        j++;
+                }
             }
         }
-        if (deviceContext == null)
-            return null;
-
-        // check fot permission
-        if (!checkPermission(pluginID, deviceContext))
-            return null;
-
-        return (IDeviceContext)deviceContext;
+        return null;
     }
 
     /**
@@ -976,6 +1033,8 @@ public class Context {
         // contex was not found in owners? This would be emuLib BUG!!
         if (owner == null)
             return false;
+
+System.out.println("checkPermission(): owner of " + pluginID +" = " + owner);
 
         // THIS is the permission check
         return computer.isConnected(pluginID, owner);

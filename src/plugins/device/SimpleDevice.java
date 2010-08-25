@@ -63,6 +63,12 @@ public abstract class SimpleDevice implements IDevice {
         return true;
     }
 
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void reset() {
 
+    }
 
 }
