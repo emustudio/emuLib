@@ -1034,8 +1034,6 @@ public class Context {
         if (owner == null)
             return false;
 
-System.out.println("checkPermission(): owner of " + pluginID +" = " + owner);
-
         // THIS is the permission check
         return computer.isConnected(pluginID, owner);
     }
