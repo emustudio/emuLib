@@ -9,6 +9,7 @@ import plugins.cpu.ICPUContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import plugins.device.IDeviceContext;
 
 /**
  *
@@ -30,6 +31,19 @@ public class ContextTest {
         @Override
         public String getID() {
             return null;
+        }
+
+        @Override
+        public boolean isInterruptSupported() {
+            return false;
+        }
+
+        @Override
+        public void setInterrupt(IDeviceContext device, int mask) {
+        }
+
+        @Override
+        public void clearInterrupt(IDeviceContext device, int mask) {
         }
 
     }

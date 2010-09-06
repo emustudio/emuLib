@@ -22,6 +22,7 @@
 package plugins.cpu;
 
 import plugins.IContext; 
+import plugins.device.IDeviceContext;
 
 /**
  * Basic interface for CPU context. The context is used by plugins, that are
@@ -35,6 +36,28 @@ import plugins.IContext;
  * implementation, etc.
  */
 public interface ICPUContext extends IContext {
+    
+    /**
+     * Determine whether this CPU context support interrupts
+     * 
+     * @return true, if interrupts are supported, false otherwise
+     */
+    public boolean isInterruptSupported();
 
+    /**
+     * Send interrupt signal to the CPU.
+     *
+     * @param device Device that interrupts the CPU
+     * @param mask interrupt mask
+     */
+    public void setInterrupt(IDeviceContext device, int mask);
+
+    /**
+     * Clear interrupt if it was not handled yet.
+     *
+     * @param device Device that wants to stop the interrupt
+     * @param mask clear interrupt mask
+     */
+    public void clearInterrupt(IDeviceContext device, int mask);
 }
 
