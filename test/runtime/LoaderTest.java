@@ -22,6 +22,7 @@
 
 package runtime;
 
+import emuLib8.runtime.Loader;
 import java.util.ArrayList;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

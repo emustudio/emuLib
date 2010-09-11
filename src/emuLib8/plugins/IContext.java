@@ -21,7 +21,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package plugins;
+package emuLib8.plugins;
 
 /**
  * Context is a sub-structure of a plugin that represents functionality that

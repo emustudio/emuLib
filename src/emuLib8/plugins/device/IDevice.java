@@ -19,9 +19,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.device;
+package emuLib8.plugins.device;
 
-import plugins.IPlugin; 
+import emuLib8.plugins.IPlugin;
 
 /**
  * Main interface that has to be implemented by device plugin.

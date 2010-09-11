@@ -19,10 +19,10 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.cpu;
+package emuLib8.plugins.cpu;
 
-import plugins.IContext; 
-import plugins.device.IDeviceContext;
+import emuLib8.plugins.IContext;
+import emuLib8.plugins.device.IDeviceContext;
 
 /**
  * Basic interface for CPU context. The context is used by plugins, that are
@@ -32,8 +32,7 @@ import plugins.device.IDeviceContext;
  * and then the programmer should make it to be public in order to other plugins
  * could have access to it.
  * 
- * Extended context may have methods for e.g. connecting devices to CPU, interrupts
- * implementation, etc.
+ * Extended context may have methods for e.g. connecting devices to CPU, etc.
  */
 public interface ICPUContext extends IContext {
     

@@ -20,12 +20,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
  */
-package plugins.compiler;
+package emuLib8.plugins.compiler;
 
 import java.io.Reader; 
 import java.util.EventListener;
 import java.util.EventObject;
-import plugins.IPlugin; 
+import emuLib8.plugins.IPlugin;
 
 /**
  * This interface is the core for compiler plugin types. These plugins

@@ -22,6 +22,7 @@
 
 package runtime;
 
+import emuLib8.runtime.StaticDialogs;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

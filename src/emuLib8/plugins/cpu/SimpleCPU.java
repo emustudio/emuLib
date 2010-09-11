@@ -20,12 +20,12 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package plugins.cpu;
+package emuLib8.plugins.cpu;
 
 import java.util.EventObject;
 import java.util.HashSet;
 import javax.swing.event.EventListenerList;
-import plugins.ISettingsHandler;
+import emuLib8.plugins.ISettingsHandler;
 
 /**
  * This class implements some fundamental functionality that can be used

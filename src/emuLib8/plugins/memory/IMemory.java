@@ -19,11 +19,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.memory;
+package emuLib8.plugins.memory;
 
 import java.util.EventListener;
 import java.util.EventObject;
-import plugins.IPlugin; 
+import emuLib8.plugins.IPlugin;
 
 /**
  * This is the main interface that memory plugin should implement.

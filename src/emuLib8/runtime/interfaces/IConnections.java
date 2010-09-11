@@ -20,7 +20,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package runtime.interfaces;
+package emuLib8.runtime.interfaces;
 
 /**
  * This interface includes methods for retrieving computer structure -

@@ -5,11 +5,11 @@
 
 package runtime;
 
-import plugins.cpu.ICPUContext;
+import emuLib8.plugins.cpu.ICPUContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import plugins.device.IDeviceContext;
+import emuLib8.plugins.device.IDeviceContext;
 
 /**
  *

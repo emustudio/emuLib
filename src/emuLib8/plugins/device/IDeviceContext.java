@@ -19,10 +19,10 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.device;
+package emuLib8.plugins.device;
 
 import java.util.EventListener;
-import plugins.IContext; 
+import emuLib8.plugins.IContext;
 
 /**
  * Interface for basic context of the device. If device support more

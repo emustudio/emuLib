@@ -20,9 +20,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package plugins.device;
+package emuLib8.plugins.device;
 
-import plugins.ISettingsHandler;
+import emuLib8.plugins.ISettingsHandler;
 
 /**
  * Simple device.

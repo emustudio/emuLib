@@ -19,12 +19,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.cpu;
+package emuLib8.plugins.cpu;
 
 import java.util.EventListener;
 import java.util.EventObject;
 import javax.swing.JPanel; 
-import plugins.IPlugin; 
+import emuLib8.plugins.IPlugin;
 
 /**
  * Interface that covers CPU. This is the main interface that CPU plugin

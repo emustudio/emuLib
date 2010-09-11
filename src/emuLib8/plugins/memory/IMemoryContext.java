@@ -19,12 +19,10 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.memory;
+package emuLib8.plugins.memory;
 
-import java.util.EventListener;
-import java.util.EventObject;
-import plugins.IContext; 
-import plugins.memory.IMemory.IMemListener;
+import emuLib8.plugins.IContext;
+import emuLib8.plugins.memory.IMemory.IMemListener;
 
 /**
  * Interface provides a context for operating memory. It supports basic methods,

@@ -1,5 +1,5 @@
 /*
- * SimpleMemoryContext.java
+ * SimpleMemory.java
  *
  * (c) Copyright 2010, P.Jakubčo <pjakubco@gmail.com>
  *
@@ -20,19 +20,19 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package plugins.memory;
+package emuLib8.plugins.memory;
 
 import java.util.EventObject;
 import javax.swing.event.EventListenerList;
-import plugins.memory.IMemory.IMemListener;
+import emuLib8.plugins.ISettingsHandler;
 
 /**
- * This class implements some fundamental functionality of IMemoryContext
- * interface, that can be useful in the programming of the own memory context.
+ * This class implements some fundamental functionality that can be shared
+ * by most memory implementations.
  *
  * @author vbmacher
  */
-public abstract class SimpleMemoryContext implements IMemoryContext {
+public abstract class SimpleMemory implements IMemory {
     /**
      * List of all memory listeners. The listeners are objects implementing
      * the IMemoryListener interface. Methods within the listeners are called
@@ -46,12 +46,71 @@ public abstract class SimpleMemoryContext implements IMemoryContext {
     protected EventObject changeEvent;
 
     /**
+     * Start location of loaded program. This variable is changed by
+     * compiler (mostly).
+     */
+    protected int programStart;
+
+    /**
+     * ID of the plug-in assigned by emuStudio
+     */
+    protected long pluginID;
+
+    /**
+     * Settings manipulation object
+     */
+    protected ISettingsHandler settings;
+
+    /**
      * Public constructor initializes listeners list and event object for
      * event passing.
+     *
+     * @param pluginID plug-in identification number
      */
-    public SimpleMemoryContext() {
+    public SimpleMemory(Long pluginID) {
         changeEvent = new EventObject(this);
         listeners = new EventListenerList();
+        this.pluginID = pluginID;
+    }
+
+    /**
+     * This method does a semi-initialization of the memory. It loads
+     * variables: pluginID and ISettingsHandler object.
+     *
+     * It is called by emuStudio in the initialization process. Should
+     * be overriden.
+     *
+     * @param sHandler settings manipulation object
+     * @return true
+     */
+    @Override
+    public boolean initialize(ISettingsHandler sHandler) {
+        this.settings = sHandler;
+        return true;
+    }
+
+    /**
+     * Get program starting address (memory location), as it was loaded by
+     * the method setProgramStart().
+     *
+     * @return program starting address (memory location)
+     */
+    @Override
+    public int getProgramStart() {
+    	return programStart;
+    }
+
+    /**
+     * Set program starting address (memory location). Mostly it is called
+     * by the emuStudio after the compiler returns. When the compiler
+     * compiles the source, the emuStudio gets compiled program starting
+     * address (if unknown, it will be 0) and pass it here.
+     *
+     * @param address program starting address (memory location)
+     */
+    @Override
+    public void setProgramStart(int address) {
+        programStart = address;
     }
 
     /**
@@ -90,6 +149,14 @@ public abstract class SimpleMemoryContext implements IMemoryContext {
                 ((IMemListener)listenersList[i+1]).memChange(changeEvent, adr);
             }
         }
+    }
+
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void reset() {
+
     }
 
 }

@@ -19,9 +19,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package plugins.compiler;
+package emuLib8.plugins.compiler;
 
-import plugins.IContext;
+import emuLib8.plugins.IContext;
 
 /**
  * This interface defines compiler context.

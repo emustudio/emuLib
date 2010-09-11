@@ -20,7 +20,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package runtime;
+package emuLib8.runtime;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
@@ -31,12 +31,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.Hashtable;
-import plugins.IContext;
-import plugins.compiler.ICompilerContext;
-import plugins.cpu.ICPUContext;
-import plugins.device.IDeviceContext;
-import plugins.memory.IMemoryContext;
-import runtime.interfaces.IConnections;
+import emuLib8.plugins.IContext;
+import emuLib8.plugins.compiler.ICompilerContext;
+import emuLib8.plugins.cpu.ICPUContext;
+import emuLib8.plugins.device.IDeviceContext;
+import emuLib8.plugins.memory.IMemoryContext;
+import emuLib8.runtime.interfaces.IConnections;
 
 /**
  * This class manages all contexts. Plug-ins should register their contexts

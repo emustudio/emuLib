@@ -23,7 +23,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package plugins.compiler;
+package emuLib8.plugins.compiler;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -31,8 +31,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Vector;
-import plugins.memory.IMemoryContext;
-import runtime.StaticDialogs;
+import emuLib8.plugins.memory.IMemoryContext;
+import emuLib8.runtime.StaticDialogs;
 
 /**
  * This class generate 16 bit Intel hex file.
