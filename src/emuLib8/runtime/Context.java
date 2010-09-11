@@ -374,6 +374,45 @@ public class Context {
     }
 
     /**
+     * Get specific context for given input data and hashtable of specific
+     * plug-in type.
+     *
+     * This method is used in all get...Context() methods.
+     *
+     * @param pluginID ID of requesting plug-in
+     * @param contexts hashtable of all plug-in contexts
+     * @param contextInterface wanted context interface
+     * @param contextID specific context ID (if is not required, should be null)
+     * @param index the index if more than one contexts are found
+     * @return requested context or null, if the plug-in is not allowed to
+     * get the context
+     */
+    private IContext getContext(long pluginID, Hashtable<?,?> contexts,
+            Class<?> contextInterface, String contextID, int index) {
+        // find the requested context
+        ArrayList ar = (ArrayList)contexts.get((Object)contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+
+        // find context based on contextID
+        IContext context = null;
+        for (int i = 0, j = 0; i < ar.size(); i++) {
+            if ((contextID != null) &&
+                    !((IContext)ar.get(i)).getID().equals(contextID))
+                continue;
+            context = (IContext)ar.get(i);
+            if (checkPermission(pluginID, context)) {
+                if (j == index) {
+                    return (ICPUContext) context;
+                } else {
+                    j++;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Get registered CPU context, if plug-in has the permission to access it.
      * The permission is approved, if the plug-in is connected to CPU in
      * the abstract schema.
@@ -390,19 +429,7 @@ public class Context {
      */
     public ICPUContext getCPUContext(long pluginID,
             Class<?> contextInterface) {
-        // find the requested context
-        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0; i < size; i++) {
-            IContext cpuContext = ar.get(i); // the first one
-            // check fot permission
-            if (checkPermission(pluginID, cpuContext))
-                return (ICPUContext)cpuContext;
-        }
-        return null;
+        return getCPUContext(pluginID, contextInterface, 0);
     }
 
     /**
@@ -429,22 +456,8 @@ public class Context {
      */
     public ICPUContext getCPUContext(long pluginID,
             Class<?> contextInterface, int index) {
-        // find the requested context
-        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0, j = 0; i < size; i++) {
-            IContext cpuContext = ar.get(i);
-            if (checkPermission(pluginID, cpuContext)) {
-                if (j == index)
-                    return (ICPUContext)cpuContext;
-                else
-                    j++;
-            }
-        }
-        return null;
+        return (ICPUContext)getContext(pluginID, cpuContexts,
+                contextInterface, null, index);
     }
 
     /**
@@ -466,20 +479,7 @@ public class Context {
      */
     public ICPUContext getCPUContext(long pluginID,
             Class<?> contextInterface, String contextID) {
-        // find the requested context
-        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find CPU context based on contextID
-        for (int i = 0; i < ar.size(); i++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                IContext cpuContext = ar.get(i);
-                if (checkPermission(pluginID, cpuContext))
-                    return (ICPUContext)cpuContext;
-            }
-        }
-        return null;
+        return getCPUContext(pluginID, contextInterface, contextID, 0);
     }
 
     /**
@@ -505,26 +505,8 @@ public class Context {
      */
     public ICPUContext getCPUContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        // find the requested context
-        ArrayList<ICPUContext> ar = cpuContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find CPU context based on contextID
-        IContext cpuContext = null;
-        for (int i = 0, j = 0; i < ar.size(); i++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                cpuContext = ar.get(i);
-                if (checkPermission(pluginID, cpuContext)) {
-                    if (j == index) {
-                        return (ICPUContext)cpuContext;
-                    } else {
-                        j++;
-                    }
-                }
-            }
-        }
-        return null;
+        return (ICPUContext)getContext(pluginID, cpuContexts,
+                contextInterface, contextID, index);
     }
 
     /**
@@ -542,19 +524,7 @@ public class Context {
      */
     public ICompilerContext getCompilerContext(long pluginID,
             Class<?> contextInterface) {
-        // find owner of context implementing requested context interface
-        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0; i < size; i++) {
-            IContext compilerContext = ar.get(i); // the first one
-            // check for permission
-            if (checkPermission(pluginID, compilerContext))
-                return (ICompilerContext)compilerContext;
-        }
-        return null;
+        return getCompilerContext(pluginID, contextInterface, 0);
     }
 
     /**
@@ -580,22 +550,8 @@ public class Context {
      */
     public ICompilerContext getCompilerContext(long pluginID,
             Class<?> contextInterface, int index) {
-        // find owner of context implementing requested context interface
-        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0, j = 0; i < size; i++) {
-            IContext compilerContext = ar.get(i);
-            if (checkPermission(pluginID, compilerContext)) {
-                if (j == index)
-                    return (ICompilerContext)compilerContext;
-                else
-                    j++;
-            }
-        }
-        return null;
+        return (ICompilerContext)getContext(pluginID, compilerContexts,
+                contextInterface, null, index);
     }
 
     /**
@@ -614,21 +570,7 @@ public class Context {
      */
     public ICompilerContext getCompilerContext(long pluginID,
             Class<?> contextInterface, String contextID) {
-        // find owner of context implementing requested context interface
-        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find compiler context based on contextID
-        int size = ar.size();
-        for (int i = 0; i < size; i++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                IContext compilerContext = ar.get(i);
-                if (checkPermission(pluginID, compilerContext))
-                    return (ICompilerContext)compilerContext;
-            }
-        }
-        return null;
+        return getCompilerContext(pluginID, contextInterface, contextID, 0);
     }
 
     /**
@@ -651,26 +593,8 @@ public class Context {
      */
     public ICompilerContext getCompilerContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        // find owner of context implementing requested context interface
-        ArrayList<ICompilerContext> ar = compilerContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty()) {
-            return null;
-        }
-
-        // find compiler context based on contextID
-        int size = ar.size();
-        for (int i = 0,j = 0; i < size; i++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                IContext compilerContext = ar.get(i);
-                if (checkPermission(pluginID, compilerContext)) {
-                    if (j == index)
-                        return (ICompilerContext)compilerContext;
-                    else
-                        j++;
-                }
-            }
-        }
-        return null;
+        return (ICompilerContext)getContext(pluginID, compilerContexts,
+                contextInterface, contextID, index);
     }
 
     /**
@@ -690,19 +614,7 @@ public class Context {
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface) {
-        // find the requested context
-        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0; i < size; i++) {
-            IContext memContext = ar.get(i); // the first one
-            // check fot permission
-            if (checkPermission(pluginID, memContext))
-                return (IMemoryContext)memContext;
-        }
-        return null;
+        return getMemoryContext(pluginID, contextInterface, 0);
     }
 
     /**
@@ -729,23 +641,8 @@ public class Context {
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface, int index) {
-        // find the requested context
-        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0, j = 0; i < size; i++) {
-            IContext memContext = ar.get(i);
-            // check fot permission
-            if (checkPermission(pluginID, memContext)) {
-                if (j == index)
-                    return (IMemoryContext)memContext;
-                else
-                    j++;
-            }
-        }
-        return null;
+        return (IMemoryContext)getContext(pluginID, memContexts,
+                contextInterface, null, index);
     }
 
     /**
@@ -767,20 +664,7 @@ public class Context {
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface, String contextID) {
-        // find the requested context
-        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find memory context based on contextID
-        for (int i = 0; i < ar.size(); i++) {
-            if (ar.get(i).getID().equals(contextID)) {
-                IContext memContext = ar.get(i);
-                if (checkPermission(pluginID, memContext))
-                   return (IMemoryContext)memContext;
-            }
-        }
-        return null;
+        return getMemoryContext(pluginID, contextInterface, contextID, 0);
     }
 
     /**
@@ -806,25 +690,8 @@ public class Context {
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        // find the requested context
-        ArrayList<IMemoryContext> ar = memContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find memory context based on contextID
-        int size = ar.size();
-        for (int i = 0, j=0; i < size; i++) {
-            IContext memContext = ar.get(i);
-            if (memContext.getID().equals(contextID)) {
-                if (checkPermission(pluginID, memContext)) {
-                    if (index == j)
-                        return (IMemoryContext)memContext;
-                    else
-                        j++;
-                }
-            }
-        }
-        return null;
+        return (IMemoryContext)getContext(pluginID, memContexts,
+                contextInterface, contextID, index);
     }
 
     /**
@@ -844,19 +711,7 @@ public class Context {
      */
     public IDeviceContext getDeviceContext(long pluginID,
             Class<?> contextInterface) {
-        // find the requested context
-        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();        
-        for (int i = 0; i < size; i++) {
-            IContext deviceContext = ar.get(i);
-            // check fot permission
-            if (checkPermission(pluginID, deviceContext))
-                return (IDeviceContext)deviceContext;
-        }
-        return null;
+        return getDeviceContext(pluginID, contextInterface, 0);
     }
 
     /**
@@ -883,23 +738,8 @@ public class Context {
      */
     public IDeviceContext getDeviceContext(long pluginID,
             Class<?> contextInterface, int index) {
-        // find the requested context
-        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        int size = ar.size();
-        for (int i = 0, j = 0; i < size; i++) {
-            IContext deviceContext = ar.get(i);
-            // check fot permission
-            if (checkPermission(pluginID, deviceContext)) {
-                if (j == index)
-                    return (IDeviceContext)deviceContext;
-                else
-                    j++;
-            }
-        }
-        return null;
+        return (IDeviceContext)getContext(pluginID, deviceContexts,
+                contextInterface, null, index);
     }
 
     /**
@@ -921,21 +761,7 @@ public class Context {
      */
     public IDeviceContext getDeviceContext(long pluginID,
             Class<?> contextInterface, String contextID) {
-        // find the requested context
-        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find device context based on contextID
-        int size = ar.size();
-        for (int i = 0; i < size; i++) {
-            IContext deviceContext = ar.get(i);
-            if (deviceContext.getID().equals(contextID)) {
-                if (checkPermission(pluginID, deviceContext))
-                    return (IDeviceContext)deviceContext;
-            }
-        }
-        return null;
+        return getDeviceContext(pluginID, contextInterface, contextID, 0);
     }
 
     /**
@@ -961,26 +787,8 @@ public class Context {
      */
     public IDeviceContext getDeviceContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        // find the requested context
-        ArrayList<IDeviceContext> ar = deviceContexts.get(contextInterface);
-        if ((ar == null) || ar.isEmpty())
-            return null;
-
-        // find device context based on contextID
-        int size = ar.size();
-        for (int i = 0, j = 0; i < size; i++) {
-            IContext deviceContext = ar.get(i);
-            if (deviceContext.getID().equals(contextID)) {
-                // check fot permission
-                if (checkPermission(pluginID, deviceContext)) {
-                    if (index == j)
-                        return (IDeviceContext)deviceContext;
-                    else
-                        j++;
-                }
-            }
-        }
-        return null;
+        return (IDeviceContext)getContext(pluginID, deviceContexts,
+                contextInterface, contextID, index);
     }
 
     /**
@@ -1124,26 +932,6 @@ public class Context {
             } while(two_halfs++ < 1);
         }
         return buf.toString();
-    }
-
-    /**
-     * Compute MD5 hash string. Letters in the hash string are in upper-case.
-     *
-     * @param text Data to make hash from
-     * @return MD5 hash Hexadecimal string, null if some exception has been
-     * catched
-     */
-    public static String MD5(String text) {
-        try {
-            MessageDigest md;
-            md = MessageDigest.getInstance("MD5");
-            byte[] md5hash = new byte[32];
-            md.update(text.getBytes("iso-8859-1"), 0, text.length());
-            md5hash = md.digest();
-            return convertToHex(md5hash);
-        }  catch (NoSuchAlgorithmException e) {}
-        catch (UnsupportedEncodingException r) {}
-        return null;
     }
 
     /**
