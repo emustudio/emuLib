@@ -239,35 +239,6 @@ public class Context {
     }
 
     /**
-     * Method removes context from a context hashtable by value, not key.
-     * It searches through the ArrayList for the value. If the ArrayList
-     * is empty, removes also the key from the hashtable.
-     *
-     * @param t hashtable
-     * @param context value that shall be removed
-     * @return true if the value has been removed (and was found in the hashtable)
-     */
-    private boolean removeContext(Hashtable<Class<?>,?> t,
-            IContext context) {
-        if (t == null)
-            return false;
-        Enumeration<Class<?>> e = t.keys();
-        while (e.hasMoreElements()) {
-            Class<?> intf = e.nextElement();
-            ArrayList<?> ar = (ArrayList<?>)t.get(intf);
-            if (ar == null)
-                continue;
-            if (ar.contains(context)) {
-                boolean b = ar.remove(context);
-                if (ar.isEmpty())
-                    t.remove(intf);
-                return b;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Method removes all contexts from a context hashtable.
      * It removes also the key from the hashtable.
      *
@@ -297,39 +268,6 @@ public class Context {
     }
 
     /**
-     * Method unregisters given context of given plug-in if the plug-in has
-     * a permission to do it. The permission is approved if and only if
-     * the context is implemented inside the requesting plug-in.
-     *
-     * @param pluginID ID of plug-in
-     * @param context Context to unregister
-     * @return true if the unregistration was successful, false otherwise
-     */
-    public boolean unregister(long pluginID, IContext context) {
-        // check if the context is class
-        if (context.getClass().isInterface())
-            return false;
-
-        // check for permission
-        ArrayList<IContext> owner = contextOwners.get(pluginID);
-        if (owner == null)
-            return false;
-        if (!owner.contains(context))
-            return false;
-
-        boolean result = false;
-
-        result = removeContext(cpuContexts,context);
-        result |= removeContext(memContexts,context);
-        result |= removeContext(deviceContexts,context);
-        result |= removeContext(compilerContexts,context);
-
-        if (result == true)
-            owner.remove(context);
-        return result;
-    }
-
-    /**
      * This method unregisters all contexts that implements given interface,
      * if the plug-in has permission for it. The permission is approved if and
      * only if the contexts are implemented inside the plug-in.
@@ -338,7 +276,7 @@ public class Context {
      * @param contextInterface Interface that should be unregistered
      * @return true if almost one context has been unregistered, false instead.
      */
-    public boolean unregisterAll(long pluginID, Class<IContext> contextInterface) {
+    public boolean unregister(long pluginID, Class<IContext> contextInterface) {
         // check if the context is class
         if (!contextInterface.getClass().isInterface())
             return false;
@@ -403,7 +341,7 @@ public class Context {
             context = (IContext)ar.get(i);
             if (checkPermission(pluginID, context)) {
                 if (j == index) {
-                    return (ICPUContext) context;
+                    return context;
                 } else {
                     j++;
                 }
