@@ -22,10 +22,13 @@
 package emuLib8.runtime;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -330,6 +333,33 @@ public class Loader extends ClassLoader {
             return null;
         }
         return classes;
+    }
+
+    /**
+     * This method reads the file with the given name and returns
+     * the contents of this file as a String.
+     *
+     * @param fileName The name of the file to read.
+     * @return The contents of the file, or null if an exception is catched
+     * during the read process.
+     */
+    public static String loadFile(String fileName) {
+        try {
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(new FileInputStream(fileName)));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while (true) {
+                line = br.readLine();
+                if (line == null) {
+                    break;
+                }
+                sb.append(line).append("\n");
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     @Override
