@@ -1,7 +1,7 @@
 /**
  * ICompiler.java
  * 
- * (c) Copyright 2008-2010 P. Jakubčo <pjakubco@gmail.com>
+ * (c) Copyright 2008-2011 P. Jakubčo <pjakubco@gmail.com>
  * 
  * KISS, YAGNI
  *
@@ -32,18 +32,6 @@ import emuLib8.plugins.IPlugin;
  * should implement this interface once and only once.
  */
 public interface ICompiler extends IPlugin {
-    /**
-     * The message passed from compiler is a warning.
-     */
-    public static final int TYPE_WARNING = 1;
-    /**
-     * The message passed from compiler is an error.
-     */
-    public static final int TYPE_ERROR   = 2;
-    /**
-     * The message passed from compiler is an information.
-     */
-    public static final int TYPE_INFO    = 3;
 
     /**
      * Adds ICompilerListener object into list of listeners.
@@ -71,7 +59,7 @@ public interface ICompiler extends IPlugin {
          *
          * @param evt Event object
          */
-        public void onCompileStart (EventObject evt);
+        public void onStart (EventObject evt);
 
         /**
          * Method will fire when compiler wants to print something on screen.
@@ -79,22 +67,10 @@ public interface ICompiler extends IPlugin {
          * character.
          *
          * @param evt The event object
-         * @param row
-         *        Row in the source code. When it is -1, then it should
-         *        be IGNORED.
-         * @param col
-         *        Column in the source code. When it is -1, then it should
-         *        be IGNORED.
-         * @param message
+         * @param Message
          *        Message from the compiler
-         * @param errorCode
-         *        Error code (when it is an error report)
-         * @param messageType
-         *        Type of the message. One of the TYPE_WARNING, TYPE_ERROR,
-         *        or TYPE_INFO.
          */
-        public void onCompileInfo (EventObject evt, int row, int col,
-                String message, int errorCode, int messageType);
+        public void onMessage (EventObject evt, Message message);
 
         /**
          * This method is called whenever the compiler finishes the compile
@@ -103,7 +79,7 @@ public interface ICompiler extends IPlugin {
          * @param evt Event object
          * @param errorCode compiler-specific error code
          */
-        public void onCompileFinish (EventObject evt, int errorCode);
+        public void onFinish (EventObject evt, int errorCode);
     }
 
     /**
@@ -111,10 +87,11 @@ public interface ICompiler extends IPlugin {
      * derive from input file name.
      * @param fileName  name of input file (source code)
      * @param in        <code>Reader</code> object of the document - source code.
+     * @param options   Compiler options.
      *
      * @return true if compile was successful, false otherwise
      */
-    public boolean compile (String fileName, Reader in);
+    public boolean compile (String fileName, Reader in, String options);
     
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
@@ -137,6 +114,14 @@ public interface ICompiler extends IPlugin {
      * @return address of program's first occurrence
      */
     public int getProgramStartAddress ();
+
+    /**
+     * Gets the list of supported source file name suffixes. The list is case
+     * sensitive. This method is called only once by emuStudio.
+     *
+     * @return list of supported source file name suffixes
+     */
+    public String[] getSourceSuffixList();
 
 }
 

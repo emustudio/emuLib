@@ -128,7 +128,7 @@ public abstract class SimpleCompiler implements ICompiler {
         Object[] listenersList = listeners.getListenerList();
         for (int i = listenersList.length-2; i>=0; i-=2) {
             if (listenersList[i]==ICompilerListener.class) {
-                ((ICompilerListener)listenersList[i+1]).onCompileStart(
+                ((ICompilerListener)listenersList[i+1]).onStart(
                         changeEvent);
             }
         }
@@ -146,7 +146,7 @@ public abstract class SimpleCompiler implements ICompiler {
         Object[] listenersList = listeners.getListenerList();
         for (int i = listenersList.length-2; i>=0; i-=2) {
             if (listenersList[i]==ICompilerListener.class) {
-                ((ICompilerListener)listenersList[i+1]).onCompileFinish(
+                ((ICompilerListener)listenersList[i+1]).onFinish(
                         changeEvent, errorCode);
             }
         }
@@ -154,25 +154,20 @@ public abstract class SimpleCompiler implements ICompiler {
 
     /**
      * This method notifies all listeners that the compiler wants to print
-     * something out
+     * something out (a message).
      *
-     * This method should be called when the compiler notifies some warning
-     * or error, or wants to inform the user of something (e.g. copyright
-     * information).
+     * This method should be called when the compiler wants to notify the user
+     * about some warning or error during compilation; or wants to inform the
+     * user of something else (e.g. copyright information).
      *
-     * @param row line number according to source code
-     * @param col column number according to souce code
-     * @param message the message
-     * @param errorCode error code, compiler-specific
-     * @param messageType type of the message (TYPE_INFO, TYPE_WARNING, TYPE_ERROR)
+     * @param message The message
      */
-    public void fireMessage(int row, int col, String message, int errorCode,
-            int messageType) {
+    public void fireMessage(Message message) {
         Object[] listenersList = listeners.getListenerList();
         for (int i = listenersList.length-2; i>=0; i-=2) {
             if (listenersList[i]==ICompilerListener.class) {
-                ((ICompilerListener)listenersList[i+1]).onCompileInfo(
-                        changeEvent, row, col, message, errorCode, messageType);
+                ((ICompilerListener)listenersList[i+1]).onMessage(changeEvent,
+                        message);
             }
         }
     }
