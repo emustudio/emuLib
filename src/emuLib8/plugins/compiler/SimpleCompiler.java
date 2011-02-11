@@ -25,6 +25,7 @@ package emuLib8.plugins.compiler;
 import java.util.EventObject;
 import javax.swing.event.EventListenerList;
 import emuLib8.plugins.ISettingsHandler;
+import emuLib8.plugins.compiler.Message.MessageType;
 
 /**
  * This class implements some fundamental functionality that can be
@@ -170,6 +171,33 @@ public abstract class SimpleCompiler implements ICompiler {
                         message);
             }
         }
+    }
+
+    /**
+     * Fires the error message.
+     * 
+     * @param mes text of the message
+     */
+    protected void printError(String mes) {
+        fireMessage(new Message(MessageType.TYPE_ERROR, mes));
+    }
+
+    /**
+     * Fires information message
+     *
+     * @param mes text of the message
+     */
+    protected void printInfo(String mes) {
+        fireMessage(new Message(MessageType.TYPE_INFO, mes));
+    }
+
+    /**
+     * Fires warning message
+     *
+     * @param mes text of the message
+     */
+    protected void printWarning(String mes) {
+        fireMessage(new Message(MessageType.TYPE_WARNING, mes));
     }
 
     /**
