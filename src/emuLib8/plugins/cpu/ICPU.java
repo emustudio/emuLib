@@ -214,18 +214,6 @@ public interface ICPU extends IPlugin {
     public int getInstrPosition ();
 
     /**
-     * Method compute address of an instruction that follows after instruction
-     * defined by given address. Main module uses this method to determine
-     * on which address should start next instruction in debug window. Several
-     * calls of this method make possible to create a list of instructions that
-     * begin on arbitrary address (debug window table).
-     * 
-     * @param pos  memory position (address) of an instruction
-     * @return address of an instruction followed by specified address
-     */
-    public int getInstrPosition (int pos);
-
-    /**
      * Set new actual instruction position (that will be executed as next). It
      * can be said, that a parameter represents new value of PC (program counter),
      * if CPU has one. Otherwise CPU should interpret the position in the right
