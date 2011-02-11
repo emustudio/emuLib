@@ -62,7 +62,6 @@ public class Message {
      * compiler.
      * @param message_type
      *   Type of the message.
-     *   values.
      * @param message
      *   Text of the message
      * @param line
@@ -98,7 +97,18 @@ public class Message {
      * compiler.
      * @param message_type
      *   Type of the message.
-     *   values.
+     * @param message
+     *   Text of the message
+     */
+    public Message(MessageType type, String message) {
+        this(type,message,-1,-1,null, 0);
+    }
+
+    /**
+     * This constructor creates the Message object. Messages are created by
+     * compiler.
+     * @param message_type
+     *   Type of the message.
      * @param message
      *   Text of the message
      * @param error_code
@@ -113,7 +123,6 @@ public class Message {
      * compiler.
      * @param message_type
      *   Type of the message.
-     *   values.
      * @param message
      *   Text of the message
      * @param sourceFile
