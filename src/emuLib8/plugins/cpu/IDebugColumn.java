@@ -68,6 +68,16 @@ public interface IDebugColumn {
      */
     public Object getDebugValue (int row);
 
+    /**
+     * Determine whether the cell in the specified row is an actual instruction.
+     * This is needed by emuStudio when it needs to color the row in the debug
+     * table. Current instruction is painted with another color than other rows.
+     *
+     * @param row The memory address
+     * @return true if the instruction at specified location is current instruction,
+     * false otherwise
+     */
+    public boolean isCurrent(int row);
 
 }
 
