@@ -116,7 +116,7 @@ public interface ICompiler extends IPlugin {
 
     /**
      * Gets the list of supported source file name suffixes. The list is case
-     * sensitive. This method is called only once by emuStudio.
+     * insensitive. This method is called only once by emuStudio.
      *
      * @return list of supported source file name suffixes
      */
