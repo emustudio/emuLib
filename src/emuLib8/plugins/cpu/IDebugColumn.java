@@ -79,5 +79,12 @@ public interface IDebugColumn {
      */
     public boolean isCurrent(int row);
 
+    /**
+     * Returns index value of row in the debug table of current instruction.
+     *
+     * @return Row index in debug table of current instruction
+     */
+    public int getCurrentDebugRow();
+
 }
 

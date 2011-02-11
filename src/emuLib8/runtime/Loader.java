@@ -330,7 +330,7 @@ public class Loader extends ClassLoader {
                 }
             }
         } catch (Exception e) {
-            return null;
+            e.printStackTrace();
         }
         return classes;
     }
