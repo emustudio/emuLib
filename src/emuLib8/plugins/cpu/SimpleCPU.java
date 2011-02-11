@@ -59,7 +59,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
     /**
      * Run state of this CPU.
      */
-    protected int run_state;
+    protected RunState run_state;
 
     /**
      * Object for settings manipulation.
@@ -78,7 +78,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      * @param pluginID plug-in identification number
      */
     public SimpleCPU(Long pluginID) {
-        run_state = ICPU.STATE_STOPPED_NORMAL;
+        run_state = RunState.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
         listenerList = new EventListenerList();
         cpuEvt = new EventObject(this);
@@ -146,7 +146,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      */
     @Override
     public void reset(int addr) {
-        run_state = ICPU.STATE_STOPPED_BREAK;
+        run_state = RunState.STATE_STOPPED_BREAK;
         cpuThread = null;
     }
 
@@ -179,7 +179,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      *
      * @param run_state  new processor state
      */
-    public void fireCpuRun(int run_state) {
+    public void fireCpuRun(RunState run_state) {
         Object[] listeners = listenerList.getListenerList();
         for (int i=0; i<listeners.length; i+=2) {
             if (listeners[i] == ICPUListener.class)
@@ -205,7 +205,7 @@ public abstract class SimpleCPU implements ICPU, Runnable {
      */
     @Override
     public void execute() {
-        cpuThread = new Thread(this, "CPUThread");
+        cpuThread = new Thread(this, getTitle());
         cpuThread.start();
     }
 

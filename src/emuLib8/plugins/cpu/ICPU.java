@@ -1,7 +1,7 @@
 /**
  * ICPU.java
  * 
- * (c) Copyright 2008-2010, P.Jakubčo <pjakubco@gmail.com>
+ * (c) Copyright 2008-2011, P.Jakubčo <pjakubco@gmail.com>
  * 
  * KISS, YAGNI
  *
@@ -33,32 +33,33 @@ import emuLib8.plugins.IPlugin;
 public interface ICPU extends IPlugin {
 
     /**
-     * CPU is stopped (naturally or by user) and should not be run until its
-     * reset.
+     * The run state of the CPU.
      */
-    public static final int STATE_STOPPED_NORMAL       = 1;
-
-    /**
-     * CPU is in breakpoint state (paused).
-     */
-    public static final int STATE_STOPPED_BREAK        = 2;
-
-    /**
-     * CPU is stopped because of address fallout error. It should not be
-     * run until its reset.
-     */
-    public static final int STATE_STOPPED_ADDR_FALLOUT = 3;
-
-    /**
-     * CPU is stopped because of instruction fallout (unknown instruction) 
-     * error. It should not be run until its reset.
-     */
-    public static final int STATE_STOPPED_BAD_INSTR    = 4;
-
-    /**
-     * CPU is running.
-     */
-    public static final int STATE_RUNNING              = 5;
+    public enum RunState {
+        /**
+         * CPU is stopped (naturally or by user) and should not be run until its
+         * reset.
+         */
+        STATE_STOPPED_NORMAL,
+        /**
+         * CPU is in breakpoint state (paused).
+         */
+        STATE_STOPPED_BREAK,
+        /**
+         * CPU is stopped because of address fallout error. It should not be
+         * run until its reset.
+         */
+        STATE_STOPPED_ADDR_FALLOUT,
+        /**
+         * CPU is stopped because of instruction fallout (unknown instruction)
+         * error. It should not be run until its reset.
+         */
+        STATE_STOPPED_BAD_INSTR,
+        /**
+         * CPU is running.
+         */
+        STATE_RUNNING
+    }
 
     /**
      * Adds the specified CPU listener to receive CPU events from this CPU.
@@ -100,7 +101,7 @@ public interface ICPU extends IPlugin {
          * @param evt       event object
          * @param runState  new run state of the CPU
          */
-        public void runChanged (EventObject evt, int runState);
+        public void runChanged (EventObject evt, RunState runState);
 
         /**
          * Invoked when an CPU's state changes. The state can be register change,
@@ -168,25 +169,6 @@ public interface ICPU extends IPlugin {
      * @return debug columns array
      */
     public IDebugColumn[] getDebugColumns ();
-
-    /**
-     * Called when user sets a value to a cell in debug window. This method
-     * should ensure proper changes in CPU's internal state, caused by this
-     * set. The main module calls this method only if the cell in debug window
-     * is editable by user (<code>IDebugColumn.isEditable()</code>).
-     * @param row    cell's index from memory position 0 (not row in debug table)
-     * @param col    column of the cell in debug window table
-     * @param value  new value of the cell
-     */
-    public void setDebugValue (int row, int col, Object value);
-
-    /**
-     * Gets the value of a cell in debug window on specified position. 
-     * @param row  cell's index from memory position 0 (not row in debug table)
-     * @param col  column of the cell in in debug window table
-     * @return value of the cell
-     */
-    public Object getDebugValue (int row, int col);
 
     /**
      * Determine whether breakpoints are supported by CPU.

@@ -28,18 +28,18 @@ package emuLib8.plugins.cpu;
 public interface IDebugColumn {
 
     /**
-     * Gets java type of the column. Mostly the column type is <code>java.lang.String</code>,
+     * Gets class type of the column. Mostly the column type is <code>java.lang.String</code>,
      * but for breakpoint columns should be used <code>java.lang.Boolean</code>
      * class.
      * @return Java type of this column
      */
-    public Class getType ();
+    public Class getClassType ();
 
     /**
      * Gets name (title) of the column.
      * @return title of this column
      */
-    public String getName ();
+    public String getTitle ();
 
     /**
      * Determines whether this column is editable by user. For example, mnemonics
@@ -50,6 +50,24 @@ public interface IDebugColumn {
      * @return true if column (with all its cells) is editable, false otherwise
      */
     public boolean isEditable ();
+
+    /**
+     * Called when user sets a value to a cell in debug window. This method
+     * should ensure proper changes in CPU's internal state, caused by this
+     * set. The main module calls this method only if the cell in debug window
+     * is editable by user (<code>IDebugColumn.isEditable()</code>).
+     * @param row    cell's index from memory position 0 (not row in debug table)
+     * @param value  new value of the cell
+     */
+    public void setDebugValue (int row, Object value);
+
+    /**
+     * Gets the value of a cell in debug window at specified position.
+     * @param row  cell's index from memory position 0 (not row in debug table)
+     * @return value of the cell
+     */
+    public Object getDebugValue (int row);
+
 
 }
 
