@@ -168,7 +168,7 @@ public interface ICPU extends IPlugin {
      * "address", "mnemonics" and "opcode". 
      * @return debug columns array
      */
-    public IDebugColumn[] getDebugColumns ();
+//    public IDebugColumn[] getDebugColumns ();
 
     /**
      * Determine whether breakpoints are supported by CPU.
@@ -226,5 +226,11 @@ public interface ICPU extends IPlugin {
      */
     public boolean setInstrPosition (int pos);
 
+    /**
+     * Get disassembler object. EmuStudio uses this for creating debug table.
+     *
+     * @return disassembler object
+     */
+    public IDisassembler getDisassembler();
 }
 

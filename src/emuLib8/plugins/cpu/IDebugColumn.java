@@ -56,35 +56,17 @@ public interface IDebugColumn {
      * should ensure proper changes in CPU's internal state, caused by this
      * set. The main module calls this method only if the cell in debug window
      * is editable by user (<code>IDebugColumn.isEditable()</code>).
-     * @param row    cell's index from memory position 0 (not row in debug table)
+     * @param location memory address (not row in debug table)
      * @param value  new value of the cell
      */
-    public void setDebugValue (int row, Object value);
+    public void setDebugValue (int location, Object value);
 
     /**
      * Gets the value of a cell in debug window at specified position.
-     * @param row  cell's index from memory position 0 (not row in debug table)
+     * @param location  memory address (not row in debug table)
      * @return value of the cell
      */
-    public Object getDebugValue (int row);
-
-    /**
-     * Determine whether the cell in the specified row is an actual instruction.
-     * This is needed by emuStudio when it needs to color the row in the debug
-     * table. Current instruction is painted with another color than other rows.
-     *
-     * @param row The memory address
-     * @return true if the instruction at specified location is current instruction,
-     * false otherwise
-     */
-    public boolean isCurrent(int row);
-
-    /**
-     * Returns index value of row in the debug table of current instruction.
-     *
-     * @return Row index in debug table of current instruction
-     */
-    public int getCurrentDebugRow();
+    public Object getDebugValue (int location);
 
 }
 
