@@ -49,25 +49,34 @@ public abstract class SimpleDisassembler implements IDisassembler {
      * This method relies hlighly upon von-Neuman sequential model of
      * computation.
      *
+     * It uses ad-hoc jump 15 bytes back to check the previous instruction
+     * is of the correct length. If the ad-hoc method was not used, the more
+     * bytes instructions wouldn't be catched correctly. The theory is that
+     * instruction lengths are catched as correctly as big the reserve is.
+     *
      * @param location The memory location of current instruction
      * @return memory location of previous instruction. If no instruction can be
      * found (the location is invalid), negative value is returned.
+     * @throws IndexOutOfBoundsException if the location is 0 or negative
      */
     @Override
-    public int getPreviousInstructionLocation(int location) {
+    public int getPreviousInstructionLocation(int location) throws IndexOutOfBoundsException {
         int loc, oldLoc;
-        int tryBytes = 1;
+        int tryBytes = 15;
 
         if (location <= 0)
-            return location;
+            throw new IndexOutOfBoundsException();
 
         IDisassembler dis = cpu.getDisassembler();
 
         loc = location - tryBytes;
+        while (loc < 0) {
+            tryBytes--;
+            loc = location - tryBytes;
+        }
         oldLoc = loc;
-        while ((loc = dis.getNextInstructionLocation(loc)) != oldLoc) {
-            if (loc == location)
-                return oldLoc;
+
+        while ((loc = dis.getNextInstructionLocation(loc)) != location) {
             if (loc > location) {
                 tryBytes++;
                 oldLoc = loc = location - tryBytes;
