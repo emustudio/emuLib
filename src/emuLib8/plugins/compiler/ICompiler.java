@@ -120,7 +120,7 @@ public interface ICompiler extends IPlugin {
      *
      * @return list of supported source file name suffixes
      */
-    public String[] getSourceSuffixList();
+    public SourceFileExtension[] getSourceSuffixList();
 
 }
 
