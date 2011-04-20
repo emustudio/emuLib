@@ -326,6 +326,8 @@ public class Loader extends ClassLoader {
                 }
                 if (undone.size() > 0) {
                     // if a jar file contains some error
+                    System.out.println("Error: cannot load classes: "
+                            + undone.toString());
                     throw new Exception();
                 }
             }
@@ -442,6 +444,7 @@ public class Loader extends ClassLoader {
                     undone.removeElement(ze.getName());
                     result = true;
                 } catch (ClassNotFoundException nf) {
+                    nf.printStackTrace();
                 }
             }
         } catch (Exception e) {
