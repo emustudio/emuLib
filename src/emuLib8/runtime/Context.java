@@ -160,8 +160,6 @@ public class Context {
         if ((tt != null) && tt.contains(context))
             return false;
 
-        System.out.println("New - " + contextInterface.getSimpleName());
-        
         // check if the contextInterface is implemented by context
         Class c = context.getClass();
         Class<?> tmp;
@@ -179,7 +177,6 @@ public class Context {
         if (!positive)
             return false;
         
-        System.out.println("OK - " + contextInterface.getSimpleName());
         // check hash of the interface
         String hash = null;
         String contextIName = contextInterface.getSimpleName();
@@ -243,7 +240,6 @@ public class Context {
             // This if branch IS needed
             return false;
         }
-
         return true;
     }
 
