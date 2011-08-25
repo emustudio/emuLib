@@ -255,7 +255,7 @@ public class Loader extends ClassLoader {
     public ArrayList<Class<?>> loadJAR(String filename) {
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         Hashtable<String, Integer> sizes = new Hashtable<String, Integer>();
-        Vector<String> undone = new Vector<String>();
+        ArrayList<String> undone = new ArrayList<String>();
 
         if (!filename.toLowerCase().endsWith(".jar")) {
             filename += ".jar";
@@ -311,7 +311,7 @@ public class Loader extends ClassLoader {
                     Class<?> cl = defineLoadedClass(ze.getName(), b, size, true);
                     classes.add(cl);
                 } catch (Exception nf) {
-                    undone.addElement(ze.getName());
+                    undone.add(ze.getName());
                 }
             }
             zis.close();
@@ -405,7 +405,7 @@ public class Loader extends ClassLoader {
      * @param filename File name of the JAR file.
      * @return true if at least 1 class was loaded successfully
      */
-    private boolean loadUndoneClasses(Vector<String> undone, ArrayList<Class<?>> classes,
+    private boolean loadUndoneClasses(ArrayList<String> undone, ArrayList<Class<?>> classes,
             Hashtable<String, Integer> sizes, String filename) {
         JarEntry ze = null;
         boolean result = false;
@@ -441,10 +441,11 @@ public class Loader extends ClassLoader {
                     // try load class data
                     Class<?> cl = defineLoadedClass(ze.getName(), b, size, true);
                     classes.add(cl);
-                    undone.removeElement(ze.getName());
+                    undone.remove(ze.getName());
                     result = true;
+//                    System.out.println("LOADED: " + ze.getName());
                 } catch (ClassNotFoundException nf) {
-                    nf.printStackTrace();
+//                    nf.printStackTrace();
                 }
             }
         } catch (Exception e) {

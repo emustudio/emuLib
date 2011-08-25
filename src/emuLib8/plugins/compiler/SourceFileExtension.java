@@ -43,7 +43,7 @@ public class SourceFileExtension {
      *
      * @param extension
      *   Case insensitive file extension of the file, without the starting dot
-     *   (".").
+     *   (example: "asm", but not ".asm").
      * @param description
      *   The description of the file extension.
      */

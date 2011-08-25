@@ -29,14 +29,14 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.HashMap;
 import emuLib8.plugins.IContext;
 import emuLib8.plugins.compiler.ICompilerContext;
 import emuLib8.plugins.cpu.ICPUContext;
 import emuLib8.plugins.device.IDeviceContext;
 import emuLib8.plugins.memory.IMemoryContext;
 import emuLib8.runtime.interfaces.IConnections;
+import java.util.Iterator;
 
 /**
  * This class manages all contexts. Plug-ins should register their contexts
@@ -48,14 +48,14 @@ public class Context {
     // the following tables store all registered contexts.
     // Contexts implementing the same context interfaces are stored
     // to the end of the arraylist under the same hashtable key
-    private Hashtable<Class<?>,ArrayList<ICompilerContext>> compilerContexts;
-    private Hashtable<Class<?>,ArrayList<ICPUContext>> cpuContexts;
-    private Hashtable<Class<?>,ArrayList<IMemoryContext>> memContexts;
-    private Hashtable<Class<?>,ArrayList<IDeviceContext>> deviceContexts;
+    private HashMap<Class<?>,ArrayList<ICompilerContext>> compilerContexts;
+    private HashMap<Class<?>,ArrayList<ICPUContext>> cpuContexts;
+    private HashMap<Class<?>,ArrayList<IMemoryContext>> memContexts;
+    private HashMap<Class<?>,ArrayList<IDeviceContext>> deviceContexts;
 
     // This hashtable represents owners of registered contexts (keys).
     // It is used for checking the plug-in permissions to access them
-    private Hashtable<Long,ArrayList<IContext>> contextOwners;
+    private HashMap<Long,ArrayList<IContext>> contextOwners;
 
     // instance of this class
     private static Context instance = null;
@@ -68,15 +68,15 @@ public class Context {
      * Private constructor.
      */
     private Context() {
-        compilerContexts = new Hashtable<Class<?>,
+        compilerContexts = new HashMap<Class<?>,
                 ArrayList<ICompilerContext>>();
-        cpuContexts = new Hashtable<Class<?>, ArrayList<ICPUContext>>();
-        memContexts = new Hashtable<Class<?>,
+        cpuContexts = new HashMap<Class<?>, ArrayList<ICPUContext>>();
+        memContexts = new HashMap<Class<?>,
                 ArrayList<IMemoryContext>>();
-        deviceContexts = new Hashtable<Class<?>,
+        deviceContexts = new HashMap<Class<?>,
                 ArrayList<IDeviceContext>>();
 
-        contextOwners = new Hashtable<Long,ArrayList<IContext>>();
+        contextOwners = new HashMap<Long,ArrayList<IContext>>();
         computer = null;
     }
 
@@ -93,7 +93,8 @@ public class Context {
     }
 
     /**
-     * Test the class for the implementation of the given interface.
+     * Test the class for the implementation of the given interface (in max. two
+     * levels of interface inheritance).
      *
      * @param classI class that will be tested
      * @param interfaceName interface that the class should implement
@@ -101,10 +102,14 @@ public class Context {
      */
     private static boolean testInterface(Class<?> classI, Class<?> interfaceName) {
         Class<?>[] intf = classI.getInterfaces();
-
-        for (int j = 0; j < intf.length; j++)
+        for (int j = 0; j < intf.length; j++) {
             if (intf[j].isInterface() && intf[j].equals(interfaceName))
                 return true;
+            Class<?>[] tst = intf[j].getInterfaces();
+            for (int i = 0; i < tst.length; i++)
+                if (tst[i].isInterface() && tst[i].equals(interfaceName))
+                    return true;
+        }
         return false;
     }
 
@@ -131,7 +136,7 @@ public class Context {
      *        extended context. It HAS TO be an interface, not a class.
      * @return true if the registration is successful, false if it fails.
      */
-    public boolean register(long pluginID, IContext context,
+    public synchronized boolean register(long pluginID, IContext context,
             Class<?> contextInterface) {
 
         // check if the context is class
@@ -155,6 +160,8 @@ public class Context {
         if ((tt != null) && tt.contains(context))
             return false;
 
+        System.out.println("New - " + contextInterface.getSimpleName());
+        
         // check if the contextInterface is implemented by context
         Class c = context.getClass();
         Class<?> tmp;
@@ -171,7 +178,8 @@ public class Context {
 
         if (!positive)
             return false;
-
+        
+        System.out.println("OK - " + contextInterface.getSimpleName());
         // check hash of the interface
         String hash = null;
         String contextIName = contextInterface.getSimpleName();
@@ -235,6 +243,7 @@ public class Context {
             // This if branch IS needed
             return false;
         }
+
         return true;
     }
 
@@ -245,7 +254,7 @@ public class Context {
      * @param t hashtable
      * @return true if all contexts were removed (and was found in the hashtable)
      */
-    private boolean removeAllContexts(Hashtable<Class<?>,?> t,
+    private boolean removeAllContexts(HashMap<Class<?>,?> t,
             Class<IContext> contextInterface, ArrayList<IContext> owner) {
         if ((t == null) || (contextInterface == null))
             return false;
@@ -325,7 +334,7 @@ public class Context {
      * @return requested context or null, if the plug-in is not allowed to
      * get the context
      */
-    private IContext getContext(long pluginID, Hashtable<?,?> contexts,
+    private IContext getContext(long pluginID, HashMap<?,?> contexts,
             Class<?> contextInterface, String contextID, int index) {
         // find the requested context
         ArrayList ar = (ArrayList)contexts.get((Object)contextInterface);
@@ -764,10 +773,10 @@ public class Context {
 
         // first it must be found the owner of the Context.
         Long owner = null;
-        Enumeration<Long> t = contextOwners.keys();
+        Iterator<Long> t = contextOwners.keySet().iterator();
 
-        while (t.hasMoreElements()) {
-            long pID = t.nextElement();
+        while (t.hasNext()) {
+            long pID = t.next();
             ArrayList<IContext> con = contextOwners.get(pID);
             if (con == null)
                 continue;
