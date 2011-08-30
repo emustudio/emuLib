@@ -63,6 +63,11 @@ public class Context {
     // emuStudio communication
     private static String emuStudioHash = null;
     private IConnections computer;
+    
+    /**
+     * Debug table updater object
+     */
+    private IDebugTable debug;
 
     /**
      * Private constructor.
@@ -897,4 +902,27 @@ public class Context {
         return null;
     }
 
+    /**
+     * Set object with method of updating debug table in emuStudio. It should
+     * be called once by emuStudio.
+     * 
+     * @param debug The IDebugTable object
+     * @param password password that was assigned to the emuLib. It prevents
+     * from misuse of this method by other plugins.
+     */
+    public void setDebugTableInterfaceObject(IDebugTable debug, String password) {
+        if ((emuStudioHash == null) || (!emuStudioHash.equals(password)))
+            return;
+        this.debug = debug;
+    }
+    
+    /**
+     * Update debug table in emuStudio. If IDebugTableObject was not set,
+     * then it does nothing.
+     */
+    public void updateDebugTable() {
+        if (debug == null)
+            return;
+        debug.updateDebugTable();
+    }
 }

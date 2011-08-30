@@ -31,16 +31,16 @@ package emuLib8.plugins.cpu;
  */
 public abstract class SimpleDisassembler implements IDisassembler {
 
-    protected ICPU cpu;
+//    protected ICPU cpu;
 
     /**
      * The constructor creates an instance of the SimpleDisassembler class
      *
      * @param cpu CPU object
      */
-    public SimpleDisassembler(ICPU cpu) {
-        this.cpu = cpu;
-    }
+  //  public SimpleDisassembler(ICPU cpu) {
+    //    this.cpu = cpu;
+    //}
 
 
     /**
@@ -67,7 +67,7 @@ public abstract class SimpleDisassembler implements IDisassembler {
         if (location <= 0)
             throw new IndexOutOfBoundsException();
 
-        IDisassembler dis = cpu.getDisassembler();
+//        IDisassembler dis = cpu.getDisassembler();
 
         loc = location - tryBytes;
         while (loc < 0) {
@@ -76,7 +76,7 @@ public abstract class SimpleDisassembler implements IDisassembler {
         }
         oldLoc = loc;
 
-        while ((loc = dis.getNextInstructionLocation(loc)) != location) {
+        while ((loc = this.getNextInstructionLocation(loc)) != location) {
             if (loc > location) {
                 tryBytes++;
                 oldLoc = loc = location - tryBytes;
