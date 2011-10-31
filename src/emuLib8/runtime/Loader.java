@@ -364,6 +364,12 @@ public class Loader extends ClassLoader {
         }
     }
 
+    /**
+     * Overrided method.
+     * 
+     * @param name
+     * @return 
+     */
     @Override
     protected URL findResource(String name) {
         if (!name.startsWith("/")) {
@@ -377,6 +383,12 @@ public class Loader extends ClassLoader {
         }
     }
 
+    /**
+     * Overrided method.
+     * 
+     * @param name
+     * @return 
+     */
     @Override
     public InputStream getResourceAsStream(String name) {
         if (!name.startsWith("/")) {

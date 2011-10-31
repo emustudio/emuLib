@@ -31,6 +31,9 @@ package emuLib8.plugins.compiler;
  */
 public class Message {
 
+    /**
+     * Message type.
+     */
     public enum MessageType {
         /**
         * The message represents a warning.
@@ -70,7 +73,7 @@ public class Message {
      *   Column in the source code
      * @param sourceFile
      *   Name of the file that the message belongs to
-     * @param errorCode
+     * @param error_code Error code of the message (compiler-specific)
      */
     public Message(MessageType message_type, String message, int line, int column,
             String sourceFile, int error_code) {
@@ -95,7 +98,7 @@ public class Message {
     /**
      * This constructor creates the Message object. Messages are created by
      * compiler.
-     * @param message_type
+     * @param type
      *   Type of the message.
      * @param message
      *   Text of the message

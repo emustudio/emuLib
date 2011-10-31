@@ -66,6 +66,8 @@ public abstract class SimpleCompiler implements ICompiler {
     /**
      * Public constructor initializes listeners list and event object for
      * event passing.
+     * 
+     * @param pluginID ID of the plug-in assigned by emuStudio
      */
     public SimpleCompiler(Long pluginID) {
         changeEvent = new EventObject(this);

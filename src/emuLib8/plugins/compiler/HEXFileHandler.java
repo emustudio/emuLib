@@ -6,7 +6,7 @@
  * KEEP IT SIMPLE, STUPID
  * some things just: YOU AREN'T GONNA NEED IT
  *
- * Copyright (C) 2007-2010 Peter Jakubčo <pjakubco at gmail.com>
+ * Copyright (C) 2007-2011 Peter Jakubčo <pjakubco@gmail.com>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,11 +28,11 @@ package emuLib8.plugins.compiler;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.HashMap;
+import java.util.ArrayList;
 import emuLib8.plugins.memory.IMemoryContext;
 import emuLib8.runtime.StaticDialogs;
+import java.util.Iterator;
 
 /**
  * This class generate 16 bit Intel hex file.
@@ -40,12 +40,12 @@ import emuLib8.runtime.StaticDialogs;
  * @author vbmacher
  */
 public class HEXFileHandler {
-    private Hashtable<Integer, String> program;
+    private HashMap<Integer, String> program;
     private int nextAddress;
     
     /** Creates a new instance of HEXFileHandler */
     public HEXFileHandler() {
-        this.program = new Hashtable<Integer, String>();
+        this.program = new HashMap<Integer, String>();
         nextAddress = 0;
     }
     
@@ -88,18 +88,19 @@ public class HEXFileHandler {
     }
     
     /**
-     * Keys of the hashtable have to represent adresses
+     * Keys of the HashMap have to represent adresses
      * and values have to represent compiled code.
-     * Method copies all elements from param hashtable
+     * Method copies all elements from param HashMap
      * to internal data member.
      *
      * @param ha sub-table with addresses and codes
      */
-    public void addTable(Hashtable<Integer,String> ha) {
-        Vector<Integer> adrs = new Vector<Integer>(ha.keySet());
+    public void addTable(HashMap<Integer,String> ha) {
+        ArrayList<Integer> adrs = new ArrayList<Integer>(ha.keySet());
         int largestAdr = nextAddress;
-        for (Enumeration<Integer> e = adrs.elements(); e.hasMoreElements();) {
-            nextAddress = (Integer)e.nextElement();
+        Iterator<Integer> e = adrs.iterator();
+        while (e.hasNext()) {
+            nextAddress = (Integer)e.next();
             String cd = (String)ha.get(nextAddress);
             program.put(nextAddress,cd);
             nextAddress += (cd.length()/2);
@@ -110,11 +111,11 @@ public class HEXFileHandler {
     }
     
     /**
-     * Get the hashtable representing the program hex code.
+     * Get the HashMap representing the program hex code.
      *
-     * @return hashtable representing the program hex code
+     * @return HashMap representing the program hex code
      */
-    public Hashtable<Integer, String> getTable() {
+    public HashMap<Integer, String> getTable() {
         return this.program;
     }
     
@@ -126,12 +127,13 @@ public class HEXFileHandler {
         int address = 0;         // current address in hex file
         int bytesCount = 0;      // current count of data bytes on single line
         
-        Vector<Integer> adrs = new Vector<Integer>(program.keySet());
+        ArrayList<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
 
         // for all code elements (they won't be separated)
-        for (Enumeration<Integer> e = adrs.elements(); e.hasMoreElements();) {
-            int adr = (Integer)e.nextElement();
+        Iterator<Integer> e = adrs.iterator();
+        while (e.hasNext()) {
+            int adr = (Integer)e.next();
             
             // is line very beginning ?
             if (lineAddress.equals("")) {
@@ -192,6 +194,7 @@ public class HEXFileHandler {
      * not to hex file but to the operating memory.
      * 
      * @param mem context of operating memory
+     * @return true if the hex file was successfully loaded, false otherwise
      */
     public boolean loadIntoMemory(IMemoryContext mem) {
         if (mem.getDataType() != Short.class) {
@@ -199,10 +202,11 @@ public class HEXFileHandler {
                     + "\n\nThis compiler can't load file into this memory.");
             return false;
         }
-        Vector<Integer> adrs = new Vector<Integer>(program.keySet());
+        ArrayList<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
-        for (Enumeration<Integer> e = adrs.elements(); e.hasMoreElements();) {
-            int adr = (Integer)e.nextElement();
+        Iterator<Integer> e = adrs.iterator();
+        while (e.hasNext()) {
+            int adr = (Integer)e.next();
             String code = this.getCode(adr);
             for (int i = 0, j = 0; i < code.length()-1; i+=2, j++) {
                 String hexCode = code.substring(i, i+2);
@@ -215,7 +219,7 @@ public class HEXFileHandler {
 
     
     /**
-     * Generates a Intel Hex file based on the cached program hashtable.
+     * Generates a Intel Hex file based on the cached program HashMap.
      *
      * @param filename file name where to store the hex file
      * @throws java.io.IOException
@@ -230,15 +234,15 @@ public class HEXFileHandler {
 
     /**
      * Get the program starting address (the first address that has occured
-     * in the program hashtable).
+     * in the program HashMap).
      *
      * @return program starting memory location
      */
     public int getProgramStart() {
-        Vector<Integer> adrs = new Vector<Integer>(program.keySet());
+        ArrayList<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
         if (adrs.isEmpty() == false)
-            return (Integer)adrs.firstElement();
+            return (Integer)adrs.get(0);
         else return 0;
     }
     

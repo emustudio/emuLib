@@ -17,48 +17,93 @@ import emuLib8.plugins.device.IDeviceContext;
  */
 public class ContextTest {
 
+    /**
+     * 
+     */
     public interface ITestContext extends ICPUContext {
+        
+        /**
+         * 
+         */
         public void testMethod();
     }
 
+    /**
+     * 
+     */
     public class TestContext implements ITestContext {
 
+        /**
+         * 
+         */
         @Override
         public void testMethod() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
 
+        /**
+         * 
+         * @return 
+         */
         @Override
         public String getID() {
             return null;
         }
 
+        /**
+         * 
+         * @return 
+         */
         @Override
         public boolean isInterruptSupported() {
             return false;
         }
 
+        /**
+         * 
+         * @param device
+         * @param mask 
+         */
         @Override
         public void setInterrupt(IDeviceContext device, int mask) {
         }
 
+        /**
+         * 
+         * @param device
+         * @param mask 
+         */
         @Override
         public void clearInterrupt(IDeviceContext device, int mask) {
         }
 
     }
 
+    /**
+     * 
+     */
     public ContextTest() {
     }
 
+    /**
+     * 
+     * @throws Exception 
+     */
     @BeforeClass
     public static void setUpClass() throws Exception {
     }
 
+    /**
+     * 
+     * @throws Exception 
+     */
     @AfterClass
     public static void tearDownClass() throws Exception {
     }
 
+    /**
+     * 
+     */
     @Test
     public void testInterfaces() {
         TestContext context = new TestContext();

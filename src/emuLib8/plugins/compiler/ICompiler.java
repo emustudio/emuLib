@@ -67,8 +67,7 @@ public interface ICompiler extends IPlugin {
          * character.
          *
          * @param evt The event object
-         * @param Message
-         *        Message from the compiler
+         * @param message Message from the compiler
          */
         public void onMessage (EventObject evt, Message message);
 

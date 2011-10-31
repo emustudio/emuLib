@@ -80,7 +80,7 @@ public interface IDisassembler {
      * This method relies hlighly upon von-Neuman sequential model of
      * computation.
      *
-     * @param location The memory location of current instruction
+     * @param memLocation The memory location of current instruction
      * @return memory location of previous instruction. If no instruction can be
      * found (the location is invalid), negative value is returned.
      */
