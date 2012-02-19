@@ -48,7 +48,7 @@
     <repository>
       <id>emustudio-repository</id>
       <name>emuStudio Repository</name>
-      <url>sftp://frs.sourceforge.net:/home/frs/project/e/em/emustudio/repository</url>
+      <url>sftp://web.sourceforge.net:/home/project-web/emustudio/htdocs/repository</url>
     </repository>
   </distributionManagement>
 </project>
