@@ -1,6 +1,23 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * RadixUtilsTest.java
+ *
+ * (c) Copyright 2012, P. Jakubčo <pjakubco@gmail.com>
+ *
+ * KISS, YAGNI, DRY
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 package emulib.runtime;
 
@@ -105,6 +122,17 @@ public class RadixUtilsTest extends TestCase {
         for (int i = 0; i < expResult.length; i++) {
             assertEquals(expResult[i], result[i]);
         }
+
+        number = "11010110";
+        fromRadix = 2;
+        expResult = new short[] { 214 };
+        result = RadixUtils.convertToNumber(number, fromRadix);
+        
+        assertTrue(expResult.length == result.length);
+        
+        for (int i = 0; i < expResult.length; i++) {
+            assertEquals(expResult[i], result[i]);
+        }
     }
 
     /**
@@ -116,5 +144,12 @@ public class RadixUtilsTest extends TestCase {
         RadixUtils instance = new RadixUtils();
         int result = instance.parseRadix(number);
         assertEquals(expResult, result);
+        
+        number = "20h";
+        expResult = 32;
+        instance = new RadixUtils();
+        result = instance.parseRadix(number);
+        assertEquals(expResult, result);
+
     }
 }
