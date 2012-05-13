@@ -80,7 +80,7 @@ public class RadixUtilsTest extends TestCase {
         String number = "142832";
         int toRadix = 16;
         String expResult = "22DF0";
-        RadixUtils instance = new RadixUtils();
+        RadixUtils instance = RadixUtils.getInstance();
         String result = instance.convertToRadix(number, toRadix);
         assertEquals(expResult, result);
     }
@@ -141,13 +141,12 @@ public class RadixUtilsTest extends TestCase {
     public void testParseRadix() {
         String number = "0x20";
         int expResult = 32;
-        RadixUtils instance = new RadixUtils();
+        RadixUtils instance = RadixUtils.getInstance();
         int result = instance.parseRadix(number);
         assertEquals(expResult, result);
         
         number = "20h";
         expResult = 32;
-        instance = new RadixUtils();
         result = instance.parseRadix(number);
         assertEquals(expResult, result);
 

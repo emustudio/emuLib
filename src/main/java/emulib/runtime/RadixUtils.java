@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 public class RadixUtils {
 
     private final static double LOG102 = 0.30102999566398114;
+    private static RadixUtils instance;
     
     /**
      * This class represents a number pattern in single radix
@@ -113,7 +114,7 @@ public class RadixUtils {
     /**
      * Creates instance of the RadixUtils.
      */
-    public RadixUtils() {
+    private RadixUtils() {
         patterns = new ArrayList<NumberPattern>();
         
         // Add some predefined patterns
@@ -123,6 +124,13 @@ public class RadixUtils {
         patterns.add(new NumberPattern("[0-9]+d", 10, 0, 1));
         patterns.add(new NumberPattern("0[0-9]+", 8, 1, 0));
         patterns.add(new NumberPattern("[0-9]+o", 8, 0, 1));
+    }
+    
+    public static RadixUtils getInstance() {
+        if (instance == null) {
+            instance = new RadixUtils();
+        }
+        return instance;
     }
     
     /**
