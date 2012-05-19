@@ -1,9 +1,9 @@
 /*
  * Loader.java
  *
- * (c) Copyright 2010, P. Jakubčo <pjakubco@gmail.com>
+ * (c) Copyright 2010-2012, P. Jakubčo <pjakubco@gmail.com>
  *
- * KISS, YAGNI
+ * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,22 +21,13 @@
  */
 package emulib.runtime;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import emulib.plugins.IPlugin;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.security.Permission;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -47,7 +38,45 @@ import java.util.jar.JarInputStream;
  *
  * @author vbmacher
  */
-public class Loader extends ClassLoader {
+public class PluginLoader extends ClassLoader {
+    // Instance of this class
+    private static PluginLoader instance = null;
+    // loaded resources of classes
+    private Map<Object, URL> resources;
+    // security manager for plug-ins
+    private PluginSecurityManager securityManager;
+    private List<Class<?>> classesToResolve;
+    private List<NotLoadedClass> undoneClassesToLoad;
+    
+    private class NotLoadedClass {
+        private List<String> undone;
+        private Map<String, Integer> sizes;
+        private String filename;
+        
+        public NotLoadedClass(List<String> undone, Map<String, Integer> sizes,
+            String filename) {
+            this.undone = undone;
+            this.sizes = sizes;
+            this.filename = filename;
+        }
+        
+        public List<String> getUndone() {
+            return undone;
+        }
+        
+        public Map<String, Integer> getSizes() {
+            return sizes;
+        }
+        
+        public String getFilename() {
+            return filename;
+        }
+        
+        @Override
+        public String toString() {
+            return "NLC[file=" + filename + "; undone=" + undone + "]";
+        }
+    }
 
     private class PluginSecurityManager extends SecurityManager {
 
@@ -214,19 +243,15 @@ public class Loader extends ClassLoader {
             //            super.checkPermission(perm);
         }
     }
-    // Instance of this class
-    private static Loader instance = null;
-    // loaded resources of classes
-    private Hashtable<Object, URL> resources;
-    // security manager for plug-ins
-    private PluginSecurityManager securityManager;
 
     /**
      * Private constructor. Other objects could not create the instance in
      * classic way.
      */
-    private Loader() {
-        resources = new Hashtable<Object, URL>();
+    private PluginLoader() {
+        resources = new HashMap<Object, URL>();
+        classesToResolve = new ArrayList<Class<?>>();
+        undoneClassesToLoad = new ArrayList<NotLoadedClass>();
         securityManager = new PluginSecurityManager();
         System.setSecurityManager(securityManager);
     }
@@ -237,25 +262,70 @@ public class Loader extends ClassLoader {
      *
      * @return instance of the Loader class
      */
-    public static Loader getInstance() {
+    public static PluginLoader getInstance() {
         if (instance == null) {
-            instance = new Loader();
+            instance = new PluginLoader();
         }
         return instance;
     }
+    
+    /**
+     * This method
+     */
+    public void forgetAllLoaded() {
+        resources.clear();
+        undoneClassesToLoad.clear();
+        classesToResolve.clear();
+    }
+    
+    /**
+     * Checks if a class implements given interface.
+     *
+     * @param theClass class that will be tested
+     * @param theInterface interface that the class should implement
+     * @return true if the class implements given interface, false otherwise
+     */
+    public boolean doesImplement(Class<?> theClass, Class<?> theInterface) {
+        do {
+            Class<?>[] intf = theClass.getInterfaces();
+            for (int j = 0; j < intf.length; j++) {
+                if (intf[j].isInterface() && intf[j].equals(theInterface)) {
+                    return true;
+                } else {
+                    if (doesImplement(intf[j], theInterface)) {
+                        return true;
+                    }
+                }
+            }
+            Class<?> newClass = theClass.getSuperclass();
+            if (newClass == null) {
+                theClass = theClass.getEnclosingClass();
+            } else {
+                theClass = newClass;
+            }
+        } while ((theClass != null) && !theClass.equals(Object.class));
+
+        return false;
+    }
+
 
     /**
-     * Method loads JAR file into memory and define all found classes.
-     *
+     * Method loads emuStudio plugin into memory.
+     * 
+     * The plug-in should be in JAR format. The loaded classes are not resolved. After this method call
+     * (and all possible multiple calls), 
+     * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
+     * called.
+     * 
      * @param filename name of the plugin (absolute path is better).
      *        If the filename does not contain '.jar' suffix, it will be
      *        added automatically.
-     * @return list of loaded classes, or null when an error occured
+     * @return Plugin main class, or null when an error occured or the main class is not found
      */
-    public ArrayList<Class<?>> loadJAR(String filename) {
-        ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
-        Hashtable<String, Integer> sizes = new Hashtable<String, Integer>();
-        ArrayList<String> undone = new ArrayList<String>();
+    public Class<IPlugin> loadPlugin(String filename) {
+        Map<String, Integer> sizes = new HashMap<String, Integer>();
+        List<String> undone = new ArrayList<String>();
+        Class<IPlugin> mainClass = null;
 
         if (!filename.toLowerCase().endsWith(".jar")) {
             filename += ".jar";
@@ -271,13 +341,13 @@ public class Loader extends ClassLoader {
             FileInputStream fis = new FileInputStream(zf.getName());
             BufferedInputStream bis = new BufferedInputStream(fis);
             JarInputStream zis = new JarInputStream(bis);
-            JarEntry ze = null;
+            JarEntry jarEntry;
 
-            while ((ze = zis.getNextJarEntry()) != null) {
-                if (ze.isDirectory()) {
+            while ((jarEntry = zis.getNextJarEntry()) != null) {
+                if (jarEntry.isDirectory()) {
                     continue;
                 }
-                if (!ze.getName().toLowerCase().endsWith(".class")) {
+                if (!jarEntry.getName().toLowerCase().endsWith(".class")) {
                     //for windows: "jar:file:/D:/JavaApplicat%20ion12/dist/JavaApplication12.jar!/resources/Find%2024.gif";
                     //for linux:   "jar:file:/home/vbmacher/dev/school%20projects/shit.jar!/resources/Find%2024.gif";
                     String fN = zf.getName().replaceAll("\\\\", "/");
@@ -285,20 +355,21 @@ public class Loader extends ClassLoader {
                         fN = "/" + fN;
                     }
                     String URLstr = URLEncoder.encode("jar:file:" + fN
-                            + "!/" + ze.getName().replaceAll("\\\\", "/"), "UTF-8");
-                    URLstr = URLstr.replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%21", "!").replaceAll("\\+", "%20");
-                    resources.put("/" + ze.getName(), new URL(URLstr));
+                            + "!/" + jarEntry.getName().replaceAll("\\\\", "/"), "UTF-8");
+                    URLstr = URLstr.replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%21", "!")
+                            .replaceAll("\\+", "%20");
+                    resources.put("/" + jarEntry.getName(), new URL(URLstr));
                     continue;
                 }
                 // load class data
-                int size = (int) ze.getSize();
+                int size = (int) jarEntry.getSize();
                 if (size == -1) {
-                    size = ((Integer) sizes.get(ze.getName())).intValue();
+                    size = ((Integer) sizes.get(jarEntry.getName())).intValue();
                 }
 
                 byte[] b = new byte[(int) size];
                 int rb = 0;
-                int chunk = 0;
+                int chunk;
                 while (((int) size - rb) > 0) {
                     chunk = zis.read(b, rb, (int) size - rb);
                     if (chunk == -1) {
@@ -308,10 +379,15 @@ public class Loader extends ClassLoader {
                 }
                 try {
                     // try to define class
-                    Class<?> cl = defineLoadedClass(ze.getName(), b, size, true);
-                    classes.add(cl);
+                    Class<?> cl = defineLoadedClass(jarEntry.getName(), b, size);
+                    if ((mainClass == null) && doesImplement(cl, IPlugin.class)) {
+                        // Take only first one
+                        mainClass = (Class<IPlugin>)cl;
+                    }
+
+                    classesToResolve.add(cl);
                 } catch (Exception nf) {
-                    undone.add(ze.getName());
+                    undone.add(jarEntry.getName());
                 }
             }
             zis.close();
@@ -319,24 +395,30 @@ public class Loader extends ClassLoader {
             fis.close();
             zf.close();
             // try to load all undone classes
-            if (undone.size() > 0) {
-                boolean res = loadUndoneClasses(undone, classes, sizes, filename);
-                while ((res == true) && (undone.size() > 0)) {
-                    res = loadUndoneClasses(undone, classes, sizes, filename);
-                }
-                if (undone.size() > 0) {
+            if (!undone.isEmpty()) {
+                List<Class<?>> resUndone;
+                do {
+                    resUndone = loadUndoneClasses(undone, sizes, filename);
+                    if (mainClass == null) {
+                        for (Class<?> cl : resUndone) {
+                            if (doesImplement(cl, IPlugin.class)) {
+                                mainClass = (Class<IPlugin>) cl;
+                                break;
+                            }
+                        }
+                    }
+                } while (!(resUndone.isEmpty() || undone.isEmpty()));
+                if (!undone.isEmpty()) {
                     // if a jar file contains some error
-                    System.out.println("Error: cannot load classes: "
-                            + undone.toString());
-                    throw new Exception();
+                    undoneClassesToLoad.add(new NotLoadedClass(undone, sizes, filename));
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return classes;
+        return mainClass;
     }
-
+    
     /**
      * This method reads the file with the given name and returns
      * the contents of this file as a String.
@@ -350,7 +432,7 @@ public class Loader extends ClassLoader {
             BufferedReader br = new BufferedReader(
                     new InputStreamReader(new FileInputStream(fileName)));
             StringBuilder sb = new StringBuilder();
-            String line = null;
+            String line;
             while (true) {
                 line = br.readLine();
                 if (line == null) {
@@ -405,43 +487,46 @@ public class Loader extends ClassLoader {
     }
 
     /**
-     * This method tries to load all classes that could not be loaded
-     * in the loadJAR or loadPlugin method. For example we cannot load a
-     * class that extends not yet loaded class. This method tries to resolve
+     * This method tries to load specified classes.
+     * 
+     * The method is called by loadJAR method, if some classes could not be loaded, because of possible
+     * forwad references.
+     * 
+     * For example we cannot load a class that extends not yet loaded class. This method tries to resolve
      * this problem by hope that all till now loaded classes are sufficient for
      * defining these "undone" classes.
      *
      * @param undone Vector of "undone" classes
-     * @param classes Where to put loaded classes objects
      * @param sizes How much size has each class in bytes
      * @param filename File name of the JAR file.
-     * @return true if at least 1 class was loaded successfully
+     * @return list of all classes that were loaded successfully
      */
-    private boolean loadUndoneClasses(ArrayList<String> undone, ArrayList<Class<?>> classes,
-            Hashtable<String, Integer> sizes, String filename) {
-        JarEntry ze = null;
-        boolean result = false;
+    private List<Class<?>> loadUndoneClasses(List<String> undone, Map<String, Integer> sizes, String filename) {
+        JarEntry jarEntry;
+        List<Class<?>> resultClasses = new ArrayList<Class<?>>();
+        List<String> stillNotLoaded = new ArrayList<String>();
+        
         try {
             FileInputStream fis = new FileInputStream(filename);
             BufferedInputStream bis = new BufferedInputStream(fis);
             JarInputStream zis = new JarInputStream(bis);
-            while ((ze = zis.getNextJarEntry()) != null) {
-                if (ze.isDirectory()) {
+            while ((jarEntry = zis.getNextJarEntry()) != null) {
+                if (jarEntry.isDirectory()) {
                     continue;
                 }
-                if (!ze.getName().toLowerCase().endsWith(".class")) {
+                if (!jarEntry.getName().toLowerCase().endsWith(".class")) {
                     continue;
                 }
-                if (!undone.contains(ze.getName())) {
+                if (!undone.contains(jarEntry.getName())) {
                     continue;
                 }
                 // load class data
-                int size = (int) ze.getSize();
+                int size = (int) jarEntry.getSize();
                 if (size == -1) {
-                    size = ((Integer) sizes.get(ze.getName())).intValue();
+                    size = ((Integer) sizes.get(jarEntry.getName())).intValue();
                 }
                 byte[] b = new byte[(int) size];
-                int rb = 0, chunk = 0;
+                int rb = 0, chunk;
                 while (((int) size - rb) > 0) {
                     chunk = zis.read(b, rb, (int) size - rb);
                     if (chunk == -1) {
@@ -451,18 +536,17 @@ public class Loader extends ClassLoader {
                 }
                 try {
                     // try load class data
-                    Class<?> cl = defineLoadedClass(ze.getName(), b, size, true);
-                    classes.add(cl);
-                    undone.remove(ze.getName());
-                    result = true;
-//                    System.out.println("LOADED: " + ze.getName());
+                    Class<?> cl = defineLoadedClass(jarEntry.getName(), b, size);
+                    classesToResolve.add(cl);
+                    resultClasses.add(cl);
+                    undone.remove(jarEntry.getName());
                 } catch (ClassNotFoundException nf) {
-//                    nf.printStackTrace();
+                    stillNotLoaded.add(jarEntry.getName());
                 }
             }
         } catch (Exception e) {
         }
-        return result;
+        return resultClasses;
     }
 
     /**
@@ -473,12 +557,10 @@ public class Loader extends ClassLoader {
      *        if it has the form "package/ClassName.class"
      * @param classbytes Class data
      * @param length Size of the class data in bytes
-     * @param resolve Whether to link this class
      * @return Class object
      * @throws ClassNotFoundException
      */
-    private Class<?> defineLoadedClass(String classname,
-            byte[] classbytes, int length, boolean resolve)
+    private Class<?> defineLoadedClass(String classname, byte[] classbytes, int length)
             throws ClassNotFoundException {
         if (classname.toLowerCase().endsWith(".class")) {
             classname = classname.substring(0, classname.length() - 6);
@@ -486,25 +568,101 @@ public class Loader extends ClassLoader {
         classname = classname.replace('/', '.');
         classname = classname.replace(File.separatorChar, '.');
         try {
-            Class<?> c = null;
-            c = findLoadedClass(classname);
-            if (c == null) {
+            Class<?> classToLoad;
+            classToLoad = findLoadedClass(classname);
+            if (classToLoad == null) {
                 try {
-                    c = findSystemClass(classname);
+                    classToLoad = findSystemClass(classname);
                 } catch (Exception e) {
                 }
             }
-            if (c == null) {
-                c = defineClass(null, classbytes, 0, length);
+            if (classToLoad == null) {
+                classToLoad = defineClass(null, classbytes, 0, length);
             }
-            if (resolve && (c != null)) {
-                resolveClass(c);
-            }
-            return c;
+            return classToLoad;
         } catch (Error err) {
             throw new ClassNotFoundException(err.getMessage());
         } catch (Exception ex) {
             throw new ClassNotFoundException(ex.toString());
         }
+    }
+    
+    /**
+     * Determine if there are no classes that weren't successfully loaded.
+     * 
+     * If there are classes that weren't loaded, resolving process may not be
+     * successful. Therefore, if this method returns false, there should be called
+     * method {@link emulib.runtime.PluginLoader#loadUndoneClasses() PluginLoader.loadUndoneClasses}
+     * 
+     * @return true if all classes were successfully loaded, false otherwise
+     */
+    public boolean canResolveClasses() {
+        return undoneClassesToLoad.isEmpty();
+    }
+    
+    /**
+     * This method tries to load all not successfully loaded classes.
+     * 
+     * It should be called only when
+     * {@link emulib.runtime.PluginLoader#canResolveClasses() PluginLoader.canResolveClasses} returns false.
+     * 
+     * @return true if all undone classes were successfully loaded, false otherwise
+     */
+    public boolean loadUndoneClasses() {
+        if (undoneClassesToLoad.isEmpty()) {
+            return true;
+        }
+        List<NotLoadedClass> stillNotLoaded = new ArrayList<NotLoadedClass>();
+        do {
+            NotLoadedClass classToLoad = undoneClassesToLoad.get(0);
+            List<String> undone = classToLoad.getUndone();
+            boolean somethingLoaded;
+            do {
+                somethingLoaded = !loadUndoneClasses(undone, classToLoad.getSizes(), classToLoad.getFilename())
+                        .isEmpty();
+            } while (!undone.isEmpty() && somethingLoaded);
+            undoneClassesToLoad.remove(0);
+            if (!undone.isEmpty()) {
+                stillNotLoaded.add(classToLoad);
+            }
+        } while (!undoneClassesToLoad.isEmpty());
+        
+        if (stillNotLoaded.isEmpty()) {
+            return true;
+        }
+        undoneClassesToLoad.addAll(stillNotLoaded);
+        return false;
+    }
+
+
+    /**
+     * Make all loaded classes to be usable in Java.
+     * 
+     * This method should be called only once, after all calls of
+     * {@link emulib.runtime.PluginLoader#loadJAR(String) PluginLoader.loadJAR} method.
+     * 
+     * You can check if the classes can be resolved by calling 
+     * {@link emulib.runtime.PluginLoader#canResolveClasses() PluginLoader.canResolveClasses} method.
+     */
+    public void resolveLoadedClasses() {
+        if (classesToResolve.isEmpty()) {
+            return;
+        }
+
+        boolean done = false;
+        do {
+            boolean wasE = false;
+            for (Class<?> classToResolve : classesToResolve) {
+                try {
+                    resolveClass(classToResolve);
+                } catch (Exception e) {
+                    wasE = true;
+                }
+            }
+            if (!wasE) {
+                done = true;
+            }
+        } while (!done);
+        classesToResolve.clear();
     }
 }

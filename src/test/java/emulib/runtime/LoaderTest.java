@@ -22,7 +22,7 @@
 
 package emulib.runtime;
 
-import emulib.runtime.Loader;
+import emulib.runtime.PluginLoader;
 import java.util.ArrayList;
 
 import junit.framework.Test;
@@ -52,8 +52,8 @@ public class LoaderTest extends TestCase {
      */
     public void testGetInstance() {
         System.out.println("getInstance");
-        Loader expResult = Loader.getInstance();
-        Loader result = Loader.getInstance();
+        PluginLoader expResult = PluginLoader.getInstance();
+        PluginLoader result = PluginLoader.getInstance();
         assertEquals(expResult, result);
     }
 
