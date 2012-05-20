@@ -2,11 +2,9 @@
  * HEXFileHandler.java
  *
  * Created on Sobota, 2007, október 13, 16:21
+ * KISS, YAGNI, DRY
  *
- * KEEP IT SIMPLE, STUPID
- * some things just: YOU AREN'T GONNA NEED IT
- *
- * Copyright (C) 2007-2011 Peter Jakubčo <pjakubco@gmail.com>
+ * Copyright (C) 2007-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,13 +23,13 @@
 
 package emulib.plugins.compiler;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.ArrayList;
 import emulib.plugins.memory.IMemoryContext;
 import emulib.runtime.StaticDialogs;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**

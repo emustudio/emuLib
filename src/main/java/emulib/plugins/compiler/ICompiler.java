@@ -1,9 +1,9 @@
-/**
+/*
  * ICompiler.java
  * 
- * (c) Copyright 2008-2011 P. Jakubčo <pjakubco@gmail.com>
+ * KISS, YAGNI, DRY
  * 
- * KISS, YAGNI
+ * (c) Copyright 2008-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,10 +22,10 @@
  */
 package emulib.plugins.compiler;
 
-import java.io.Reader; 
+import emulib.plugins.IPlugin;
+import java.io.Reader;
 import java.util.EventListener;
 import java.util.EventObject;
-import emulib.plugins.IPlugin;
 
 /**
  * This interface is the core for compiler plugin types. These plugins

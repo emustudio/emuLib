@@ -1,11 +1,10 @@
-/**
- *
+/*
  * IContext.java
  * 
- * (c) Copyright 2008-2010 P. Jakubčo <pjakubco@gmail.com>
+ * KISS, YAGNI, DRY
  * 
- * KISS, YAGNI
- * 
+ * (c) Copyright 2008-2012, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -52,7 +51,7 @@ package emulib.plugins;
  * Then the string has to be hashed by SHA-1 hash.
  * The hash is used for identifying the context by emuLib and the other plugins.
  *
- * @author Peter Jakubčo <pjakubco at gmail dot com>
+ * @author Peter Jakubčo
  */
 public interface IContext {
 

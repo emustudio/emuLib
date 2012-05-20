@@ -1,12 +1,11 @@
 /*
  * StaticDialogs.java
  *
- * (c) Copyright 2008-2010, P.Jakubčo <pjakubco@gmail.com>
- * 
  * Created on 17.6.2008, 12:36:08
+ * KISS, YAGNI, DRY
  * 
- * KISS, YAGNI
- *
+ * (c) Copyright 2008-2012, Peter Jakubčo
+ * 
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or

@@ -1,9 +1,9 @@
 /*
  * SimpleDebugColumn.java
  *
- * (c) Copyright 2011, P.Jakubčo <pjakubco@gmail.com>
- *
- * KISS, YAGNI
+ * KISS, YAGNI, DRY
+ * 
+ * (c) Copyright 2011-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

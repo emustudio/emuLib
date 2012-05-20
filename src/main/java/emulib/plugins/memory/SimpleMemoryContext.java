@@ -1,9 +1,9 @@
 /*
  * SimpleMemoryContext.java
  *
- * (c) Copyright 2010, P.Jakubčo <pjakubco@gmail.com>
- *
- * KISS,YAGNI
+ * KISS, YAGNI, DRY
+ * 
+ * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@
 
 package emulib.plugins.memory;
 
+import emulib.plugins.memory.IMemory.IMemListener;
 import java.util.EventObject;
 import javax.swing.event.EventListenerList;
-import emulib.plugins.memory.IMemory.IMemListener;
 
 /**
  * This class implements some fundamental functionality of IMemoryContext
