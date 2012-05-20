@@ -49,8 +49,9 @@ public class LoaderTest extends TestCase {
      */
     public void testGetInstance() {
         System.out.println("getInstance");
-        PluginLoader expResult = PluginLoader.getInstance();
-        PluginLoader result = PluginLoader.getInstance();
+        Context.assignPassword("password");
+        PluginLoader expResult = PluginLoader.getInstance("password");
+        PluginLoader result = PluginLoader.getInstance("password");
         assertEquals(expResult, result);
     }
 

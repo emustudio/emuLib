@@ -260,9 +260,10 @@ public class PluginLoader extends ClassLoader {
      * Get the Loader instance. The instance is created only in the first
      * call, then the same instance is returned.
      *
+     * @param password Password assigned by emuStudio
      * @return instance of the Loader class
      */
-    public static PluginLoader getInstance() {
+    public static PluginLoader getInstance(String password) {
         if (instance == null) {
             instance = new PluginLoader();
         }

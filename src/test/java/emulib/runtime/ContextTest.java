@@ -52,15 +52,8 @@ public class ContextTest extends TestCase {
     /**
      * 
      */
-    public class TestContext implements ITestContext {
+    public class MockContext implements ITestContext {
 
-        /**
-         * 
-         */
-        @Override
-        public void testMethod() {
-            throw new UnsupportedOperationException("Not supported yet.");
-        }
 
         /**
          * 
@@ -98,6 +91,11 @@ public class ContextTest extends TestCase {
         public void clearInterrupt(IDeviceContext device, int mask) {
         }
 
+        @Override
+        public void testMethod() {
+            
+        }
+
     }
 
    /**
@@ -113,7 +111,7 @@ public class ContextTest extends TestCase {
      */
     public void testApp()
     {
-        TestContext context = new TestContext();
+        MockContext context = new MockContext();
         
         Class<?>[] intf = context.getClass().getInterfaces();
         for (int i = 0; i < intf.length; i++) {
