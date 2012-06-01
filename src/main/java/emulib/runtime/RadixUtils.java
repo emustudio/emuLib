@@ -151,7 +151,7 @@ public class RadixUtils {
      * 
      * @return String of a number in specified radix
      */
-    public static String convertToRadix(short[] number, int toRadix) {
+    public static String convertToRadix(byte[] number, int toRadix) {
         int bytes;
         int i, j, val;
         int temp;
@@ -173,7 +173,7 @@ public class RadixUtils {
             short digit = number[k];
             
             for (i = 0; i < 8; i++) {
-                val = (digit >> i) & 1;
+                val = (digit >>> i) & 1;
                 for (j = 0; j < bytes; j++) {
                     str[j] += ts[j] * val;
                     temp = str[j];
@@ -264,7 +264,7 @@ public class RadixUtils {
         if (fromRadix == toRadix) {
             return number;
         }
-        short[] xnumber = convertToNumber(number, fromRadix);
+        byte[] xnumber = convertToNumber(number, fromRadix);
         return convertToRadix(xnumber, toRadix);
     }
  
@@ -278,10 +278,10 @@ public class RadixUtils {
      * @param fromRadix the radix of the number
      * @return Array of binary components of that number
      */
-    public static short[] convertToNumber(String number, int fromRadix) {
+    public static byte[] convertToNumber(String number, int fromRadix) {
         number = number.trim().toUpperCase();
         int numLen = number.length();
-        short[] bytes = new short[numLen]; // maximum number of bytes
+        byte[] bytes = new byte[numLen]; // maximum number of bytes
         
         int tmp;
         int actualByte;
@@ -296,11 +296,11 @@ public class RadixUtils {
             tmp = (int)(bytes[0] + digit * Math.pow(fromRadix, numLen - i - 1));
             
             
-            bytes[0] = (short)(tmp % 256);
+            bytes[0] = (byte)(tmp % 256);
             actualByte = 1;
             while (tmp > 256) {
-                tmp = bytes[actualByte] + tmp / 256;
-                bytes[actualByte++] = (short)(tmp % 256);
+                tmp = (bytes[actualByte] & 0xFF) + tmp / 256;
+                bytes[actualByte++] = (byte)(tmp % 256);
             }
         }
         

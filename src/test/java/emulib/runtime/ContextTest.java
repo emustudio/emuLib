@@ -24,9 +24,8 @@ package emulib.runtime;
 
 import emulib.plugins.cpu.ICPUContext;
 import emulib.plugins.device.IDeviceContext;
-import junit.framework.Test;
+import emulib.runtime.interfaces.IConnections;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 /**
  *
@@ -34,92 +33,70 @@ import junit.framework.TestSuite;
  */
 public class ContextTest extends TestCase {
 
-    public ContextTest(String testName) {
-        super(testName);
-    }
+    public class MockContext implements C1E95E61EE3E8662F4EE332174DC1E3716E566446 {
 
-    /**
-     * 
-     */
-    public interface ITestContext extends ICPUContext {
-        
-        /**
-         * 
-         */
-        public void testMethod();
-    }
-
-    /**
-     * 
-     */
-    public class MockContext implements ITestContext {
-
-
-        /**
-         * 
-         * @return 
-         */
         @Override
         public String getID() {
             return null;
         }
 
-        /**
-         * 
-         * @return 
-         */
         @Override
         public boolean isInterruptSupported() {
             return false;
         }
 
-        /**
-         * 
-         * @param device
-         * @param mask 
-         */
         @Override
         public void setInterrupt(IDeviceContext device, int mask) {
         }
 
-        /**
-         * 
-         * @param device
-         * @param mask 
-         */
         @Override
         public void clearInterrupt(IDeviceContext device, int mask) {
         }
 
         @Override
         public void testMethod() {
-            
         }
 
     }
-
-   /**
-     * @return the suite of tests being tested
+    
+    public void testPasswordAssign() {
+        assertTrue(Context.assignPassword("password"));
+        assertFalse(Context.assignPassword("dsfsf"));
+    }
+    
+    /**
+     * Test if context is singleton
      */
-    public static Test suite()
-    {
-        return new TestSuite( ContextTest.class );
+    public void testContextSingleton() {
+        Context context1 = Context.getInstance();
+        assertNotNull(context1);
+        assertEquals(context1, Context.getInstance());
     }
 
     /**
-     * Rigourous Test :-)
+     * Test registration of context
      */
-    public void testApp()
-    {
+    public void testContextRegistration() throws AlreadyRegisteredException, InvalidImplementationException, 
+            InvalidHashException {
         MockContext context = new MockContext();
+        Context cInstance = Context.getInstance();
         
-        Class<?>[] intf = context.getClass().getInterfaces();
-        for (int i = 0; i < intf.length; i++) {
-            System.out.print(intf[i].toString());
-            System.out.println(" instanceof ICPUContext: " + (context instanceof ICPUContext));
-            System.out.println("(" + intf[i].getSimpleName()  +  ")");
-        }
-        assertTrue( true );
+        assertTrue(cInstance.assignComputer("password", new IConnections() {
+
+            @Override
+            public int getPluginType(long pluginID) {
+                return TYPE_CPU;
+            }
+
+            @Override
+            public boolean isConnected(long pluginID, long toPluginID) {
+                return true;
+            }
+        }));
+        assertTrue(cInstance.register(0, context, C1E95E61EE3E8662F4EE332174DC1E3716E566446.class));
+        ICPUContext getContext = cInstance.getCPUContext(0, C1E95E61EE3E8662F4EE332174DC1E3716E566446.class);
+        assertEquals(context, getContext);
+        cInstance.unregister(0, C1E95E61EE3E8662F4EE332174DC1E3716E566446.class);
     }
 
 }

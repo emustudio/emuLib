@@ -37,36 +37,36 @@ public class RadixUtilsTest extends TestCase {
      * Test of convertToRadix method, of class RadixUtils.
      */
     public void testConvertToRadix_shortArr_int() {
-        short[] radix10Number = { 0xA0, 0xC };
+        byte[] radix10Number = { (byte)0xA0, 0xC };
         int toRadix = 16;
         String expResult = "CA0";
         String result = RadixUtils.convertToRadix(radix10Number, toRadix);
         assertEquals(expResult, result);
         
-        radix10Number = new short[] { 0xF, 0xF };
+        radix10Number = new byte[] { 0xF, 0xF };
         expResult = "F0F";
         result = RadixUtils.convertToRadix(radix10Number, toRadix);
         assertEquals(expResult, result);
         
-        radix10Number = new short[] { 040 };
+        radix10Number = new byte[] { 040 };
         expResult = "40";
         toRadix = 8;
         result = RadixUtils.convertToRadix(radix10Number, toRadix);
         assertEquals(expResult, result);
 
-        radix10Number = new short[] { 2, 1 }; // 258 stored as 2-byte int
+        radix10Number = new byte[] { 2, 1 }; // 258 stored as 2-byte int
         expResult = "402";
         toRadix = 8;
         result = RadixUtils.convertToRadix(radix10Number, toRadix);
         assertEquals(expResult, result);
         
-        radix10Number = new short[] { 32 };
+        radix10Number = new byte[] { 32 };
         expResult = "1012";
         toRadix = 3;
         result = RadixUtils.convertToRadix(radix10Number, toRadix);
         assertEquals(expResult, result);
         
-        radix10Number = new short[] { 0x2C, 1 };
+        radix10Number = new byte[] { 0x2C, 1 };
         expResult = "300";
         toRadix = 10;
         result = RadixUtils.convertToRadix(radix10Number, toRadix);
@@ -103,8 +103,8 @@ public class RadixUtilsTest extends TestCase {
     public void testConvertToNumber() {
         String number = "300";
         int fromRadix = 10;
-        short[] expResult = new short[] { 0x2C, 1 };
-        short[] result = RadixUtils.convertToNumber(number, fromRadix);
+        byte[] expResult = new byte[] { 0x2C, 1 };
+        byte[] result = RadixUtils.convertToNumber(number, fromRadix);
         
         assertTrue(expResult.length == result.length);
         
@@ -114,7 +114,7 @@ public class RadixUtilsTest extends TestCase {
         
         number = "142832";
         fromRadix = 10;
-        expResult = new short[] { 240, 45, 2 };
+        expResult = new byte[] { (byte)240, 45, 2 };
         result = RadixUtils.convertToNumber(number, fromRadix);
         
         assertTrue(expResult.length == result.length);
@@ -125,7 +125,7 @@ public class RadixUtilsTest extends TestCase {
 
         number = "11010110";
         fromRadix = 2;
-        expResult = new short[] { 214 };
+        expResult = new byte[] { (byte)214 };
         result = RadixUtils.convertToNumber(number, fromRadix);
         
         assertTrue(expResult.length == result.length);

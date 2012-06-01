@@ -57,7 +57,7 @@ public class Context {
     private static Context instance = null;
 
     // emuStudio communication
-    private static String emuStudioHash = null;
+    private static String emuStudioPassword = null;
     private IConnections computer;
     
     /**
@@ -80,7 +80,20 @@ public class Context {
         contextOwners = new HashMap<Long,ArrayList<IContext>>();
         computer = null;
     }
-
+    
+    /**
+     * Method determines if given password matches with password already set-up by emuStudio.
+     * 
+     * @param password The password
+     * @return true if passwords match, false otherwise
+     */
+    public static boolean testPassword(String password) {
+        if ((password == null) || (emuStudioPassword == null)) {
+            return false;
+        }
+        return password.equals(emuStudioPassword);
+    }
+    
     /**
      * Return an instance of this class. By calling more than 1 time, the same
      * instance is returned.
@@ -91,27 +104,6 @@ public class Context {
         if (instance == null)
             instance = new Context();
         return instance;
-    }
-
-    /**
-     * Test the class for the implementation of the given interface (in max. two
-     * levels of interface inheritance).
-     *
-     * @param classI class that will be tested
-     * @param interfaceName interface that the class should implement
-     * @return true if the class implements given interface, false otherwise
-     */
-    private static boolean testInterface(Class<?> classI, Class<?> interfaceName) {
-        Class<?>[] intf = classI.getInterfaces();
-        for (int j = 0; j < intf.length; j++) {
-            if (intf[j].isInterface() && intf[j].equals(interfaceName))
-                return true;
-            Class<?>[] tst = intf[j].getInterfaces();
-            for (int i = 0; i < tst.length; i++)
-                if (tst[i].isInterface() && tst[i].equals(interfaceName))
-                    return true;
-        }
-        return false;
     }
 
     /**
@@ -136,47 +128,51 @@ public class Context {
      *        The interface that the context has to implement. This is the
      *        extended context. It HAS TO be an interface, not a class.
      * @return true if the registration is successful, false if it fails.
+     * @throws AlreadyRegisteredException Raised when a plug-in tries to register context that is already
+     *         registered.
+     * @throws InvalidImplementationException Raised when a class does not implement given interface.
+     * @throws InvalidHashException Raised when context's methods does not match to computed hash.
      */
     public synchronized boolean register(long pluginID, IContext context,
-            Class<?> contextInterface) {
+            Class<?> contextInterface) throws AlreadyRegisteredException, InvalidImplementationException,
+            InvalidHashException {
 
         // check if the context is class
-        if (context.getClass().isInterface())
-            return false;
+        if (context.getClass().isInterface()) {
+            throw new InvalidImplementationException();
+        }
         // check if the contextInterface is interface
-        if (!contextInterface.isInterface())
-            return false;
+        if (!contextInterface.isInterface()) {
+            throw new InvalidImplementationException();
+        }
 
         // if the context is already registered, return false
-        ArrayList tt = cpuContexts.get(contextInterface);
-        if ((tt != null) && tt.contains(context))
-            return false;
-        tt = memContexts.get(contextInterface);
-        if ((tt != null) && tt.contains(context))
-            return false;
-        tt = deviceContexts.get(contextInterface);
-        if ((tt != null) && tt.contains(context))
-            return false;
-        tt = compilerContexts.get(contextInterface);
-        if ((tt != null) && tt.contains(context))
-            return false;
+        ArrayList conList = cpuContexts.get(contextInterface);
+        if ((conList != null) && conList.contains(context)) {
+            throw new AlreadyRegisteredException();
+        }
+        conList = memContexts.get(contextInterface);
+        if ((conList != null) && conList.contains(context)) {
+            throw new AlreadyRegisteredException();
+        }
+        conList = deviceContexts.get(contextInterface);
+        if ((conList != null) && conList.contains(context)) {
+            throw new AlreadyRegisteredException();
+        }
+        conList = compilerContexts.get(contextInterface);
+        if ((conList != null) && conList.contains(context)) {
+            throw new AlreadyRegisteredException();
+        }
 
         // check if the contextInterface is implemented by context
-        Class c = context.getClass();
-        Class<?> tmp;
-        boolean positive = false;
-        while ((!(positive = testInterface(c, contextInterface)))
-                && ((tmp = c.getSuperclass()) != null)
-                && (!tmp.isInterface()) && (!tmp.equals(Object.class))) {
-            c = tmp;
-        }
-
-        if (!positive) {
-            positive = testInterface(c, contextInterface);
-        }
-
-        if (!positive)
+        PluginLoader pLoader = PluginLoader.getInstance(emuStudioPassword);
+        if (pLoader == null) {
+            // emuStudio did not assign password??
             return false;
+        }
+        if (!pLoader.doesImplement(context.getClass(), contextInterface)) {
+            throw new InvalidImplementationException();
+        }
         
         // check hash of the interface
         String hash;
@@ -198,8 +194,9 @@ public class Context {
             // extract hash from interface name
             hash = contextIName.substring(1);
         }
-        if (checkHash(contextInterface, hash) == false)
-            return false;
+        if (checkHash(contextInterface, hash) == false) {
+            throw new InvalidHashException();
+        }
 
         // finally register context
         ArrayList<IContext> ar = contextOwners.get(pluginID);
@@ -252,7 +249,7 @@ public class Context {
      * @return true if all contexts were removed (and was found in the hashtable)
      */
     private boolean removeAllContexts(HashMap<Class<?>,?> t,
-            Class<IContext> contextInterface, ArrayList<IContext> owner) {
+            Class<?> contextInterface, ArrayList<IContext> owner) {
         if ((t == null) || (contextInterface == null))
             return false;
 
@@ -282,7 +279,7 @@ public class Context {
      * @param contextInterface Interface that should be unregistered
      * @return true if almost one context has been unregistered, false instead.
      */
-    public boolean unregister(long pluginID, Class<IContext> contextInterface) {
+    public boolean unregister(long pluginID, Class<?> contextInterface) {
         // check if the context is class
         if (!contextInterface.getClass().isInterface())
             return false;
@@ -309,12 +306,15 @@ public class Context {
      *
      * @param password
      * @param computer
+     * @return true if computer was assigned successfully; false otherwise. If it returns false, it can mean either
+     * the password is incorrect or null.
      */
-    public void assignComputer(String password, IConnections computer) {
-        if ((emuStudioHash == null) || (!emuStudioHash.equals(password)))
-            return;
-
+    public boolean assignComputer(String password, IConnections computer) {
+        if (!testPassword(password)) {
+            return false;
+        }
         this.computer = computer;
+        return true;
     }
 
     /**
@@ -334,16 +334,16 @@ public class Context {
     private IContext getContext(long pluginID, HashMap<?,?> contexts,
             Class<?> contextInterface, String contextID, int index) {
         // find the requested context
-        ArrayList ar = (ArrayList)contexts.get((Object)contextInterface);
+        ArrayList ar = (ArrayList)contexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
 
         // find context based on contextID
         IContext context;
         for (int i = 0, j = 0; i < ar.size(); i++) {
-            if ((contextID != null) &&
-                    !((IContext)ar.get(i)).getID().equals(contextID))
+            if ((contextID != null) && !((IContext)ar.get(i)).getID().equals(contextID)) {
                 continue;
+            }
             context = (IContext)ar.get(i);
             if (checkPermission(pluginID, context)) {
                 if (j == index) {
@@ -804,8 +804,8 @@ public class Context {
      *         otherwise.
      */
     public static boolean assignPassword(String password) {
-        if (emuStudioHash == null) {
-            emuStudioHash = password;
+        if (emuStudioPassword == null) {
+            emuStudioPassword = password;
             return true;
         }
         return false;
@@ -856,28 +856,6 @@ public class Context {
     }
 
     /**
-     * Convert data to HEXadecimal string. Letters are in upper case.
-     *
-     * @param data data to convert
-     * @return hexadecimal string.
-     */
-    private static String convertToHex(byte[] data) {
-        StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < data.length; i++) {
-            int halfbyte = (data[i] >>> 4) & 0x0F;
-            int two_halfs = 0;
-            do {
-                if ((0 <= halfbyte) && (halfbyte <= 9))
-                    buf.append((char) ('0' + halfbyte));
-                else
-                    buf.append((char) ('A' + (halfbyte - 10)));
-                halfbyte = data[i] & 0x0F;
-            } while(two_halfs++ < 1);
-        }
-        return buf.toString();
-    }
-
-    /**
      * Compute SHA-1 hash string. Letters in the hash string are in upper-case.
      *
      * @param text Data to make hash from
@@ -891,7 +869,7 @@ public class Context {
             byte[] sha1hash;
             md.update(text.getBytes("iso-8859-1"), 0, text.length());
             sha1hash = md.digest();
-            return convertToHex(sha1hash);
+            return RadixUtils.convertToRadix(sha1hash, 16);// convertToHex(sha1hash);
         } catch (NoSuchAlgorithmException e) {}
         catch (UnsupportedEncodingException r) {}
         return null;
@@ -906,7 +884,7 @@ public class Context {
      * from misuse of this method by other plugins.
      */
     public void setDebugTableInterfaceObject(IDebugTable debug, String password) {
-        if ((emuStudioHash == null) || (!emuStudioHash.equals(password)))
+        if ((emuStudioPassword == null) || (!emuStudioPassword.equals(password)))
             return;
         this.debug = debug;
     }

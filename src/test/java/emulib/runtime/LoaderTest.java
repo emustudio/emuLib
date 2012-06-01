@@ -22,6 +22,7 @@
 
 package emulib.runtime;
 
+import emulib.plugins.IPlugin;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -48,7 +49,6 @@ public class LoaderTest extends TestCase {
      * Test of getInstance method, of class Loader.
      */
     public void testGetInstance() {
-        System.out.println("getInstance");
         Context.assignPassword("password");
         PluginLoader expResult = PluginLoader.getInstance("password");
         PluginLoader result = PluginLoader.getInstance("password");
@@ -59,12 +59,10 @@ public class LoaderTest extends TestCase {
      * Test of loadJAR method, of class Loader.
      */
     public void testLoadJAR() {
-/*        System.out.println("loadJAR\n(Supposed existing: D:\\8080-cpu.jar."
-                + " Please DO NOT use SecurityManager now!)\n");
-        String filename = "D:\\8080-cpu.jar";
-        Loader instance = Loader.getInstance();
-        ArrayList<Class<?>> result = instance.loadJAR(filename);
-        assertNotNull(result);*/
+        String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
+        PluginLoader instance = PluginLoader.getInstance("password");
+        Class<IPlugin> result = instance.loadPlugin(filename);
+        assertNotNull(result);
     }
 
 }
