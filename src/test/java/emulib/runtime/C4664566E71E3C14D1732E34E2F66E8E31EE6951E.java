@@ -1,5 +1,5 @@
 /*
- * C1E95E61EE3E8662F4EE332174DC1E3716E566446.java
+ * C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
  * 
  * KISS, YAGNI, DRY
  * 
@@ -27,6 +27,6 @@ import emulib.plugins.cpu.ICPUContext;
  *
  * @author vbmacher
  */
-public interface C1E95E61EE3E8662F4EE332174DC1E3716E566446 extends ICPUContext {
+public interface C4664566E71E3C14D1732E34E2F66E8E31EE6951E extends ICPUContext {
     public void testMethod();
 }

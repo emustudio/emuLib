@@ -32,8 +32,9 @@ import junit.framework.TestCase;
  * @author vbmacher
  */
 public class ContextTest extends TestCase {
+    private final static String password = "password";
 
-    public class MockContext implements C1E95E61EE3E8662F4EE332174DC1E3716E566446 {
+    public class MockContext implements C4664566E71E3C14D1732E34E2F66E8E31EE6951E {
 
         @Override
         public String getID() {
@@ -60,7 +61,7 @@ public class ContextTest extends TestCase {
     }
     
     public void testPasswordAssign() {
-        assertTrue(Context.assignPassword("password"));
+        assertTrue(Context.assignPassword(password));
         assertFalse(Context.assignPassword("dsfsf"));
     }
     
@@ -81,7 +82,7 @@ public class ContextTest extends TestCase {
         MockContext context = new MockContext();
         Context cInstance = Context.getInstance();
         
-        assertTrue(cInstance.assignComputer("password", new IConnections() {
+        assertTrue(cInstance.assignComputer(password, new IConnections() {
 
             @Override
             public int getPluginType(long pluginID) {
@@ -93,10 +94,10 @@ public class ContextTest extends TestCase {
                 return true;
             }
         }));
-        assertTrue(cInstance.register(0, context, C1E95E61EE3E8662F4EE332174DC1E3716E566446.class));
-        ICPUContext getContext = cInstance.getCPUContext(0, C1E95E61EE3E8662F4EE332174DC1E3716E566446.class);
+        assertTrue(cInstance.register(0, context, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class));
+        ICPUContext getContext = cInstance.getCPUContext(0, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class);
         assertEquals(context, getContext);
-        cInstance.unregister(0, C1E95E61EE3E8662F4EE332174DC1E3716E566446.class);
+        cInstance.unregister(0, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class);
     }
 
 }

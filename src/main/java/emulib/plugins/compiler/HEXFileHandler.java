@@ -27,10 +27,7 @@ import emulib.plugins.memory.IMemoryContext;
 import emulib.runtime.StaticDialogs;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 /**
  * This class generate 16 bit Intel hex file.
@@ -38,7 +35,7 @@ import java.util.Iterator;
  * @author vbmacher
  */
 public class HEXFileHandler {
-    private HashMap<Integer, String> program;
+    private Map<Integer, String> program;
     private int nextAddress;
     
     /** Creates a new instance of HEXFileHandler */
@@ -93,8 +90,8 @@ public class HEXFileHandler {
      *
      * @param ha sub-table with addresses and codes
      */
-    public void addTable(HashMap<Integer,String> ha) {
-        ArrayList<Integer> adrs = new ArrayList<Integer>(ha.keySet());
+    public void addTable(Map<Integer,String> ha) {
+        List<Integer> adrs = new ArrayList<Integer>(ha.keySet());
         int largestAdr = nextAddress;
         Iterator<Integer> e = adrs.iterator();
         while (e.hasNext()) {
@@ -109,11 +106,11 @@ public class HEXFileHandler {
     }
     
     /**
-     * Get the HashMap representing the program hex code.
+     * Get the Map representing the program hex code.
      *
-     * @return HashMap representing the program hex code
+     * @return Map representing the program hex code
      */
-    public HashMap<Integer, String> getTable() {
+    public Map<Integer, String> getTable() {
         return this.program;
     }
     
@@ -125,7 +122,7 @@ public class HEXFileHandler {
         int address = 0;         // current address in hex file
         int bytesCount = 0;      // current count of data bytes on single line
         
-        ArrayList<Integer> adrs = new ArrayList<Integer>(program.keySet());
+        List<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
 
         // for all code elements (they won't be separated)
@@ -200,7 +197,7 @@ public class HEXFileHandler {
                     + "\n\nThis compiler can't load file into this memory.");
             return false;
         }
-        ArrayList<Integer> adrs = new ArrayList<Integer>(program.keySet());
+        List<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
         Iterator<Integer> e = adrs.iterator();
         while (e.hasNext()) {
@@ -237,7 +234,7 @@ public class HEXFileHandler {
      * @return program starting memory location
      */
     public int getProgramStart() {
-        ArrayList<Integer> adrs = new ArrayList<Integer>(program.keySet());
+        List<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
         if (adrs.isEmpty() == false)
             return (Integer)adrs.get(0);

@@ -23,6 +23,7 @@ package emulib.runtime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -39,6 +40,7 @@ public class RadixUtils {
 
     private final static double LOG102 = 0.30102999566398114;
     private static RadixUtils instance;
+    private List<NumberPattern> patterns;
     
     /**
      * This class represents a number pattern in single radix
@@ -109,8 +111,6 @@ public class RadixUtils {
         }
     }
     
-    private ArrayList<NumberPattern> patterns;
-    
     /**
      * Creates instance of the RadixUtils.
      */
@@ -148,10 +148,11 @@ public class RadixUtils {
      * @param number any-length number. Array of number components stored in
      *               little endian. 
      * @param toRadix the radix of converted number
+     * @param littleEndian If the number is in little endian (true), or big endian (false)
      * 
      * @return String of a number in specified radix
      */
-    public static String convertToRadix(byte[] number, int toRadix) {
+    public static String convertToRadix(byte[] number, int toRadix, boolean littleEndian) {
         int bytes;
         int i, j, val;
         int temp;
@@ -164,6 +165,14 @@ public class RadixUtils {
 
         bytes = (int)Math.ceil((double) digitsCount 
                 * 8.0 *  LOG102 / Math.log10(toRadix)) + 2;
+        
+        if (!littleEndian) {
+            for (i = 0; i < digitsCount / 2; i++) {
+                byte tmp = number[i];
+                number[i] = number[digitsCount - i - 1];
+                number[digitsCount - i - 1] = tmp;
+            }
+        }
         
         int[] str = new int[bytes+1];
         int[] ts = new int[bytes+1];
@@ -246,7 +255,7 @@ public class RadixUtils {
                 }
                 return convertToRadix(convertToNumber(
                         pattern.prepareNumber(number),
-                        pattern.getRadix()), toRadix);
+                        pattern.getRadix()), toRadix, true);
             }
         }
         return null;
@@ -265,7 +274,7 @@ public class RadixUtils {
             return number;
         }
         byte[] xnumber = convertToNumber(number, fromRadix);
-        return convertToRadix(xnumber, toRadix);
+        return convertToRadix(xnumber, toRadix, true);
     }
  
     /**

@@ -41,17 +41,16 @@ import java.util.*;
  * @author vbmacher
  */
 public class Context {
-    // the following tables store all registered contexts.
-    // Contexts implementing the same context interfaces are stored
-    // to the end of the arraylist under the same hashtable key
-    private HashMap<Class<?>,ArrayList<ICompilerContext>> compilerContexts;
-    private HashMap<Class<?>,ArrayList<ICPUContext>> cpuContexts;
-    private HashMap<Class<?>,ArrayList<IMemoryContext>> memContexts;
-    private HashMap<Class<?>,ArrayList<IDeviceContext>> deviceContexts;
+    /**
+     * The following map store all registered contexts.
+     * Contexts implementing the same context interfaces are stored
+     * to the end of the arraylist under the same map key
+     */
+    private Map<Class<?>,List<IContext>> contexts;
 
-    // This hashtable represents owners of registered contexts (keys).
+    // This map represents owners of registered contexts (keys).
     // It is used for checking the plug-in permissions to access them
-    private HashMap<Long,ArrayList<IContext>> contextOwners;
+    private Map<Long,List<IContext>> contextOwners;
 
     // instance of this class
     private static Context instance = null;
@@ -69,15 +68,9 @@ public class Context {
      * Private constructor.
      */
     private Context() {
-        compilerContexts = new HashMap<Class<?>,
-                ArrayList<ICompilerContext>>();
-        cpuContexts = new HashMap<Class<?>, ArrayList<ICPUContext>>();
-        memContexts = new HashMap<Class<?>,
-                ArrayList<IMemoryContext>>();
-        deviceContexts = new HashMap<Class<?>,
-                ArrayList<IDeviceContext>>();
-
-        contextOwners = new HashMap<Long,ArrayList<IContext>>();
+        contexts = new HashMap<Class<?>,
+                List<IContext>>();
+        contextOwners = new HashMap<Long,List<IContext>>();
         computer = null;
     }
     
@@ -87,7 +80,7 @@ public class Context {
      * @param password The password
      * @return true if passwords match, false otherwise
      */
-    public static boolean testPassword(String password) {
+    public boolean testPassword(String password) {
         if ((password == null) || (emuStudioPassword == null)) {
             return false;
         }
@@ -133,7 +126,7 @@ public class Context {
      * @throws InvalidImplementationException Raised when a class does not implement given interface.
      * @throws InvalidHashException Raised when context's methods does not match to computed hash.
      */
-    public synchronized boolean register(long pluginID, IContext context,
+    public boolean register(long pluginID, IContext context,
             Class<?> contextInterface) throws AlreadyRegisteredException, InvalidImplementationException,
             InvalidHashException {
 
@@ -147,19 +140,7 @@ public class Context {
         }
 
         // if the context is already registered, return false
-        ArrayList conList = cpuContexts.get(contextInterface);
-        if ((conList != null) && conList.contains(context)) {
-            throw new AlreadyRegisteredException();
-        }
-        conList = memContexts.get(contextInterface);
-        if ((conList != null) && conList.contains(context)) {
-            throw new AlreadyRegisteredException();
-        }
-        conList = deviceContexts.get(contextInterface);
-        if ((conList != null) && conList.contains(context)) {
-            throw new AlreadyRegisteredException();
-        }
-        conList = compilerContexts.get(contextInterface);
+        List conList = contexts.get(contextInterface);
         if ((conList != null) && conList.contains(context)) {
             throw new AlreadyRegisteredException();
         }
@@ -173,6 +154,9 @@ public class Context {
         if (!pLoader.doesImplement(context.getClass(), contextInterface)) {
             throw new InvalidImplementationException();
         }
+        if (!pLoader.doesImplement(contextInterface, IContext.class)) {
+            throw new InvalidImplementationException();
+        }
         
         // check hash of the interface
         String hash;
@@ -180,16 +164,16 @@ public class Context {
 
         if (contextIName.equals(ICPUContext.class.getSimpleName())
                 && (context instanceof ICPUContext))
-            hash = computeHash(ICPUContext.class);
+            hash = computeHash(emuStudioPassword, ICPUContext.class);
         else if (contextIName.equals(ICompilerContext.class.getSimpleName())
                 && (context instanceof ICompilerContext))
-            hash = computeHash(ICompilerContext.class);
+            hash = computeHash(emuStudioPassword, ICompilerContext.class);
         else if (contextIName.equals(IDeviceContext.class.getSimpleName())
                 && (context instanceof IDeviceContext))
-            hash = computeHash(IDeviceContext.class);
+            hash = computeHash(emuStudioPassword, IDeviceContext.class);
         else if (contextIName.equals(IMemoryContext.class.getSimpleName())
                 && (context instanceof IMemoryContext))
-            hash = computeHash(IMemoryContext.class);
+            hash = computeHash(emuStudioPassword, IMemoryContext.class);
         else {
             // extract hash from interface name
             hash = contextIName.substring(1);
@@ -199,61 +183,33 @@ public class Context {
         }
 
         // finally register context
-        ArrayList<IContext> ar = contextOwners.get(pluginID);
+        List<IContext> ar = contextOwners.get(pluginID);
         if (ar == null) {
             ar = new ArrayList<IContext>();
             contextOwners.put(pluginID, ar);
         }
         ar.add(context);
 
-        if (context instanceof ICPUContext) {
-            ArrayList<ICPUContext> arc = cpuContexts.get(contextInterface);
-            if (arc == null) {
-                arc = new ArrayList<ICPUContext>();
-                cpuContexts.put(contextInterface, arc);
-            }
-            arc.add((ICPUContext)context);
-        } else if (context instanceof ICompilerContext) {
-            ArrayList<ICompilerContext> arc = compilerContexts.get(contextInterface);
-            if (arc == null) {
-                arc = new ArrayList<ICompilerContext>();
-                compilerContexts.put(contextInterface, arc);
-            }
-            arc.add((ICompilerContext)context);
-        } else if (context instanceof IDeviceContext) {
-            ArrayList<IDeviceContext> arc = deviceContexts.get(contextInterface);
-            if (arc == null) {
-                arc = new ArrayList<IDeviceContext>();
-                deviceContexts.put(contextInterface, arc);
-            }
-            arc.add((IDeviceContext)context);
-        } else if (context instanceof IMemoryContext) {
-            ArrayList<IMemoryContext> arc = memContexts.get(contextInterface);
-            if (arc == null) {
-                arc = new ArrayList<IMemoryContext>();
-                memContexts.put(contextInterface, arc);
-            }
-            arc.add((IMemoryContext)context);
-        } else {
-            // This if branch IS needed
-            return false;
+        List<IContext> arc = contexts.get(contextInterface);
+        if (arc == null) {
+            arc = new ArrayList<IContext>();
+            contexts.put(contextInterface, arc);
         }
+        arc.add((IContext)context);
         return true;
     }
 
     /**
-     * Method removes all contexts from a context hashtable.
-     * It removes also the key from the hashtable.
+     * Method removes all contexts from a context map.
+     * It removes also the key from the map.
      *
-     * @param t hashtable
-     * @return true if all contexts were removed (and was found in the hashtable)
+     * @return true if all contexts were removed (and was found in the map)
      */
-    private boolean removeAllContexts(HashMap<Class<?>,?> t,
-            Class<?> contextInterface, ArrayList<IContext> owner) {
-        if ((t == null) || (contextInterface == null))
+    private boolean removeAllContexts(Class<?> contextInterface, List<IContext> owner) {
+        if (contextInterface == null)
             return false;
 
-        ArrayList<?> ar = (ArrayList<?>)t.get(contextInterface);
+        List<?> ar = (List<?>)contexts.get(contextInterface);
         if (ar == null)
             return false;
 
@@ -266,7 +222,7 @@ public class Context {
             }
         }
         if (ar.isEmpty())
-            t.remove(contextInterface);
+            contexts.remove(contextInterface);
         return result;
     }
 
@@ -285,18 +241,11 @@ public class Context {
             return false;
 
         // check for permission
-        ArrayList<IContext> owner = contextOwners.get(pluginID);
+        List<IContext> owner = contextOwners.get(pluginID);
         if (owner == null)
             return false;
 
-        boolean result;
-
-        result = removeAllContexts(cpuContexts, contextInterface, owner);
-        result |= removeAllContexts(memContexts, contextInterface, owner);
-        result |= removeAllContexts(compilerContexts, contextInterface, owner);
-        result |= removeAllContexts(deviceContexts, contextInterface, owner);
-
-        return result;
+        return removeAllContexts(contextInterface, owner);
     }
 
     /**
@@ -318,33 +267,42 @@ public class Context {
     }
 
     /**
-     * Get specific context for given input data and hashtable of specific
+     * Get specific context for given input data and map of specific
      * plug-in type.
      *
      * This method is used in all get...Context() methods.
      *
      * @param pluginID ID of requesting plug-in
-     * @param contexts hashtable of all plug-in contexts
-     * @param contextInterface wanted context interface
+     * @param contextInferfaceMain wanted context interface (main). E.g.: ICPUContext, IMemoryContext, ...
+     * @param contextInterface wanted context interface (implemented by the plug-in)
      * @param contextID specific context ID (if is not required, should be null)
      * @param index the index if more than one contexts are found
      * @return requested context or null, if the plug-in is not allowed to
      * get the context
      */
-    private IContext getContext(long pluginID, HashMap<?,?> contexts,
+    private IContext getContext(long pluginID, Class<?> contextInferfaceMain,
             Class<?> contextInterface, String contextID, int index) {
         // find the requested context
-        ArrayList ar = (ArrayList)contexts.get(contextInterface);
+        List ar = (List)contexts.get(contextInterface);
         if ((ar == null) || ar.isEmpty())
             return null;
+        
+        PluginLoader pLoader = PluginLoader.getInstance(emuStudioPassword);
+        if (pLoader == null) {
+            // emuStudio did not assign password??
+            return null;
+        }
 
         // find context based on contextID
         IContext context;
         for (int i = 0, j = 0; i < ar.size(); i++) {
-            if ((contextID != null) && !((IContext)ar.get(i)).getID().equals(contextID)) {
+            context = (IContext)ar.get(i);
+            if (!pLoader.doesImplement(context.getClass(), contextInferfaceMain)) {
                 continue;
             }
-            context = (IContext)ar.get(i);
+            if ((contextID != null) && !context.getID().equals(contextID)) {
+                continue;
+            }
             if (checkPermission(pluginID, context)) {
                 if (j == index) {
                     return context;
@@ -356,6 +314,49 @@ public class Context {
         return null;
     }
 
+    /**
+     * Get specific context for given input data and map of specific
+     * plug-in type.
+     *
+     * This method is used in all get...Context() methods.
+     *
+     * @param pluginID ID of requesting plug-in
+     * @param contextInterface wanted context interface (implemented by the plug-in)
+     * @param contextID specific context ID (if is not required, should be null)
+     * @param index the index if more than one contexts are found
+     * @return requested context or null, if the plug-in is not allowed to
+     * get the context
+     */
+    public IContext getContext(long pluginID, Class<?> contextInterface, String contextID, int index) {
+        // find the requested context
+        List ar = (List)contexts.get(contextInterface);
+        if ((ar == null) || ar.isEmpty())
+            return null;
+        
+        PluginLoader pLoader = PluginLoader.getInstance(emuStudioPassword);
+        if (pLoader == null) {
+            // emuStudio did not assign password??
+            return null;
+        }
+
+        // find context based on contextID
+        IContext context;
+        for (int i = 0, j = 0; i < ar.size(); i++) {
+            context = (IContext)ar.get(i);
+            if ((contextID != null) && !context.getID().equals(contextID)) {
+                continue;
+            }
+            if (checkPermission(pluginID, context)) {
+                if (j == index) {
+                    return context;
+                } else {
+                    j++;
+                }
+            }
+        }
+        return null;
+    }
+    
     /**
      * Get registered CPU context, if plug-in has the permission to access it.
      * The permission is approved, if the plug-in is connected to CPU in
@@ -400,7 +401,7 @@ public class Context {
      */
     public ICPUContext getCPUContext(long pluginID,
             Class<?> contextInterface, int index) {
-        return (ICPUContext)getContext(pluginID, cpuContexts,
+        return (ICPUContext)getContext(pluginID, ICPUContext.class,
                 contextInterface, null, index);
     }
 
@@ -449,7 +450,7 @@ public class Context {
      */
     public ICPUContext getCPUContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        return (ICPUContext)getContext(pluginID, cpuContexts,
+        return (ICPUContext)getContext(pluginID, ICPUContext.class,
                 contextInterface, contextID, index);
     }
 
@@ -494,7 +495,7 @@ public class Context {
      */
     public ICompilerContext getCompilerContext(long pluginID,
             Class<?> contextInterface, int index) {
-        return (ICompilerContext)getContext(pluginID, compilerContexts,
+        return (ICompilerContext)getContext(pluginID, ICompilerContext.class,
                 contextInterface, null, index);
     }
 
@@ -537,7 +538,7 @@ public class Context {
      */
     public ICompilerContext getCompilerContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        return (ICompilerContext)getContext(pluginID, compilerContexts,
+        return (ICompilerContext)getContext(pluginID, ICompilerContext.class,
                 contextInterface, contextID, index);
     }
 
@@ -585,7 +586,7 @@ public class Context {
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface, int index) {
-        return (IMemoryContext)getContext(pluginID, memContexts,
+        return (IMemoryContext)getContext(pluginID, IMemoryContext.class,
                 contextInterface, null, index);
     }
 
@@ -634,7 +635,7 @@ public class Context {
      */
     public IMemoryContext getMemoryContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        return (IMemoryContext)getContext(pluginID, memContexts,
+        return (IMemoryContext)getContext(pluginID, IMemoryContext.class,
                 contextInterface, contextID, index);
     }
 
@@ -682,7 +683,7 @@ public class Context {
      */
     public IDeviceContext getDeviceContext(long pluginID,
             Class<?> contextInterface, int index) {
-        return (IDeviceContext)getContext(pluginID, deviceContexts,
+        return (IDeviceContext)getContext(pluginID, IDeviceContext.class,
                 contextInterface, null, index);
     }
 
@@ -731,7 +732,7 @@ public class Context {
      */
     public IDeviceContext getDeviceContext(long pluginID,
             Class<?> contextInterface, String contextID, int index) {
-        return (IDeviceContext)getContext(pluginID, deviceContexts,
+        return (IDeviceContext)getContext(pluginID, IDeviceContext.class,
                 contextInterface, contextID, index);
     }
 
@@ -744,8 +745,8 @@ public class Context {
      * @return true if the hashes match in case-isensitive manner,
      *         false otherwise
      */
-    private static boolean checkHash(Class<?> contextInterface, String hash) {
-        String computedHash = computeHash(contextInterface);
+    private boolean checkHash(Class<?> contextInterface, String hash) {
+        String computedHash = computeHash(emuStudioPassword, contextInterface);
         if (computedHash == null)
             return false;
         return (computedHash.equalsIgnoreCase(hash)) ? true : false;
@@ -774,7 +775,7 @@ public class Context {
 
         while (t.hasNext()) {
             long pID = t.next();
-            ArrayList<IContext> con = contextOwners.get(pID);
+            List<IContext> con = contextOwners.get(pID);
             if (con == null)
                 continue;
             if (con.contains(context)) {
@@ -814,16 +815,17 @@ public class Context {
     /**
      * Compute hash of a plug-in context interface. Uses SHA-1 method.
      *
+     * @param password emuStudio hash string, the "password".
      * @param inter  Interface to computer hash of
      * @return SHA-1 hash string
      */
-    private static String computeHash(Class<?> inter) {
+    public String computeHash(String password, Class<?> inter) {
         int i;
         Method[] methods, met;
         String hash = "";
 
-        met = inter.getDeclaredMethods(); //  .getMethods();
-        ArrayList me = new ArrayList();
+        met = inter.getDeclaredMethods();
+        List me = new ArrayList();
         for (i = 0; i < met.length; i++)
             me.add(met[i]);
         Collections.sort(me, new Comparator() {
@@ -869,7 +871,7 @@ public class Context {
             byte[] sha1hash;
             md.update(text.getBytes("iso-8859-1"), 0, text.length());
             sha1hash = md.digest();
-            return RadixUtils.convertToRadix(sha1hash, 16);// convertToHex(sha1hash);
+            return RadixUtils.convertToRadix(sha1hash, 16, false);
         } catch (NoSuchAlgorithmException e) {}
         catch (UnsupportedEncodingException r) {}
         return null;

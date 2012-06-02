@@ -40,36 +40,36 @@ public class RadixUtilsTest extends TestCase {
         byte[] radix10Number = { (byte)0xA0, 0xC };
         int toRadix = 16;
         String expResult = "CA0";
-        String result = RadixUtils.convertToRadix(radix10Number, toRadix);
+        String result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
         assertEquals(expResult, result);
         
         radix10Number = new byte[] { 0xF, 0xF };
         expResult = "F0F";
-        result = RadixUtils.convertToRadix(radix10Number, toRadix);
+        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
         assertEquals(expResult, result);
         
         radix10Number = new byte[] { 040 };
         expResult = "40";
         toRadix = 8;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix);
+        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
         assertEquals(expResult, result);
 
-        radix10Number = new byte[] { 2, 1 }; // 258 stored as 2-byte int
-        expResult = "402";
-        toRadix = 8;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix);
+        radix10Number = new byte[] { 2, 1 }; // 201h stored as 2-byte int
+        expResult = "201";
+        toRadix = 16;
+        result = RadixUtils.convertToRadix(radix10Number, toRadix, false);
         assertEquals(expResult, result);
         
         radix10Number = new byte[] { 32 };
         expResult = "1012";
         toRadix = 3;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix);
+        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
         assertEquals(expResult, result);
         
         radix10Number = new byte[] { 0x2C, 1 };
         expResult = "300";
         toRadix = 10;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix);
+        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
         assertEquals(expResult, result);
     }
 
