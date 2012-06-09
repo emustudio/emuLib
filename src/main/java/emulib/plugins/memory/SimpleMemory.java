@@ -22,9 +22,9 @@
 
 package emulib.plugins.memory;
 
+import emulib.plugins.ISettingsHandler;
 import java.util.EventObject;
 import javax.swing.event.EventListenerList;
-import emulib.plugins.ISettingsHandler;
 
 /**
  * This class implements some fundamental functionality that can be shared

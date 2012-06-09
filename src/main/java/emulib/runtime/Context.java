@@ -33,6 +33,8 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class manages all contexts. Plug-ins should register their contexts
@@ -41,6 +43,7 @@ import java.util.*;
  * @author vbmacher
  */
 public class Context {
+    private final static Logger logger = LoggerFactory.getLogger(Context.class);
     /**
      * The following map store all registered contexts.
      * Contexts implementing the same context interfaces are stored
@@ -289,6 +292,7 @@ public class Context {
         
         PluginLoader pLoader = PluginLoader.getInstance(emuStudioPassword);
         if (pLoader == null) {
+            logger.error("Could not get PluginLoader instance. emuStudio probably didn't assign password.");
             // emuStudio did not assign password??
             return null;
         }
@@ -335,6 +339,7 @@ public class Context {
         
         PluginLoader pLoader = PluginLoader.getInstance(emuStudioPassword);
         if (pLoader == null) {
+            logger.error("Could not get PluginLoader instance. emuStudio probably didn't assign password.");
             // emuStudio did not assign password??
             return null;
         }
@@ -853,6 +858,7 @@ public class Context {
         try {
             return SHA1(hash);
         } catch(Exception e) {
+            logger.error("Could not compute hash.");
             return null;
         }
     }

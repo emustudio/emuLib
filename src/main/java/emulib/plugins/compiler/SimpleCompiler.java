@@ -22,10 +22,10 @@
 
 package emulib.plugins.compiler;
 
-import java.util.EventObject;
-import javax.swing.event.EventListenerList;
 import emulib.plugins.ISettingsHandler;
 import emulib.plugins.compiler.Message.MessageType;
+import java.util.EventObject;
+import javax.swing.event.EventListenerList;
 
 /**
  * This class implements some fundamental functionality that can be

@@ -22,10 +22,10 @@
 
 package emulib.plugins.cpu;
 
+import emulib.plugins.ISettingsHandler;
 import java.util.EventObject;
 import java.util.HashSet;
 import javax.swing.event.EventListenerList;
-import emulib.plugins.ISettingsHandler;
 
 /**
  * This class implements some fundamental functionality that can be used
