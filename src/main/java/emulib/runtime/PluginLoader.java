@@ -31,6 +31,8 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class provides static methods for dynamic loading JAR files (e.g.
@@ -47,7 +49,8 @@ public class PluginLoader extends ClassLoader {
     private PluginSecurityManager securityManager;
     private List<Class<?>> classesToResolve;
     private List<NotLoadedClass> undoneClassesToLoad;
-    
+    private final static Logger logger = LoggerFactory.getLogger(PluginLoader.class);
+
     private class NotLoadedClass {
         private List<String> undone;
         private Map<String, Integer> sizes;
@@ -416,7 +419,7 @@ public class PluginLoader extends ClassLoader {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Could not load plug-in.", e);
         }
         return mainClass;
     }
@@ -444,6 +447,7 @@ public class PluginLoader extends ClassLoader {
             }
             return sb.toString();
         } catch (IOException e) {
+            logger.error(new StringBuilder().append("Could not load file: ").append(fileName).toString(), e);
             return null;
         }
     }
@@ -483,6 +487,8 @@ public class PluginLoader extends ClassLoader {
             try {
                 return url != null ? url.openStream() : null;
             } catch (Exception e) {
+                logger.debug(new StringBuilder().append("Could not get resource as stream.")
+                        .append(url.toString()).toString(), e);
             }
         }
         return null;
@@ -547,6 +553,7 @@ public class PluginLoader extends ClassLoader {
                 }
             }
         } catch (Exception e) {
+            logger.debug("Could not load undone classes.", e);
         }
         return resultClasses;
     }
