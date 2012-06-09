@@ -33,6 +33,7 @@ import junit.framework.TestCase;
  */
 public class ContextTest extends TestCase {
     private final static String password = "password";
+    private static boolean passwordAssigned = false;
 
     public class MockContext implements C4664566E71E3C14D1732E34E2F66E8E31EE6951E {
 
@@ -61,7 +62,10 @@ public class ContextTest extends TestCase {
     }
     
     public void testPasswordAssign() {
-        Context.assignPassword(password);
+        if (!passwordAssigned) {
+            assertTrue(Context.assignPassword(password));
+            passwordAssigned = true;
+        }
         assertFalse(Context.assignPassword("dsfsf"));
     }
     
@@ -81,7 +85,7 @@ public class ContextTest extends TestCase {
             InvalidHashException {
         MockContext context = new MockContext();
         Context cInstance = Context.getInstance();
-        Context.assignPassword(password);
+        testPasswordAssign();
         
         assertTrue(cInstance.assignComputer(password, new IConnections() {
 
