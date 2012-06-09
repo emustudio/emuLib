@@ -61,7 +61,7 @@ public class ContextTest extends TestCase {
     }
     
     public void testPasswordAssign() {
-        assertTrue(Context.assignPassword(password));
+        Context.assignPassword(password);
         assertFalse(Context.assignPassword("dsfsf"));
     }
     
@@ -81,6 +81,7 @@ public class ContextTest extends TestCase {
             InvalidHashException {
         MockContext context = new MockContext();
         Context cInstance = Context.getInstance();
+        Context.assignPassword(password);
         
         assertTrue(cInstance.assignComputer(password, new IConnections() {
 
