@@ -65,8 +65,8 @@ public class ContextTest extends TestCase {
         if (!passwordAssigned) {
             assertTrue(Context.assignPassword(password));
             passwordAssigned = true;
+            assertFalse(Context.assignPassword("dsfsf"));
         }
-        assertFalse(Context.assignPassword("dsfsf"));
     }
     
     /**
