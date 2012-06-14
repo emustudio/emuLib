@@ -302,12 +302,7 @@ public class PluginLoader extends ClassLoader {
                     }
                 }
             }
-            Class<?> newClass = theClass.getSuperclass();
-            if (newClass == null) {
-                theClass = theClass.getEnclosingClass();
-            } else {
-                theClass = newClass;
-            }
+            theClass = theClass.getSuperclass();
         } while ((theClass != null) && !theClass.equals(Object.class));
 
         return false;
