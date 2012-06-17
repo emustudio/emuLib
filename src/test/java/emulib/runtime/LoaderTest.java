@@ -22,6 +22,7 @@
 
 package emulib.runtime;
 
+import emulib.emustudio.APITest;
 import emulib.plugins.IPlugin;
 import emulib.plugins.ISettingsHandler;
 import emulib.plugins.cpu.ICPU;
@@ -30,9 +31,7 @@ import emulib.plugins.cpu.ICPU.RunState;
 import emulib.plugins.cpu.IDisassembler;
 import java.util.EventObject;
 import javax.swing.JPanel;
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 /**
  *
@@ -102,21 +101,13 @@ public class LoaderTest extends TestCase {
         super(testName);
     }
 
-   /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( LoaderTest.class );
-    }
-
     /**
      * Test of getInstance method, of class Loader.
      */
     public void testGetInstance() {
-        ContextTest.assignEmuStudioPassword();
-        PluginLoader expResult = PluginLoader.getInstance("password");
-        PluginLoader result = PluginLoader.getInstance("password");
+        APITest.assignEmuStudioPassword();
+        PluginLoader expResult = PluginLoader.getInstance(APITest.getEmuStudioPassword());
+        PluginLoader result = PluginLoader.getInstance(APITest.getEmuStudioPassword());
         assertEquals(expResult, result);
     }
 
@@ -125,8 +116,8 @@ public class LoaderTest extends TestCase {
      */
     public void testLoadJAR() {
         String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
-        ContextTest.assignEmuStudioPassword();
-        PluginLoader instance = PluginLoader.getInstance("password");
+        APITest.assignEmuStudioPassword();
+        PluginLoader instance = PluginLoader.getInstance(APITest.getEmuStudioPassword());
         Class<IPlugin> result = instance.loadPlugin(filename);
         assertNotNull(result);
     }
@@ -135,8 +126,8 @@ public class LoaderTest extends TestCase {
      * Test crucial method for finding plug-ins' main interface.
      */
     public void testDoesImplement() {
-        ContextTest.assignEmuStudioPassword();
-        PluginLoader instance = PluginLoader.getInstance("password");
+        APITest.assignEmuStudioPassword();
+        PluginLoader instance = PluginLoader.getInstance(APITest.getEmuStudioPassword());
         
         // test for nested interface
         assertFalse(instance.doesImplement(MockCPUListener.class, IPlugin.class));

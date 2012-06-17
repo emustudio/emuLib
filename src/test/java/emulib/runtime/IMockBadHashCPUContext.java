@@ -1,9 +1,9 @@
 /*
- * C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
+ * MockBadHashCPUContext.java
  * 
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,10 +24,10 @@ package emulib.runtime;
 import emulib.plugins.cpu.ICPUContext;
 
 /**
- * Mock ICPUContext interface.
+ * This class has the same contents as C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
  * 
  * @author vbmacher
  */
-public interface C4664566E71E3C14D1732E34E2F66E8E31EE6951E extends ICPUContext {
+public interface IMockBadHashCPUContext extends ICPUContext {
     public void testMethod();
 }

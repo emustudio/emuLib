@@ -1,5 +1,5 @@
 /*
- * Context.java
+ * InvalidImplementationException.java
  *
  * KISS, YAGNI, DRY
  * 

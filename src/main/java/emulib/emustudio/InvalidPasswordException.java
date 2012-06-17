@@ -1,6 +1,6 @@
 /*
- * C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
- * 
+ * InvalidPasswordException.java
+ *
  * KISS, YAGNI, DRY
  * 
  * (c) Copyright 2010-2012, Peter Jakubčo
@@ -19,15 +19,14 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
-
-import emulib.plugins.cpu.ICPUContext;
+package emulib.emustudio;
 
 /**
- * Mock ICPUContext interface.
+ * This class represents an exception thrown everytime when any password-enabled method
+ * (a method with password as parameter) is called with wrong password.
  * 
  * @author vbmacher
  */
-public interface C4664566E71E3C14D1732E34E2F66E8E31EE6951E extends ICPUContext {
-    public void testMethod();
+public class InvalidPasswordException extends Exception {
+    
 }

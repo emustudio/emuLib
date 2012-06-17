@@ -1,5 +1,5 @@
 /*
- * C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
+ * IMockBadHashMemoryContext.java
  * 
  * KISS, YAGNI, DRY
  * 
@@ -21,13 +21,13 @@
  */
 package emulib.runtime;
 
-import emulib.plugins.cpu.ICPUContext;
+import emulib.plugins.memory.IMemoryContext;
 
 /**
- * Mock ICPUContext interface.
+ * This class has the same contents as C4A08669110A42BC60DD75BD4EE7CDDC6E15EA091.java
  * 
  * @author vbmacher
  */
-public interface C4664566E71E3C14D1732E34E2F66E8E31EE6951E extends ICPUContext {
-    public void testMethod();
+public interface IMockBadHashMemoryContext extends IMemoryContext {
+    public void testMemoryMethod();
 }

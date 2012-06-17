@@ -21,6 +21,8 @@
  */
 package emulib.runtime;
 
+import emulib.emustudio.API;
+import emulib.emustudio.InvalidPasswordException;
 import emulib.plugins.IPlugin;
 import java.io.*;
 import java.net.InetAddress;
@@ -50,7 +52,7 @@ public class PluginLoader extends ClassLoader {
     private List<Class<?>> classesToResolve;
     private List<NotLoadedClass> undoneClassesToLoad;
     private final static Logger logger = LoggerFactory.getLogger(PluginLoader.class);
-
+    
     private class NotLoadedClass {
         private List<String> undone;
         private Map<String, Integer> sizes;
@@ -264,18 +266,21 @@ public class PluginLoader extends ClassLoader {
      * call, then the same instance is returned.
      *
      * @param password Password assigned by emuStudio
-     * @return instance of the Loader class
+     * @return instance of the Loader class, or null if password is wrong.
      */
     public static PluginLoader getInstance(String password) {
-        if (!Context.getInstance().testPassword(password)) {
-          return null;
+        try {
+            API.getInstance().testPassword(password);
+        } catch (InvalidPasswordException e) {
+            logger.error("Invalid password while trying to get new Instance of PluginLoader.", e);
+            return null;
         }
         if (instance == null) {
             instance = new PluginLoader();
         }
         return instance;
     }
-    
+        
     /**
      * This method clears all information regarding to plug-ins loading.
      * 

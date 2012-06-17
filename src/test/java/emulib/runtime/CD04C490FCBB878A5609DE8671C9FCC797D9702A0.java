@@ -1,9 +1,9 @@
 /*
- * C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
- * 
+ * CD04C490FCBB878A5609DE8671C9FCC797D9702A0.java
+ *
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
  */
 package emulib.runtime;
 
-import emulib.plugins.cpu.ICPUContext;
+import emulib.plugins.compiler.ICompilerContext;
 
 /**
- * Mock ICPUContext interface.
+ * Mock ICompilerContext interface.
  * 
  * @author vbmacher
  */
-public interface C4664566E71E3C14D1732E34E2F66E8E31EE6951E extends ICPUContext {
-    public void testMethod();
+public interface CD04C490FCBB878A5609DE8671C9FCC797D9702A0 extends ICompilerContext {
+    public void testCompilerMethod();
 }

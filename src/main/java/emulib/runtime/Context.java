@@ -22,6 +22,8 @@
 
 package emulib.runtime;
 
+import emulib.emustudio.API;
+import emulib.emustudio.InvalidPasswordException;
 import emulib.plugins.IContext;
 import emulib.plugins.compiler.ICompilerContext;
 import emulib.plugins.cpu.ICPUContext;
@@ -63,11 +65,6 @@ public class Context {
     private IConnections computer;
     
     /**
-     * Debug table updater object
-     */
-    private IDebugTable debug;
-
-    /**
      * Private constructor.
      */
     private Context() {
@@ -75,19 +72,6 @@ public class Context {
                 List<IContext>>();
         contextOwners = new HashMap<Long,List<IContext>>();
         computer = null;
-    }
-    
-    /**
-     * Method determines if given password matches with password already set-up by emuStudio.
-     * 
-     * @param password The password
-     * @return true if passwords match, false otherwise
-     */
-    public boolean testPassword(String password) {
-        if ((password == null) || (emuStudioPassword == null)) {
-            return false;
-        }
-        return password.equals(emuStudioPassword);
     }
     
     /**
@@ -100,6 +84,17 @@ public class Context {
         if (instance == null)
             instance = new Context();
         return instance;
+    }
+    
+    /**
+     * Sets password that was assigned by emuStudio.
+     * If the password is wrong, context methods won't work. This method
+     * should be called only by emuStudio API class.
+     * 
+     * @param password new emuStudio password
+     */
+    public static void setEmuStudioPassword(String password) {
+        emuStudioPassword = password;
     }
 
     /**
@@ -129,9 +124,8 @@ public class Context {
      * @throws InvalidImplementationException Raised when a class does not implement given interface.
      * @throws InvalidHashException Raised when context's methods does not match to computed hash.
      */
-    public boolean register(long pluginID, IContext context,
-            Class<?> contextInterface) throws AlreadyRegisteredException, InvalidImplementationException,
-            InvalidHashException {
+    public boolean register(long pluginID, IContext context, Class<?> contextInterface)
+            throws AlreadyRegisteredException, InvalidImplementationException, InvalidHashException {
 
         // check if the context is class
         if (context.getClass().isInterface()) {
@@ -263,7 +257,10 @@ public class Context {
      * the password is incorrect or null.
      */
     public boolean assignComputer(String password, IConnections computer) {
-        if (!testPassword(password)) {
+        try {
+            API.getInstance().testPassword(password);
+        } catch (InvalidPasswordException e) {
+            logger.error("Invalid password while assigning new computer.", e);
             return false;
         }
         this.computer = computer;
@@ -798,27 +795,6 @@ public class Context {
     }
 
     /**
-     * Assigns a hash to the emuStudioHash variable. This hash represents
-     * "password" by which the emuStudio is allowed to perform critical operations
-     * in the emuLib. The operations must be strictly proteted from plug-ins.
-     * They include e.g. providing information about plug-in connections.
-     *
-     * This method is called only once, by the emuStudio. After each next call,
-     * it does nothing and returns false.
-     *
-     * @param password emuStudio hash string, the "password".
-     * @return true if the assignment was successfull (first call), false
-     *         otherwise.
-     */
-    public static boolean assignPassword(String password) {
-        if (emuStudioPassword == null) {
-            emuStudioPassword = password;
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Compute hash of a plug-in context interface. Uses SHA-1 method.
      *
      * @param password emuStudio hash string, the "password".
@@ -884,28 +860,4 @@ public class Context {
         return null;
     }
 
-    /**
-     * Set object with method of updating debug table in emuStudio. It should
-     * be called once by emuStudio.
-     * 
-     * @param debug The IDebugTable object
-     * @param password password that was assigned to the emuLib. It prevents
-     * from misuse of this method by other plugins.
-     */
-    public void setDebugTableInterfaceObject(IDebugTable debug, String password) {
-        if ((emuStudioPassword == null) || (!emuStudioPassword.equals(password)))
-            return;
-        this.debug = debug;
-    }
-    
-    /**
-     * Update debug table in emuStudio. If IDebugTableObject was not set,
-     * then it does nothing.
-     */
-    public void updateDebugTable() {
-        if (debug == null) {
-            return;
-        }
-        debug.updateDebugTable();
-    }
 }
