@@ -240,14 +240,15 @@ public class Context {
      */
     public boolean unregister(long pluginID, Class<?> contextInterface) {
         // check if the context is class
-        if (!contextInterface.getClass().isInterface())
+        if (!contextInterface.isInterface()) {
             return false;
+        }
 
         // check for permission
         List<IContext> owner = contextOwners.get(pluginID);
-        if (owner == null)
+        if (owner == null) {
             return false;
-
+        }
         return removeAllContexts(contextInterface, owner);
     }
 
@@ -902,8 +903,9 @@ public class Context {
      * then it does nothing.
      */
     public void updateDebugTable() {
-        if (debug == null)
+        if (debug == null) {
             return;
+        }
         debug.updateDebugTable();
     }
 }

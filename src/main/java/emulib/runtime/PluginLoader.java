@@ -277,7 +277,10 @@ public class PluginLoader extends ClassLoader {
     }
     
     /**
-     * This method
+     * This method clears all information regarding to plug-ins loading.
+     * 
+     * However, this does not mean that every loaded class is forgotten by JVM.
+     * In order to do that, you must create new instance of PluginLoader.
      */
     public void forgetAllLoaded() {
         resources.clear();

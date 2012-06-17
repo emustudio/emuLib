@@ -108,7 +108,7 @@ public class ContextTest extends TestCase {
         assertTrue(cInstance.register(0, context, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class));
         ICPUContext getContext = cInstance.getCPUContext(0, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class);
         assertEquals(context, getContext);
-        cInstance.unregister(0, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class);
+        assertTrue(cInstance.unregister(0, C4664566E71E3C14D1732E34E2F66E8E31EE6951E.class));
     }
 
 }
