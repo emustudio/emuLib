@@ -61,12 +61,18 @@ public class ContextTest extends TestCase {
 
     }
     
-    public void testPasswordAssign() {
+    public synchronized static void assignEmuStudioPassword() {
         if (!passwordAssigned) {
             assertTrue(Context.assignPassword(password));
             passwordAssigned = true;
             assertFalse(Context.assignPassword("dsfsf"));
+        } else {
+            assertFalse(Context.assignPassword("dsfsf"));
         }
+    }
+    
+    public void testPasswordAssign() {
+        assignEmuStudioPassword();
     }
     
     /**
@@ -85,7 +91,7 @@ public class ContextTest extends TestCase {
             InvalidHashException {
         MockContext context = new MockContext();
         Context cInstance = Context.getInstance();
-        testPasswordAssign();
+        assignEmuStudioPassword();
         
         assertTrue(cInstance.assignComputer(password, new IConnections() {
 

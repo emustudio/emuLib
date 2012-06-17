@@ -267,7 +267,9 @@ public class PluginLoader extends ClassLoader {
      * @return instance of the Loader class
      */
     public static PluginLoader getInstance(String password) {
-        
+        if (!Context.getInstance().testPassword(password)) {
+          return null;
+        }
         if (instance == null) {
             instance = new PluginLoader();
         }

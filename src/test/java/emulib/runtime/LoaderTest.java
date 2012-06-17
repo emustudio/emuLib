@@ -49,7 +49,7 @@ public class LoaderTest extends TestCase {
      * Test of getInstance method, of class Loader.
      */
     public void testGetInstance() {
-        Context.assignPassword("password");
+        ContextTest.assignEmuStudioPassword();
         PluginLoader expResult = PluginLoader.getInstance("password");
         PluginLoader result = PluginLoader.getInstance("password");
         assertEquals(expResult, result);
