@@ -156,8 +156,9 @@ public class Message {
                 mes += "[Info (" + errorCode + ")]    ";
                 break;
         }
-        if (sourceFile != null)
+        if (sourceFile != null) {
             mes += sourceFile;
+        }
         if ((line >= 0) || (column >= 0)) {
             mes += "(";
             mes += (line >= 0) ? String.valueOf(line) : "?";

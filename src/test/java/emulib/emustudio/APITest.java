@@ -21,37 +21,34 @@
  */
 package emulib.emustudio;
 
-import emulib.runtime.IDebugTable;
-import junit.framework.TestCase;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  *
  * @author vbmacher
  */
-public class APITest extends TestCase {
+public class APITest {
     private final static String password = "password";
     private static boolean passwordAssigned = false;
     
-    public class MockDebugTable implements IDebugTable {
+    public class DebugTableStub implements DebugTable {
 
         @Override
-        public void updateDebugTable() {
+        public void refresh() {
             throw new IllegalStateException();
         }
         
     }
     
-    public APITest(String testName) {
-        super(testName);
-    }
-
     /**
      * Test of getInstance method, of class API.
      */
+    @Test
     public void testGetInstance() {
         API result = API.getInstance();
-        assertNotNull(result);
-        assertEquals(result, API.getInstance());
+        Assert.assertNotNull(result);
+        Assert.assertEquals(result, API.getInstance());
     }
     
     public static String getEmuStudioPassword() {
@@ -60,38 +57,40 @@ public class APITest extends TestCase {
 
     public synchronized static void assignEmuStudioPassword() {
         if (!passwordAssigned) {
-            assertTrue(API.assignPassword(password));
+            Assert.assertTrue(API.assignPassword(password));
             passwordAssigned = true;
-            assertFalse(API.assignPassword("dsfsf"));
+            Assert.assertFalse(API.assignPassword("dsfsf"));
         } else {
-            assertFalse(API.assignPassword("dsfsf"));
+            Assert.assertFalse(API.assignPassword("dsfsf"));
         }
     }
     
     /**
      * Test of emuStudio password assignment
      */
+    @Test
     public void testAssignPassword() {
         assignEmuStudioPassword();
     }
     
 
     /**
-     * Test of setDebugTableInterfaceObject method, of class API.
+     * Test of setDebugTable method, of class API.
      */
+    @Test
     public void testSetDebugTableInterfaceObject() {
-        IDebugTable debug = new MockDebugTable();
+        DebugTable debug = new DebugTableStub();
         assignEmuStudioPassword(); 
         API instance = API.getInstance();
-        instance.setDebugTableInterfaceObject(debug, password);
+        instance.setDebugTable(debug, password);
         try {
-            instance.updateDebugTable();
+            instance.refreshDebugTable();
         } catch (IllegalStateException e) {
             // clean
-            API.getInstance().setDebugTableInterfaceObject(null, password);
+            API.getInstance().setDebugTable(null, password);
             return;
         }
-        fail("updateDebugTable() wasn't called!");
+        Assert.fail("updateDebugTable() wasn't called!");
     }
 
 }

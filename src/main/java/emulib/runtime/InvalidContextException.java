@@ -1,5 +1,5 @@
 /*
- * Context.java
+ * InvalidContextException.java
  *
  * KISS, YAGNI, DRY
  * 
@@ -22,11 +22,22 @@
 package emulib.runtime;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * This class represents an exception that can be raised during Context.register method if a class does not
+ * implement presented interface.
  * 
- * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
+public class InvalidContextException extends RuntimeException {
+    
+    public InvalidContextException() {
+        
+    }
+    
+    public InvalidContextException(String cause) {
+        super(cause);
+    }
+    
+    public InvalidContextException(String cause, Throwable e) {
+        super(cause, e);
+    }
     
 }

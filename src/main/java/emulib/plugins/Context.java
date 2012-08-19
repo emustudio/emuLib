@@ -1,9 +1,9 @@
 /*
  * Context.java
- *
+ * 
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2008-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,14 +19,24 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+
+package emulib.plugins;
+
+import emulib.annotations.ContextType;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * Context is a functional structure of a plugin that can be used by the other plugins.
  * 
- * @author vbmacher
+ * Plug-ins ask emuLib to get contexts of another plug-ins, by querying ContextController directly. If they are allowed
+ * to get the context, emuLib returns the object (if it is found).
+ *
+ * Each plug-in can have none, one or more contexts, even implementing the same interface. Context interface can extend
+ * standard context interfaces, provided by emuLib (such as CPUContext, MemoryContext, etc.). The last requirement is
+ * to annotate context interfaces with @ContextType annotation.
+ * 
+ * @author Peter Jakubčo
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+@ContextType
+public interface Context {
+
 }

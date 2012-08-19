@@ -1,6 +1,6 @@
 /*
- * Context.java
- *
+ * MemoryContextInterface.java
+ * 
  * KISS, YAGNI, DRY
  * 
  * (c) Copyright 2012, Peter Jakubčo
@@ -21,12 +21,13 @@
  */
 package emulib.runtime;
 
+import emulib.plugins.memory.MemoryContext;
+
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * Mock MemoryContext interface.
  * 
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+public interface MemoryContextInterface extends MemoryContext {
+    public void testMemoryMethod();
 }

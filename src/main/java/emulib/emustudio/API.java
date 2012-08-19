@@ -21,8 +21,7 @@
  */
 package emulib.emustudio;
 
-import emulib.runtime.Context;
-import emulib.runtime.IDebugTable;
+import emulib.runtime.InvalidPasswordException;
 
 /**
  * This class represents public API of emuStudio offered to plug-ins.
@@ -42,7 +41,7 @@ public class API {
     /**
      * Debug table updater object
      */
-    private IDebugTable debug;
+    private DebugTable debugTable;
     
     private API() {
     }
@@ -78,7 +77,6 @@ public class API {
     public static boolean assignPassword(String password) {
         if (emuStudioPassword == null) {
             emuStudioPassword = password;
-            Context.setEmuStudioPassword(password);
             return true;
         }
         return false;
@@ -88,10 +86,12 @@ public class API {
      * Determines if given password matches with password already set-up by emuStudio.
      * If the password is correct, it does nothing. Otherwise it throws an exception.
      * 
+     * WARNING: Everyone can call this method.
+     * 
      * @param password The password
-     * @throws InvalidPasswordException thrown if password is wrong
+     * @throws InvalidPasswordException thrown if password is wrong or trustedInstance is not trusted
      */
-    public void testPassword(String password) throws InvalidPasswordException {
+    public static void testPassword(String password) throws InvalidPasswordException {
         if ((password == null) || (emuStudioPassword == null)) {
             throw new InvalidPasswordException();
         }
@@ -101,28 +101,31 @@ public class API {
     }
     
     /**
-     * Set object with method of updating debug table in emuStudio. It should
-     * be called once by emuStudio.
+     * Set debug table.
      * 
-     * @param debug The IDebugTable object
+     * It should be called by emuStudio only.
+     * 
+     * @param debugTable The debug table
      * @param password password that was assigned to the emuLib. It prevents
      * from misuse of this method by other plugins.
      */
-    public void setDebugTableInterfaceObject(IDebugTable debug, String password) {
-        if ((emuStudioPassword == null) || (!emuStudioPassword.equals(password)))
+    public void setDebugTable(DebugTable debugTable, String password) {
+        if ((emuStudioPassword == null) || (!emuStudioPassword.equals(password))) {
             return;
-        this.debug = debug;
+        }
+        this.debugTable = debugTable;
     }
     
     /**
-     * Update debug table in emuStudio. If IDebugTableObject was not set,
-     * then it does nothing.
+     * Refresh debug table in the emuStudio.
+     * 
+     * If debug table was not set by emuStudio earlier, then it does nothing.
      */
-    public void updateDebugTable() {
-        if (debug == null) {
+    public void refreshDebugTable() {
+        if (debugTable == null) {
             return;
         }
-        debug.updateDebugTable();
+        debugTable.refresh();
     }
     
 }

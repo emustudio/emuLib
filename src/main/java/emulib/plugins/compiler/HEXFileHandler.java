@@ -23,7 +23,7 @@
 
 package emulib.plugins.compiler;
 
-import emulib.plugins.memory.IMemoryContext;
+import emulib.plugins.memory.MemoryContext;
 import emulib.runtime.StaticDialogs;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -191,7 +191,7 @@ public class HEXFileHandler {
      * @param mem context of operating memory
      * @return true if the hex file was successfully loaded, false otherwise
      */
-    public boolean loadIntoMemory(IMemoryContext mem) {
+    public boolean loadIntoMemory(MemoryContext mem) {
         if (mem.getDataType() != Short.class) {
             StaticDialogs.showErrorMessage("Incompatible operating memory type!"
                     + "\n\nThis compiler can't load file into this memory.");

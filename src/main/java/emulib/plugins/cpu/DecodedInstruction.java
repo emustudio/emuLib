@@ -104,10 +104,11 @@ public class DecodedInstruction {
     public byte[] getBits(int key, boolean reverseBytes) {
         byte[] data = bits.get(key);
         
-        if (reverseBytes && data != null)
+        if (reverseBytes && data != null) {
             return reverseBytes(data);
-        else
+        } else {
             return data;
+        }
     }
     
     /**
@@ -152,8 +153,9 @@ public class DecodedInstruction {
     private byte[] reverseBytes(byte[] data) {
         byte[] result = new byte[data.length];
 
-        for (int i = 0; i < result.length; i++)
+        for (int i = 0; i < result.length; i++) {
             result[i] = data[data.length - i - 1];
+        }
         
         return result;
     }

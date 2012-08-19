@@ -1,9 +1,9 @@
 /*
- * Context.java
+ * CompilerContext.java
  *
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,14 +19,18 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.plugins.compiler;
+
+import emulib.annotations.ContextType;
+import emulib.plugins.Context;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
- * 
+ * This interface defines compiler context.
+ *
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+@ContextType
+public interface CompilerContext extends Context {
+
 }
+

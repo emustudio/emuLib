@@ -1,6 +1,6 @@
 /*
- * Context.java
- *
+ * MockBadHashCPUContext.java
+ * 
  * KISS, YAGNI, DRY
  * 
  * (c) Copyright 2012, Peter Jakubčo
@@ -21,12 +21,13 @@
  */
 package emulib.runtime;
 
+import emulib.plugins.Context;
+
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * This class has the same contents as C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
  * 
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+public interface UnannotatedContextInterface extends Context {
+    public void testMethod();
 }

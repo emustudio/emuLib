@@ -1,5 +1,5 @@
 /*
- * Context.java
+ * DeviceContextInterface.java
  *
  * KISS, YAGNI, DRY
  * 
@@ -21,12 +21,15 @@
  */
 package emulib.runtime;
 
+import emulib.plugins.device.DeviceContext;
+
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * Mock DeviceContext interface.
  * 
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
+public interface DeviceContextInterface extends DeviceContext {
+    
+    public void testDeviceMethod();
     
 }

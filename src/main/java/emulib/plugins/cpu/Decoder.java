@@ -1,9 +1,9 @@
 /*
- * Context.java
+ * Decoder.java
  *
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2012, M. Sulír
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,14 +19,20 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.plugins.cpu;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
- * 
- * @author vbmacher
+ * An instruction decoder interface.
+ * @author Matúš Sulír
  */
-public class AlreadyRegisteredException extends RuntimeException {
+public interface Decoder {
+    /**
+     * Decodes an instruction.
+     * 
+     * @param memoryPosition the address of the start of the instruction
+     * @return the decoded instruction object
+     * @throws InvalidInstructionException when decoding is not successful
+     */
+    public DecodedInstruction decode(int memoryPosition) throws InvalidInstructionException;
     
 }

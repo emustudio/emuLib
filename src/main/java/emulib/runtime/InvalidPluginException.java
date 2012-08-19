@@ -1,5 +1,5 @@
 /*
- * Context.java
+ * InvalidPluginException.java
  *
  * KISS, YAGNI, DRY
  * 
@@ -22,11 +22,22 @@
 package emulib.runtime;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * This class represents an exception that can be raised during PluginLoader.loadPlugin method if a main plug-in class
+ * does not meet requirements for Plugin classes.
  * 
- * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
+public class InvalidPluginException extends RuntimeException {
+    
+    public InvalidPluginException() {
+        
+    }
+    
+    public InvalidPluginException(String cause) {
+        super(cause);
+    }
+    
+    public InvalidPluginException(String cause, Throwable e) {
+        super(cause, e);
+    }
     
 }

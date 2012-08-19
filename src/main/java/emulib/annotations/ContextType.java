@@ -1,5 +1,5 @@
 /*
- * Context.java
+ * ContextType.java
  *
  * KISS, YAGNI, DRY
  * 
@@ -19,14 +19,23 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * Indicates that the annotated interace represent plugin context.
  * 
+ * This annotation should be used only on classes.
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+@Inherited
+@Retention(value = RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface ContextType {
+    String id() default "";
 }

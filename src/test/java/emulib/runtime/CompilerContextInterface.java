@@ -1,5 +1,5 @@
 /*
- * Context.java
+ * CompilerContextInterface.java
  *
  * KISS, YAGNI, DRY
  * 
@@ -21,12 +21,13 @@
  */
 package emulib.runtime;
 
+import emulib.plugins.compiler.CompilerContext;
+
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * Mock CompilerContext interface.
  * 
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+public interface CompilerContextInterface extends CompilerContext {
+    public void testCompilerMethod();
 }

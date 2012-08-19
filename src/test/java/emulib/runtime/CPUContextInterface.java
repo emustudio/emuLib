@@ -1,9 +1,9 @@
 /*
- * Context.java
- *
+ * CPUContextInterface.java
+ * 
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,12 +21,15 @@
  */
 package emulib.runtime;
 
+import emulib.annotations.ContextType;
+import emulib.plugins.cpu.CPUContext;
+
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * Mock CPUContext interface.
  * 
  * @author vbmacher
  */
-public class AlreadyRegisteredException extends RuntimeException {
-    
+@ContextType
+public interface CPUContextInterface extends CPUContext {
+    public void testMethod();
 }
