@@ -22,7 +22,7 @@
 
 package emulib.plugins.memory;
 
-import emulib.plugins.SettingsManipulator;
+import emulib.emustudio.SettingsManager;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,7 +54,7 @@ public abstract class AbstractMemory implements Memory {
     /**
      * Settings manipulation object
      */
-    protected SettingsManipulator settings;
+    protected SettingsManager settings;
 
     /**
      * Public constructor initializes listeners list and event object for
@@ -69,7 +69,7 @@ public abstract class AbstractMemory implements Memory {
 
     /**
      * This method does a semi-initialization of the memory. It loads
-     * variables: pluginID and SettingsManipulator object.
+     * variables: pluginID and SettingsManager object.
      *
      * It is called by emuStudio in the initialization process. Should
      * be overriden.
@@ -78,7 +78,7 @@ public abstract class AbstractMemory implements Memory {
      * @return true
      */
     @Override
-    public boolean initialize(SettingsManipulator sHandler) {
+    public boolean initialize(SettingsManager sHandler) {
         this.settings = sHandler;
         return true;
     }

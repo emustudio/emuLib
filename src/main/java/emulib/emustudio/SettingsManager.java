@@ -1,5 +1,5 @@
 /*
- * SettingsManipulator.java
+ * SettingsManager.java
  * 
  * KISS, YAGNI, DRY
  * 
@@ -20,14 +20,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-package emulib.plugins;
+package emulib.emustudio;
 
 /**
- * Interface for all plugins, it perform methods for reading/storing settings.
- * It is implemented by the main module and plugins obtain its object by an
- * parameter in initialization process.
+ * Settings manager provides methods for reading/storing plugin settings.
+ * 
+ * It is implemented by the main module. Plugins get it withing the initialization process.
  */
-public interface SettingsManipulator {
+public interface SettingsManager {
 
     /**
      * Read specified setting from configuration file.  Setting can be arbitrary. It 
@@ -46,8 +46,9 @@ public interface SettingsManipulator {
      * @param pluginID  plugin ID
      * @param settingName  name of wanted setting (without spaces) to be written
      * @param val          value of the setting (has to be <code>String</code> type)
+     * @return true if the setting was successfully written; false otherwise
      */
-    public void writeSetting (long pluginID, String settingName, String val);
+    public boolean writeSetting (long pluginID, String settingName, String val);
 
     /**
      * Remove specified setting to from a configuration file. Be careful, setting can 
@@ -55,8 +56,9 @@ public interface SettingsManipulator {
      * emulator.
      * @param pluginID  plugin ID
      * @param settingName  name of wanted setting (without spaces) to be removed
+     * @return true if the setting was successfully removed; false otherwise
      */
-    public void removeSetting (long pluginID, String settingName);
+    public boolean removeSetting (long pluginID, String settingName);
 
 }
 

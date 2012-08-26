@@ -22,7 +22,7 @@
 
 package emulib.plugins.device;
 
-import emulib.plugins.SettingsManipulator;
+import emulib.emustudio.SettingsManager;
 
 /**
  * Simple device.
@@ -38,7 +38,7 @@ public abstract class AbstractDevice implements Device {
     /**
      * Settings manipulation object
      */
-    protected SettingsManipulator settings;
+    protected SettingsManager settings;
 
     /**
      * Initializes this AbstractDevice. Only assigns the plug-in ID into
@@ -58,7 +58,7 @@ public abstract class AbstractDevice implements Device {
      * @return true
      */
     @Override
-    public boolean initialize(SettingsManipulator settings) {
+    public boolean initialize(SettingsManager settings) {
         this.settings = settings;
         return true;
     }

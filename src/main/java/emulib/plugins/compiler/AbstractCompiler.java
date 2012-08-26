@@ -22,7 +22,7 @@
 
 package emulib.plugins.compiler;
 
-import emulib.plugins.SettingsManipulator;
+import emulib.emustudio.SettingsManager;
 import emulib.plugins.compiler.Message.MessageType;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Settings manipulation object
      */
-    protected SettingsManipulator settings;
+    protected SettingsManager settings;
 
     /**
      * Program start address (memory location)
@@ -71,7 +71,7 @@ public abstract class AbstractCompiler implements Compiler {
 
     /**
      * This method semi-initializes the simple compiler. It only
-     * set-up data members - pluginID and SettingsManipulator object.
+     * set-up data members - pluginID and SettingsManager object.
      *
      * It should be overriden.
      *
@@ -79,7 +79,7 @@ public abstract class AbstractCompiler implements Compiler {
      * @return true
      */
     @Override
-    public boolean initialize(SettingsManipulator sHandler) {
+    public boolean initialize(SettingsManager sHandler) {
         this.settings = sHandler;
         return true;
     }

@@ -22,6 +22,8 @@
 
 package emulib.plugins;
 
+import emulib.emustudio.SettingsManager;
+
 /**
  * Main interface for plug-ins implementation.
  * 
@@ -58,7 +60,7 @@ public interface Plugin {
      *        its custom settings. The settings are saved directly into configuration file.
      * @return true if initialization process was successful; false otherwise
      */
-    public boolean initialize (SettingsManipulator settingsManipulator);
+    public boolean initialize (SettingsManager settingsManipulator);
 
     /**
      * Destroys all plug-in resources.

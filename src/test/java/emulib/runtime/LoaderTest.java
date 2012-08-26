@@ -24,7 +24,7 @@ package emulib.runtime;
 
 import emulib.emustudio.APITest;
 import emulib.plugins.Plugin;
-import emulib.plugins.SettingsManipulator;
+import emulib.emustudio.SettingsManager;
 import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
@@ -82,7 +82,7 @@ public class LoaderTest extends TestCase {
         @Override
         public void reset() {}
         @Override
-        public boolean initialize(SettingsManipulator sHandler) { return false; }
+        public boolean initialize(SettingsManager sHandler) { return false; }
         @Override
         public void destroy() {}
         @Override

@@ -22,7 +22,7 @@
 
 package emulib.plugins.cpu;
 
-import emulib.plugins.SettingsManipulator;
+import emulib.emustudio.SettingsManager;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -60,7 +60,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     /**
      * Object for settings manipulation.
      */
-    protected SettingsManipulator settings;
+    protected SettingsManager settings;
 
     /**
      * This thread object. It is used for the CPU execution.
@@ -89,7 +89,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
      * @return true
      */
     @Override
-    public boolean initialize(SettingsManipulator settings) {
+    public boolean initialize(SettingsManager settings) {
         this.settings = settings;
         return true;
     }
