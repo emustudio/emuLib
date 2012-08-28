@@ -29,7 +29,13 @@ package emulib.plugins.cpu;
  *
  * @author vbmacher
  */
-public abstract class AbstractDisassembler implements Disassembler, Decoder {
+public abstract class AbstractDisassembler implements Disassembler {
+    
+    protected Decoder decoder;
+    
+    public AbstractDisassembler(Decoder decoder) {
+        this.decoder = decoder;
+    }
 
     /**
      * Method returns memory position of the previous instruction.
