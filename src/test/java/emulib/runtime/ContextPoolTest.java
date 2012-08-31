@@ -22,6 +22,7 @@
 
 package emulib.runtime;
 
+import emulib.annotations.PLUGIN_TYPE;
 import emulib.emustudio.APITest;
 import emulib.plugins.Context;
 import emulib.plugins.compiler.CompilerContext;
@@ -134,18 +135,18 @@ public class ContextPoolTest {
         Assert.assertTrue(cInstance.setComputer(APITest.getEmuStudioPassword(), new PluginConnections() {
 
             @Override
-            public int getPluginType(long pluginID) {
+            public PLUGIN_TYPE getPluginType(long pluginID) {
                 switch ((int)pluginID) {
                     case 0:
-                        return TYPE_CPU;
+                        return PLUGIN_TYPE.CPU;
                     case 1:
-                        return TYPE_COMPILER;
+                        return PLUGIN_TYPE.COMPILER;
                     case 2:
-                        return TYPE_MEMORY;
+                        return PLUGIN_TYPE.MEMORY;
                     case 3:
-                        return TYPE_DEVICE;
+                        return PLUGIN_TYPE.DEVICE;
                     default:
-                        return TYPE_UNKNOWN;
+                        return PLUGIN_TYPE.OTHER;
                 }
             }
 

@@ -22,6 +22,8 @@
 
 package emulib.runtime.interfaces;
 
+import emulib.annotations.PLUGIN_TYPE;
+
 /**
  * This interface includes methods for retrieving computer structure -
  * plug-in interconnection.
@@ -31,38 +33,12 @@ package emulib.runtime.interfaces;
 public interface PluginConnections {
 
     /**
-     * The CPU plug-in type constant.
-     */
-    public static final int TYPE_CPU = 0;
-
-    /**
-     * The Compiler plug-in type constant.
-     */
-    public static final int TYPE_COMPILER = 1;
-
-    /**
-     * The Memory plug-in type constant.
-     */
-    public static final int TYPE_MEMORY = 2;
-
-    /**
-     * The Device plug-in type constant.
-     */
-    public static final int TYPE_DEVICE = 3;
-
-    /**
-     * The Unknown plug-in type constant.
-     */
-    public static final int TYPE_UNKNOWN = 4;
-
-    /**
      * Get type of given plug-in.
      *
      * @param pluginID plug-in ID
-     * @return one of the value TYPE_CPU, TYPE_COMPILER, TYPE_MEMORY or
-     *         TYPE_DEVICE
+     * @return plug-in type
      */
-    public int getPluginType(long pluginID);
+    public PLUGIN_TYPE getPluginType(long pluginID);
 
     /**
      * Check if two plug-ins are connected within the abstract schema.
