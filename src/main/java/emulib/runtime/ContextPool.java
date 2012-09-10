@@ -416,6 +416,8 @@ public class ContextPool {
 
     /**
      * Compute emuStudio-specific hash of the context interface.
+     * The name of the interface is not important, only method names and their
+     * signatures.
      * 
      * The final processing uses SHA-1 method.
      *

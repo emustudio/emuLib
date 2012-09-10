@@ -21,6 +21,7 @@
  */
 package emulib.runtime;
 
+import emulib.annotations.EMULIB_VERSION;
 import emulib.annotations.PluginType;
 import emulib.emustudio.API;
 import emulib.plugins.Plugin;
@@ -44,6 +45,9 @@ import org.slf4j.LoggerFactory;
  */
 public class PluginLoader extends ClassLoader {
     private final static Logger logger = LoggerFactory.getLogger(PluginLoader.class);
+    
+    private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
+    
     // Instance of this class
     private static PluginLoader instance = new PluginLoader();
     
@@ -432,11 +436,15 @@ public class PluginLoader extends ClassLoader {
      * @param pluginClass the main class of the plug-in
      * @return true if the class meets plug-in requirements; false otherwise
      */
-    private boolean trustedPlugin(Class<?> pluginClass) {
+    public static boolean trustedPlugin(Class<?> pluginClass) {
         if (pluginClass.isInterface()) {
             return false;
         }
         if (!pluginClass.isAnnotationPresent(PluginType.class)) {
+            return false;
+        }
+        PluginType pluginType = pluginClass.getAnnotation(PluginType.class);
+        if (pluginType.emuLibVersion() != CURRENT_EMULIB_VERSION) {
             return false;
         }
         if (!doesImplement(pluginClass, Plugin.class)) {

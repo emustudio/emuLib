@@ -22,9 +22,11 @@
 
 package emulib.runtime;
 
+import emulib.annotations.PLUGIN_TYPE;
+import emulib.annotations.PluginType;
 import emulib.emustudio.APITest;
-import emulib.plugins.Plugin;
 import emulib.emustudio.SettingsManager;
+import emulib.plugins.Plugin;
 import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
@@ -46,6 +48,9 @@ public class LoaderTest extends TestCase {
     }
     
     private abstract class SuperCPUStub implements CPU { }
+    
+    @PluginType(title="CPU", description="", type=PLUGIN_TYPE.CPU,
+            copyright="(c)")
     private class CPUImplStub extends SuperCPUStub {
         @Override
         public boolean addCPUListener(CPUListener listener) {
@@ -89,6 +94,8 @@ public class LoaderTest extends TestCase {
         public void showSettings() {}
         @Override
         public boolean isShowSettingsSupported() { return false; }
+        @Override
+        public String getVersion() { return ""; }
     }
 
     public LoaderTest(String testName) {
@@ -124,6 +131,10 @@ public class LoaderTest extends TestCase {
         assertFalse(PluginLoader.doesImplement(CPUListenerStub.class, Plugin.class));
         // test for inherited interface
         assertTrue(PluginLoader.doesImplement(CPUImplStub.class, Plugin.class));
+    }
+    
+    public void testTrustedPlugin() {
+        assertTrue(PluginLoader.trustedPlugin(CPUImplStub.class));
     }
 
 }

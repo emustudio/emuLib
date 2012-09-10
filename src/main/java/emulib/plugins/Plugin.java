@@ -87,6 +87,13 @@ public interface Plugin {
      * @return true if the plug-in has a GUI for settings; false otherwise
      */
     public boolean isShowSettingsSupported();
+    
+    /**
+     * Get version of the plug-in.
+     * 
+     * @return version string
+     */
+    public String getVersion();
 
 }
 

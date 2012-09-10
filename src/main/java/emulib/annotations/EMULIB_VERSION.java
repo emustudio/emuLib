@@ -1,5 +1,5 @@
 /*
- * PluginType.java
+ * EMULIB_VERSION.java
  * 
  * KISS, YAGNI, DRY
  * 
@@ -21,25 +21,9 @@
  */
 package emulib.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
- * Indicates that the class is a plug-in's main class.
- * 
- * Besides, the main class must inherit from Plugin interface. This annotation
- * must be used once and only once within the plug-in. If this annotation is
- * used more than once (together with the inheritance of Plugin interface), the
- * first occurence is used.
+ * Enumeration of all emulib versions, starting from 9
  */
-@Retention(value = RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface PluginType {
-    String title();
-    String copyright();
-    String description();
-    PLUGIN_TYPE type();
-    EMULIB_VERSION emuLibVersion() default EMULIB_VERSION.VERSION_9;
+public enum EMULIB_VERSION {
+    VERSION_9,
 }

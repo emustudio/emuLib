@@ -22,6 +22,7 @@
 
 package emulib.runtime;
 
+import emulib.annotations.ContextType;
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.emustudio.APITest;
 import emulib.plugins.Context;
@@ -39,6 +40,11 @@ import org.junit.Test;
  * @author vbmacher
  */
 public class ContextPoolTest {
+    
+    @ContextType
+    interface CPUContextInterfaceCopy extends CPUContext {
+        public void testMethod();
+    }
 
     public class CPUContextStub implements CPUContextInterface {
         @Override
@@ -159,6 +165,11 @@ public class ContextPoolTest {
         // register CPU
         cInstance.register(0, cpuContext, CPUContextInterface.class);
         CPUContext getCPUContext = cInstance.getCPUContext(0, CPUContextInterface.class);
+        Assert.assertNotNull(getCPUContext);
+        Assert.assertEquals(cpuContext, getCPUContext);
+        
+        // test CPU context with different interface name
+        getCPUContext = cInstance.getCPUContext(0, CPUContextInterfaceCopy.class);
         Assert.assertNotNull(getCPUContext);
         Assert.assertEquals(cpuContext, getCPUContext);
         
