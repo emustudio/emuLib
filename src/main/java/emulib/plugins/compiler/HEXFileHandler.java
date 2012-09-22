@@ -24,7 +24,6 @@
 package emulib.plugins.compiler;
 
 import emulib.plugins.memory.MemoryContext;
-import emulib.runtime.StaticDialogs;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.util.*;
@@ -68,9 +67,10 @@ public class HEXFileHandler {
     }
     
     private String checksum(String lin) {
-        int sum = 0, chsum = 0;
-        for (int i =0; i < lin.length()-1; i += 2)
+        int sum = 0, chsum;
+        for (int i =0; i < lin.length()-1; i += 2) {
             sum += Integer.parseInt(lin.substring(i,i+2),16);
+        }
         sum %= 0x100;
         // :
         // 10 00 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
@@ -99,8 +99,9 @@ public class HEXFileHandler {
             String cd = (String)ha.get(nextAddress);
             program.put(nextAddress,cd);
             nextAddress += (cd.length()/2);
-            if (nextAddress > largestAdr) 
+            if (nextAddress > largestAdr) {
                 largestAdr = nextAddress;
+            }
         }
         nextAddress = largestAdr;
     }
@@ -191,12 +192,7 @@ public class HEXFileHandler {
      * @param mem context of operating memory
      * @return true if the hex file was successfully loaded, false otherwise
      */
-    public boolean loadIntoMemory(MemoryContext mem) {
-        if (mem.getDataType() != Short.class) {
-            StaticDialogs.showErrorMessage("Incompatible operating memory type!"
-                    + "\n\nThis compiler can't load file into this memory.");
-            return false;
-        }
+    public boolean loadIntoMemory(MemoryContext<Short> mem) {
         List<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
         Iterator<Integer> e = adrs.iterator();
@@ -236,9 +232,11 @@ public class HEXFileHandler {
     public int getProgramStart() {
         List<Integer> adrs = new ArrayList<Integer>(program.keySet());
         Collections.sort(adrs);
-        if (adrs.isEmpty() == false)
+        if (adrs.isEmpty() == false) {
             return (Integer)adrs.get(0);
-        else return 0;
+        } else {
+            return 0;
+        }
     }
     
 

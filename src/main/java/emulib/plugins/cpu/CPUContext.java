@@ -51,14 +51,22 @@ public interface CPUContext extends Context {
      * @param device Device that interrupts the CPU
      * @param mask interrupt mask
      */
-    public void setInterrupt(DeviceContext device, int mask);
+    public void signalInterrupt(DeviceContext device, int mask);
 
     /**
-     * Clear interrupt if it was not handled yet.
+     * Cancel sending interrupt signal if it was not handled yet.
      *
-     * @param device Device that wants to stop the interrupt
+     * @param device Device that wants to cancel the interrupt signal
      * @param mask clear interrupt mask
      */
     public void clearInterrupt(DeviceContext device, int mask);
+
+    /**
+     * Get CPU frequency in kHz
+     * 
+     * @return CPU frequency in kHz or 0 if it is not supported
+     */
+    public int getCPUFrequency();
+    
 }
 

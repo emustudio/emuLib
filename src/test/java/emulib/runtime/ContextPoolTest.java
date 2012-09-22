@@ -52,11 +52,15 @@ public class ContextPoolTest {
             return false;
         }
         @Override
-        public void setInterrupt(DeviceContext device, int mask) {}
+        public void signalInterrupt(DeviceContext device, int mask) {}
         @Override
         public void clearInterrupt(DeviceContext device, int mask) {}
         @Override
         public void testMethod() {}
+        @Override
+        public int getCPUFrequency() {
+            return 0;
+        }
     }
 
     public class CompilerContextStub implements CompilerContextInterface {
@@ -78,10 +82,6 @@ public class ContextPoolTest {
         @Override
         public void writeWord(int to, Object val) {}
         @Override
-        public Class getDataType() {
-            return null;
-        }
-        @Override
         public void clear() {}
         @Override
         public void addMemoryListener(MemoryListener listener) {}
@@ -89,6 +89,10 @@ public class ContextPoolTest {
         public void removeMemoryListener(MemoryListener listener) {}
         @Override
         public void testMemoryMethod() {}
+        @Override
+        public Class getDataType() {
+            return null;
+        }
     }
     
     public class DeviceContextStub implements DeviceContextInterface {

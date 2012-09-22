@@ -207,7 +207,7 @@ public interface CPU extends Plugin {
      * 
      * @return memory position (address) of next instruction
      */
-    public int getInstrPosition ();
+    public int getInstructionPosition ();
 
     /**
      * Set new actual instruction position (that will be executed as next). It
@@ -220,7 +220,7 @@ public interface CPU extends Plugin {
      * @param pos  new address of actual instruction
      * @return true if operation was successful, false otherwise
      */
-    public boolean setInstrPosition (int pos);
+    public boolean setInstructionPosition (int pos);
 
     /**
      * Get disassembler object. EmuStudio uses this for creating debug table.

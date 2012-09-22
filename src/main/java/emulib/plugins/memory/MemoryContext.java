@@ -61,7 +61,7 @@ public interface MemoryContext<T> extends Context {
      * @param memoryPosition  memory position (address) of the read cells
      * @return two read cells
      */
-    public T readWord (int memoryPosition);
+    public Object readWord (int memoryPosition);
 
     /**
      * Write one cell-size (e.g. byte) data to a cell to a memory on specified location.
@@ -77,15 +77,13 @@ public interface MemoryContext<T> extends Context {
      * @param memoryPosition   memory position (address) of the read cells
      * @param value  two cells in one <code>Object</code> value
      */
-    public void writeWord (int memoryPosition, T value);
+    public void writeWord (int memoryPosition, Object value);
 
     /**
-     * Get the type of transferred data. As you can see, methods <code>read</code> and
-     * <code>write</code> use <code>Object</code> as the data type. This method should
-     * make the data type specific.
-     * @return data type of transferred data
+     * Get the type of memory cells.
+     * @return Java data type of memory cells
      */
-    public Class getDataType ();
+    public Class<T> getDataType ();
     
     /**
      * Clears the memory.

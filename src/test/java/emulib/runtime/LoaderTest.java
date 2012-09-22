@@ -79,9 +79,9 @@ public class LoaderTest extends TestCase {
         @Override
         public void reset(int startAddress) {}
         @Override
-        public int getInstrPosition() { return 0; }
+        public int getInstructionPosition() { return 0; }
         @Override
-        public boolean setInstrPosition(int pos) { return false; }
+        public boolean setInstructionPosition(int pos) { return false; }
         @Override
         public Disassembler getDisassembler() { return null; }
         @Override
