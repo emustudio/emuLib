@@ -149,6 +149,37 @@ public class RadixUtilsTest extends TestCase {
         expResult = 32;
         result = instance.parseRadix(number);
         assertEquals(expResult, result);
-
     }
+    
+    public void testGetDwordHexString() {
+        int number = 1;
+        assertEquals("00000001", RadixUtils.getDwordHexString(number));
+        
+        number = 0x0E5A231F;
+        assertEquals("0E5A231F", RadixUtils.getDwordHexString(number));
+
+        number = 0xFE5A231F;
+        assertEquals("FE5A231F", RadixUtils.getDwordHexString(number));
+    }
+
+    public void testGetWordHexString() {
+        int number = 1;
+        assertEquals("0001", RadixUtils.getWordHexString(number));
+        
+        number = 0x031F;
+        assertEquals("031F", RadixUtils.getWordHexString(number));
+
+        number = 0x231F;
+        assertEquals("231F", RadixUtils.getWordHexString(number));
+    }
+    
+    public void testGetByteHexString() {
+        int number = 1;
+        assertEquals("01", RadixUtils.getByteHexString(number));
+        
+        number = 0x1F;
+        assertEquals("1F", RadixUtils.getByteHexString(number));
+    }
+    
+    
 }

@@ -45,7 +45,7 @@ public class RadixUtils {
     /**
      * This class represents a number pattern in single radix
      */
-    public class NumberPattern {
+    public static class NumberPattern {
         private Pattern pattern;
         private int radix;
         private int start;
@@ -343,4 +343,41 @@ public class RadixUtils {
         }
         throw new NumberFormatException("Number not recognized");
     }
+    
+    /**
+     * Get formatted string of a byte.
+     * 
+     * Formatting is using pattern "%02X".
+     * 
+     * @param byteNumber a number, assumed size is a byte
+     * @return formatted string as a hexadecimal number, with string length=2
+     */
+    public static String getByteHexString(int byteNumber) {
+        return String.format("%02X", byteNumber);
+    }
+    
+    /**
+     * Get formatted string of a word.
+     * 
+     * Formatting is using pattern "%04X".
+     * 
+     * @param wordNumber a number, assumed size is a word (2 bytes)
+     * @return formatted string as a hexadecimal number, with string length=4
+     */
+    public static String getWordHexString(int wordNumber) {
+        return String.format("%04X", wordNumber);
+    }
+    
+    /**
+     * Get formatted string of a dword.
+     * 
+     * Formatting is using pattern "%08X".
+     * 
+     * @param dwordNumber a number, assumed size is a double word (4 bytes)
+     * @return formatted string as a hexadecimal number, with string length=8
+     */
+    public static String getDwordHexString(int number) {
+        return String.format("%08X", number);
+    }
+    
 }

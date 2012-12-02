@@ -39,7 +39,24 @@ import emulib.plugins.device.DeviceContext;
 public interface CPUContext extends Context {
     
     /**
-     * Determine whether this CPU context support interrupts
+     * Determine whether this CPU supports raw interrupts.
+     * 
+     * @return true, if raw interrupts are supported, false otherwise
+     */
+    public boolean isRawInterruptSupported();
+    
+    /**
+     * Send raw interrupt signal to the CPU.
+     * 
+     * Does nothing if raw interrupts are not supported.
+     *
+     * @param device Device that interrupts the CPU
+     * @param data interrupt data
+     */
+    public void signalRawInterrupt(DeviceContext device, byte []data);
+    
+    /**
+     * Determine whether this CPU supports interrupts.
      * 
      * @return true, if interrupts are supported, false otherwise
      */

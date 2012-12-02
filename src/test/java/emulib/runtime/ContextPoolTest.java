@@ -61,6 +61,13 @@ public class ContextPoolTest {
         public int getCPUFrequency() {
             return 0;
         }
+        @Override
+        public void signalRawInterrupt(DeviceContext device, byte[] data) {
+        }
+        @Override
+        public boolean isRawInterruptSupported() {
+            return false;
+        }
     }
 
     public class CompilerContextStub implements CompilerContextInterface {
