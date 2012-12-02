@@ -157,14 +157,18 @@ public interface CPU extends Plugin {
     public void stop ();
 
     /**
-     * Gets CPU GUI panel. Each CPU plugin should have GUI panel that shows
-     * some important CPU status (e.g. registers, flags, run state, etc.) and
-     * allow to user perform some settings (e.g. set the frequency, etc.). This
-     * panel is located on right side in panel "emulation" in main module. CPU
-     * plugin should update the panel immediately after CPU state changes somehow.
-     * @return status GUI panel (instance object)
+     * Get CPU status panel.
+     * 
+     * Each CPU plugin must have a status panel that shows some important CPU status (e.g. registers, flags,
+     * run state, etc.) and allows to manage some settings (e.g. a runtime frequency, etc.).
+     * 
+     * This panel is located on the right side in the "emulation" panel of the main module.
+     * 
+     * CPU itself should take care about updating the panel when it is appropriate.
+     * 
+     * @return CPU status panel
      */
-    public JPanel getStatusGUI ();
+    public JPanel getStatusPanel ();
 
     /**
      * Determine whether breakpoints are supported by CPU.
@@ -173,23 +177,31 @@ public interface CPU extends Plugin {
     public boolean isBreakpointSupported ();
 
     /**
-     * Set/unset a breakpoint to specified memory position (address). It should
-     * be called only if breakpoints are supported
-     * (<code>isBreakpointSupported()</code>).
-     * @param pos  memory address where breakpoint should be set/unset
-     * @param set  true if breakpoint should be set, false otherwise
+     * Set a breakpoint at a memory location.
+     * 
+     * Does nothing if breakpoints are not supported.
+     * @param memLocation  memory location where the breakpoint will be set
+     * @see CPU#isBreakpointSupported
      */
-    public void setBreakpoint (int pos, boolean set);
+    public void setBreakpoint (int memLocation);
 
     /**
-     * Determine breakpoint on specified address. It should be called only if
-     * breakpoints are supported (<code>isBreakpointSupported()</code>), otherwise
-     * the method should return false always.
-     * @param pos  memory position (address), from where we try to determine 
-     *             breakpoint
-     * @return true if breakpoint exists on specified address, false otherwise
+     * Unset a breakpoint at a memory location.
+     * 
+     * Does nothing if breakpoints are not supported.
+     * @param memLocation  memory location from where the breakpoint will be unset
+     * @see CPU#isBreakpointSupported
      */
-    public boolean getBreakpoint (int pos);
+    public void unsetBreakpoint (int memLocation);
+    
+    /**
+     * Determine if a breakpoint is set at a memory location.
+     * 
+     * @param memLocation  memory location, from where the breakpoint will be determined
+     * @return true if breakpoint is set in the location, false otherwise or if breakpoints are not supported.
+     * @see CPU#isBreakpointSupported
+     */
+    public boolean isBreakpointSet (int memLocation);
 
     /**
      * Perform reset of the CPU with specific starting address. This is used

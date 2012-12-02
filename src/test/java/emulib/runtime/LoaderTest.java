@@ -69,13 +69,15 @@ public class LoaderTest extends TestCase {
         @Override
         public void stop() {}
         @Override
-        public JPanel getStatusGUI() { return null; }
+        public JPanel getStatusPanel() { return null; }
         @Override
         public boolean isBreakpointSupported() { return false; }
         @Override
-        public void setBreakpoint(int pos, boolean set) {}
+        public void setBreakpoint(int pos) {}
         @Override
-        public boolean getBreakpoint(int pos) { return false; }
+        public void unsetBreakpoint(int pos) {}
+        @Override
+        public boolean isBreakpointSet(int pos) { return false; }
         @Override
         public void reset(int startAddress) {}
         @Override

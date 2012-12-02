@@ -104,30 +104,19 @@ public abstract class AbstractCPU implements CPU, Runnable {
         return true;
     }
 
-    /**
-     * Set breakpoint on given memory location
-     * .
-     * @param pos memory location
-     * @param set true for set, false for unset
-     */
     @Override
-    public void setBreakpoint(int pos, boolean set) {
-        if (set) {
-            breaks.add(pos);
-        } else {
-            breaks.remove(pos);
-        }
+    public void setBreakpoint(int memLocation) {
+        breaks.add(memLocation);
     }
 
-    /**
-     * Get breakpoint on specified memory location
-     *
-     * @param pos memory location
-     * @return true if breakpoint is set, false otherwise
-     */
     @Override
-    public boolean getBreakpoint(int pos) {
-        return breaks.contains(pos);
+    public void unsetBreakpoint(int memLocation) {
+        breaks.remove(memLocation);
+    }
+
+    @Override
+    public boolean isBreakpointSet(int memLocation) {
+        return breaks.contains(memLocation);
     }
 
     /**
