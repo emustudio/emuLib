@@ -55,7 +55,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     /**
      * Run state of this CPU.
      */
-    protected RunState run_state;
+    protected RunState runState;
 
     /**
      * Object for settings manipulation.
@@ -74,7 +74,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
      * @param pluginID plug-in identification number
      */
     public AbstractCPU(Long pluginID) {
-        run_state = RunState.STATE_STOPPED_NORMAL;
+        runState = RunState.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
         cpuListeners = new ArrayList<CPUListener>();
         this.pluginID = pluginID;
@@ -133,7 +133,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
      */
     @Override
     public void reset(int addr) {
-        run_state = RunState.STATE_STOPPED_BREAK;
+        runState = RunState.STATE_STOPPED_BREAK;
         cpuThread = null;
     }
 
