@@ -163,23 +163,25 @@ public abstract class AbstractCPU implements CPU, Runnable {
     }
 
     /**
-     * This method fires up all cpuListeners (runChanged method). It should be
-     * called by the CPU when it changes the run state.
+     * Notify all listeners that run state has changed.
+     * 
+     * It should be called by the CPU anytime when it changes the run state.
      *
-     * @param run_state new processor state
+     * @param runState new CPU state
      */
-    public void fireCpuRun(RunState run_state) {
+    public void notifyCPURunState(RunState runState) {
         for (CPUListener listener : cpuListeners) {
-            listener.runChanged(run_state);
+            listener.runChanged(runState);
         }
     }
 
     /**
-     * This method should be called by the CPU, when it changes internal state,
-     * like register values or flags change. It then fires up all the cpuListeners
-     * (stateUpdated method).
+     * Notifies internal CPU state change to the listeners.
+     * 
+     * It should be called by the CPU when it changes its internal state,
+     * like register values or flags change.
      */
-    public void fireCpuState() {
+    public void notifyCPUState() {
         for (CPUListener listener : cpuListeners) {
             listener.stateUpdated();
         }
