@@ -22,6 +22,7 @@
 
 package emulib.plugins.memory;
 
+import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,6 +116,11 @@ public abstract class AbstractMemory implements Memory {
     @Override
     public void addMemoryListener(MemoryListener listener) {
         listeners.add(listener);
+    }
+    
+    @Override
+    public String getTitle() {
+        return getClass().getAnnotation(PluginType.class).title();
     }
 
     /**

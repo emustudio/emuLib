@@ -22,6 +22,7 @@
 
 package emulib.plugins.compiler;
 
+import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.compiler.Message.MessageType;
 import java.util.ArrayList;
@@ -82,6 +83,11 @@ public abstract class AbstractCompiler implements Compiler {
     public boolean initialize(SettingsManager sHandler) {
         this.settings = sHandler;
         return true;
+    }
+
+    @Override
+    public String getTitle() {
+        return getClass().getAnnotation(PluginType.class).title();
     }
 
     /**

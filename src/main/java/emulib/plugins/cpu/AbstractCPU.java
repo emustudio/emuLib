@@ -22,6 +22,7 @@
 
 package emulib.plugins.cpu;
 
+import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -92,6 +93,11 @@ public abstract class AbstractCPU implements CPU, Runnable {
     public boolean initialize(SettingsManager settings) {
         this.settings = settings;
         return true;
+    }
+
+    @Override
+    public String getTitle() {
+        return getClass().getAnnotation(PluginType.class).title();
     }
 
     /**

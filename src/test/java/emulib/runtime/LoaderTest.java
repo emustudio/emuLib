@@ -125,8 +125,8 @@ public class LoaderTest extends TestCase {
         String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
         APITest.assignEmuStudioPassword();
         PluginLoader instance = PluginLoader.getInstance();
-//        Class<Plugin> result = instance.loadPlugin(filename, APITest.getEmuStudioPassword());
-//TODO!!        assertNotNull(result);
+        Class<Plugin> result = instance.loadPlugin(filename, APITest.getEmuStudioPassword());
+        assertNotNull(result);
     }
     
     /**

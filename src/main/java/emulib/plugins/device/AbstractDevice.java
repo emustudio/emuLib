@@ -22,6 +22,7 @@
 
 package emulib.plugins.device;
 
+import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 
 /**
@@ -61,6 +62,11 @@ public abstract class AbstractDevice implements Device {
     public boolean initialize(SettingsManager settings) {
         this.settings = settings;
         return true;
+    }
+
+    @Override
+    public String getTitle() {
+        return getClass().getAnnotation(PluginType.class).title();
     }
 
     /**
