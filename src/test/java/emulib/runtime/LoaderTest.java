@@ -98,6 +98,10 @@ public class LoaderTest extends TestCase {
         public boolean isShowSettingsSupported() { return false; }
         @Override
         public String getVersion() { return ""; }
+        @Override
+        public String getTitle() {
+            return CPUImplStub.class.getAnnotation(PluginType.class).title();
+        }
     }
 
     public LoaderTest(String testName) {

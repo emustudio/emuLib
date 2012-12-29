@@ -56,11 +56,11 @@ public interface Plugin {
      * 
      * Within this method, all provided contexts should be registered, or all required contexts requested from emuLib.
      * 
-     * @param settingsManipulator  manipulator of plug-in's settings. Plug-in can use this for accessing/storing/removing
-     *        its custom settings. The settings are saved directly into configuration file.
+     * @param settingsManager  manager of plug-in's settings. Plug-in use it for getting/storing/removing
+     *        its custom settings. These settings are saved directly into the configuration file.
      * @return true if initialization process was successful; false otherwise
      */
-    public boolean initialize (SettingsManager settingsManipulator);
+    public boolean initialize (SettingsManager settingsManager);
 
     /**
      * Destroys all plug-in resources.
@@ -87,6 +87,17 @@ public interface Plugin {
      * @return true if the plug-in has a GUI for settings; false otherwise
      */
     public boolean isShowSettingsSupported();
+    
+    /**
+     * Get run-time title of this plug-in.
+     * 
+     * The title is a matter of change during runtime - for example there
+     * might be a device which might be used many times but it is called
+     * differently for each instance.
+     * 
+     * @return run-time title of the plug-in
+     */
+    public String getTitle();
     
     /**
      * Get version of the plug-in.

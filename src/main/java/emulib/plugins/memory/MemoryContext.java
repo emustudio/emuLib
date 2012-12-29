@@ -83,7 +83,7 @@ public interface MemoryContext<T> extends Context {
      * Get the type of memory cells.
      * @return Java data type of memory cells
      */
-    public Class<T> getDataType ();
+    public Class<?> getDataType ();
     
     /**
      * Clears the memory.

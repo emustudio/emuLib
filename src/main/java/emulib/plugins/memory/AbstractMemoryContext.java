@@ -30,9 +30,11 @@ import java.util.List;
  * This class implements some fundamental functionality of MemoryContext
  * interface, that can be useful in the programming of the own memory context.
  *
- * @author vbmacher
+ * It is not thread safe.
+ * 
+ * @author Peter Jakubčo
  */
-public abstract class AbstractMemoryContext implements MemoryContext {
+public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
     /**
      * List of all memory listeners. The listeners are objects implementing
      * the IMemoryListener interface. Methods within the listeners are called
@@ -69,17 +71,16 @@ public abstract class AbstractMemoryContext implements MemoryContext {
     }
 
     /**
-     * This method notifies all listeners that the memory cell value changed
-     * on specific location (memory address).
-     *
+     * Notify all listeners that memory has changed.
+     * 
      * This method should be called whenever a some plug-in writes to the
      * memory.
      *
-     * @param adr memory location (address), value of that changed
+     * @param position memory position (address) on which the value has changed
      */
-    public void fireChange(int adr) {
+    public void notifyMemoryChanged(int position) {
         for (MemoryListener listener : listeners) {
-            listener.memoryChanged(adr);
+            listener.memoryChanged(position);
         }
     }
 
