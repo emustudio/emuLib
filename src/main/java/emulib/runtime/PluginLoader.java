@@ -334,7 +334,7 @@ public class PluginLoader extends ClassLoader {
      * @param password emuStudio password.
      * @return Plugin main class, or null when an error occured or the main class is not found
      */
-    public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException {
+    public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException {
         API.testPassword(password);
         Map<String, Integer> sizes = new HashMap<String, Integer>();
         List<String> undoneClasses = new ArrayList<String>();
@@ -342,6 +342,7 @@ public class PluginLoader extends ClassLoader {
 
         try {
             // load all classes in jar
+            logger.debug("Loading JAR file: " + filename);
             JarFile jarFile = new JarFile(filename);
             Enumeration<JarEntry> jarEntries = jarFile.entries();
             while (jarEntries.hasMoreElements()) {
@@ -428,6 +429,19 @@ public class PluginLoader extends ClassLoader {
             throw new InvalidPluginException();
         }
         return mainClass;
+    }
+    
+    /**
+     * Get list of not (yet) loaded classes.
+     * 
+     * @return array of string describing not loaded classes.
+     */
+    public String[] getUnloadedClassesList() {
+        List<String> classes = new ArrayList<String>();
+        for (NotLoadedClass nlc : undoneClassesToLoad) {
+          classes.add(nlc.toString());
+        }
+        return classes.toArray(new String[0]);
     }
     
     /**
