@@ -25,30 +25,28 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Logger factory which provides loggers for plug-ins.
+ * Logger factory which provides loggers for given classes.
  * 
  * It is preferred way for plug-ins to obtain a logger.
  * 
  * @author Peter Jakubčo
  */
 public class LoggerFactory {
-    private static Map<Long, Logger> loggers = new HashMap<Long, Logger>();
+    private static Map<Class, Logger> loggers = new HashMap<Class, Logger>();
     
     /**
-     * Get a logger for a plug-in.
+     * Get a logger for a class.
      * 
-     * Only one instance of logger exists for one plug-in ID. If the method is called more than once with different
-     * identification class parameter, the class parameter is ignored.
+     * Only one instance of logger exists for one identification class. 
      * 
-     * @param pluginID ID of the plug-in
      * @param identificationClass Class acting as an identification who logged such an information.
-     * @return Logger object for specified plug-in.
+     * @return Logger object for specified class.
      */
-    public static Logger getLogger(long pluginID, Class identificationClass) {
-        if (!loggers.containsKey(pluginID)) {
-            loggers.put(pluginID, new LoggerImpl(org.slf4j.LoggerFactory.getLogger(identificationClass)));
+    public static Logger getLogger(Class identificationClass) {
+        if (!loggers.containsKey(identificationClass)) {
+            loggers.put(identificationClass, new LoggerImpl(org.slf4j.LoggerFactory.getLogger(identificationClass)));
         }
-        return loggers.get(pluginID);
+        return loggers.get(identificationClass);
     }
 
 }
