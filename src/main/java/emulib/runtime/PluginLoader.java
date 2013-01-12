@@ -286,8 +286,9 @@ public class PluginLoader extends ClassLoader {
      * In order to do that, you must create new instance of PluginLoader.
      * 
      * @param password emuStudio password.
+     * @throws InvalidPasswordException if the password is wrong
      */
-    public void forgetAllLoaded(String password) {
+    public void forgetAllLoaded(String password) throws InvalidPasswordException {
         API.testPassword(password);
         resources.clear();
         undoneClassesToLoad.clear();
@@ -434,9 +435,12 @@ public class PluginLoader extends ClassLoader {
     /**
      * Get list of not (yet) loaded classes.
      * 
+     * @param password emuStudio password
      * @return array of string describing not loaded classes.
+     * @throws InvalidPasswordException if the password is wrong
      */
-    public String[] getUnloadedClassesList() {
+    public String[] getUnloadedClassesList(String password) throws InvalidPasswordException {
+        API.testPassword(password);
         List<String> classes = new ArrayList<String>();
         for (NotLoadedClass nlc : undoneClassesToLoad) {
           classes.add(nlc.toString());
@@ -642,8 +646,9 @@ public class PluginLoader extends ClassLoader {
      * 
      * @param password emuStudio password.
      * @return true if all classes were successfully loaded, false otherwise
+     * @throws InvalidPasswordException if the password is wrong
      */
-    public boolean canResolveClasses(String password) {
+    public boolean canResolveClasses(String password) throws InvalidPasswordException {
         API.testPassword(password);
         return undoneClassesToLoad.isEmpty();
     }
@@ -656,8 +661,9 @@ public class PluginLoader extends ClassLoader {
      * 
      * @param password emuStudio password.
      * @return true if all undone classes were successfully loaded, false otherwise
+     * @throws InvalidPasswordException if the password is wrong
      */
-    public boolean loadUndoneClasses(String password) {
+    public boolean loadUndoneClasses(String password) throws InvalidPasswordException {
         API.testPassword(password);
         if (undoneClassesToLoad.isEmpty()) {
             return true;
@@ -694,8 +700,9 @@ public class PluginLoader extends ClassLoader {
      * You can check if the classes can be resolved by calling 
      * {@link emulib.runtime.PluginLoader#canResolveClasses() PluginLoader.canResolveClasses} method.
      * @param password emuStudio password.
+     * @throws InvalidPasswordException if the password is wrong
      */
-    public void resolveLoadedClasses(String password) {
+    public void resolveLoadedClasses(String password) throws InvalidPasswordException {
         API.testPassword(password);
         if (classesToResolve.isEmpty()) {
             return;

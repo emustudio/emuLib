@@ -218,8 +218,9 @@ public class ContextPool {
      * @param contextInterface wanted context interface (implemented by the plug-in)
      * @param index the index if more than one context are found
      * @return requested context; null if the context does not exist or the plug-in is not allowed to get it
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public Context getContext(long pluginID, Class<? extends Context> contextInterface, int index) {
+    public Context getContext(long pluginID, Class<? extends Context> contextInterface, int index) throws InvalidContextException {
         trustedContext(contextInterface);
         // find the requested context
         List<Context> contextsByHash = allContexts.get(computeHash(contextInterface));
@@ -252,8 +253,9 @@ public class ContextPool {
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @return CPUContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public CPUContext getCPUContext(long pluginID, Class<? extends CPUContext> contextInterface) {
+    public CPUContext getCPUContext(long pluginID, Class<? extends CPUContext> contextInterface) throws InvalidContextException {
         return (CPUContext)getContext(pluginID, contextInterface, 0);
     }
 
@@ -271,8 +273,9 @@ public class ContextPool {
      * @param index 0-based the order of the context if they are more than one. Does nothing if the index is out of
      *        the bounds.
      * @return CPUContext object if it is found and the plug-in has the permission; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public CPUContext getCPUContext(long pluginID, Class<? extends CPUContext> contextInterface, int index) {
+    public CPUContext getCPUContext(long pluginID, Class<? extends CPUContext> contextInterface, int index) throws InvalidContextException {
         return (CPUContext)getContext(pluginID, contextInterface, index);
     }
 
@@ -288,8 +291,9 @@ public class ContextPool {
      * @param pluginID plug-in requesting the compiler context
      * @param contextInterface Interface of the context, if requesting plugin has permission to acccess it
      * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface) {
+    public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface) throws InvalidContextException {
         return (CompilerContext)getContext(pluginID, contextInterface, 0);
     }
 
@@ -306,8 +310,9 @@ public class ContextPool {
      * @param contextInterface Interface of the context
      * @param index the order of the context if they are more than one. Does nothing if the index is out of bounds.
      * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface, int index) {
+    public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface, int index) throws InvalidContextException {
         return (CompilerContext)getContext(pluginID, contextInterface, index);
     }
 
@@ -323,8 +328,9 @@ public class ContextPool {
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface) {
+    public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface) throws InvalidContextException {
         return (MemoryContext)getContext(pluginID, contextInterface, 0);
     }
 
@@ -341,8 +347,9 @@ public class ContextPool {
      * @param contextInterface Interface of the context
      * @param index the index of the context if they are more than one. Does nothing if the index is out of bounds
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface, int index) {
+    public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface, int index) throws InvalidContextException {
         return (MemoryContext)getContext(pluginID, contextInterface, index);
     }
 
@@ -358,8 +365,9 @@ public class ContextPool {
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface) {
+    public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface) throws InvalidContextException {
         return (DeviceContext)getContext(pluginID, contextInterface, 0);
     }
 
@@ -376,8 +384,9 @@ public class ContextPool {
      * @param contextInterface Interface of the context
      * @param index index of the context implementation. Does nothing if the index is out of bounds.
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
-    public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface, int index) {
+    public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface, int index) throws InvalidContextException {
         return (DeviceContext)getContext(pluginID, contextInterface, index);
     }
 

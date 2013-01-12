@@ -140,7 +140,7 @@ public class ContextPoolTest {
      * Test successful registration of plug-in contexts
      */
     @Test
-    public void testContextOperations() throws AlreadyRegisteredException, InvalidContextException {
+    public void testContextOperations() throws AlreadyRegisteredException, InvalidContextException, InvalidPasswordException {
         CPUContextStub cpuContext = new CPUContextStub();
         CompilerContextStub compilerContext = new CompilerContextStub();
         MemoryContextStub memoryContext = new MemoryContextStub();
@@ -215,7 +215,7 @@ public class ContextPoolTest {
      * @throws AlreadyRegisteredException shouldn't throw
      */
     @Test
-    public void testInvalidContext() throws AlreadyRegisteredException {
+    public void testInvalidContext() throws AlreadyRegisteredException, InvalidContextException, InvalidContextException {
         ContextPool cInstance = ContextPool.getInstance();
         APITest.assignEmuStudioPassword();
         try {

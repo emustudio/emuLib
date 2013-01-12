@@ -26,7 +26,7 @@ package emulib.runtime;
  * does not meet requirements for Plugin classes.
  * 
  */
-public class InvalidPluginException extends RuntimeException {
+public class InvalidPluginException extends Exception {
     
     public InvalidPluginException() {
         

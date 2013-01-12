@@ -22,11 +22,11 @@
 package emulib.runtime;
 
 /**
- * This class represents an exception that can be raised during Context.register method if a class does not
- * implement presented interface.
+ * This class represents an exception that can be raised when a context class does not fullfill context requirements.
  * 
+ * @author Peter Jakubčo
  */
-public class InvalidContextException extends RuntimeException {
+public class InvalidContextException extends Exception {
     
     public InvalidContextException() {
         

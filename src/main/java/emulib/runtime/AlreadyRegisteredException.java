@@ -22,11 +22,10 @@
 package emulib.runtime;
 
 /**
- * This class represents an exception that is raised when Context tries to register itself, but it is already
- * registered.
+ * This class represents an exception raised when a plug-in tries to register a context which is already registered.
  * 
- * @author vbmacher
+ * @author Peter Jakubčo
  */
-public class AlreadyRegisteredException extends RuntimeException {
+public class AlreadyRegisteredException extends Exception {
     
 }

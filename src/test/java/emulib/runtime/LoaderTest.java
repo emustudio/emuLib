@@ -34,10 +34,6 @@ import emulib.plugins.cpu.Disassembler;
 import javax.swing.JPanel;
 import junit.framework.TestCase;
 
-/**
- *
- * @author vbmacher
- */
 public class LoaderTest extends TestCase {
     
     private class CPUListenerStub implements CPUListener {
@@ -121,7 +117,7 @@ public class LoaderTest extends TestCase {
     /**
      * Test of loadJAR method, of class Loader.
      */
-    public void testLoadJAR() {
+    public void testLoadJAR() throws InvalidPasswordException, InvalidPluginException {
         String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
         APITest.assignEmuStudioPassword();
         PluginLoader instance = PluginLoader.getInstance();
