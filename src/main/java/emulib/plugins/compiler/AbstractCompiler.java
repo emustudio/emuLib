@@ -32,7 +32,7 @@ import java.util.List;
  * This class implements some fundamental functionality that can be
  * useful within the implementation of own compiler plug-ins.
  *
- * @author vbmacher
+ * @author Peter Jakubčo
  */
 public abstract class AbstractCompiler implements Compiler {
 
@@ -129,7 +129,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * This method should be called whenever the compiler begins to run.
      */
-    public void fireCompileStart() {
+    public void notifyCompileStart() {
         for (CompilerListener listener : compilerListeners) {
             listener.onStart();
         }
@@ -143,7 +143,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param errorCode compiler-specific error code
      */
-    public void fireCompileFinish(int errorCode) {
+    public void notifyCompileFinish(int errorCode) {
         for (CompilerListener listener : compilerListeners) {
             listener.onFinish(errorCode);
         }
@@ -159,28 +159,28 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param message The message
      */
-    public void fireMessage(Message message) {
+    public void notifyOnMessage(Message message) {
         for (CompilerListener listener : compilerListeners) {
             listener.onMessage(message);
         }
     }
 
     /**
-     * Fires the error message.
+     * Notifies the error message.
      * 
      * @param mes text of the message
      */
-    protected void printError(String mes) {
-        fireMessage(new Message(MessageType.TYPE_ERROR, mes));
+    protected void notifyError(String mes) {
+        notifyOnMessage(new Message(MessageType.TYPE_ERROR, mes));
     }
 
     /**
-     * Fires information message
+     * Notifies information message
      *
      * @param mes text of the message
      */
-    protected void printInfo(String mes) {
-        fireMessage(new Message(MessageType.TYPE_INFO, mes));
+    protected void notifyInfo(String mes) {
+        notifyOnMessage(new Message(MessageType.TYPE_INFO, mes));
     }
 
     /**
@@ -188,8 +188,8 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param mes text of the message
      */
-    protected void printWarning(String mes) {
-        fireMessage(new Message(MessageType.TYPE_WARNING, mes));
+    protected void notifyWarning(String mes) {
+        notifyOnMessage(new Message(MessageType.TYPE_WARNING, mes));
     }
 
     /**
