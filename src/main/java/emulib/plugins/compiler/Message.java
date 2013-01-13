@@ -143,7 +143,7 @@ public class Message {
      *
      * @return formatted message
      */
-    public String getForrmattedMessage() {
+    public String getFormattedMessage() {
         String mes = "";
         switch (messageType) {
             case TYPE_WARNING:
@@ -205,5 +205,10 @@ public class Message {
      */
     public MessageType getMessageType() {
         return messageType;
+    }
+    
+    @Override
+    public String toString() {
+        return getFormattedMessage();
     }
 }
