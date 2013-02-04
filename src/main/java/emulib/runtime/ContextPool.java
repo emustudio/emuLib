@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * @author vbmacher
  */
 public class ContextPool {
-    private final static Logger logger = LoggerFactory.getLogger(ContextPool.class);
+    private final static Logger LOGGER = LoggerFactory.getLogger(ContextPool.class);
     
     /**
      * The following map stores all registered contexts.
@@ -216,7 +216,7 @@ public class ContextPool {
      *
      * @param pluginID ID of requesting plug-in
      * @param contextInterface wanted context interface (implemented by the plug-in)
-     * @param index the index if more than one context are found
+     * @param index the index if more than one context are found. If -1 is provided, any matched context is used
      * @return requested context; null if the context does not exist or the plug-in is not allowed to get it
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
@@ -225,19 +225,23 @@ public class ContextPool {
         // find the requested context
         List<Context> contextsByHash = allContexts.get(computeHash(contextInterface));
         if ((contextsByHash == null) || contextsByHash.isEmpty()) {
+            LOGGER.debug("Context " + contextInterface + " is not found in registered contexts list.");
             return null;
         }
+        LOGGER.debug("Matching context " + contextInterface + " from " + contextsByHash.size() + " options...");
         
         // find context based on contextID
         int j = 0;
         for (Context context : contextsByHash) {
             if (checkPermission(pluginID, context)) {
-                if (j == index) {
+                if ((index == -1) || (j == index)) {
+                    LOGGER.debug("Found context with index " + j);
                     return context;
                 }
             }
             j++;
         }
+        LOGGER.error("The plugin with ID " + pluginID + " has no permission to access context " + contextInterface);
         return null;
     }
     
@@ -249,6 +253,8 @@ public class ContextPool {
      *
      * If the CPU has more than one context implementing required context interface, the first one is returned. To
      * access other ones, use extended version of the method.
+     * 
+     * This method call is equivalent to the call of <code>getCPUContext(pluginID, contextInterface, -1);</code>
      *
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
@@ -256,7 +262,7 @@ public class ContextPool {
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
     public CPUContext getCPUContext(long pluginID, Class<? extends CPUContext> contextInterface) throws InvalidContextException {
-        return (CPUContext)getContext(pluginID, contextInterface, 0);
+        return (CPUContext)getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -271,7 +277,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @param index 0-based the order of the context if they are more than one. Does nothing if the index is out of
-     *        the bounds.
+     *        the bounds. If index is -1, it uses any found context.
      * @return CPUContext object if it is found and the plug-in has the permission; null otherwise
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
@@ -287,6 +293,8 @@ public class ContextPool {
      *
      * If the compiler has more than one context implementing required context interface, the first one is returned. To
      * access other ones, use extended version of the method.
+     * 
+     * This method call is equivalent to the call of <code>getCompilerContext(pluginID, contextInterface, -1);</code>
      *
      * @param pluginID plug-in requesting the compiler context
      * @param contextInterface Interface of the context, if requesting plugin has permission to acccess it
@@ -294,7 +302,7 @@ public class ContextPool {
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
     public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface) throws InvalidContextException {
-        return (CompilerContext)getContext(pluginID, contextInterface, 0);
+        return (CompilerContext)getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -309,6 +317,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the Compiler context
      * @param contextInterface Interface of the context
      * @param index the order of the context if they are more than one. Does nothing if the index is out of bounds.
+     * If the index is -1, it uses any found context.
      * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
@@ -325,13 +334,15 @@ public class ContextPool {
      * If the memory has more than one context implementing required context interface, the first one is returned. To
      * access other ones, use extended version of the method.
      *
+     * This method call is equivalent to the call of <code>getMemoryContext(pluginID, contextInterface, -1);</code>
+     * 
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
     public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface) throws InvalidContextException {
-        return (MemoryContext)getContext(pluginID, contextInterface, 0);
+        return (MemoryContext)getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -345,7 +356,8 @@ public class ContextPool {
      *
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
-     * @param index the index of the context if they are more than one. Does nothing if the index is out of bounds
+     * @param index the index of the context if they are more than one. Does nothing if the index is out of bounds.
+     * If the index is -1, it uses any found context.
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
@@ -362,13 +374,15 @@ public class ContextPool {
      * If the device has more than one context implementing required context interface, the first one is returned. To
      * access other ones, use extended version of the method.
      *
+     * This method call is equivalent to the call of <code>getDeviceContext(pluginID, contextInterface, -1);</code>
+     * 
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
     public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface) throws InvalidContextException {
-        return (DeviceContext)getContext(pluginID, contextInterface, 0);
+        return (DeviceContext)getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -383,6 +397,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @param index index of the context implementation. Does nothing if the index is out of bounds.
+     * If the index is -1, it uses any found context.
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
      * @throws InvalidContextException if the context interface does not fullfill context requirements
      */
@@ -402,24 +417,28 @@ public class ContextPool {
     private boolean checkPermission(long pluginID, Context context) {
         // check if it is possible to check the plug-in for the permission
         if (computer == null) {
-            return false;
+            LOGGER.debug("Plugin with ID=" + pluginID + " cannot have access to context " + context + ": Computer is not set.");
+            return false; 
         }
         // first it must be found the contextsByOwner of the ContextPool.
         Long contextOwner = null;
-        for (long pID : contextOwners.keySet()) {
-            List<Context> contextsByOwner = contextOwners.get(pID);
+        for (Map.Entry<Long, List<Context>> owner : contextOwners.entrySet()) {
+            List<Context> contextsByOwner = owner.getValue();
             if (contextsByOwner == null) {
                 continue;
             }
             if (contextsByOwner.contains(context)) {
-                contextOwner = pID;
+                contextOwner = owner.getKey();
                 break;
             }
         }
         if (contextOwner == null) {
+            LOGGER.debug("Plugin with ID=" + pluginID + " cannot have access to context " + context + ": Could not find context owner.");
             return false;
         }
         // THIS is the permission check
+        LOGGER.debug("Checking permission of plugin with ID=" + pluginID + " to context owner with ID=" + contextOwner
+                + " (" + context + ")");
         return computer.isConnected(pluginID, contextOwner);
     }
 
@@ -455,7 +474,7 @@ public class ContextPool {
         try {
             return SHA1(hash);
         } catch(Exception e) {
-            logger.error("Could not compute hash.", e);
+            LOGGER.error("Could not compute hash for interface " + contextInterface, e);
             return null;
         }
     }

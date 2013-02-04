@@ -37,5 +37,5 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface ContextType {
-    String id() default "";
+    String id() default "unknown";
 }
