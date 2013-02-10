@@ -3,7 +3,7 @@
  *
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2010-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,14 +26,14 @@ import emulib.annotations.PluginType;
 import emulib.emustudio.API;
 import emulib.plugins.Plugin;
 import java.io.*;
-import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.security.Permission;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,39 +44,57 @@ import org.slf4j.LoggerFactory;
  * @author vbmacher
  */
 public class PluginLoader extends ClassLoader {
-    private final static Logger logger = LoggerFactory.getLogger(PluginLoader.class);
-    
+    private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
     
     // Instance of this class
     private static PluginLoader instance = new PluginLoader();
     
     // loaded resources of all classes
-    private Map<Object, URL> resources;
+    private Map<String, URL> allResources = new HashMap<String, URL>();
+    
+    private List<String> knownDependencies = new ArrayList<String>();
     
     // security manager for this class loader
     private PluginSecurityManager securityManager;
-    private List<Class<?>> classesToResolve;
-    private List<NotLoadedClass> undoneClassesToLoad;
+    private List<Class<?>> classesToResolve = new ArrayList<Class<?>>();
+    private List<NotLoadedJAR> undoneClassesToLoad = new ArrayList<NotLoadedJAR>();
     
-    private class NotLoadedClass {
+    private static class LoadedJAR {
+        String filename;
+        private Manifest manifest;
+        private Map<String, byte[]> classesData;
+        
+        public LoadedJAR(String filename, Manifest manifest, Map<String, byte[]> classesData) {
+            this.filename = filename;
+            this.manifest = manifest;
+            this.classesData = classesData;
+        }
+        
+        public String getFileName() {
+            return filename;
+        }
+        
+        public Manifest getManifest() {
+            return manifest;
+        }
+        
+        public Map<String, byte[]> getClassesData() {
+            return classesData;
+        }
+    }
+    
+    private static class NotLoadedJAR {
         private List<String> undone;
-        private Map<String, Integer> sizes;
         private String filename;
         
-        public NotLoadedClass(List<String> undone, Map<String, Integer> sizes,
-            String filename) {
+        public NotLoadedJAR(List<String> undone, String filename) {
             this.undone = undone;
-            this.sizes = sizes;
             this.filename = filename;
         }
         
         public List<String> getUndone() {
             return undone;
-        }
-        
-        public Map<String, Integer> getSizes() {
-            return sizes;
         }
         
         public String getFilename() {
@@ -89,188 +107,51 @@ public class PluginLoader extends ClassLoader {
         }
     }
 
-    private class PluginSecurityManager extends SecurityManager {
-
-        /**
-         * This is the basic method that tests whether there is a class loaded
-         * by a ClassLoader anywhere on the stack. If so, it means that that
-         * untrusted code is trying to perform some kind of sensitive operation.
-         * We prevent it from performing that operation by throwing an exception.
-         * trusted() is called by most of the check...() methods below.
-         */
-        protected void trusted() {
-            if (inClassLoader()) {
-                throw new SecurityException();
-            }
-        }
-
-        /*
-        void	checkDelete(String file)
-        void	checkSetFactory()
-         */
-        @Override
-        public void checkAwtEventQueueAccess() {
-        }
-
-        @Override
-        public void checkPackageAccess(String pkg) {
-        }
-
-        @Override
-        public void checkPrintJobAccess() {
-        }
-
-        @Override
-        public void checkExec(String cmd) {
-        }
-
-        @Override
-        public void checkMulticast(InetAddress maddr) {
-        }
-
-        @Override
-        public void checkMulticast(InetAddress maddr, byte ttl) {
-        }
-
-        @Override
-        public void checkLink(String lib) {
-        }
-
-        @Override
-        public void checkListen(int port) {
-        }
-
-        @Override
-        public void checkConnect(String host, int port) {
-        }
-
-        @Override
-        public void checkConnect(String host, int port, Object context) {
-        }
-
-        @Override
-        public void checkAccept(String host, int port) {
-        }
-
-        @Override
-        public void checkAccess(Thread t) {
-        }
-
-        @Override
-        public void checkAccess(ThreadGroup g) {
-        }
-
-        @Override
-        public void checkCreateClassLoader() {
-        }
-
-        @Override
-        public void checkMemberAccess(Class<?> clazz, int which) {
-        }
-
-        @Override
-        public void checkSystemClipboardAccess() {
-        }
-
-        @Override
-        public void checkExit(int status) {
-            super.checkExit(status);
-            trusted();
-        }
-
-        @Override
-        public void checkPropertiesAccess() {
-            super.checkPropertiesAccess();
-            trusted();
-        }
-
-        @Override
-        public void checkPropertyAccess(String key) {
-        }
-
-        @Override
-        public void checkSecurityAccess(String provider) {
-            super.checkSecurityAccess(provider);
-            trusted();
-        }
-
-        @Override
-        public void checkDelete(String file) {
-        }
-
-        @Override
-        public void checkRead(FileDescriptor fd) {
-        }
-
-        @Override
-        public void checkRead(String file) {
-        }
-
-        @Override
-        public void checkRead(String file, Object context) {
-        }
-
-        @Override
-        public void checkWrite(FileDescriptor fd) {
-        }
-
-        @Override
-        public void checkWrite(String file) {
-        }
-
-        /**
-         * Loaded code can't define classes in java.* or javax.* or sun.* packages.
-         * 
-         * @param pkg package definition name
-         * @throws SecurityException
-         */
-        @Override
-        public void checkPackageDefinition(String pkg) {
-            if (this.inClassLoader()
-                    && ((pkg.startsWith("java.") || pkg.startsWith("javax.")
-                    || pkg.startsWith("sun.")))) {
-                throw new SecurityException();
-            }
-        }
-
-        /**
-         * This is the one SecurityManager method that is different from the
-         * others. It indicates whether a top-level window should display an
-         * "untrusted" warning. The window is always allowed to be created, so
-         * this method is not normally meant to throw an exception. It should
-         * return true if the window does not need to display the warning, and
-         * false if it does. In this example, however, our text-based Service
-         * classes should never need to create windows, so we will actually
-         * throw an exception to prevent any windows from being opened.
-         **/
-        @Override
-        public boolean checkTopLevelWindow(Object window) {
-            //trusted();
-            return true;
-        }
-
-        @Override
-        public void checkPermission(Permission perm) {
-            //          if (!(perm instanceof java.awt.AWTPermission))
-            //            super.checkPermission(perm);
-        }
-    }
-
     /**
      * Private constructor. Other objects could not create the instance in
      * classic way.
      */
     private PluginLoader() {
-        resources = new HashMap<Object, URL>();
-        classesToResolve = new ArrayList<Class<?>>();
-        undoneClassesToLoad = new ArrayList<NotLoadedClass>();
         securityManager = new PluginSecurityManager();
         System.setSecurityManager(securityManager);
+        registerKnownDependencies(getClass());
     }
 
+    private boolean registerKnownDependencies(Class className) {
+        boolean dependencyAdded = false;
+        try {
+            Enumeration<URL> resources = className.getClassLoader().getResources("META-INF/MANIFEST.MF");
+            while (resources.hasMoreElements()) {
+                URL resource = resources.nextElement();
+                LOGGER.debug("Found manifest: " + resource);
+                try {
+                    Manifest manifest = new Manifest(resource.openStream());
+                    String classPath;
+                    classPath = manifest.getMainAttributes().getValue("Class-Path");
+                    if (classPath != null) {
+                        String[] classPathList = classPath.split(" ");
+                        for (String dependency : classPathList) {
+                            dependency = getRelativeName(dependency);
+                            if (dependency != null) {
+                                LOGGER.debug("Registering known dependency: " + dependency);
+                                knownDependencies.add(dependency);
+                                dependencyAdded = true;
+                            }
+                        }
+                    }
+                } catch (IOException E) {
+                    // handle
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.error("Could not register known dependencies for class " + className, e);
+        }
+        return dependencyAdded;
+    }
+    
     /**
      * Get the PluginLoader instance.
-     * 
+     *
      * The instance is created only in the first call, then the same instance is returned (singleton).
      *
      * @return instance of this class (singleton)
@@ -290,7 +171,7 @@ public class PluginLoader extends ClassLoader {
      */
     public void forgetAllLoaded(String password) throws InvalidPasswordException {
         API.testPassword(password);
-        resources.clear();
+        allResources.clear();
         undoneClassesToLoad.clear();
         classesToResolve.clear();
     }
@@ -320,6 +201,136 @@ public class PluginLoader extends ClassLoader {
         return false;
     }
 
+    private String getRelativeName(String absoluteName) {
+        absoluteName = absoluteName.replaceAll("\\\\", "/");
+        int lastSlash = absoluteName.lastIndexOf("/");
+        if (lastSlash > 0) {
+            absoluteName = absoluteName.substring(lastSlash + 1, absoluteName.length());
+        }
+        if (absoluteName.trim().equals("")) {
+            return null;
+        }
+        return absoluteName;
+    }
+
+    private void loadResource(String jarFileName, String resourceFileName) throws UnsupportedEncodingException,
+            MalformedURLException {
+        //for windows: "jar:file:/D:/JavaApplicat%20ion12/dist/JavaApplication12.jar!/resources/Find%2024.gif";
+        //for linux:   "jar:file:/home/vbmacher/dev/school%20projects/shit.jar!/resources/Find%2024.gif";
+        String jarName = jarFileName.replaceAll("\\\\", "/");
+        String resourceName = resourceFileName.replaceAll("\\\\", "/");
+        if (!jarName.startsWith("/")) {
+            jarName = "/" + jarName;
+        }
+        String resourceURL = URLEncoder.encode("jar:file:" + jarName + "!/" + resourceName, "UTF-8");
+        resourceURL = resourceURL.replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%21", "!").replaceAll("\\+", "%20");
+        allResources.put("/" + resourceFileName, new URL(resourceURL));
+    }
+    
+    private byte[] loadJARData(JarEntry jarEntry, JarInputStream jis) throws IOException {
+        long size = jarEntry.getSize();
+        int intSize = (int)size;
+        if (size == -1) {
+            LOGGER.error("Could not determine size of JAR entry: " + jarEntry.getName());
+            return null;
+        }
+        if (size != (long)intSize) {
+            LOGGER.error("Could not load JAR entry, it is too big: " + jarEntry.getName());
+            return null;
+        }
+        byte[] classData = new byte[intSize];
+        int offset = 0;
+        int bytesRead;
+        while ((intSize - offset) > 0) {
+            bytesRead = jis.read(classData, offset, intSize - offset);
+            if (bytesRead == -1) {
+                break;
+            }
+            offset += bytesRead;
+        }
+        return classData;
+    }
+
+    private LoadedJAR loadJARFile(String filename) throws IOException {
+        return loadJARFile(filename, null, true);
+    }
+    
+    private LoadedJAR loadJARFile(String filename, List<String> onlyClasses) throws IOException {
+        return loadJARFile(filename, onlyClasses, false);
+    }
+
+    private LoadedJAR loadJARFile(String filename, List<String> onlyClasses, boolean loadResources) throws IOException {
+        Map<String, byte[]> classesData = new HashMap<String, byte[]>();
+        JarFile jarFile = new JarFile(filename);
+        FileInputStream fis = new FileInputStream(jarFile.getName());
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        JarInputStream jis = new JarInputStream(bis);
+        JarEntry jarEntry;
+        Manifest manifest = jis.getManifest();
+
+        while ((jarEntry = jis.getNextJarEntry()) != null) {
+            if (jarEntry.isDirectory()) {
+                continue;
+            }
+            String jarEntryName = jarEntry.getName();
+            if (!jarEntryName.toLowerCase().endsWith(".class")) {
+                if (loadResources) {
+                    loadResource(filename, jarEntryName);
+                }
+                continue;
+            }
+            if (onlyClasses != null && !onlyClasses.contains(jarEntryName)) {
+                continue;
+            }
+            try {
+                if (findSystemClass(getValidClassName(jarEntryName)) != null) {
+                    continue;
+                }
+            } catch (ClassNotFoundException e) {
+            }
+            // load class data
+            byte[] classData = loadJARData(jarEntry, jis);
+            if (classData == null) {
+                LOGGER.error("Could not load class: " + jarEntryName + " from JAR: " + filename);
+                continue;
+            }
+            classesData.put(jarEntryName, classData);
+        }
+        jis.close();
+        bis.close();
+        fis.close();
+        jarFile.close();
+        
+        return new LoadedJAR(filename, manifest, classesData);
+    }
+
+    private void loadDependencies(LoadedJAR loadedJAR) throws InvalidPasswordException {
+        // look for manifest and try to load dependencies
+        Manifest manifest = loadedJAR.getManifest();
+        if (manifest == null) {
+            return;
+        }
+        String classPath = manifest.getMainAttributes().getValue("Class-Path");
+        if (classPath == null) {
+            return;
+        }
+        String[] classPathList = classPath.split(" ");
+        for (String dependency : classPathList) {
+            String relativeDependency = getRelativeName(dependency);
+            if (relativeDependency != null) {
+                if (!knownDependencies.contains(relativeDependency)) {
+                    LOGGER.debug("Loading " + getRelativeName(loadedJAR.getFileName()) + " depencency: " + relativeDependency);
+                    try {
+                        loadJAR(dependency);
+                        knownDependencies.add(relativeDependency);
+                    } catch (InvalidPluginException e) {
+                        LOGGER.warn("Could not load dependency: " + relativeDependency);
+                    }
+                }
+
+            }
+        }
+    }
 
     /**
      * Method loads emuStudio plugin into memory.
@@ -329,86 +340,50 @@ public class PluginLoader extends ClassLoader {
      * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
      * called.
      * 
-     * @param filename name of the plugin (absolute path is better).
-     *        If the filename does not contain '.jar' suffix, it will be
-     *        added automatically.
+     * @param filename name of the plugin (absolute path is better). If the filename does not contain '.jar' suffix,
+     *                 it will be added automatically.
      * @param password emuStudio password.
      * @return Plugin main class, or null when an error occured or the main class is not found
      */
     public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException {
         API.testPassword(password);
-        Map<String, Integer> sizes = new HashMap<String, Integer>();
+        
+        Class<Plugin> mainClass = loadJAR(filename);
+        if (mainClass == null) {
+            throw new InvalidPluginException();
+        }
+        return mainClass;
+    }
+    
+    private Class<Plugin> loadJAR(String filename) throws InvalidPasswordException, InvalidPluginException {
         List<String> undoneClasses = new ArrayList<String>();
+        LoadedJAR loadedJAR;
         Class<Plugin> mainClass = null;
 
         try {
             // load all classes in jar
-            logger.debug("Loading JAR file: " + filename);
-            JarFile jarFile = new JarFile(filename);
-            Enumeration<JarEntry> jarEntries = jarFile.entries();
-            while (jarEntries.hasMoreElements()) {
-                JarEntry jarEntry = (JarEntry) jarEntries.nextElement();
-                sizes.put(jarEntry.getName(), new Integer((int) jarEntry.getSize()));
-            }
-            FileInputStream fis = new FileInputStream(jarFile.getName());
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            JarInputStream zis = new JarInputStream(bis);
-            JarEntry jarEntry;
+            LOGGER.debug("Loading JAR file: " + filename);
+            loadedJAR = loadJARFile(filename);
+            loadDependencies(loadedJAR);
 
-            while ((jarEntry = zis.getNextJarEntry()) != null) {
-                if (jarEntry.isDirectory()) {
-                    continue;
-                }
-                if (!jarEntry.getName().toLowerCase().endsWith(".class")) {
-                    //for windows: "jar:file:/D:/JavaApplicat%20ion12/dist/JavaApplication12.jar!/resources/Find%2024.gif";
-                    //for linux:   "jar:file:/home/vbmacher/dev/school%20projects/shit.jar!/resources/Find%2024.gif";
-                    String resourceName = jarFile.getName().replaceAll("\\\\", "/");
-                    if (!resourceName.startsWith("/")) {
-                        resourceName = "/" + resourceName;
-                    }
-                    String resourceURL = URLEncoder.encode("jar:file:" + resourceName + "!/" +
-                            jarEntry.getName().replaceAll("\\\\", "/"), "UTF-8");
-                    resourceURL = resourceURL.replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%21", "!")
-                            .replaceAll("\\+", "%20");
-                    resources.put("/" + jarEntry.getName(), new URL(resourceURL));
-                    continue;
-                }
-                // load class data
-                int size = (int) jarEntry.getSize();
-                if (size == -1) {
-                    size = ((Integer) sizes.get(jarEntry.getName())).intValue();
-                }
-
-                byte[] classData = new byte[(int) size];
-                int offset = 0;
-                int bytesRead;
-                while (((int) size - offset) > 0) {
-                    bytesRead = zis.read(classData, offset, (int) size - offset);
-                    if (bytesRead == -1) {
-                        break;
-                    }
-                    offset += bytesRead;
-                }
+            for (Map.Entry<String, byte[]> classData : loadedJAR.getClassesData().entrySet()) {
                 try {
                     // try to define class
-                    Class<?> definedClass = defineLoadedClass(jarEntry.getName(), classData, size);
+                    Class<?> definedClass = defineLoadedClass(classData.getKey(), classData.getValue());
                     if (trustedPlugin(definedClass)) {
                         mainClass = (Class<Plugin>)definedClass;
                     }
                     classesToResolve.add(definedClass);
                 } catch (Exception nf) {
-                    undoneClasses.add(jarEntry.getName());
+                    undoneClasses.add(classData.getKey());
                 }
             }
-            zis.close();
-            bis.close();
-            fis.close();
-            jarFile.close();
+            
             // try to load all undone classes
             if (!undoneClasses.isEmpty()) {
                 List<Class<?>> definedClasses;
                 do {
-                    definedClasses = loadUndoneClasses(undoneClasses, sizes, filename);
+                    definedClasses = loadUndoneClasses(undoneClasses, filename);
                     if (mainClass == null) {
                         for (Class<?> definedClass : definedClasses) {
                             if (trustedPlugin(definedClass)) {
@@ -420,17 +395,15 @@ public class PluginLoader extends ClassLoader {
                 } while (!(definedClasses.isEmpty() || undoneClasses.isEmpty()));
                 if (!undoneClasses.isEmpty()) {
                     // if a jar file contains some error
-                    undoneClassesToLoad.add(new NotLoadedClass(undoneClasses, sizes, filename));
+                    undoneClassesToLoad.add(new NotLoadedJAR(undoneClasses, filename));
                 }
             }
         } catch (Exception e) {
             throw new InvalidPluginException("Could not load the plug-in.", e);
         }
-        if (mainClass == null) {
-            throw new InvalidPluginException();
-        }
         return mainClass;
     }
+
     
     /**
      * Get list of not (yet) loaded classes.
@@ -442,7 +415,7 @@ public class PluginLoader extends ClassLoader {
     public String[] getUnloadedClassesList(String password) throws InvalidPasswordException {
         API.testPassword(password);
         List<String> classes = new ArrayList<String>();
-        for (NotLoadedClass nlc : undoneClassesToLoad) {
+        for (NotLoadedJAR nlc : undoneClassesToLoad) {
           classes.add(nlc.toString());
         }
         return classes.toArray(new String[0]);
@@ -504,8 +477,8 @@ public class PluginLoader extends ClassLoader {
         if (!name.startsWith("/")) {
             name = "/" + name;
         }
-        if (resources.containsKey(name)) {
-            URL url = (URL) resources.get(name);
+        if (allResources.containsKey(name)) {
+            URL url = (URL) allResources.get(name);
             return url;
         } else {
             return null;
@@ -523,12 +496,12 @@ public class PluginLoader extends ClassLoader {
         if (!name.startsWith("/")) {
             name = "/" + name;
         }
-        if (resources.containsKey(name)) {
-            URL url = (URL) resources.get(name);
+        if (allResources.containsKey(name)) {
+            URL url = (URL) allResources.get(name);
             try {
                 return url != null ? url.openStream() : null;
             } catch (Exception e) {
-                logger.debug(new StringBuilder().append("Could not get resource as stream.")
+                LOGGER.debug(new StringBuilder().append("Could not get resource as stream.")
                         .append(url.toString()).toString(), e);
             }
         }
@@ -546,57 +519,37 @@ public class PluginLoader extends ClassLoader {
      * defining these "undone" classes.
      *
      * @param undone Vector of "undone" classes
-     * @param sizes How much size has each class in bytes
      * @param filename File name of the JAR file.
      * @return list of all classes that were loaded successfully
      */
-    private List<Class<?>> loadUndoneClasses(List<String> undone, Map<String, Integer> sizes, String filename) {
-        JarEntry jarEntry;
+    private List<Class<?>> loadUndoneClasses(List<String> undone, String filename) {
         List<Class<?>> resultClasses = new ArrayList<Class<?>>();
-//        List<String> stillNotLoaded = new ArrayList<String>();
+        LoadedJAR loadedJAR;
         
         try {
-            FileInputStream fis = new FileInputStream(filename);
-            BufferedInputStream bis = new BufferedInputStream(fis);
-            JarInputStream zis = new JarInputStream(bis);
-            while ((jarEntry = zis.getNextJarEntry()) != null) {
-                if (jarEntry.isDirectory()) {
-                    continue;
-                }
-                if (!jarEntry.getName().toLowerCase().endsWith(".class")) {
-                    continue;
-                }
-                if (!undone.contains(jarEntry.getName())) {
-                    continue;
-                }
-                // load class data
-                int size = (int) jarEntry.getSize();
-                if (size == -1) {
-                    size = ((Integer) sizes.get(jarEntry.getName())).intValue();
-                }
-                byte[] b = new byte[(int) size];
-                int rb = 0, chunk;
-                while (((int) size - rb) > 0) {
-                    chunk = zis.read(b, rb, (int) size - rb);
-                    if (chunk == -1) {
-                        break;
-                    }
-                    rb += chunk;
-                }
+            loadedJAR = loadJARFile(filename, undone);
+            for (Map.Entry<String, byte[]> classData : loadedJAR.getClassesData().entrySet()) {
                 try {
                     // try load class data
-                    Class<?> cl = defineLoadedClass(jarEntry.getName(), b, size);
+                    Class<?> cl = defineLoadedClass(classData.getKey(), classData.getValue());
                     classesToResolve.add(cl);
                     resultClasses.add(cl);
-                    undone.remove(jarEntry.getName());
+                    undone.remove(classData.getKey());
                 } catch (ClassNotFoundException nf) {
-//                    stillNotLoaded.add(jarEntry.getName());
                 }
             }
         } catch (Exception e) {
-            logger.debug("Could not load undone classes.", e);
+            LOGGER.debug("Could not load undone classes.", e);
         }
         return resultClasses;
+    }
+    
+    private String getValidClassName(String classFileName) {
+        if (classFileName.toLowerCase().endsWith(".class")) {
+            classFileName = classFileName.substring(0, classFileName.length() - 6);
+        }
+        classFileName = classFileName.replace('/', '.');
+        return classFileName.replace(File.separatorChar, '.');
     }
 
     /**
@@ -606,17 +559,11 @@ public class PluginLoader extends ClassLoader {
      *        Should be in the form "package.ClassName", but it doesn't matter
      *        if it has the form "package/ClassName.class"
      * @param classbytes Class data
-     * @param length Size of the class data in bytes
      * @return Class object
      * @throws ClassNotFoundException
      */
-    private Class<?> defineLoadedClass(String classname, byte[] classbytes, int length)
-            throws ClassNotFoundException {
-        if (classname.toLowerCase().endsWith(".class")) {
-            classname = classname.substring(0, classname.length() - 6);
-        }
-        classname = classname.replace('/', '.');
-        classname = classname.replace(File.separatorChar, '.');
+    private Class<?> defineLoadedClass(String classname, byte[] classbytes) throws ClassNotFoundException {
+        classname = getValidClassName(classname);
         try {
             Class<?> classToLoad;
             classToLoad = findLoadedClass(classname);
@@ -627,7 +574,7 @@ public class PluginLoader extends ClassLoader {
                 }
             }
             if (classToLoad == null) {
-                classToLoad = defineClass(null, classbytes, 0, length);
+                classToLoad = defineClass(null, classbytes, 0, classbytes.length);
             }
             return classToLoad;
         } catch (Error err) {
@@ -668,14 +615,13 @@ public class PluginLoader extends ClassLoader {
         if (undoneClassesToLoad.isEmpty()) {
             return true;
         }
-        List<NotLoadedClass> stillNotLoaded = new ArrayList<NotLoadedClass>();
+        List<NotLoadedJAR> stillNotLoaded = new ArrayList<NotLoadedJAR>();
         do {
-            NotLoadedClass classToLoad = undoneClassesToLoad.get(0);
+            NotLoadedJAR classToLoad = undoneClassesToLoad.get(0);
             List<String> undone = classToLoad.getUndone();
             boolean somethingLoaded;
             do {
-                somethingLoaded = !loadUndoneClasses(undone, classToLoad.getSizes(), classToLoad.getFilename())
-                        .isEmpty();
+                somethingLoaded = !loadUndoneClasses(undone, classToLoad.getFilename()).isEmpty();
             } while (!undone.isEmpty() && somethingLoaded);
             undoneClassesToLoad.remove(0);
             if (!undone.isEmpty()) {
@@ -695,7 +641,7 @@ public class PluginLoader extends ClassLoader {
      * Make all loaded classes to be usable in Java.
      * 
      * This method should be called only once, after all calls of
-     * {@link emulib.runtime.PluginLoader#loadJAR(String) PluginLoader.loadJAR} method.
+     * {@link emulib.runtime.PluginLoader#loadJARFile(String) PluginLoader.loadJAR} method.
      * 
      * You can check if the classes can be resolved by calling 
      * {@link emulib.runtime.PluginLoader#canResolveClasses() PluginLoader.canResolveClasses} method.

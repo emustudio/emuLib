@@ -1,9 +1,9 @@
 /*
- * LoaderTest.java
+ * PluginLoaderTest.java
  * 
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2010-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,9 +32,10 @@ import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
 import javax.swing.JPanel;
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
-public class LoaderTest extends TestCase {
+public class PluginLoaderTest {
     
     private class CPUListenerStub implements CPUListener {
         @Override
@@ -45,8 +46,7 @@ public class LoaderTest extends TestCase {
     
     private abstract class SuperCPUStub implements CPU { }
     
-    @PluginType(title="CPU", description="", type=PLUGIN_TYPE.CPU,
-            copyright="(c)")
+    @PluginType(title="CPU", description="", type=PLUGIN_TYPE.CPU, copyright="(c)")
     private class CPUImplStub extends SuperCPUStub {
         @Override
         public boolean addCPUListener(CPUListener listener) {
@@ -100,13 +100,10 @@ public class LoaderTest extends TestCase {
         }
     }
 
-    public LoaderTest(String testName) {
-        super(testName);
-    }
-
     /**
      * Test of getInstance method, of class Loader.
      */
+    @Test
     public void testGetInstance() {
         APITest.assignEmuStudioPassword();
         PluginLoader expResult = PluginLoader.getInstance();
@@ -117,6 +114,7 @@ public class LoaderTest extends TestCase {
     /**
      * Test of loadJAR method, of class Loader.
      */
+    @Test
     public void testLoadJAR() throws InvalidPasswordException, InvalidPluginException {
         String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
         APITest.assignEmuStudioPassword();
@@ -128,13 +126,15 @@ public class LoaderTest extends TestCase {
     /**
      * Test crucial method for finding plug-ins' main interface.
      */
+    @Test
     public void testDoesImplement() {
         // test for nested interface
         assertFalse(PluginLoader.doesImplement(CPUListenerStub.class, Plugin.class));
         // test for inherited interface
         assertTrue(PluginLoader.doesImplement(CPUImplStub.class, Plugin.class));
     }
-    
+
+    @Test
     public void testTrustedPlugin() {
         assertTrue(PluginLoader.trustedPlugin(CPUImplStub.class));
     }

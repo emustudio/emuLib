@@ -3,7 +3,7 @@
  *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2012-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,21 +21,15 @@
  */
 package emulib.runtime;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.*;
+import org.junit.Test;
 
-/**
- *
- * @author vbmacher
- */
-public class RadixUtilsTest extends TestCase {
+public class RadixUtilsTest {
     
-    public RadixUtilsTest(String testName) {
-        super(testName);
-    }
-
     /**
      * Test of convertToRadix method, of class RadixUtils.
      */
+    @Test
     public void testConvertToRadix_shortArr_int() {
         byte[] radix10Number = { (byte)0xA0, 0xC };
         int toRadix = 16;
@@ -76,6 +70,7 @@ public class RadixUtilsTest extends TestCase {
     /**
      * Test of convertToRadix method, of class RadixUtils.
      */
+    @Test
     public void testConvertToRadix_String_int() {
         String number = "142832";
         int toRadix = 16;
@@ -88,6 +83,7 @@ public class RadixUtilsTest extends TestCase {
     /**
      * Test of convertToRadix method, of class RadixUtils.
      */
+    @Test
     public void testConvertToRadix_3args() {
         String number = "101";
         int fromRadix = 2;
@@ -100,6 +96,7 @@ public class RadixUtilsTest extends TestCase {
     /**
      * Test of convertToNumber method, of class RadixUtils.
      */
+    @Test
     public void testConvertToNumber() {
         String number = "300";
         int fromRadix = 10;
@@ -138,6 +135,7 @@ public class RadixUtilsTest extends TestCase {
     /**
      * Test of parseRadix method, of class RadixUtils.
      */
+    @Test
     public void testParseRadix() {
         String number = "0x20";
         int expResult = 32;
@@ -151,6 +149,7 @@ public class RadixUtilsTest extends TestCase {
         assertEquals(expResult, result);
     }
     
+    @Test
     public void testGetDwordHexString() {
         int number = 1;
         assertEquals("00000001", RadixUtils.getDwordHexString(number));
@@ -162,6 +161,7 @@ public class RadixUtilsTest extends TestCase {
         assertEquals("FE5A231F", RadixUtils.getDwordHexString(number));
     }
 
+    @Test
     public void testGetWordHexString() {
         int number = 1;
         assertEquals("0001", RadixUtils.getWordHexString(number));
@@ -173,6 +173,7 @@ public class RadixUtilsTest extends TestCase {
         assertEquals("231F", RadixUtils.getWordHexString(number));
     }
     
+    @Test
     public void testGetByteHexString() {
         int number = 1;
         assertEquals("01", RadixUtils.getByteHexString(number));

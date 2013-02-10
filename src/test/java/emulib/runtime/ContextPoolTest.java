@@ -35,10 +35,6 @@ import emulib.runtime.interfaces.PluginConnections;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- *
- * @author vbmacher
- */
 public class ContextPoolTest {
     
     @ContextType
