@@ -3,7 +3,7 @@
  *
  * KISS, YAGNI, DRY
  *
- * Copyright (C) 2010-2012, Peter Jakubčo
+ * Copyright (C) 2010-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@ package emulib.plugins.compiler;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
+import emulib.plugins.compiler.Compiler;
 import emulib.plugins.compiler.Message.MessageType;
 import java.util.ArrayList;
 import java.util.List;
@@ -129,7 +130,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * This method should be called whenever the compiler begins to run.
      */
-    public void notifyCompileStart() {
+    protected void notifyCompileStart() {
         for (CompilerListener listener : compilerListeners) {
             listener.onStart();
         }
@@ -143,7 +144,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param errorCode compiler-specific error code
      */
-    public void notifyCompileFinish(int errorCode) {
+    protected void notifyCompileFinish(int errorCode) {
         for (CompilerListener listener : compilerListeners) {
             listener.onFinish(errorCode);
         }
