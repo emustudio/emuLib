@@ -1,5 +1,5 @@
 /*
- * Loader.java
+ * PluginLoader.java
  *
  * KISS, YAGNI, DRY
  * 
@@ -117,6 +117,16 @@ public class PluginLoader extends ClassLoader {
         registerKnownDependencies(getClass());
     }
 
+    /**
+     * Registers all known dependencies for specified class.
+     * 
+     * These dependencies will be ignored during loading plug-in dependencies - they will be considered as already
+     * loaded.
+     * 
+     * @param className Class for which we determine dependencies. This method should be called only once per
+     * class-loader.
+     * @return true if some dependencies were registered; false if no new dependencies were recognized.
+     */
     private boolean registerKnownDependencies(Class className) {
         boolean dependencyAdded = false;
         try {
@@ -132,15 +142,15 @@ public class PluginLoader extends ClassLoader {
                         String[] classPathList = classPath.split(" ");
                         for (String dependency : classPathList) {
                             dependency = getRelativeName(dependency);
-                            if (dependency != null) {
+                            if (dependency != null && !knownDependencies.contains(dependency)) {
                                 LOGGER.debug("Registering known dependency: " + dependency);
                                 knownDependencies.add(dependency);
                                 dependencyAdded = true;
                             }
                         }
                     }
-                } catch (IOException E) {
-                    // handle
+                } catch (IOException e) {
+                    LOGGER.error("Failed to determine dependencies for manifest: " + resource, e);
                 }
             }
         } catch (IOException e) {
@@ -304,6 +314,12 @@ public class PluginLoader extends ClassLoader {
         return new LoadedJAR(filename, manifest, classesData);
     }
 
+    /**
+     * Loads all dependencies for the loaded JAR file.
+     * 
+     * @param loadedJAR loaded JAR file
+     * @throws InvalidPasswordException 
+     */
     private void loadDependencies(LoadedJAR loadedJAR) throws InvalidPasswordException {
         // look for manifest and try to load dependencies
         Manifest manifest = loadedJAR.getManifest();
@@ -355,7 +371,14 @@ public class PluginLoader extends ClassLoader {
         return mainClass;
     }
     
-    private Class<Plugin> loadJAR(String filename) throws InvalidPasswordException, InvalidPluginException {
+    /**
+     * Loads a JAR file into memory - all its classes and resources.
+     * 
+     * @param filename Absolute or relative path to the file
+     * @return Class representing plug-in main class if the JAR represents an emuStudio plug-in; null otherwise.
+     * @throws InvalidPluginException If something goes wrong
+     */
+    private Class<Plugin> loadJAR(String filename) throws InvalidPluginException {
         List<String> undoneClasses = new ArrayList<String>();
         LoadedJAR loadedJAR;
         Class<Plugin> mainClass = null;
@@ -544,11 +567,24 @@ public class PluginLoader extends ClassLoader {
         return resultClasses;
     }
     
+    /**
+     * Transform a relative file name into valid Java class name.
+     * 
+     * For example, if the class file name is "somepackage/nextpackage/SomeClass.class", the method
+     * will transform it to the format "somepackage.nextpackage.SomeClass".
+     * 
+     * It doesnt't work for absolute file names.
+     * 
+     * It doesn't hurt if the class name is already in valid Java format.
+     * 
+     * @param classFileName File name defining class
+     * @return valid Java class name
+     */
     private String getValidClassName(String classFileName) {
         if (classFileName.toLowerCase().endsWith(".class")) {
             classFileName = classFileName.substring(0, classFileName.length() - 6);
         }
-        classFileName = classFileName.replace('/', '.');
+        classFileName = classFileName.replace("\\\\", "/").replace('/', '.');
         return classFileName.replace(File.separatorChar, '.');
     }
 
