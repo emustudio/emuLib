@@ -1,8 +1,8 @@
 /*
  * PluginLoaderTest.java
- * 
+ *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2010-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -36,16 +36,16 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 public class PluginLoaderTest {
-    
+
     private class CPUListenerStub implements CPUListener {
         @Override
-        public void runChanged(RunState runState) {}
+        public void runStateChanged(RunState runState) {}
         @Override
-        public void stateUpdated() {}
+        public void internalStateChanged() {}
     }
-    
+
     private abstract class SuperCPUStub implements CPU { }
-    
+
     @PluginType(title="CPU", description="", type=PLUGIN_TYPE.CPU, copyright="(c)")
     private class CPUImplStub extends SuperCPUStub {
         @Override
@@ -122,7 +122,7 @@ public class PluginLoaderTest {
         Class<Plugin> result = instance.loadPlugin(filename, APITest.getEmuStudioPassword());
         assertNotNull(result);
     }
-    
+
     /**
      * Test crucial method for finding plug-ins' main interface.
      */

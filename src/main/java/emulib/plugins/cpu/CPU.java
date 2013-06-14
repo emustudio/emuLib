@@ -1,10 +1,10 @@
 /*
  * CPU.java
- * 
+ *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2013, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -26,7 +26,7 @@ import javax.swing.JPanel;
 
 /**
  * Interface that covers CPU common operations.
- * 
+ *
  * This is the main interface that CPU plugin has to implement.
  */
 public interface CPU extends Plugin {
@@ -59,7 +59,7 @@ public interface CPU extends Plugin {
          */
         STATE_RUNNING
     }
-    
+
     /**
      * The listener interface for receiving CPU events. The class that is
      * interested in processing a CPU event implements this interface, and the
@@ -67,9 +67,9 @@ public interface CPU extends Plugin {
      * addCPUListener method.
      * When the CPU event occurs, that:
      * <ul>
-     *     <li>if the event is CPU's state change, then object's <code>stateUpdated()</code>
+     *     <li>if the event is CPU's state change, then object's <code>internalStateChanged()</code>
      *         method is invoked.</li>
-     *     <li>if the event is CPU's run state change, then object's <code>runChanged()</code>
+     *     <li>if the event is CPU's run state change, then object's <code>runStateChanged()</code>
      *         method is invoked.</li>
      * </ul>
      */
@@ -79,24 +79,24 @@ public interface CPU extends Plugin {
          * Invoked when an CPU's run state changes.
          * @param runState  new run state of the CPU
          */
-        public void runChanged (RunState runState);
+        public void runStateChanged (RunState runState);
 
         /**
-         * Invoked when an CPU's state changes. The state can be register change,
+         * Invoked when an CPU's internal state changes. The state can be register change,
          * flags change, or other CPU's internal state change.
          */
-        public void stateUpdated ();
+        public void internalStateChanged ();
 
     }
 
     /**
      * Adds the specified CPU listener to receive CPU events from this CPU.
-     * 
+     *
      * CPU events occur when CPU changes its state, or run state. CPU state
      * events don't occur if CPU is running, only happens with run state changes.
      * If listener is <code>null</code>, no exception is thrown and no action is
      * performed.
-     * 
+     *
      * @param listener  the CPU listener
      * @return true if the listener was added, false otherwise
      */
@@ -105,12 +105,12 @@ public interface CPU extends Plugin {
     /**
      * Removes the specified CPU listener so that it no longer receives CPU
      * events from this CPU.
-     * 
+     *
      * CPU events occur when CPU changes its state, or run
      * state. CPU state events don't occur if CPU is running, only happens with
      * run state changes. If listener is <code>null</code>, no exception is
      * thrown and no action is performed.
-     * 
+     *
      * @param listener  the CPU listener to be removed
      * @return true if the listener was removed, false otherwise
      */
@@ -132,7 +132,7 @@ public interface CPU extends Plugin {
      *
      * While CPU is running, the emuStudio will not allow to call method
      * <code>step()</code>.
-     * 
+     *
      * A good CPU should performs right timing for instructions here.
      * Debug window should not be updated after each instruction execution,
      * in order to the execution loop would be faster.
@@ -158,14 +158,14 @@ public interface CPU extends Plugin {
 
     /**
      * Get CPU status panel.
-     * 
+     *
      * Each CPU plugin must have a status panel that shows some important CPU status (e.g. registers, flags,
      * run state, etc.) and allows to manage some settings (e.g. a runtime frequency, etc.).
-     * 
+     *
      * This panel is located on the right side in the "emulation" panel of the main module.
-     * 
+     *
      * CPU itself should take care about updating the panel when it is appropriate.
-     * 
+     *
      * @return CPU status panel
      */
     public JPanel getStatusPanel ();
@@ -178,7 +178,7 @@ public interface CPU extends Plugin {
 
     /**
      * Set a breakpoint at a memory location.
-     * 
+     *
      * Does nothing if breakpoints are not supported.
      * @param memLocation  memory location where the breakpoint will be set
      * @see CPU#isBreakpointSupported
@@ -187,16 +187,16 @@ public interface CPU extends Plugin {
 
     /**
      * Unset a breakpoint at a memory location.
-     * 
+     *
      * Does nothing if breakpoints are not supported.
      * @param memLocation  memory location from where the breakpoint will be unset
      * @see CPU#isBreakpointSupported
      */
     public void unsetBreakpoint (int memLocation);
-    
+
     /**
      * Determine if a breakpoint is set at a memory location.
-     * 
+     *
      * @param memLocation  memory location, from where the breakpoint will be determined
      * @return true if breakpoint is set in the location, false otherwise or if breakpoints are not supported.
      * @see CPU#isBreakpointSupported
@@ -207,16 +207,16 @@ public interface CPU extends Plugin {
      * Perform reset of the CPU with specific starting address. This is used
      * when program starting address is known. Otherwise it is used standard
      * <code>Plugin.reset()</code> method
-     * 
+     *
      * @param startAddress Starting address/memory position of the program counter
      */
     public void reset(int startAddress);
-    
+
     /**
      * Get actual instruction position (before its execution). Can be said,
      * that this method should return PC (program counter) register (if CPU
      * has one).
-     * 
+     *
      * @return memory position (address) of next instruction
      */
     public int getInstructionPosition ();
@@ -225,8 +225,8 @@ public interface CPU extends Plugin {
      * Set new actual instruction position (that will be executed as next). It
      * can be said, that a parameter represents new value of PC (program counter),
      * if CPU has one. Otherwise CPU should interpret the position in the right
-     * manner. 
-     * 
+     * manner.
+     *
      * This method is called by main module when user perform "jump to address"
      * operation.
      * @param pos  new address of actual instruction

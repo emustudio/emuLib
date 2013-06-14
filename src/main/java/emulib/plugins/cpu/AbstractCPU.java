@@ -2,7 +2,7 @@
  * AbstractCPU.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -39,9 +39,9 @@ import java.util.Set;
  */
 public abstract class AbstractCPU implements CPU, Runnable {
     /**
-     * List of all CPU cpuListeners
+     * List of all CPU stateObservers
      */
-    protected List<CPUListener> cpuListeners;
+    protected List<CPUListener> stateObservers;
 
     /**
      * breakpoints list
@@ -77,7 +77,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     public AbstractCPU(Long pluginID) {
         runState = RunState.STATE_STOPPED_NORMAL;
         breaks = new HashSet<Integer>();
-        cpuListeners = new ArrayList<CPUListener>();
+        stateObservers = new ArrayList<CPUListener>();
         this.pluginID = pluginID;
         cpuThread = null;
     }
@@ -144,7 +144,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     }
 
     /**
-     * Add new CPU listener to the list of cpuListeners. CPU listener is an
+     * Add new CPU listener to the list of stateObservers. CPU listener is an
      * implementation object of CPUListener interface. The methods are
      * called when some events are occured on CPU.
      *
@@ -153,11 +153,11 @@ public abstract class AbstractCPU implements CPU, Runnable {
      */
     @Override
     public boolean addCPUListener(CPUListener listener) {
-        return cpuListeners.add(listener);
+        return stateObservers.add(listener);
     }
 
     /**
-     * Remove CPU listener object from the list of cpuListeners. If the listener
+     * Remove CPU listener object from the list of stateObservers. If the listener
      * is not included in the list, nothing will be done.
      *
      * @param listener CPUListener object
@@ -165,31 +165,18 @@ public abstract class AbstractCPU implements CPU, Runnable {
      */
     @Override
     public boolean removeCPUListener(CPUListener listener) {
-        return cpuListeners.remove(listener);
+        return stateObservers.remove(listener);
     }
 
     /**
-     * Notify all listeners that run state has changed.
-     * 
-     * It should be called by the CPU anytime when it changes the run state.
+     * Notifies all observers that CPU state has been changed.
      *
      * @param runState new CPU state
      */
-    public void notifyCPURunState(RunState runState) {
-        for (CPUListener listener : cpuListeners) {
-            listener.runChanged(runState);
-        }
-    }
-
-    /**
-     * Notifies internal CPU state change to the listeners.
-     * 
-     * It should be called by the CPU when it changes its internal state,
-     * like register values or flags change.
-     */
-    public void notifyCPUState() {
-        for (CPUListener listener : cpuListeners) {
-            listener.stateUpdated();
+    public void notifyStateChanged(RunState runState) {
+        for (CPUListener observer : stateObservers) {
+            observer.runStateChanged(runState);
+            observer.internalStateChanged();
         }
     }
 
