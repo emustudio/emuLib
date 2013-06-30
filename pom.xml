@@ -15,7 +15,7 @@
   </properties>
 
   <build>
-    <finalName>emuLib-${project.version}.jar</finalName>
+    <finalName>emuLib-${project.version}</finalName>
     <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
