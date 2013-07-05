@@ -17,6 +17,6 @@ Installation
 The library should be put to `lib` directory where emuStudio is installed.
 For example: `emuStudio/lib/emuLib.jar`.
 
-[![Build Status](https://travis-ci.org/vbmacher/emuLib.png)](https://travis-ci.org/vbmacher/emuLib) [![Build Status](https://travis-ci.org/vbmacher/emuLib.png)](https://travis-ci.org/vbmacher/emuLib)
+[![Build Status](https://travis-ci.org/vbmacher/emuLib.png)](https://travis-ci.org/vbmacher/emuLib)
 [![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.png?branch=branch-9_0)](https://coveralls.io/r/vbmacher/emuLib)
 
