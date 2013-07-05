@@ -23,8 +23,6 @@ if not serversNodes:
 else:
   serversNode = serversNodes[0]
 
-#interactive = m2.createElement("interactiveMode")
-
 sonatypeServerNode = m2.createElement("server")
 sonatypeServerId = m2.createElement("id")
 sonatypeServerUser = m2.createElement("username")
@@ -37,12 +35,28 @@ passNode = m2.createTextNode(os.environ["EMUSTUDIO_PASSWORD"])
 sonatypeServerId.appendChild(idNode)
 sonatypeServerUser.appendChild(userNode)
 sonatypeServerPass.appendChild(passNode)
+
+configNode = m2.createElement("configuration")
+knownHostsNode = m2.createElement("knownHostsProvider")
+configNode.appendChild(knownHostsNode)
+knownHostsNode.setAttribute('implementation',"org.apache.maven.wagon.providers.ssh.knownhost.NullKnownHostProvider")
+disableHostNode = m2.createElement("hostKeyChecking")
+disableHostValue = m2.createTextNode("no")
+disableHostNode.appendChild(disableHostValue)
+knownHostsNode.appendChild(disableHostNode)
  
 sonatypeServerNode.appendChild(sonatypeServerId)
 sonatypeServerNode.appendChild(sonatypeServerUser)
 sonatypeServerNode.appendChild(sonatypeServerPass)
+sonatypeServerNode.appendChild(configNode)
  
 serversNode.appendChild(sonatypeServerNode)
+
+# Turn off interactive mode
+interactiveNode = m2.createElement("interactiveMode")
+settings.appendChild(interactiveNode)
+interactiveValue = m2.createTextNode("false")
+interactiveNode.appendChild(interactiveValue)
   
 m2Str = m2.toxml()
 f = open(homedir + '/.m2/mySettings.xml', 'w')
