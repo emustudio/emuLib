@@ -1,5 +1,7 @@
 emuLib - emuStudio library
 --------------------------
+[![Build Status](https://travis-ci.org/vbmacher/emuLib.png)](https://travis-ci.org/vbmacher/emuLib)
+[![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.png?branch=branch-9_0)](https://coveralls.io/r/vbmacher/emuLib?branch=branch-9_0)
 
 emuLib is run-time library used by [emuStudio](http://github.com/vbmacher/emuStudio) platform and related plug-ins.
 
@@ -16,6 +18,3 @@ Installation
 
 The library should be put to `lib` directory where emuStudio is installed.
 For example: `emuStudio/lib/emuLib.jar`.
-
-[![Build Status](https://travis-ci.org/vbmacher/emuLib.png)](https://travis-ci.org/vbmacher/emuLib)
-[![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.png?branch=branch-9_0)](https://coveralls.io/r/vbmacher/emuLib?branch=branch-9_0)
