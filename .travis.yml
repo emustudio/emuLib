@@ -1,3 +1,5 @@
 language: java
 jdk:
   - oraclejdk6
+
+script: mvn -Pjacoco test jacoco:report coveralls:jacoco
