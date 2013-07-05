@@ -22,7 +22,9 @@ if not serversNodes:
   settings.appendChild(serversNode)
 else:
   serversNode = serversNodes[0]
-  
+
+#interactive = m2.createElement("interactiveMode")
+
 sonatypeServerNode = m2.createElement("server")
 sonatypeServerId = m2.createElement("id")
 sonatypeServerUser = m2.createElement("username")
