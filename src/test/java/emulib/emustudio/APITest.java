@@ -45,7 +45,8 @@ public class APITest {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws InvalidPasswordException {
+        apiInstance.clearAll(password);
         apiInstance = null;
     }
 
