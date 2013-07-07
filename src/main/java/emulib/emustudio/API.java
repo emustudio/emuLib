@@ -2,7 +2,7 @@
  * API.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,46 +22,45 @@
 package emulib.emustudio;
 
 import emulib.runtime.InvalidPasswordException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * This class represents public API of emuStudio offered to plug-ins.
- * 
+ *
  * Through this class, plug-ins are enabled to call emuStudio directly.
  * It is a singleton class.
- * 
+ *
+ * Thread safe.
  * @author vbmacher
  */
 public class API {
     // emuStudio password for further emuLib communication
-    private static String emuStudioPassword = null;
+    private final static AtomicReference<String> emuStudioPassword = new AtomicReference<String>();
+    private final static API instance = new API();
     
-    // instance of this singleton
-    private static API instance;
-    
-    /**
-     * Debug table updater object
-     */
-    private DebugTable debugTable;
-    
+    private final AtomicReference<DebugTable> debugTable = new AtomicReference<DebugTable>();
+
     private API() {
     }
-    
+
     /**
      * Get singleton instance of this API object.
-     * 
+     *
      * @return instance of this class
      */
     public static API getInstance() {
-        if (instance == null) {
-            instance = new API();
-        }
         return instance;
     }
-    
-    
+
+    public synchronized void clearAll(String password) throws InvalidPasswordException {
+        testPassword(password);
+        debugTable.set(null);
+    }
+
+
     /**
      * Assigns a password for most crucial emuLib operations.
-     * 
+     *
      * This password should be a hash string by which the emuStudio is allowed to
      * perform crucial operations in the emuLib, such as plug-in loading, or providing
      * information about plug-in connections. These operations must be strictly proteted
@@ -75,57 +74,53 @@ public class API {
      *         otherwise.
      */
     public static boolean assignPassword(String password) {
-        if (emuStudioPassword == null) {
-            emuStudioPassword = password;
-            return true;
-        }
-        return false;
+        return emuStudioPassword.compareAndSet(null, password);
     }
-    
+
     /**
      * Determines if given password matches with password already set-up by emuStudio.
      * If the password is correct, it does nothing. Otherwise it throws an exception.
-     * 
+     *
      * WARNING: Everyone can call this method.
-     * 
+     *
      * @param password The password
      * @throws InvalidPasswordException thrown if password is wrong or trustedInstance is not trusted
      */
     public static void testPassword(String password) throws InvalidPasswordException {
-        if ((password == null) || (emuStudioPassword == null)) {
+        String tmpPassword = emuStudioPassword.get();
+        if ((password == null) || (tmpPassword == null)) {
             throw new InvalidPasswordException();
         }
-        if (!password.equals(emuStudioPassword)) {
+        if (!password.equals(tmpPassword)) {
             throw new InvalidPasswordException();
         }
     }
-    
+
     /**
      * Set debug table.
-     * 
+     *
      * It should be called by emuStudio only.
-     * 
+     *
      * @param debugTable The debug table
      * @param password password that was assigned to the emuLib. It prevents
      * from misuse of this method by other plugins.
      */
-    public void setDebugTable(DebugTable debugTable, String password) {
-        if ((emuStudioPassword == null) || (!emuStudioPassword.equals(password))) {
-            return;
-        }
-        this.debugTable = debugTable;
+    public void setDebugTable(DebugTable debugTable, String password) throws InvalidPasswordException {
+        testPassword(password);
+        this.debugTable.set(debugTable);
     }
-    
+
     /**
      * Refresh debug table in the emuStudio.
-     * 
+     *
      * If debug table was not set by emuStudio earlier, then it does nothing.
      */
     public void refreshDebugTable() {
-        if (debugTable == null) {
+        DebugTable tmpDebugTable = debugTable.get();
+        if (tmpDebugTable == null) {
             return;
         }
-        debugTable.refresh();
+        tmpDebugTable.refresh();
     }
-    
+
 }

@@ -2,8 +2,8 @@
  * APITest.java
  *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2012, Peter Jakubčo
+ *
+ * (c) Copyright 2012-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,8 +21,12 @@
  */
 package emulib.emustudio;
 
+import emulib.runtime.InvalidPasswordException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import static org.easymock.EasyMock.*;
+import org.junit.After;
 
 /**
  *
@@ -31,31 +35,30 @@ import org.junit.Test;
 public class APITest {
     private final static String password = "password";
     private static boolean passwordAssigned = false;
-    
-    public class DebugTableStub implements DebugTable {
+    private API apiInstance;
 
-        @Override
-        public void refresh() {
-            throw new IllegalStateException();
-        }
-        
+    @Before
+    public void setUp() {
+        assignEmuStudioPassword();
+        apiInstance = API.getInstance();
+        Assert.assertNotNull(apiInstance);
     }
-    
-    /**
-     * Test of getInstance method, of class API.
-     */
+
+    @After
+    public void tearDown() {
+        apiInstance = null;
+    }
+
     @Test
     public void testGetInstance() {
-        API result = API.getInstance();
-        Assert.assertNotNull(result);
-        Assert.assertEquals(result, API.getInstance());
+        Assert.assertEquals(apiInstance, API.getInstance());
     }
-    
+
     public static String getEmuStudioPassword() {
         return password;
     }
 
-    public synchronized static void assignEmuStudioPassword() {
+    public static void assignEmuStudioPassword() {
         if (!passwordAssigned) {
             Assert.assertTrue(API.assignPassword(password));
             passwordAssigned = true;
@@ -64,33 +67,32 @@ public class APITest {
             Assert.assertFalse(API.assignPassword("dsfsf"));
         }
     }
-    
-    /**
-     * Test of emuStudio password assignment
-     */
-    @Test
-    public void testAssignPassword() {
-        assignEmuStudioPassword();
-    }
-    
 
-    /**
-     * Test of setDebugTable method, of class API.
-     */
     @Test
-    public void testSetDebugTableInterfaceObject() {
-        DebugTable debug = new DebugTableStub();
-        assignEmuStudioPassword(); 
-        API instance = API.getInstance();
-        instance.setDebugTable(debug, password);
-        try {
-            instance.refreshDebugTable();
-        } catch (IllegalStateException e) {
-            // clean
-            API.getInstance().setDebugTable(null, password);
-            return;
-        }
-        Assert.fail("updateDebugTable() wasn't called!");
+    public void testRefreshDebugTable() throws InvalidPasswordException {
+        DebugTable debug = createNiceMock(DebugTable.class);
+        debug.refresh();
+        expectLastCall().once();
+        replay(debug);
+
+        apiInstance.setDebugTable(debug, password);
+        apiInstance.refreshDebugTable();
+        API.getInstance().setDebugTable(null, password);
+        verify(debug);
     }
 
+    public void testRefreshUnsetDebugTable() {
+        apiInstance.refreshDebugTable();
+
+    }
+
+    @Test(expected = InvalidPasswordException.class)
+    public void testInvalidPassword() throws InvalidPasswordException {
+        API.testPassword(password + "definitely invalid");
+    }
+
+    @Test(expected = InvalidPasswordException.class)
+    public void testNullPassword() throws InvalidPasswordException {
+        API.testPassword(null);
+    }
 }

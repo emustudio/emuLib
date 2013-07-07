@@ -449,9 +449,7 @@ public class ContextPool {
         Long contextOwner = null;
         for (Map.Entry<Long, List<Context>> owner : contextOwners.entrySet()) {
             List<Context> contextsByOwner = owner.getValue();
-            if (contextsByOwner == null) {
-                continue;
-            }
+            assert (contextsByOwner != null);
             if (contextsByOwner.contains(context)) {
                 contextOwner = owner.getKey();
                 break;
@@ -480,10 +478,8 @@ public class ContextPool {
         }
         // first it must be found the contextsByOwner of the ContextPool.
         Long contextOwner = findContextOwner(context);
-        if (contextOwner == null) {
-            LOGGER.debug("Plugin with ID=" + pluginID + " cannot have access to context " + context + ": Could not find context owner.");
-            return false;
-        }
+        assert (contextOwner != null);
+
         // THIS is the permission check
         LOGGER.debug("Checking permission of plugin with ID=" + pluginID + " to context owner with ID=" + contextOwner
                 + " (" + context + ")");
@@ -519,7 +515,6 @@ public class ContextPool {
             }
             hash += ");";
         }
-        LOGGER.info(contextInterface.getSimpleName() + ": " + hash);
         try {
             return SHA1(hash);
         } catch(Exception e) {
