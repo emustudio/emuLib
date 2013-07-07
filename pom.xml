@@ -49,8 +49,8 @@
         </plugins>
       </build>
     </profile>
-  </profiles>  
-  
+  </profiles>
+
   <build>
     <finalName>emuLib-${project.version}</finalName>
     <plugins>
@@ -115,6 +115,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.10</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.easymock</groupId>
+      <artifactId>easymock</artifactId>
+      <version>3.1</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

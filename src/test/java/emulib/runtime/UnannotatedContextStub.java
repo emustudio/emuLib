@@ -28,6 +28,6 @@ import emulib.plugins.Context;
  * 
  * @author vbmacher
  */
-public interface UnannotatedContextInterface extends Context {
+public interface UnannotatedContextStub extends Context {
     public void testMethod();
 }

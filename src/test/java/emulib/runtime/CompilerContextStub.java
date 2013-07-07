@@ -1,8 +1,8 @@
 /*
- * MemoryContextInterface.java
- * 
+ * CompilerContextInterface.java
+ *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,13 +21,15 @@
  */
 package emulib.runtime;
 
-import emulib.plugins.memory.MemoryContext;
+import emulib.annotations.ContextType;
+import emulib.plugins.compiler.CompilerContext;
 
 /**
- * Mock MemoryContext interface.
- * 
+ * Mock CompilerContext interface.
+ *
  * @author vbmacher
  */
-public interface MemoryContextInterface extends MemoryContext {
-    public void testMemoryMethod();
+@ContextType
+public interface CompilerContextStub extends CompilerContext {
+    public void testCompilerMethod();
 }

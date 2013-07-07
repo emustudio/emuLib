@@ -1,9 +1,9 @@
 /*
- * CPUContextInterface.java
- * 
+ * DeviceContextInterface.java
+ *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ *
+ * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,14 +22,16 @@
 package emulib.runtime;
 
 import emulib.annotations.ContextType;
-import emulib.plugins.cpu.CPUContext;
+import emulib.plugins.device.DeviceContext;
 
 /**
- * Mock CPUContext interface.
- * 
+ * Mock DeviceContext interface.
+ *
  * @author vbmacher
  */
 @ContextType
-public interface CPUContextInterface extends CPUContext {
-    public void testMethod();
+public interface DeviceContextStub extends DeviceContext {
+
+    public void testDeviceMethod();
+
 }

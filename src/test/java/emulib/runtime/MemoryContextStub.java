@@ -1,8 +1,8 @@
 /*
- * DeviceContextInterface.java
+ * MemoryContextInterface.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -21,15 +21,15 @@
  */
 package emulib.runtime;
 
-import emulib.plugins.device.DeviceContext;
+import emulib.annotations.ContextType;
+import emulib.plugins.memory.MemoryContext;
 
 /**
- * Mock DeviceContext interface.
- * 
+ * Mock MemoryContext interface.
+ *
  * @author vbmacher
  */
-public interface DeviceContextInterface extends DeviceContext {
-    
-    public void testDeviceMethod();
-    
+@ContextType
+public interface MemoryContextStub extends MemoryContext {
+    public void testMemoryMethod();
 }
