@@ -326,4 +326,44 @@ public class ContextPoolTest {
         Assert.assertNull(contextPool.getCPUContext(0, CPUContextStub.class));
     }
 
+    @Test(expected = InvalidContextException.class)
+    public void testGetNullCPUContext() throws InvalidContextException {
+        contextPool.getCPUContext(0, null);
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetNullCompilerContext() throws InvalidContextException {
+        contextPool.getCompilerContext(1, null);
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetNullMemoryContext() throws InvalidContextException {
+        contextPool.getMemoryContext(2, null);
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetNullDeviceContext() throws InvalidContextException {
+        contextPool.getDeviceContext(3, null);
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetCPUContextWhichIsNotInterface() throws InvalidContextException {
+        contextPool.getCPUContext(0, cpuContextMock.getClass());
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetCompilerContextWhichIsNotInterface() throws InvalidContextException {
+        contextPool.getCompilerContext(0, compilerContextMock.getClass());
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetMemoryContextWhichIsNotInterface() throws InvalidContextException {
+        contextPool.getMemoryContext(0, memContextMock.getClass());
+    }
+
+    @Test(expected = InvalidContextException.class)
+    public void testGetDeviceContextWhichIsNotInterface() throws InvalidContextException {
+        contextPool.getDeviceContext(0, devContextMock.getClass());
+    }
+
 }
