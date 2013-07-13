@@ -32,7 +32,9 @@ import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
 import javax.swing.JPanel;
+import org.junit.After;
 import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Test;
 
 public class PluginLoaderTest {
@@ -100,15 +102,23 @@ public class PluginLoaderTest {
         }
     }
 
+    @Before
+    public void setUp() {
+        APITest.assignEmuStudioPassword();
+    }
+
+    @After
+    public void tearDown() throws InvalidPasswordException {
+      PluginLoader.getInstance().forgetAllLoaded(APITest.getEmuStudioPassword());
+    }
+
     /**
      * Test of getInstance method, of class Loader.
      */
     @Test
     public void testGetInstance() {
-        APITest.assignEmuStudioPassword();
         PluginLoader expResult = PluginLoader.getInstance();
-        PluginLoader result = PluginLoader.getInstance();
-        assertEquals(expResult, result);
+        assertEquals(expResult, PluginLoader.getInstance());
     }
 
     /**
@@ -117,10 +127,11 @@ public class PluginLoaderTest {
     @Test
     public void testLoadJAR() throws InvalidPasswordException, InvalidPluginException {
         String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
-        APITest.assignEmuStudioPassword();
         PluginLoader instance = PluginLoader.getInstance();
         Class<Plugin> result = instance.loadPlugin(filename, APITest.getEmuStudioPassword());
         assertNotNull(result);
+        assertTrue(instance.canResolveClasses(APITest.getEmuStudioPassword()));
+        assertEquals(0, instance.getUnloadedClassesList(APITest.getEmuStudioPassword()).length);
     }
 
     /**
@@ -139,4 +150,9 @@ public class PluginLoaderTest {
         assertTrue(PluginLoader.trustedPlugin(CPUImplStub.class));
     }
 
+    @Test(expected = InvalidPluginException.class)
+    public void testLoadPluginNullFileName() throws InvalidPasswordException, InvalidPluginException {
+        PluginLoader instance = PluginLoader.getInstance();
+        instance.loadPlugin(null, APITest.getEmuStudioPassword());
+    }
 }
