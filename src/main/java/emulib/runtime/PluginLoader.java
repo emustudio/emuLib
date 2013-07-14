@@ -2,7 +2,7 @@
  * PluginLoader.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2010-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -38,69 +38,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class provides static methods for dynamic loading JAR files (e.g.
- * plug-ins or specific plug-in libraries)
+ * This class provides methods for dynamic loading of emuStudio plug-ins (which in turn are JAR files.)
  *
+ * The class is not thread safe.
  * @author vbmacher
  */
 public class PluginLoader extends ClassLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
-    
+
     // Instance of this class
     private static PluginLoader instance = new PluginLoader();
-    
+
     // loaded resources of all classes
     private Map<String, URL> allResources = new HashMap<String, URL>();
-    
+
     private List<String> knownDependencies = new ArrayList<String>();
-    
+
     // security manager for this class loader
     private PluginSecurityManager securityManager;
     private List<Class<?>> classesToResolve = new ArrayList<Class<?>>();
-    private List<NotLoadedJAR> undoneClassesToLoad = new ArrayList<NotLoadedJAR>();
-    
+    private List<NotLoadedJAR> notLoadedJARFiles = new ArrayList<NotLoadedJAR>();
+
     private static class LoadedJAR {
-        String filename;
-        private Manifest manifest;
-        private Map<String, byte[]> classesData;
-        
+        public final String filename;
+        public final Manifest manifest;
+        private final Map<String, byte[]> classesData;
+
         public LoadedJAR(String filename, Manifest manifest, Map<String, byte[]> classesData) {
             this.filename = filename;
             this.manifest = manifest;
             this.classesData = classesData;
         }
-        
-        public String getFileName() {
-            return filename;
-        }
-        
-        public Manifest getManifest() {
-            return manifest;
-        }
-        
+
         public Map<String, byte[]> getClassesData() {
-            return classesData;
+            return Collections.unmodifiableMap(classesData);
         }
+
     }
-    
-    private static class NotLoadedJAR {
+
+    public static class NotLoadedJAR {
         private List<String> undone;
-        private String filename;
-        
+        public final String filename;
+
         public NotLoadedJAR(List<String> undone, String filename) {
             this.undone = undone;
             this.filename = filename;
         }
-        
+
         public List<String> getUndone() {
-            return undone;
+            return Collections.unmodifiableList(undone);
         }
-        
-        public String getFilename() {
-            return filename;
-        }
-        
+
         @Override
         public String toString() {
             return "NLC[file=" + filename + "; undone=" + undone + "]";
@@ -114,51 +103,54 @@ public class PluginLoader extends ClassLoader {
     private PluginLoader() {
         securityManager = new PluginSecurityManager();
         System.setSecurityManager(securityManager);
-        registerKnownDependencies(getClass());
+        try {
+            registerKnownDependencies(getClass());
+        } catch (IOException e) {
+            LOGGER.error("Could not register known dependencies", e);
+        }
     }
 
     /**
      * Registers all known dependencies for specified class.
-     * 
+     *
      * These dependencies will be ignored during loading plug-in dependencies - they will be considered as already
      * loaded.
-     * 
+     *
+     * The method iterates over all manifests for the class and looks for Class-Path attribute.
+     *
      * @param className Class for which we determine dependencies. This method should be called only once per
      * class-loader.
-     * @return true if some dependencies were registered; false if no new dependencies were recognized.
+     * @return true if all dependencies were registered; false if no new dependencies were recognized.
+     * @throws IOException if manifest could not be read. However, if it does not exist, the function just returns false.
      */
-    private boolean registerKnownDependencies(Class className) {
+    private boolean registerKnownDependencies(Class className) throws IOException {
         boolean dependencyAdded = false;
-        try {
-            Enumeration<URL> resources = className.getClassLoader().getResources("META-INF/MANIFEST.MF");
-            while (resources.hasMoreElements()) {
-                URL resource = resources.nextElement();
-                LOGGER.debug("Found manifest: " + resource);
-                try {
-                    Manifest manifest = new Manifest(resource.openStream());
-                    String classPath;
-                    classPath = manifest.getMainAttributes().getValue("Class-Path");
-                    if (classPath != null) {
-                        String[] classPathList = classPath.split(" ");
-                        for (String dependency : classPathList) {
-                            dependency = getRelativeName(dependency);
-                            if (dependency != null && !knownDependencies.contains(dependency)) {
-                                LOGGER.debug("Registering known dependency: " + dependency);
-                                knownDependencies.add(dependency);
-                                dependencyAdded = true;
-                            }
-                        }
+        Enumeration<URL> resources = className.getClassLoader().getResources("META-INF/MANIFEST.MF");
+
+        if (resources == null) {
+            return false;
+        }
+        while (resources.hasMoreElements()) {
+            URL resource = resources.nextElement();
+            LOGGER.debug("Found manifest: " + resource);
+            Manifest manifest = new Manifest(resource.openStream());
+            String classPath;
+            classPath = manifest.getMainAttributes().getValue("Class-Path");
+            if (classPath != null) {
+                String[] classPathList = classPath.split(" ");
+                for (String dependency : classPathList) {
+                    dependency = getRelativeName(dependency);
+                    if (dependency != null && !knownDependencies.contains(dependency)) {
+                        LOGGER.debug("Registering known dependency: " + dependency);
+                        knownDependencies.add(dependency);
+                        dependencyAdded = true;
                     }
-                } catch (IOException e) {
-                    LOGGER.error("Failed to determine dependencies for manifest: " + resource, e);
                 }
             }
-        } catch (IOException e) {
-            LOGGER.error("Could not register known dependencies for class " + className, e);
         }
         return dependencyAdded;
     }
-    
+
     /**
      * Get the PluginLoader instance.
      *
@@ -169,23 +161,23 @@ public class PluginLoader extends ClassLoader {
     public static PluginLoader getInstance() {
         return instance;
     }
-        
+
     /**
      * This method clears all information regarding to plug-ins loading.
-     * 
+     *
      * However, this does not mean that every loaded class is forgotten by JVM.
      * In order to do that, you must create new instance of PluginLoader.
-     * 
+     *
      * @param password emuStudio password.
      * @throws InvalidPasswordException if the password is wrong
      */
     public void forgetAllLoaded(String password) throws InvalidPasswordException {
         API.testPassword(password);
         allResources.clear();
-        undoneClassesToLoad.clear();
+        notLoadedJARFiles.clear();
         classesToResolve.clear();
     }
-    
+
     /**
      * Checks if a class implements given interface.
      *
@@ -236,7 +228,7 @@ public class PluginLoader extends ClassLoader {
         resourceURL = resourceURL.replaceAll("%3A", ":").replaceAll("%2F", "/").replaceAll("%21", "!").replaceAll("\\+", "%20");
         allResources.put("/" + resourceFileName, new URL(resourceURL));
     }
-    
+
     private byte[] loadJARData(JarEntry jarEntry, JarInputStream jis) throws IOException {
         long size = jarEntry.getSize();
         int intSize = (int)size;
@@ -264,7 +256,7 @@ public class PluginLoader extends ClassLoader {
     private LoadedJAR loadJARFile(String filename) throws IOException {
         return loadJARFile(filename, null, true);
     }
-    
+
     private LoadedJAR loadJARFile(String filename, List<String> onlyClasses) throws IOException {
         return loadJARFile(filename, onlyClasses, false);
     }
@@ -288,8 +280,7 @@ public class PluginLoader extends ClassLoader {
                     loadResource(filename, jarEntryName);
                 }
                 continue;
-            }
-            if (onlyClasses != null && !onlyClasses.contains(jarEntryName)) {
+            } else if (onlyClasses != null && !onlyClasses.contains(jarEntryName)) {
                 continue;
             }
             try {
@@ -310,19 +301,19 @@ public class PluginLoader extends ClassLoader {
         bis.close();
         fis.close();
         jarFile.close();
-        
+
         return new LoadedJAR(filename, manifest, classesData);
     }
 
     /**
      * Loads all dependencies for the loaded JAR file.
-     * 
+     *
      * @param loadedJAR loaded JAR file
-     * @throws InvalidPasswordException 
+     * @throws InvalidPasswordException
      */
     private void loadDependencies(LoadedJAR loadedJAR) throws InvalidPasswordException {
         // look for manifest and try to load dependencies
-        Manifest manifest = loadedJAR.getManifest();
+        Manifest manifest = loadedJAR.manifest;
         if (manifest == null) {
             return;
         }
@@ -335,9 +326,9 @@ public class PluginLoader extends ClassLoader {
             String relativeDependency = getRelativeName(dependency);
             if (relativeDependency != null) {
                 if (!knownDependencies.contains(relativeDependency)) {
-                    LOGGER.debug("Loading " + getRelativeName(loadedJAR.getFileName()) + " depencency: " + relativeDependency);
+                    LOGGER.debug("Loading " + getRelativeName(loadedJAR.filename) + " depencency: " + relativeDependency);
                     try {
-                        loadJAR(dependency);
+                        tryToLoadJAR(dependency);
                         knownDependencies.add(relativeDependency);
                     } catch (InvalidPluginException e) {
                         LOGGER.warn("Could not load dependency: " + relativeDependency);
@@ -350,12 +341,12 @@ public class PluginLoader extends ClassLoader {
 
     /**
      * Method loads emuStudio plugin into memory.
-     * 
+     *
      * The plug-in should be in JAR format. The loaded classes are not resolved. After this method call
-     * (and all possible multiple calls), 
+     * (and all possible multiple calls),
      * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
      * called.
-     * 
+     *
      * @param filename name of the plugin (absolute path is better). If the filename does not contain '.jar' suffix,
      *                 it will be added automatically.
      * @param password emuStudio password.
@@ -363,22 +354,35 @@ public class PluginLoader extends ClassLoader {
      */
     public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException {
         API.testPassword(password);
-        
-        Class<Plugin> mainClass = loadJAR(filename);
+
+        Class<Plugin> mainClass = tryToLoadJAR(filename);
         if (mainClass == null) {
             throw new InvalidPluginException();
         }
         return mainClass;
     }
-    
+
     /**
-     * Loads a JAR file into memory - all its classes and resources.
-     * 
+     * Tries to load a JAR file into memory.
+     *
+     * It includes loading and defining all classes to JVM. It also loads all JAR resources. Every file which doesn't
+     * end with '.class' suffix is considered as a resource (except manifest file which is detected automatically by
+     * JavaInputStream).
+     *
+     * After this method,
+     * {@link emulib.runtime.PluginLoader#isEverythingLoaded() PluginLoader.isEverythingLoaded} method should be called
+     * to check if everything (regarding this JAR and also all dependencies) was loaded successfully.
+     *
+     * This method is not strict, and allows to have not fully loaded JAR files. The reason is that an user could add
+     * JAR dependencies later by calling this method again. This allows continuous "submitting" of all dependencies and
+     * at the end there should be a single check-point for checking if everything was loaded successfully or if something
+     * needs to look around for dependencies added later.
+     *
      * @param filename Absolute or relative path to the file
      * @return Class representing plug-in main class if the JAR represents an emuStudio plug-in; null otherwise.
      * @throws InvalidPluginException If something goes wrong
      */
-    private Class<Plugin> loadJAR(String filename) throws InvalidPluginException {
+    private Class<Plugin> tryToLoadJAR(String filename) throws InvalidPluginException {
         List<String> undoneClasses = new ArrayList<String>();
         LoadedJAR loadedJAR;
         Class<Plugin> mainClass = null;
@@ -401,12 +405,12 @@ public class PluginLoader extends ClassLoader {
                     undoneClasses.add(classData.getKey());
                 }
             }
-            
+
             // try to load all undone classes
             if (!undoneClasses.isEmpty()) {
                 List<Class<?>> definedClasses;
                 do {
-                    definedClasses = loadUndoneClasses(undoneClasses, filename);
+                    definedClasses = loadClasses(undoneClasses, filename);
                     if (mainClass == null) {
                         for (Class<?> definedClass : definedClasses) {
                             if (trustedPlugin(definedClass)) {
@@ -418,7 +422,8 @@ public class PluginLoader extends ClassLoader {
                 } while (!(definedClasses.isEmpty() || undoneClasses.isEmpty()));
                 if (!undoneClasses.isEmpty()) {
                     // if a jar file contains some error
-                    undoneClassesToLoad.add(new NotLoadedJAR(undoneClasses, filename));
+                    notLoadedJARFiles.add(new NotLoadedJAR(undoneClasses, filename));
+                    LOGGER.debug("JAR file " + filename + " could not be loaded at once.");
                 }
             }
         } catch (Exception e) {
@@ -427,26 +432,22 @@ public class PluginLoader extends ClassLoader {
         return mainClass;
     }
 
-    
+
     /**
      * Get list of not (yet) loaded classes.
-     * 
+     *
      * @param password emuStudio password
      * @return array of string describing not loaded classes.
      * @throws InvalidPasswordException if the password is wrong
      */
-    public String[] getUnloadedClassesList(String password) throws InvalidPasswordException {
+    public List<NotLoadedJAR> geRemainingJARFiles(String password) throws InvalidPasswordException {
         API.testPassword(password);
-        List<String> classes = new ArrayList<String>();
-        for (NotLoadedJAR nlc : undoneClassesToLoad) {
-          classes.add(nlc.toString());
-        }
-        return classes.toArray(new String[0]);
+        return Collections.unmodifiableList(notLoadedJARFiles);
     }
-    
+
     /**
      * Check if provided class meets plug-in requirements.
-     * 
+     *
      * @param pluginClass the main class of the plug-in
      * @return true if the class meets plug-in requirements; false otherwise
      */
@@ -466,35 +467,7 @@ public class PluginLoader extends ClassLoader {
         }
         return true;
     }
-    
-    /**
-     * Reads a file content.
-     *
-     * @param fileName The name of the file to be read
-     * @return The contents of the file
-     * @throws IOException if there was an error during the read
-     */
-    public static String loadFile(String fileName) throws IOException {
-        BufferedReader br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(fileName)));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while (true) {
-            line = br.readLine();
-            if (line == null) {
-                break;
-            }
-            sb.append(line).append("\n");
-        }
-        return sb.toString();
-    }
 
-    /**
-     * Overrided method.
-     * 
-     * @param name
-     * @return 
-     */
     @Override
     protected URL findResource(String name) {
         if (!name.startsWith("/")) {
@@ -509,55 +482,32 @@ public class PluginLoader extends ClassLoader {
     }
 
     /**
-     * Overrided method.
-     * 
-     * @param name
-     * @return 
-     */
-    @Override
-    public InputStream getResourceAsStream(String name) {
-        if (!name.startsWith("/")) {
-            name = "/" + name;
-        }
-        if (allResources.containsKey(name)) {
-            URL url = (URL) allResources.get(name);
-            try {
-                return url != null ? url.openStream() : null;
-            } catch (Exception e) {
-                LOGGER.debug(new StringBuilder().append("Could not get resource as stream.")
-                        .append(url.toString()).toString(), e);
-            }
-        }
-        return null;
-    }
-
-    /**
      * This method tries to load specified classes.
-     * 
+     *
      * The method is called by loadJAR method, if some classes could not be loaded, because of possible
      * forwad references.
-     * 
+     *
      * For example we cannot load a class that extends not yet loaded class. This method tries to resolve
      * this problem by hope that all till now loaded classes are sufficient for
      * defining these "undone" classes.
      *
-     * @param undone Vector of "undone" classes
+     * @param classesList Vector of "undone" classes
      * @param filename File name of the JAR file.
      * @return list of all classes that were loaded successfully
      */
-    private List<Class<?>> loadUndoneClasses(List<String> undone, String filename) {
+    private List<Class<?>> loadClasses(List<String> classesList, String filename) {
         List<Class<?>> resultClasses = new ArrayList<Class<?>>();
         LoadedJAR loadedJAR;
-        
+
         try {
-            loadedJAR = loadJARFile(filename, undone);
+            loadedJAR = loadJARFile(filename, classesList);
             for (Map.Entry<String, byte[]> classData : loadedJAR.getClassesData().entrySet()) {
                 try {
                     // try load class data
                     Class<?> cl = defineLoadedClass(classData.getKey(), classData.getValue());
                     classesToResolve.add(cl);
                     resultClasses.add(cl);
-                    undone.remove(classData.getKey());
+                    classesList.remove(classData.getKey());
                 } catch (ClassNotFoundException nf) {
                 }
             }
@@ -566,17 +516,17 @@ public class PluginLoader extends ClassLoader {
         }
         return resultClasses;
     }
-    
+
     /**
      * Transform a relative file name into valid Java class name.
-     * 
+     *
      * For example, if the class file name is "somepackage/nextpackage/SomeClass.class", the method
      * will transform it to the format "somepackage.nextpackage.SomeClass".
-     * 
+     *
      * It doesnt't work for absolute file names.
-     * 
+     *
      * It doesn't hurt if the class name is already in valid Java format.
-     * 
+     *
      * @param classFileName File name defining class
      * @return valid Java class name
      */
@@ -619,75 +569,95 @@ public class PluginLoader extends ClassLoader {
             throw new ClassNotFoundException(ex.toString());
         }
     }
-    
+
     /**
-     * Determine if there are no classes that weren't successfully loaded.
-     * 
-     * If there are classes that weren't loaded, resolving process may not be
-     * successful. Therefore, if this method returns false, there should be called
-     * method {@link emulib.runtime.PluginLoader#loadUndoneClasses() PluginLoader.loadUndoneClasses}
-     * 
+     * Determine if all classes and resources (including dependencies) were successfully loaded.
+     *
+     * If there exist classes (or dependencies) that couldn't be loaded for some reason, class resolving process may not
+     * be successful. If this method returns false, there should be called
+     * {@link emulib.runtime.PluginLoader#loadRemainingJARFiles() PluginLoader.loadRemainingJARFiles} method
+     * at least once.
+     *
      * @param password emuStudio password.
      * @return true if all classes were successfully loaded, false otherwise
      * @throws InvalidPasswordException if the password is wrong
      */
-    public boolean canResolveClasses(String password) throws InvalidPasswordException {
+    public boolean isEverythingLoaded(String password) throws InvalidPasswordException {
         API.testPassword(password);
-        return undoneClassesToLoad.isEmpty();
+        return notLoadedJARFiles.isEmpty();
     }
-    
+
     /**
-     * This method tries to load all not successfully loaded classes.
-     * 
+     * This method tries to load and define all the remaining classes of all not fully loaded JAR files.
+     *
      * It should be called only when
-     * {@link emulib.runtime.PluginLoader#canResolveClasses() PluginLoader.canResolveClasses} returns false.
-     * 
+     * {@link emulib.runtime.PluginLoader#isEverythingLoaded() PluginLoader.isEverythingLoaded} returns false.
+     *
+     * The result will be correct only if the method will be called after all intended JAR files (including dependencies)
+     * were asked to be loaded, regardless the result. Otherwise there might be some dependencies missing but will be
+     * added later.
+     *
      * @param password emuStudio password.
-     * @return true if all undone classes were successfully loaded, false otherwise
+     * @return true if all not fully loaded JAR files were successfully loaded and their classes were defined in JVM; false otherwise
      * @throws InvalidPasswordException if the password is wrong
+     * @throws PluginNotFullyLoadedException The method is strict - if is not successful for all remaining JAR files,
+     * it throws this exception.
      */
-    public boolean loadUndoneClasses(String password) throws InvalidPasswordException {
+    public boolean loadRemainingJARFiles(String password) throws InvalidPasswordException, PluginNotFullyLoadedException {
         API.testPassword(password);
-        if (undoneClassesToLoad.isEmpty()) {
+        if (notLoadedJARFiles.isEmpty()) {
             return true;
         }
+        boolean somethingGloballyLoaded;
         List<NotLoadedJAR> stillNotLoaded = new ArrayList<NotLoadedJAR>();
         do {
-            NotLoadedJAR classToLoad = undoneClassesToLoad.get(0);
-            List<String> undone = classToLoad.getUndone();
-            boolean somethingLoaded;
-            do {
-                somethingLoaded = !loadUndoneClasses(undone, classToLoad.getFilename()).isEmpty();
-            } while (!undone.isEmpty() && somethingLoaded);
-            undoneClassesToLoad.remove(0);
-            if (!undone.isEmpty()) {
-                stillNotLoaded.add(classToLoad);
+            stillNotLoaded.clear();
+            Iterator<NotLoadedJAR> jarIterator = notLoadedJARFiles.iterator();
+            somethingGloballyLoaded = false;
+            while (jarIterator.hasNext()) {
+                NotLoadedJAR jarToLoad = jarIterator.next();
+                List<String> undone = jarToLoad.getUndone();
+                boolean somethingLoaded;
+                do {
+                    somethingLoaded = !loadClasses(undone, jarToLoad.filename).isEmpty();
+                    if (somethingLoaded && !somethingGloballyLoaded) {
+                        somethingGloballyLoaded = true;
+                    }
+                } while (!undone.isEmpty() && somethingLoaded);
+                jarIterator.remove();
+                if (!undone.isEmpty()) {
+                    stillNotLoaded.add(jarToLoad);
+                }
             }
-        } while (!undoneClassesToLoad.isEmpty());
-        
-        if (stillNotLoaded.isEmpty()) {
-            return true;
+        } while (!stillNotLoaded.isEmpty() && somethingGloballyLoaded);
+
+        if (!stillNotLoaded.isEmpty()) {
+            notLoadedJARFiles.addAll(stillNotLoaded);
+            throw new PluginNotFullyLoadedException("Some of the JAR files couldn't be loaded");
         }
-        undoneClassesToLoad.addAll(stillNotLoaded);
-        return false;
+        return true;
     }
 
 
     /**
      * Make all loaded classes to be usable in Java.
-     * 
+     *
      * This method should be called only once, after all calls of
      * {@link emulib.runtime.PluginLoader#loadJARFile(String) PluginLoader.loadJAR} method.
-     * 
-     * You can check if the classes can be resolved by calling 
+     *
+     * You should check if the classes can be resolved by calling
      * {@link emulib.runtime.PluginLoader#canResolveClasses() PluginLoader.canResolveClasses} method.
      * @param password emuStudio password.
      * @throws InvalidPasswordException if the password is wrong
      */
-    public void resolveLoadedClasses(String password) throws InvalidPasswordException {
+    public void resolveLoadedClasses(String password) throws InvalidPasswordException, PluginNotFullyLoadedException {
         API.testPassword(password);
         if (classesToResolve.isEmpty()) {
+            // nothing to do
             return;
+        }
+        if (!notLoadedJARFiles.isEmpty()) {
+            throw new PluginNotFullyLoadedException("Not all classes are fully loaded");
         }
 
         boolean done = false;

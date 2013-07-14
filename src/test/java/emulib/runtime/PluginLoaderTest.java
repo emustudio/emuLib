@@ -31,6 +31,9 @@ import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import javax.swing.JPanel;
 import org.junit.After;
 import static org.junit.Assert.*;
@@ -121,17 +124,25 @@ public class PluginLoaderTest {
         assertEquals(expResult, PluginLoader.getInstance());
     }
 
-    /**
-     * Test of loadJAR method, of class Loader.
-     */
-    @Test
-    public void testLoadJAR() throws InvalidPasswordException, InvalidPluginException {
+    private Class<Plugin> loadGoodPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException {
         String filename = System.getProperty("user.dir") + "/src/test/resources/8080-cpu.jar";
+        return instance.loadPlugin(filename, APITest.getEmuStudioPassword());
+    }
+
+    private Class<Plugin> loadBadPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException {
+        String filename = System.getProperty("user.dir") + "/src/test/resources/ramc-ram.jar";
+        PluginLoader.getInstance();
+        return instance.loadPlugin(filename, APITest.getEmuStudioPassword());
+    }
+
+    @Test
+    public void testLoadJAR() throws InvalidPasswordException, InvalidPluginException, PluginNotFullyLoadedException {
         PluginLoader instance = PluginLoader.getInstance();
-        Class<Plugin> result = instance.loadPlugin(filename, APITest.getEmuStudioPassword());
+        Class<Plugin> result = loadGoodPlugin(instance);
         assertNotNull(result);
-        assertTrue(instance.canResolveClasses(APITest.getEmuStudioPassword()));
-        assertEquals(0, instance.getUnloadedClassesList(APITest.getEmuStudioPassword()).length);
+        assertTrue(instance.isEverythingLoaded(APITest.getEmuStudioPassword()));
+        assertTrue(instance.geRemainingJARFiles(APITest.getEmuStudioPassword()).isEmpty());
+        instance.resolveLoadedClasses(APITest.getEmuStudioPassword());
     }
 
     /**
@@ -148,11 +159,51 @@ public class PluginLoaderTest {
     @Test
     public void testTrustedPlugin() {
         assertTrue(PluginLoader.trustedPlugin(CPUImplStub.class));
+        assertFalse(PluginLoader.trustedPlugin(CPUListenerStub.class));
     }
 
     @Test(expected = InvalidPluginException.class)
     public void testLoadPluginNullFileName() throws InvalidPasswordException, InvalidPluginException {
         PluginLoader instance = PluginLoader.getInstance();
         instance.loadPlugin(null, APITest.getEmuStudioPassword());
+    }
+
+    @Test
+    public void testNotEverythingLoadedWithIncompleteJARFile() throws InvalidPasswordException, InvalidPluginException {
+        PluginLoader instance = PluginLoader.getInstance();
+        Class<Plugin> result = loadBadPlugin(instance);
+        assertNotNull(result);
+        assertFalse(instance.isEverythingLoaded(APITest.getEmuStudioPassword()));
+
+        List<PluginLoader.NotLoadedJAR> notLoadedJARs = instance.geRemainingJARFiles(APITest.getEmuStudioPassword());
+        assertTrue(notLoadedJARs.size() > 0);
+        for (PluginLoader.NotLoadedJAR notLoadedJAR: notLoadedJARs) {
+            System.out.println("NLJ: fileName=" + notLoadedJAR.filename + ", undone="
+                    + Arrays.toString(notLoadedJAR.getUndone().toArray()));
+        }
+    }
+
+    @Test(expected = PluginNotFullyLoadedException.class)
+    public void testResolveWillThrowWithIncompleteJARFile() throws InvalidPasswordException, InvalidPluginException, PluginNotFullyLoadedException {
+        PluginLoader instance = PluginLoader.getInstance();
+        loadBadPlugin(instance);
+        assertFalse(instance.isEverythingLoaded(APITest.getEmuStudioPassword()));
+        instance.resolveLoadedClasses(APITest.getEmuStudioPassword());
+    }
+
+    @Test(expected = PluginNotFullyLoadedException.class)
+    public void testLoadRemainingJARFilesWillThrow() throws InvalidPasswordException, InvalidPluginException, PluginNotFullyLoadedException {
+        PluginLoader instance = PluginLoader.getInstance();
+        loadBadPlugin(instance);
+        assertFalse(instance.isEverythingLoaded(APITest.getEmuStudioPassword()));
+        instance.loadRemainingJARFiles(APITest.getEmuStudioPassword());
+    }
+
+    @Test
+    public void testFindResource() throws InvalidPasswordException, InvalidPluginException {
+        PluginLoader instance = PluginLoader.getInstance();
+        loadGoodPlugin(instance);
+        URL foundURL = instance.findResource("/META-INF/maven/net.sf.emustudio/8080-cpu/pom.xml");
+        assertNotNull(foundURL);
     }
 }
