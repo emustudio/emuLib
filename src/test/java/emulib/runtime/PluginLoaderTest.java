@@ -31,9 +31,9 @@ import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.JPanel;
@@ -42,6 +42,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class PluginLoaderTest {
+    private static final String GOOD_PLUGIN_PATH = "src/test/resources/brainduck-cpu.jar";
+    private static final String BAD_PLUGIN_PATH = "src/test/resources/ramc-ram.jar";
+
     private URL libURL;
     private PluginLoader pluginLoader;
 
@@ -116,18 +119,15 @@ public class PluginLoaderTest {
     }
 
     private Class<Plugin> loadGoodPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException, IOException {
-        String filename = System.getProperty("user.dir") + "/src/test/resources/brainduck-cpu.jar";
-        return instance.loadPlugin(filename, APITest.getEmuStudioPassword());
+        return instance.loadPlugin(GOOD_PLUGIN_PATH, APITest.getEmuStudioPassword());
     }
 
     private Class<Plugin> loadBadPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException, IOException {
-        String filename = System.getProperty("user.dir") + "/src/test/resources/ramc-ram.jar";
-        return instance.loadPlugin(filename, APITest.getEmuStudioPassword());
+        return instance.loadPlugin(BAD_PLUGIN_PATH, APITest.getEmuStudioPassword());
     }
 
     @Test
-    public void testLoadJAR() throws InvalidPasswordException, InvalidPluginException, IOException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    public void testLoadJAR() throws Exception {
         Class<Plugin> result = loadGoodPlugin(pluginLoader);
         assertNotNull(result);
         Constructor<Plugin> constructor = result.getConstructor(Long.class);
@@ -157,22 +157,21 @@ public class PluginLoaderTest {
     }
 
     @Test
-    public void testFindResource() throws InvalidPasswordException, InvalidPluginException, IOException {
+    public void testFindResource() throws Exception {
         loadGoodPlugin(pluginLoader);
         URL foundURL = pluginLoader.findResource("/META-INF/maven/net.sf.emustudio/brainduck-cpu/pom.xml");
         assertNotNull(foundURL);
     }
 
     @Test
-    public void testFindNonexistantResource() throws InvalidPasswordException, InvalidPluginException, IOException {
+    public void testFindNonexistantResource() throws Exception {
         loadGoodPlugin(pluginLoader);
         URL foundURL = pluginLoader.findResource("non-existent-resource");
         assertNull(foundURL);
     }
 
     @Test(expected = NoClassDefFoundError.class)
-    public void testBadPlugin() throws InvalidPasswordException, InvalidPluginException, IOException, NoSuchMethodException,
-            InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+    public void testBadPlugin() throws Exception {
         Class<Plugin> result = loadBadPlugin(pluginLoader);
         assertNotNull(result);
         Constructor<Plugin> constructor = result.getConstructor(Long.class);

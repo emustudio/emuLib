@@ -97,8 +97,8 @@ public class PluginLoader extends URLClassLoader {
      * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
      * called.
      *
-     * @param filename name of the plugin (absolute path is better). If the filename does not contain '.jar' suffix,
-     *                 it will be added automatically.
+     * @param filename file name of the plugin (relative path is accepted, too).
+     * If the filename does not contain '.jar' suffix, it will be added automatically.
      * @param password emuStudio password.
      * @return Plugin main class, or null when an error occured or the main class is not found
      */
@@ -109,7 +109,8 @@ public class PluginLoader extends URLClassLoader {
             throw new InvalidPluginException("File name cannot be null");
         }
         try {
-            addURL(new URL("jar:file:/" + filename + "!/"));
+            File tmpFile = new File(filename);
+            addURL(new URL("jar:file:/" + tmpFile.getAbsolutePath() + "!/"));
         } catch (MalformedURLException e) {
             throw new InvalidPluginException("Could not open JAR file", e);
         }
