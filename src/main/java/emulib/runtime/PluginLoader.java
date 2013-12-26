@@ -34,6 +34,7 @@ import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
@@ -49,7 +50,7 @@ public class PluginLoader extends URLClassLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
 
-    private final ConcurrentMap<String, List<String>> fileNameToClassesList = new ConcurrentHashMap<String, List<String>>();
+    private final ConcurrentMap<String, List<String>> fileNameToClassesList = new ConcurrentHashMap<>();
 
     /**
      * Create an instance of the PluginLoader.
@@ -73,12 +74,12 @@ public class PluginLoader extends URLClassLoader {
      */
     public static boolean doesImplement(Class<?> theClass, Class<?> theInterface) {
         do {
-            Class<?>[] intf = theClass.getInterfaces();
-            for (int j = 0; j < intf.length; j++) {
-                if (intf[j].isInterface() && intf[j].equals(theInterface)) {
+            Class<?>[] interfaces = theClass.getInterfaces();
+            for (Class<?> tmpInterface : interfaces) {
+                if (tmpInterface.isInterface() && tmpInterface.equals(theInterface)) {
                     return true;
                 } else {
-                    if (doesImplement(intf[j], theInterface)) {
+                    if (doesImplement(tmpInterface, theInterface)) {
                         return true;
                     }
                 }
@@ -101,6 +102,9 @@ public class PluginLoader extends URLClassLoader {
      * If the filename does not contain '.jar' suffix, it will be added automatically.
      * @param password emuStudio password.
      * @return Plugin main class, or null when an error occured or the main class is not found
+     * @throws emulib.runtime.InvalidPasswordException
+     * @throws emulib.runtime.InvalidPluginException
+     * @throws java.io.IOException
      */
     public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException, IOException {
         API.testPassword(password);
@@ -110,6 +114,8 @@ public class PluginLoader extends URLClassLoader {
         }
         try {
             File tmpFile = new File(filename);
+            System.out.println("Loading JAR: " + "jar:file:/" + tmpFile.getAbsolutePath() + "!/"
+                    + "; file exists=" + tmpFile.exists());
             addURL(new URL("jar:file:/" + tmpFile.getAbsolutePath() + "!/"));
         } catch (MalformedURLException e) {
             throw new InvalidPluginException("Could not open JAR file", e);
@@ -135,7 +141,8 @@ public class PluginLoader extends URLClassLoader {
                 if (!jarEntryName.toLowerCase().endsWith(".class")) {
                     continue;
                 }
-                List<String> classesList = fileNameToClassesList.putIfAbsent(filename, new ArrayList<String>());
+                List<String> classesList = fileNameToClassesList
+                        .putIfAbsent(filename, new CopyOnWriteArrayList<String>());
                 if (classesList == null) {
                     classesList = fileNameToClassesList.get(filename);
                 }
@@ -199,10 +206,7 @@ public class PluginLoader extends URLClassLoader {
         if (pluginType.emuLibVersion() != CURRENT_EMULIB_VERSION) {
             return false;
         }
-        if (!doesImplement(pluginClass, Plugin.class)) {
-            return false;
-        }
-        return true;
+        return doesImplement(pluginClass, Plugin.class);
     }
 
 }
