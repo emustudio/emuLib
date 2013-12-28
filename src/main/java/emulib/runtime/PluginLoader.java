@@ -155,7 +155,8 @@ public class PluginLoader extends URLClassLoader {
         List<String> classes = fileNameToClassesList.get(filename);
         for (String className : classes) {
             try {
-                Class definedClass = findClass(className);
+                System.out.println("Searching class: " + className);                
+                Class definedClass = loadClass(className);// findClass(className);
                 if (trustedPlugin(definedClass)) {
                     return (Class<Plugin>) definedClass;
                 }
