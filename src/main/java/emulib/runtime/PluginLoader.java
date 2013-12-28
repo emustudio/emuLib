@@ -32,9 +32,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
@@ -50,7 +47,7 @@ public class PluginLoader extends URLClassLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
 
-    private final ConcurrentMap<String, List<String>> fileNameToClassesList = new ConcurrentHashMap<>();
+    private final Map<String, List<String>> fileNameToClassesList = new HashMap<>();
 
     /**
      * Create an instance of the PluginLoader.
@@ -114,9 +111,10 @@ public class PluginLoader extends URLClassLoader {
         }
         try {
             File tmpFile = new File(filename);
-            System.out.println("Loading JAR: " + "jar:file:/" + tmpFile.getAbsolutePath() + "!/"
-                    + "; file exists=" + tmpFile.exists());
             addURL(new URL("jar:file:/" + tmpFile.getAbsolutePath() + "!/"));
+            
+            System.out.println("URLS[" + tmpFile + "]: \n" + Arrays.toString(this.getURLs())
+            +"\n\nPackages: " + this.getPackages());
         } catch (MalformedURLException e) {
             throw new InvalidPluginException("Could not open JAR file", e);
         }
@@ -141,10 +139,10 @@ public class PluginLoader extends URLClassLoader {
                 if (!jarEntryName.toLowerCase().endsWith(".class")) {
                     continue;
                 }
-                List<String> classesList = fileNameToClassesList
-                        .putIfAbsent(filename, new CopyOnWriteArrayList<String>());
+                List<String> classesList = fileNameToClassesList.get(filename);
                 if (classesList == null) {
-                    classesList = fileNameToClassesList.get(filename);
+                    classesList = new ArrayList<>();
+                    fileNameToClassesList.put(filename, classesList);
                 }
                 classesList.add(getValidClassName(jarEntryName));
             }
