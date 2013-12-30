@@ -143,9 +143,6 @@ public class PluginLoader extends URLClassLoader {
                 }
                 String className = getValidClassName(jarEntryName);
                 classesList.add(className);
-                try {
-                    loadClass(className);
-                } catch (ClassNotFoundException e) {}
             }
         } finally {
             jis.close();
@@ -156,7 +153,7 @@ public class PluginLoader extends URLClassLoader {
         List<String> classes = fileNameToClassesList.get(filename);
         for (String className : classes) {
             try {
-                Class definedClass = loadClass(className);
+                Class definedClass = findClass(className);
                 if (trustedPlugin(definedClass)) {
                     return (Class<Plugin>) definedClass;
                 }
