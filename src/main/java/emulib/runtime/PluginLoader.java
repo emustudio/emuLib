@@ -112,9 +112,6 @@ public class PluginLoader extends URLClassLoader {
         try {
             File tmpFile = new File(filename);
             addURL(new URL("jar:file:/" + tmpFile.getAbsolutePath() + "!/"));
-            
-            System.out.println("URLS[" + tmpFile + "]: \n" + Arrays.toString(this.getURLs())
-            +"\n\nPackages: " + this.getPackages());
         } catch (MalformedURLException e) {
             throw new InvalidPluginException("Could not open JAR file", e);
         }
@@ -138,13 +135,17 @@ public class PluginLoader extends URLClassLoader {
                 String jarEntryName = jarEntry.getName();
                 if (!jarEntryName.toLowerCase().endsWith(".class")) {
                     continue;
-                }
+                }                
                 List<String> classesList = fileNameToClassesList.get(filename);
                 if (classesList == null) {
                     classesList = new ArrayList<>();
                     fileNameToClassesList.put(filename, classesList);
                 }
-                classesList.add(getValidClassName(jarEntryName));
+                String className = getValidClassName(jarEntryName);
+                classesList.add(className);
+                try {
+                    loadClass(className);
+                } catch (ClassNotFoundException e) {}
             }
         } finally {
             jis.close();
@@ -155,8 +156,7 @@ public class PluginLoader extends URLClassLoader {
         List<String> classes = fileNameToClassesList.get(filename);
         for (String className : classes) {
             try {
-                System.out.println("Searching class: " + className);                
-                Class definedClass = loadClass(className);// findClass(className);
+                Class definedClass = loadClass(className);
                 if (trustedPlugin(definedClass)) {
                     return (Class<Plugin>) definedClass;
                 }
