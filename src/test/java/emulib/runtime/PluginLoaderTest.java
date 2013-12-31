@@ -44,7 +44,7 @@ public class PluginLoaderTest {
     private static final String GOOD_PLUGIN_PATH = "src/test/resources/brainduck-cpu.jar";
     private static final String BAD_PLUGIN_PATH = "src/test/resources/ramc-ram.jar";
 
-    private URL libURL;
+//    private URL libURL;
     private PluginLoader pluginLoader;
 
     private class CPUListenerStub implements CPUListener {
@@ -113,8 +113,8 @@ public class PluginLoaderTest {
     @Before
     public void setUp() throws MalformedURLException {
         APITest.assignEmuStudioPassword();
-        libURL = new URL("file:/./");
-        pluginLoader = new PluginLoader(libURL);
+  //      libURL = new URL("file:/./");
+        pluginLoader = new PluginLoader();
     }
 
     private Class<Plugin> loadGoodPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException, IOException {
