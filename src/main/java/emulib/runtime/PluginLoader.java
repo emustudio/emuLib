@@ -111,7 +111,9 @@ public class PluginLoader extends URLClassLoader {
         }
         try {
             File tmpFile = new File(filename);
-            addURL(new URL("jar:file:/" + tmpFile.getAbsolutePath() + "!/"));
+            String urlName = tmpFile.toURI().toURL().toString();
+            urlName = "jar:" + urlName + "!/";
+            addURL(new URL(urlName));
         } catch (MalformedURLException e) {
             throw new InvalidPluginException("Could not open JAR file", e);
         }
