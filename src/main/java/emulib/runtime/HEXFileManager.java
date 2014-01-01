@@ -3,7 +3,7 @@
  *
  * Created on Sobota, 2007, október 13, 16:21
  *
- * Copyright (C) 2007-2012, Peter Jakubčo
+ * Copyright (C) 2007-2013, Peter Jakubčo
  * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,7 @@ package emulib.runtime;
 
 import emulib.plugins.memory.MemoryContext;
 import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -36,28 +37,45 @@ import java.util.*;
  * @author Peter Jakubčo
  */
 public class HEXFileManager {
-
-    private Map<Integer, String> program;
+    private final Map<Integer, String> program;
     private int nextAddress;
 
     public HEXFileManager() {
-        this.program = new HashMap<Integer, String>();
+        this.program = new HashMap<>();
         nextAddress = 0;
     }
 
     /**
-     * Put code on next address if element exist on the address, then is
-     * rewritten
+     * Put a series of bytes to the code table. 
+     * 
+     * The bytes must be given as a hexadecimal string of any length.
+     * Each byte must have a form of two characters. For example:
+     * 
+     * <code>0A0B10</code>
+     * 
+     * represents 3 bytes: <code>0x0A</code>, <code>0x0B</code> and <code>0x10</code>.
+     * 
+     * The code table is modified so that all addresses starting from the current
+     * one up to the code length will contain corresponding byte.
+     * 
+     * The current address is then increased by the code length.
+     * If a byte exists on an address already, it is overwritten.
      *
-     * @param code
+     * @param code Hexadecimal representation of binary code
+     * @return updated current address
      */
-    public void putCode(String code) {
-        program.put(nextAddress, code);
+    public int putCode(String code) {
+        if (code.isEmpty()) {
+            return nextAddress;
+        }
+        int addr = nextAddress;
+        for (int i = 0; i < code.length()-1; i += 2) {
+            String tmp = code.substring(i, i + 2);
+            program.put(addr, tmp);
+            addr++;
+        }
         nextAddress += (code.length() / 2);
-    }
-
-    private String getCode(int address) {
-        return (String) program.get(address);
+        return nextAddress;
     }
 
     /**
@@ -93,14 +111,13 @@ public class HEXFileManager {
      * @param ha sub-table with addresses and codes
      */
     public void addTable(Map<Integer, String> ha) {
-        List<Integer> adrs = new ArrayList<Integer>(ha.keySet());
+        List<Integer> adrs = new ArrayList<>(ha.keySet());
         int largestAdr = nextAddress;
         Iterator<Integer> e = adrs.iterator();
         while (e.hasNext()) {
             nextAddress = (Integer) e.next();
             String cd = (String) ha.get(nextAddress);
-            program.put(nextAddress, cd);
-            nextAddress += (cd.length() / 2);
+            putCode(cd);
             if (nextAddress > largestAdr) {
                 largestAdr = nextAddress;
             }
@@ -125,7 +142,7 @@ public class HEXFileManager {
         int address = 0;         // current address in hex file
         int bytesCount = 0;      // current count of data bytes on single line
 
-        List<Integer> adrs = new ArrayList<Integer>(program.keySet());
+        List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
 
         // for all code elements (they won't be separated)
@@ -134,7 +151,7 @@ public class HEXFileManager {
             int adr = (Integer) e.next();
 
             // is line very beginning ?
-            if (lineAddress.equals("")) {
+            if (lineAddress.isEmpty()) {
                 address = adr;
                 lineAddress = String.format("%1$04X", address);
             }
@@ -153,31 +170,11 @@ public class HEXFileManager {
 
             // code have to be stored as number of separate pairs of hex digits
             String cd = (String) program.get(adr);
-
-            // cd hasn't to be longer than 16-bytesCount
-            while ((cd.length() + line.length()) > 32) {
-                int len = 32 - line.length(); // kolko este treba
-                line += cd.substring(0, len);
-                cd = cd.substring(len, cd.length());
-
-                address += (len / 2); // compute next address
-                bytesCount += (len / 2);
-
-                // save line
-                String lin = String.format("%1$02X", bytesCount) + lineAddress
-                        + "00" + line;
-                lines += ":" + lin + checksum(lin) + "\n";
-                bytesCount = 0;
-                line = "";
-                lineAddress = String.format("%1$04X", address);
-            }
-            if (cd.length() > 0) {
-                line += cd;
-                address += (cd.length() / 2); // compute next address
-                bytesCount += (cd.length() / 2);
-            }
+            line += cd;
+            address += (cd.length() / 2); // compute next address
+            bytesCount += (cd.length() / 2);
         }
-        if (line.equals("") == false) {
+        if (!line.isEmpty()) {
             String lin = String.format("%1$02X", bytesCount) + lineAddress
                     + "00" + line;
             lines += ":" + lin + checksum(lin) + "\n";
@@ -195,12 +192,12 @@ public class HEXFileManager {
      * @return true if the hex file was successfully loaded, false otherwise
      */
     public boolean loadIntoMemory(MemoryContext<Short> mem) {
-        List<Integer> adrs = new ArrayList<Integer>(program.keySet());
+        List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
         Iterator<Integer> e = adrs.iterator();
         while (e.hasNext()) {
             int adr = (Integer) e.next();
-            String code = this.getCode(adr);
+            String code = program.get(adr);
             for (int i = 0, j = 0; i < code.length() - 1; i += 2, j++) {
                 String hexCode = code.substring(i, i + 2);
                 short num = (short) ((Short.decode("0x" + hexCode)) & 0xFF);
@@ -218,10 +215,9 @@ public class HEXFileManager {
      */
     public void generateFile(String filename) throws java.io.IOException {
         String fileData = generateHEX();
-
-        BufferedWriter out = new BufferedWriter(new FileWriter(filename));
-        out.write(fileData);
-        out.close();
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(filename))) {
+            out.write(fileData);
+        }
     }
 
     /**
@@ -231,7 +227,7 @@ public class HEXFileManager {
      * @return program starting memory location
      */
     public int getProgramStart() {
-        List<Integer> adrs = new ArrayList<Integer>(program.keySet());
+        List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
         if (adrs.isEmpty() == false) {
             return (Integer) adrs.get(0);
@@ -301,57 +297,60 @@ public class HEXFileManager {
     }
     
     // line beginning with ; is ignored
-    public static int loadIntoMemory(String fileName, MemoryContext<Short> memory) throws Exception {
-        int imageStart = 0;
-        boolean imageStartSet = false;
-        FileReader reader = new FileReader(fileName);
-        int input;
-        while ((input = reader.read()) != -1) {
-            if (input == ' ') {
-              input = ignoreSpaces(reader);
-            }
-            if (input == ';') {
+    public static HEXFileManager parseFromFile(String filename) throws Exception {
+        HEXFileManager hexFile = new HEXFileManager();
+        
+        try (FileReader reader = new FileReader(filename)) {
+            int input;
+            while ((input = reader.read()) != -1) {
+                if (input == ' ') {
+                    input = ignoreSpaces(reader);
+                }
+                if (input == ';') {
+                    ignoreLine(reader);
+                    continue;
+                }
+                if (input != ':') {
+                    reader.close();
+                    throw new IOException("Unexpected character: " + input);
+                }
+                // data bytes count
+                int bytesCount = readWord(reader);
+                if (bytesCount == 0) {
+                    // ignore line
+                    ignoreLine(reader);
+                    continue;
+                }
+                // address
+                int address = readDword(reader);
+                
+                // data type
+                int dataType = readWord(reader);
+                if (dataType != 0) {
+                    reader.close();
+                    throw new IOException("Unexpected data type: " + dataType);
+                } // doesnt support other data types
+                
+                // data...
+                hexFile.setNextAddress(address);
+                for (int y = 0; y < bytesCount; y++) {
+                    char[] cbuf = new char[2];
+                    reader.read(cbuf);
+                    if (cbuf[0] == '\n' || cbuf[1] == '\n') {
+                      throw new IOException("Unexpected EOL");
+                    }
+                    hexFile.putCode(new String(cbuf));
+                }
+                // checksum - dont care..
                 ignoreLine(reader);
-                continue;
             }
-            if (input != ':') {
-                reader.close();
-                throw new Exception("Unexpected character");
-            }            
-            // data bytes count
-            int bytesCount = readWord(reader);
-            if (bytesCount == 0) {
-                // ignore line
-                ignoreLine(reader);
-                continue;
-            }
-            // address
-            int address = readDword(reader);
-            if (imageStartSet == false) {
-                imageStart = address;
-                imageStartSet = true;
-            }
-
-            // data type
-            int dataType = readWord(reader);
-            if (dataType == 1) {
-                reader.close();
-                throw new Exception("Unexpected data type");
-            }
-            if (dataType != 0) {
-                reader.close();
-                throw new Exception("Unexpected data type");
-            } // doesnt support other data types
-
-            // data...
-            for (int y = 0; y < bytesCount; y++) {
-                short data = (short)readWord(reader);
-                memory.write(address++, data);
-            }
-            // checksum - dont care..
-            ignoreLine(reader);
         }
-        reader.close();
-        return imageStart;
+        return hexFile;
+    }
+    
+    public static int loadIntoMemory(String fileName, MemoryContext<Short> memory) throws Exception {
+        HEXFileManager hexFile = HEXFileManager.parseFromFile(fileName);
+        hexFile.loadIntoMemory(memory);
+        return hexFile.getProgramStart();
     }
 }
