@@ -3,7 +3,7 @@
  *
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2011-2012, Peter Jakubčo
+ * (c) Copyright 2011-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,7 +30,13 @@ package emulib.plugins.compiler;
  * @author vbmacher
  */
 public class Message {
+    public static final String INFO_FORMAT =    "[Info    (%03d)] ";
+    public static final String ERROR_FORMAT =   "[Error   (%03d)] ";
+    public static final String WARNING_FORMAT = "[Warning (%03d)] ";
 
+    public static final String POSITION_FORMAT = "(%3d,%3d) ";
+    public static final String SOURCE_FILE_FORMAT = "<%s> ";
+    
     /**
      * Message type.
      */
@@ -135,39 +141,43 @@ public class Message {
      */
     public Message(MessageType message_type, String message, String sourceFile,
             int errorCode) {
-        this(message_type,message,-1,-1,null, errorCode);
+        this(message_type,message,-1,-1,sourceFile, errorCode);
+    }
+    
+    public int getErrorCode() {
+        return errorCode;
     }
 
+    public String getSourceFile() {
+        return sourceFile;
+    }
+    
     /**
      * Return formatted string that represents this Message object.
      *
      * @return formatted message
      */
     public String getFormattedMessage() {
-        String mes = "";
+        StringBuilder mes = new StringBuilder();
         switch (messageType) {
             case TYPE_WARNING:
-                mes += "[Warning (" + errorCode + ")] ";
+                mes.append(String.format(WARNING_FORMAT, errorCode));
                 break;
             case TYPE_ERROR:
-                mes += "[Error (" + errorCode + ")]   ";
+                mes.append(String.format(ERROR_FORMAT, errorCode));
                 break;
             case TYPE_INFO:
-                mes += "[Info (" + errorCode + ")]    ";
+                mes.append(String.format(INFO_FORMAT, errorCode));
                 break;
         }
         if (sourceFile != null) {
-            mes += sourceFile;
+            mes.append(String.format(SOURCE_FILE_FORMAT, sourceFile));
         }
         if ((line >= 0) || (column >= 0)) {
-            mes += "(";
-            mes += (line >= 0) ? String.valueOf(line) : "?";
-            mes += ";";
-            mes += (column >= 0) ? String.valueOf(column) : "?";
-            mes += ")";
+            mes.append(String.format(POSITION_FORMAT, line, column));
         }
-        mes += " " + message;
-        return mes;
+        mes.append(message);
+        return mes.toString();
     }
 
     /**

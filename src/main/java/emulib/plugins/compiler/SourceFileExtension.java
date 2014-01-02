@@ -32,11 +32,13 @@ package emulib.plugins.compiler;
  *
  * The description of the extension should be in any form.
  *
+ * Immutable object.
+ * 
  * @author vbmacher
  */
 public class SourceFileExtension {
-    private String extension;
-    private String description;
+    private final String extension;
+    private final String description;
 
     /**
      * Creates an instance of the class.

@@ -24,10 +24,9 @@ package emulib.plugins.compiler;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.plugins.compiler.Compiler;
 import emulib.plugins.compiler.Message.MessageType;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * This class implements some fundamental functionality that can be
@@ -58,7 +57,7 @@ public abstract class AbstractCompiler implements Compiler {
      * if the compiler wants to print something out on the screen (info, warning
      * or error message).
      */
-    protected List<CompilerListener> compilerListeners;
+    protected Set<CompilerListener> compilerListeners;
 
     /**
      * Public constructor initializes compilerListeners list and event object for
@@ -67,7 +66,7 @@ public abstract class AbstractCompiler implements Compiler {
      * @param pluginID ID of the plug-in assigned by emuStudio
      */
     public AbstractCompiler(Long pluginID) {
-        compilerListeners = new ArrayList<CompilerListener>();
+        compilerListeners = new LinkedHashSet<>();
         this.pluginID = pluginID;
     }
 
