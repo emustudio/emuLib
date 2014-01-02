@@ -31,6 +31,7 @@ import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
@@ -41,8 +42,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class PluginLoaderTest {
-    private static final String GOOD_PLUGIN_PATH = "src/test/resources/brainduck-cpu.jar";
-    private static final String BAD_PLUGIN_PATH = "src/test/resources/ramc-ram.jar";
+    private static final String GOOD_PLUGIN_PATH = "src/test/resources/plugin-valid.jar";
+    private static final String BAD_PLUGIN_PATH = "src/test/resources/plugin-invalid.jar";
+    private static final String NOT_A_PLUGIN_PATH = "src/test/resources/not-a-plugin.jar";
 
     private PluginLoader pluginLoader;
 
@@ -131,9 +133,11 @@ public class PluginLoaderTest {
         constructor.newInstance(0L);
     }
 
-    /**
-     * Test crucial method for finding plug-ins' main interface.
-     */
+    @Test(expected = InvalidPluginException.class)
+    public void testLoadNotAPlugin() throws Exception {
+        pluginLoader.loadPlugin(NOT_A_PLUGIN_PATH, APITest.getEmuStudioPassword());
+    }    
+    
     @Test
     public void testDoesImplement() {
         // test for nested interface
@@ -173,6 +177,18 @@ public class PluginLoaderTest {
         assertNotNull(result);
         Constructor<Plugin> constructor = result.getConstructor(Long.class);
         constructor.newInstance(0);
+    }
+
+    @Test
+    public void testURLFromConstructor() throws MalformedURLException {
+        URL fileURL = new File(GOOD_PLUGIN_PATH).toURI().toURL();
+        String tmp = "jar:" + fileURL.toString() + "!/";
+        
+        pluginLoader = new PluginLoader(new URL(tmp));
+        
+        // The JAR file should be loaded automatically
+        URL foundURL = pluginLoader.findResource("/META-INF/maven/net.sf.emustudio/brainduck-cpu/pom.xml");
+        assertNotNull(foundURL);
     }
 
 }

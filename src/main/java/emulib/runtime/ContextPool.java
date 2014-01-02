@@ -34,7 +34,6 @@ import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -47,6 +46,8 @@ import org.slf4j.LoggerFactory;
  * Plug-ins should register their contexts manually. Other plug-ins that have permissions, can gather contexts by
  * querying this pool.
  *
+ * Context pool is not thread safe.
+ * 
  * @author vbmacher
  */
 public class ContextPool {
@@ -57,20 +58,20 @@ public class ContextPool {
      *
      * Contexts implementing the same context interfaces are stored to the end of the list under the same map key
      */
-    private final Map<String,List<Context>> allContexts = new HashMap<String, List<Context>>();
+    private final Map<String,List<Context>> allContexts = new HashMap<>();
 
     /**
      * This map represents owners of registered contexts (these are keys).
      * It is used for checking the plug-in permissions.
      */
-    private final Map<Long,List<Context>> contextOwners = new HashMap<Long, List<Context>>();
+    private final Map<Long,List<Context>> contextOwners = new HashMap<>();
 
     private final static ContextPool instance = new ContextPool();
 
     /**
      * Virtual computer loaded by emuStudio
      */
-    private final AtomicReference<PluginConnections> computer = new AtomicReference<PluginConnections>();
+    private final AtomicReference<PluginConnections> computer = new AtomicReference<>();
 
     private final ReadWriteLock registeringLock = new ReentrantReadWriteLock();
 
@@ -132,13 +133,13 @@ public class ContextPool {
             // finally register the context
             List<Context> contextsByOwner = contextOwners.get(pluginID);
             if (contextsByOwner == null) {
-                contextsByOwner = new ArrayList<Context>();
+                contextsByOwner = new ArrayList<>();
                 contextOwners.put(pluginID, contextsByOwner);
             }
             contextsByOwner.add(context);
 
             if (contextsByHash == null) {
-                contextsByHash = new ArrayList<Context>();
+                contextsByHash = new ArrayList<>();
                 allContexts.put(contextHash, contextsByHash);
             }
             contextsByHash.add(context);
@@ -194,19 +195,18 @@ public class ContextPool {
                 return false;
             }
 
-            boolean result = true;
             Iterator<Context> contextIterator = contextsByHash.iterator();
             while (contextIterator.hasNext()) {
                 Context context = contextIterator.next();
                 if (contextsByOwner.contains(context)) {
-                    result = result && contextsByOwner.remove(context);
+                    contextsByOwner.remove(context);
                     contextIterator.remove();
                 }
             }
             if (contextsByHash.isEmpty()) {
                 allContexts.remove(contextHash);
             }
-            return result;
+            return true;
         } finally {
             registeringLock.writeLock().unlock();
         }
@@ -478,7 +478,6 @@ public class ContextPool {
         }
         // first it must be found the contextsByOwner of the ContextPool.
         Long contextOwner = findContextOwner(context);
-        assert (contextOwner != null);
 
         // THIS is the permission check
         LOGGER.debug("Checking permission of plugin with ID=" + pluginID + " to context owner with ID=" + contextOwner

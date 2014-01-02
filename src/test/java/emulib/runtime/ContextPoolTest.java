@@ -31,11 +31,15 @@ import emulib.plugins.device.DeviceContext;
 import emulib.plugins.memory.MemoryContext;
 import emulib.runtime.interfaces.PluginConnections;
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import static org.easymock.EasyMock.*;
 import org.junit.After;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class ContextPoolTest {
     private CPUContextStub cpuContextMock;
@@ -106,7 +110,7 @@ public class ContextPoolTest {
 
         contextPool = ContextPool.getInstance();
         APITest.assignEmuStudioPassword();
-        Assert.assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), defaultComputer));
+        assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), defaultComputer));
     }
 
     @After
@@ -118,15 +122,15 @@ public class ContextPoolTest {
 
     @Test
     public void testThatContextIsSingleton() {
-        Assert.assertNotNull(contextPool);
-        Assert.assertEquals(contextPool, ContextPool.getInstance());
+        assertNotNull(contextPool);
+        assertEquals(contextPool, ContextPool.getInstance());
     }
 
     @Test
     public void testRegisterCPU() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(0, cpuContextMock, CPUContext.class);
-        Assert.assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class));
-        Assert.assertTrue(contextPool.unregister(0, CPUContext.class));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class));
+        assertTrue(contextPool.unregister(0, CPUContext.class));
     }
 
     @Test
@@ -137,35 +141,35 @@ public class ContextPoolTest {
         contextPool.register(0, anotherCpuContextMock, CPUContext.class);
 
         // Access both contexts
-        Assert.assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class, 0));
-        Assert.assertEquals(anotherCpuContextMock, contextPool.getCPUContext(0, CPUContext.class, 1));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class, 0));
+        assertEquals(anotherCpuContextMock, contextPool.getCPUContext(0, CPUContext.class, 1));
 
         // single unregister should remove all contexts for the owner
-        Assert.assertTrue(contextPool.unregister(0, CPUContext.class));
-        Assert.assertNull(contextPool.getCPUContext(0, CPUContext.class));
+        assertTrue(contextPool.unregister(0, CPUContext.class));
+        assertNull(contextPool.getCPUContext(0, CPUContext.class));
     }
 
     @Test
     public void testRegisterCPUAccessibleByTwoInterfacesWithEqualHash() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(0, cpuContextMock, CPUContextStub.class);
-        Assert.assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContextStub.class));
-        Assert.assertEquals(cpuContextMock, contextPool.getCPUContext(0, DifferentCPUContextStubWithEqualHash.class));
-        Assert.assertTrue(contextPool.unregister(0, CPUContextStub.class));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContextStub.class));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(0, DifferentCPUContextStubWithEqualHash.class));
+        assertTrue(contextPool.unregister(0, CPUContextStub.class));
     }
 
     @Test
     public void testRegisterCompiler() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(1, compilerContextMock, CompilerContext.class);
-        Assert.assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class));
-        Assert.assertTrue(contextPool.unregister(1, CompilerContext.class));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class));
+        assertTrue(contextPool.unregister(1, CompilerContext.class));
     }
 
     @Test
     public void testRegisterCompilerAccessibleByTwoInterfacesWithEqualHash() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(1, compilerContextMock, CompilerContextStub.class);
-        Assert.assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContextStub.class));
-        Assert.assertEquals(compilerContextMock, contextPool.getCompilerContext(1, DifferentCompilerContextStubWithEqualHash.class));
-        Assert.assertTrue(contextPool.unregister(1, CompilerContextStub.class));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContextStub.class));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, DifferentCompilerContextStubWithEqualHash.class));
+        assertTrue(contextPool.unregister(1, CompilerContextStub.class));
     }
 
     @Test
@@ -176,27 +180,27 @@ public class ContextPoolTest {
         contextPool.register(1, anotherCompilerContextMock, CompilerContext.class);
 
         // Access both contexts
-        Assert.assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class, 0));
-        Assert.assertEquals(anotherCompilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class, 1));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class, 0));
+        assertEquals(anotherCompilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class, 1));
 
         // single unregister should remove all contexts for the owner
-        Assert.assertTrue(contextPool.unregister(1, CompilerContext.class));
-        Assert.assertNull(contextPool.getCompilerContext(1, CompilerContext.class));
+        assertTrue(contextPool.unregister(1, CompilerContext.class));
+        assertNull(contextPool.getCompilerContext(1, CompilerContext.class));
     }
 
     @Test
     public void testRegisterMemory() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(2, memContextMock, MemoryContext.class);
-        Assert.assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContext.class));
-        Assert.assertTrue(contextPool.unregister(2, MemoryContext.class));
+        assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContext.class));
+        assertTrue(contextPool.unregister(2, MemoryContext.class));
     }
 
     @Test
     public void testRegisterMemoryAccessibleByTwoInterfacesWithEqualHash() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(2, memContextMock, MemoryContextStub.class);
-        Assert.assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContextStub.class));
-        Assert.assertEquals(memContextMock, contextPool.getMemoryContext(2, DifferentMemoryContextStubWithEqualHash.class));
-        Assert.assertTrue(contextPool.unregister(2, MemoryContextStub.class));
+        assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContextStub.class));
+        assertEquals(memContextMock, contextPool.getMemoryContext(2, DifferentMemoryContextStubWithEqualHash.class));
+        assertTrue(contextPool.unregister(2, MemoryContextStub.class));
     }
 
     @Test
@@ -207,27 +211,27 @@ public class ContextPoolTest {
         contextPool.register(2, anotherMemoryContextMock, MemoryContext.class);
 
         // Access both contexts
-        Assert.assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContext.class, 0));
-        Assert.assertEquals(anotherMemoryContextMock, contextPool.getMemoryContext(2, MemoryContext.class, 1));
+        assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContext.class, 0));
+        assertEquals(anotherMemoryContextMock, contextPool.getMemoryContext(2, MemoryContext.class, 1));
 
         // single unregister should remove all contexts for the owner
-        Assert.assertTrue(contextPool.unregister(2, MemoryContext.class));
-        Assert.assertNull(contextPool.getMemoryContext(2, MemoryContext.class));
+        assertTrue(contextPool.unregister(2, MemoryContext.class));
+        assertNull(contextPool.getMemoryContext(2, MemoryContext.class));
     }
 
     @Test
     public void testRegisterDevice() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(3, devContextMock, DeviceContext.class);
-        Assert.assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContext.class));
-        Assert.assertTrue(contextPool.unregister(3, DeviceContext.class));
+        assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContext.class));
+        assertTrue(contextPool.unregister(3, DeviceContext.class));
     }
 
     @Test
     public void testRegisterDeviceAccessibleByTwoInterfacesWithEqualHash() throws InvalidContextException, AlreadyRegisteredException {
         contextPool.register(3, devContextMock, DeviceContextStub.class);
-        Assert.assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContextStub.class));
-        Assert.assertEquals(devContextMock, contextPool.getDeviceContext(3, DifferentDeviceContextStubWithEqualHash.class));
-        Assert.assertTrue(contextPool.unregister(3, DeviceContextStub.class));
+        assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContextStub.class));
+        assertEquals(devContextMock, contextPool.getDeviceContext(3, DifferentDeviceContextStubWithEqualHash.class));
+        assertTrue(contextPool.unregister(3, DeviceContextStub.class));
     }
 
     @Test
@@ -248,12 +252,12 @@ public class ContextPoolTest {
         contextPool.register(3, anotherDeviceContextMock, DeviceContext.class);
 
         // Access both contexts
-        Assert.assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContext.class, 0));
-        Assert.assertEquals(anotherDeviceContextMock, contextPool.getDeviceContext(3, DeviceContext.class, 1));
+        assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContext.class, 0));
+        assertEquals(anotherDeviceContextMock, contextPool.getDeviceContext(3, DeviceContext.class, 1));
 
         // single unregister should remove all contexts for the owner
-        Assert.assertTrue(contextPool.unregister(3, DeviceContext.class));
-        Assert.assertNull(contextPool.getDeviceContext(3, DeviceContext.class));
+        assertTrue(contextPool.unregister(3, DeviceContext.class));
+        assertNull(contextPool.getDeviceContext(3, DeviceContext.class));
     }
 
     @Test(expected = InvalidContextException.class)
@@ -317,13 +321,13 @@ public class ContextPoolTest {
 
     @Test
     public void testCallUnregisterWithoutRegister() throws InvalidContextException {
-        Assert.assertFalse(contextPool.unregister(0, CPUContextStub.class));
+        assertFalse(contextPool.unregister(0, CPUContextStub.class));
     }
 
     @Test
     public void testGetContextWhenNoComputerIsSet() throws InvalidPasswordException, InvalidContextException {
-        Assert.assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), null));
-        Assert.assertNull(contextPool.getCPUContext(0, CPUContextStub.class));
+        assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), null));
+        assertNull(contextPool.getCPUContext(0, CPUContextStub.class));
     }
 
     @Test(expected = InvalidContextException.class)
@@ -364,6 +368,24 @@ public class ContextPoolTest {
     @Test(expected = InvalidContextException.class)
     public void testGetDeviceContextWhichIsNotInterface() throws InvalidContextException {
         contextPool.getDeviceContext(0, devContextMock.getClass());
+    }
+    
+    @Test
+    public void testComputerIsNotSetGetCPU() throws InvalidContextException, AlreadyRegisteredException, InvalidPasswordException {
+        assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), null));
+        contextPool.register(0, cpuContextMock, CPUContext.class);
+        assertNull(contextPool.getCPUContext(0, CPUContext.class));
+    }
+    
+    @Test
+    public void testUnregisterInvalidContext() throws AlreadyRegisteredException, InvalidContextException {
+        contextPool.register(0, cpuContextMock, CPUContext.class);
+        try {
+            assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class));
+            assertFalse(contextPool.unregister(0, MemoryContext.class));
+        } finally {
+            assertTrue(contextPool.unregister(0, CPUContext.class));
+        }
     }
 
 }

@@ -21,29 +21,25 @@
 package emulib.runtime;
 
 import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.swing.filechooser.FileFilter;
 
 public class UniversalFileFilter extends FileFilter {
-    private String[] extensions;
+    private final Set<String> extensions = new LinkedHashSet<>();
     private String description;
 
     public void addExtension(String extension) {
-        int length = 0;
-        String[] tmp;
-        if (extensions != null) {
-            length = extensions.length;
+        String tmp = extension;
+        while (tmp.startsWith(".")) {
+            tmp = tmp.substring(1);
         }
-        tmp = new String[length + 1];
-        if (extensions != null) {
-            System.arraycopy(extensions, 0, tmp, 0, length);
-        }
-        tmp[length] = extension;
-        extensions = tmp;
+        extensions.add(tmp);
     }
 
     public String getFirstExtension() {
-        if (extensions != null) {
-            return extensions[0];
+        if (!extensions.isEmpty()) {
+            return extensions.iterator().next();
         }
         return null;
     }
@@ -53,7 +49,7 @@ public class UniversalFileFilter extends FileFilter {
         if (f.isDirectory()) {
             return true;
         }
-        String ext = this.getExtension(f);
+        String ext = getExtension(f);
         if (ext != null) {
             for (String extension : extensions) {
                 if (extension.equals(ext) || extension.equals("*")) {
@@ -70,7 +66,7 @@ public class UniversalFileFilter extends FileFilter {
         return false;
     }
 
-    public String getExtension(File file) {
+    public static String getExtension(File file) {
         String extension = null;
         String s = file.getName();
         int i = s.lastIndexOf('.');
@@ -95,7 +91,7 @@ public class UniversalFileFilter extends FileFilter {
      * @return number of extensions acceptable by this filter
      */
     public int getExtensionsCount() {
-        return extensions.length;
+        return extensions.size();
     }
     
 }
