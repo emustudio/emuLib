@@ -2,7 +2,7 @@
  * DecodedInstruction.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, M. Sulír
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -31,12 +31,11 @@ import java.util.Set;
  * @author Matúš Sulír
  */
 public class DecodedInstruction {
-    
-    private Map<Integer, Integer> constants = new HashMap<Integer, Integer>();
-    private Map<Integer, String> strings = new HashMap<Integer, String>();
-    private Map<Integer, byte[]> bits = new HashMap<Integer, byte[]>();
+    private final Map<Integer, Integer> constants = new HashMap<>();
+    private final Map<Integer, String> strings = new HashMap<>();
+    private final Map<Integer, byte[]> bits = new HashMap<>();
     private byte[] image;
-    
+
     /**
      * Adds the recognized string-returning variant to the instruciton.
      * @param key the key (rule code)
@@ -47,7 +46,7 @@ public class DecodedInstruction {
         constants.put(key, constant);
         strings.put(key, string);
     }
-    
+
     /**
      * Adds the recognized subrule-returning variant to the instruciton.
      * @param key the rule code
@@ -56,7 +55,7 @@ public class DecodedInstruction {
     public void add(int key, byte[] bits) {
         this.bits.put(key, bits);
     }
-    
+
     /**
      * Returns true if the instruction contains the specified key.
      * @param key the rule code
@@ -65,7 +64,7 @@ public class DecodedInstruction {
     public boolean hasKey(int key) {
         return bits.containsKey(key);
     }
-    
+
     /**
      * Returns the constant value to which the given key is mapped.
      * @param key the key
@@ -75,7 +74,7 @@ public class DecodedInstruction {
         Integer value = constants.get(key);
         return (value != null) ? value : 0;
     }
-    
+
     /**
      * Returns the string value to which the given key is mapped.
      * @param key the key
@@ -84,7 +83,7 @@ public class DecodedInstruction {
     public String getString(int key) {
         return strings.get(key);
     }
-    
+
     /**
      * Returns the bit sequence to which the given key is mapped.
      * @param key the key
@@ -93,7 +92,7 @@ public class DecodedInstruction {
     public byte[] getBits(int key) {
         return bits.get(key);
     }
-    
+
     /**
      * Returns the bit sequence to which the given key is mapped.
      * @param key the key
@@ -103,14 +102,14 @@ public class DecodedInstruction {
      */
     public byte[] getBits(int key, boolean reverseBytes) {
         byte[] data = bits.get(key);
-        
+
         if (reverseBytes && data != null) {
             return reverseBytes(data);
         } else {
             return data;
         }
     }
-    
+
     /**
      * Returns the binary image of the whole instruction.
      * @return the binary image
@@ -118,7 +117,7 @@ public class DecodedInstruction {
     public byte[] getImage() {
         return image;
     }
-    
+
     /**
      * Sets the binary image of the whole instruction.
      * @param image the binary image
@@ -126,7 +125,7 @@ public class DecodedInstruction {
     public void setImage(byte[] image) {
         this.image = image;
     }
-    
+
     /**
      * Returns the length of the instruction in the memory.
      * @return the length, in bytes
@@ -134,7 +133,7 @@ public class DecodedInstruction {
     public int getLength() {
         return image.length;
     }
-    
+
     /**
      * Returns the set of all keys contained in this instruction.
      * @return the set of keys
@@ -144,7 +143,7 @@ public class DecodedInstruction {
         keys.addAll(bits.keySet());
         return keys;
     }
-    
+
     /**
      * Returns bytes in the reversed order.
      * @param data the data
@@ -156,7 +155,7 @@ public class DecodedInstruction {
         for (int i = 0; i < result.length; i++) {
             result[i] = data[data.length - i - 1];
         }
-        
+
         return result;
     }
 }

@@ -2,7 +2,7 @@
  * AbstractDisassembler.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * Copyright (C) 2011-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or
@@ -30,9 +30,8 @@ package emulib.plugins.cpu;
  * @author vbmacher
  */
 public abstract class AbstractDisassembler implements Disassembler {
-    
-    protected Decoder decoder;
-    
+    protected final Decoder decoder;
+
     public AbstractDisassembler(Decoder decoder) {
         this.decoder = decoder;
     }
@@ -67,14 +66,17 @@ public abstract class AbstractDisassembler implements Disassembler {
         }
         oldLoc = loc;
 
-        while ((loc = this.getNextInstructionPosition(loc)) != location) {
+        int prevOldLoc = loc;
+        while ((loc = getNextInstructionPosition(loc)) != location) {
             if (loc > location) {
                 tryBytes++;
-                oldLoc = loc = location - tryBytes;
-                if (oldLoc < 0) {
-                    throw new IndexOutOfBoundsException();
+                if (location - tryBytes < 0) {
+                    oldLoc = prevOldLoc;
+                    break;
                 }
+                loc = location - tryBytes;
             }
+            prevOldLoc = oldLoc;
             oldLoc = loc;
         }
         return oldLoc;
