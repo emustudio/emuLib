@@ -37,7 +37,7 @@ public class DecodedInstruction {
     private byte[] image;
 
     /**
-     * Adds the recognized string-returning variant to the instruciton.
+     * Adds the recognized string-returning variant to the instruction.
      * @param key the key (rule code)
      * @param string the string which the recognized variant returned
      * @param constant the constant obtained from the string
@@ -48,7 +48,7 @@ public class DecodedInstruction {
     }
 
     /**
-     * Adds the recognized subrule-returning variant to the instruciton.
+     * Adds the recognized subrule-returning variant to the instruction.
      * @param key the rule code
      * @param bits the bit sequence, padded to whole bytes
      */
@@ -62,17 +62,17 @@ public class DecodedInstruction {
      * @return true if the instruction contains the key, false otherwise
      */
     public boolean hasKey(int key) {
-        return bits.containsKey(key);
+        return bits.containsKey(key) || constants.containsKey(key);
     }
 
     /**
      * Returns the constant value to which the given key is mapped.
      * @param key the key
-     * @return the constant; or zero if the key is not mapped to a constant
+     * @return the constant; or -1 if the key is not mapped to a constant
      */
     public int get(int key) {
         Integer value = constants.get(key);
-        return (value != null) ? value : 0;
+        return (value != null) ? value : -1;
     }
 
     /**

@@ -76,8 +76,8 @@ public abstract class AbstractCPU implements CPU, Runnable {
      */
     public AbstractCPU(Long pluginID) {
         runState = RunState.STATE_STOPPED_NORMAL;
-        breaks = new HashSet<Integer>();
-        stateObservers = new ArrayList<CPUListener>();
+        breaks = new HashSet<>();
+        stateObservers = new ArrayList<>();
         this.pluginID = pluginID;
         cpuThread = null;
     }
