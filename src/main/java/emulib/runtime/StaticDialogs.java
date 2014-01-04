@@ -3,9 +3,9 @@
  *
  * Created on 17.6.2008, 12:36:08
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2008-2013, Peter Jakubčo
- * 
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -45,10 +45,12 @@ public class StaticDialogs {
     public final static int CANCEL_OPTION = JOptionPane.CANCEL_OPTION;
     private static boolean guiSupported = true;
 
+    private StaticDialogs() {}
+
     private static String formatMessage(String title, String message) {
         return "[" + title + "] " + message;
     }
-    
+
     /**
      * Show error message as <code>JOptionPane</code> dialog. Title will be "Error".
      * @param message error message to show
@@ -56,15 +58,15 @@ public class StaticDialogs {
     public static void showErrorMessage(String message) {
         showErrorMessage(message, "Error");
     }
-    
+
     /**
-     * Explicitly set whether GUI is supported. 
-     * 
+     * Explicitly set whether GUI is supported.
+     *
      * All messages will be shown in GUI if it is supported. If not, they will
      * be logged in the logger.
-     * 
+     *
      * This function must be called only from emuStudio itself.
-     * 
+     *
      * @param GUISupported true if GUI is supported, false otherwise
      * @param password emuStudio password.
      * @throws InvalidPasswordException if the password is wrong
@@ -73,29 +75,25 @@ public class StaticDialogs {
         API.testPassword(password);
         guiSupported = GUISupported;
     }
-    
+
     /**
      * Determine whether GUI will be used for showing all messages.
-     * 
+     *
      * @return true if GUI is supported; false otherwise.
      */
     public static boolean isGUISupported() {
         return guiSupported;
     }
-    
+
     /**
      * Show error message as <code>JOptionPane</code> dialog.
      * @param message error message to show
      * @param title title of the dialog
      */
     public static void showErrorMessage(String message, String title) {
-        try {
-            if (guiSupported) {
-                JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE);
-            } else {
-                LOGGER.error(formatMessage(title, message));
-            }
-        } catch(Exception e) {
+        if (guiSupported) {
+            JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE);
+        } else {
             LOGGER.error(formatMessage(title, message));
         }
     }
@@ -115,13 +113,9 @@ public class StaticDialogs {
      * @param title title of the message
      */
     public static void showMessage(String message, String title) {
-        try {
-            if (guiSupported) {
-                JOptionPane.showMessageDialog(null, message, title, JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                LOGGER.info(formatMessage(title, message));
-            }
-        } catch(Exception e) {
+        if (guiSupported) {
+            JOptionPane.showMessageDialog(null, message, title, JOptionPane.INFORMATION_MESSAGE);
+        } else {
             LOGGER.info(formatMessage(title, message));
         }
     }
@@ -145,16 +139,12 @@ public class StaticDialogs {
      *         integral input otherwise
      */
     public static Integer inputIntValue(String message, String title, int initial) {
-        try {
-            if (guiSupported) {
-                String s = (String)JOptionPane.showInputDialog(null, message, title,
+        if (guiSupported) {
+            String s = (String) JOptionPane.showInputDialog(null, message, title,
                     JOptionPane.QUESTION_MESSAGE, null, null, initial);
-                return Integer.decode(s);
-            } else {
-                // TODO: System.in
-                return null;
-            }
-        } catch(Exception e) {
+            return Integer.decode(s);
+        } else {
+            // TODO: System.in
             return null;
         }
     }
@@ -178,16 +168,12 @@ public class StaticDialogs {
      *         string input otherwise
      */
     public static String inputStringValue(String message, String title, String initial) {
-        try {
-            if (guiSupported) {
-                String s = (String)JOptionPane.showInputDialog(null, message, title,
+        if (guiSupported) {
+            String s = (String) JOptionPane.showInputDialog(null, message, title,
                     JOptionPane.QUESTION_MESSAGE, null, null, initial);
-                return s;
-            } else {
-                // TODO: System.in
-                return null;
-            }
-        } catch(Exception e) {
+            return s;
+        } else {
+            // TODO: System.in
             return null;
         }
     }
@@ -211,16 +197,12 @@ public class StaticDialogs {
      *         double input otherwise
      */
     public static Double inputDoubleValue(String message, String title, double initial) {
-        try {
-            if (guiSupported) {
-                String s = (String)JOptionPane.showInputDialog(null, message, title,
+        if (guiSupported) {
+            String s = (String) JOptionPane.showInputDialog(null, message, title,
                     JOptionPane.QUESTION_MESSAGE, null, null, initial);
-                return Double.parseDouble(s);
-            } else {
-                // TODO: System.in
-                return null;
-            }
-        } catch(Exception e) {
+            return Double.parseDouble(s);
+        } else {
+            // TODO: System.in
             return null;
         }
     }
@@ -243,14 +225,10 @@ public class StaticDialogs {
      *         YES_OPTION or NO_OPTION or CANCEL_OPTION otherwise
      */
     public static int confirmMessage(String message, String title) {
-        try {
-            if (guiSupported) {
-                return JOptionPane.showConfirmDialog(null,
+        if (guiSupported) {
+            return JOptionPane.showConfirmDialog(null,
                     message, title, JOptionPane.YES_NO_CANCEL_OPTION);
-            } else {
-                return CANCEL_OPTION;
-            }
-        } catch (Exception e) {
+        } else {
             return CANCEL_OPTION;
         }
     }

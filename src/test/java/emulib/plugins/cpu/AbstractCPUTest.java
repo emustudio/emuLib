@@ -87,7 +87,7 @@ public class AbstractCPUTest {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BREAK);
 
         cpu.addCPUListener(listener);
-        cpu.reset(3);
+        cpu.reset();
 
         verify(listener);
     }
