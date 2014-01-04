@@ -1,10 +1,10 @@
 /*
  * Memory.java
- * 
+ *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -30,7 +30,7 @@ public interface Memory extends Plugin {
 
     /**
      * The listener interface for receiving memory events.
-     * 
+     *
      * The class that is interested in processing a memory event implements this interface, and the object created with
      * that class is registered with a memory, using the memory's <code>addMemoryListener</code> method. Memory events
      * occur even if single cell is changed in memory and then is invoked <code>memChange</code> method.
@@ -65,33 +65,15 @@ public interface Memory extends Plugin {
     public int getSize ();
 
     /**
-     * Gets program's start address. The start address is set invoking 
+     * Gets program's start address. The start address is set invoking
      * memory's method <code>Memory.setProgramStart()</code> by main module
      * when compiler finishes compilation process of a program and if the compiler
      * know the starting address. This address is used by main module for
      * CPU reset process.
-     * 
+     *
      * @return program's start address in memory
      */
     public int getProgramStart ();
-
-    /**
-     * Adds the specified memory listener to receive memory events from this memory.
-     * Memory events occur even if single cell is changed in memory.
-     * If listener is <code>null</code>, no exception is thrown and no action is
-     * performed.
-     * @param listener  the memory listener
-     */
-    public void addMemoryListener (MemoryListener listener);
-
-    /**
-     * Removes the specified memory listener so that it no longer receives memory
-     * events from this memory. Memory events occur even if single cell is
-     * changed in memory. If listener is <code>null</code>, no exception is
-     * thrown and no action is performed.
-     * @param listener  the memory listener to be removed
-     */
-    public void removeMemoryListener (MemoryListener listener);
 
 }
 

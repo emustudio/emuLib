@@ -141,6 +141,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     public void reset(int addr) {
         runState = RunState.STATE_STOPPED_BREAK;
         cpuThread = null;
+        notifyStateChanged(runState);
     }
 
     /**

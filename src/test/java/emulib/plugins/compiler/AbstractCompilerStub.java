@@ -10,9 +10,9 @@ import java.io.Reader;
         copyright = "copyright",
         description = "description"
 )
-public class TestableAbstractCompiler extends AbstractCompiler {
+public class AbstractCompilerStub extends AbstractCompiler {
 
-    public TestableAbstractCompiler(Long aa) {
+    public AbstractCompilerStub(Long aa) {
         super(aa);
     }
 

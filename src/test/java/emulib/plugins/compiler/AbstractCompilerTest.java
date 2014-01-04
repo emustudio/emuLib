@@ -18,23 +18,28 @@ import org.junit.Before;
 
 public class AbstractCompilerTest {
     private final static long ID = System.currentTimeMillis();
-    private TestableAbstractCompiler compiler;
-    
+    private AbstractCompilerStub compiler;
+
     @Before
     public void setUp() {
-        compiler = new TestableAbstractCompiler(ID);
+        compiler = new AbstractCompilerStub(ID);
     }
-        
+
+    @Test
+    public void testInitializeIsAlwaysSuccessful() {
+        assertTrue(compiler.initialize(null));
+    }
+
     @Test
     public void testGetTitle() {
         assertEquals("title", compiler.getTitle());
     }
-    
+
     @Test
     public void testGetProgramStartOnUnusedCompiler() {
         assertEquals(0, compiler.getProgramStartAddress());
     }
-    
+
     @Test
     public void testAddAndRemoveCompilerListener() {
         CompilerListener r = createNiceMock(CompilerListener.class);
@@ -48,7 +53,7 @@ public class AbstractCompilerTest {
         compiler.addCompilerListener(r);
         assertFalse(compiler.addCompilerListener(r));
     }
-    
+
     @Test
     public void testNotifyCompilerStart() {
         CompilerListener listener = createNiceMock(CompilerListener.class);
@@ -60,11 +65,11 @@ public class AbstractCompilerTest {
         compiler.notifyCompileStart();
         verify(listener);
     }
-    
+
     @Test
     public void testNotifyCompilerFinish() {
         int errorCode = 5;
-        
+
         CompilerListener listener = createNiceMock(CompilerListener.class);
         listener.onFinish(EasyMock.eq(errorCode));
         expectLastCall().once();
@@ -74,9 +79,9 @@ public class AbstractCompilerTest {
         compiler.notifyCompileFinish(errorCode);
         verify(listener);
     }
-    
+
     @Test
-    public void testNotifyOnMessage() {        
+    public void testNotifyOnMessage() {
         CompilerListener listener = createNiceMock(CompilerListener.class);
         listener.onMessage(anyObject(Message.class));
         expectLastCall().once();
@@ -87,7 +92,7 @@ public class AbstractCompilerTest {
 
         verify(listener);
     }
-    
+
     @Test
     public void testNotifyInfo() {
         CompilerListener listener = createNiceMock(CompilerListener.class);
@@ -123,7 +128,7 @@ public class AbstractCompilerTest {
         assertEquals(MessageType.TYPE_ERROR, captured.getValue().getMessageType());
         verify(listener);
     }
-    
+
     @Test
     public void testNotifyWarning() {
         CompilerListener listener = createNiceMock(CompilerListener.class);
@@ -137,10 +142,10 @@ public class AbstractCompilerTest {
 
         compiler.addCompilerListener(listener);
         compiler.testWarning("Some warning");
-        
+
         assertEquals(MessageType.TYPE_WARNING, captured.getValue().getMessageType());
         verify(listener);
     }
-    
+
 
 }

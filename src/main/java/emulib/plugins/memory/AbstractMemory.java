@@ -2,7 +2,7 @@
  * AbstractMemory.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,8 +24,6 @@ package emulib.plugins.memory;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class implements some fundamental functionality that can be shared
@@ -34,13 +32,6 @@ import java.util.List;
  * @author vbmacher
  */
 public abstract class AbstractMemory implements Memory {
-    /**
-     * List of all memory listeners. The listeners are objects implementing
-     * the IMemoryListener interface. Methods within the listeners are called
-     * on some events that happen inside memory (e.g. value change).
-     */
-    protected List<MemoryListener> listeners;
-
     /**
      * Start location of loaded program. This variable is changed by
      * compiler (mostly).
@@ -58,13 +49,11 @@ public abstract class AbstractMemory implements Memory {
     protected SettingsManager settings;
 
     /**
-     * Public constructor initializes listeners list and event object for
-     * event passing.
+     * Sets up plug-in id.
      *
      * @param pluginID plug-in identification number
      */
     public AbstractMemory(Long pluginID) {
-        listeners = new ArrayList<MemoryListener>();
         this.pluginID = pluginID;
     }
 
@@ -108,44 +97,9 @@ public abstract class AbstractMemory implements Memory {
         programStart = address;
     }
 
-    /**
-     * Adds a listener onto listeners list
-     *
-     * @param listener listener object
-     */
-    @Override
-    public void addMemoryListener(MemoryListener listener) {
-        listeners.add(listener);
-    }
-    
     @Override
     public String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
-    }
-
-    /**
-     * Removes the listener from listeners list
-     *
-     * @param listener listener object
-     */
-    @Override
-    public void removeMemoryListener(MemoryListener listener) {
-        listeners.remove(listener);
-    }
-
-    /**
-     * This method notifies all listeners that the memory cell value changed
-     * on specific location (memory address).
-     *
-     * This method should be called whenever a some plug-in writes to the
-     * memory.
-     *
-     * @param adr memory location (address), value of that changed
-     */
-    public void fireChange(int adr) {
-        for (MemoryListener listener : listeners) {
-            listener.memoryChanged(adr);
-        }
     }
 
     /**

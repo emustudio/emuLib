@@ -1,6 +1,6 @@
 /*
  * LoggerFactory.java
- * 
+ *
  * Copyright (C) 2009-2013 Peter Jakubčo
  * KISS, YAGNI, DRY
  *
@@ -26,19 +26,21 @@ import java.util.Map;
 
 /**
  * Logger factory which provides loggers for given classes.
- * 
+ *
  * It is preferred way for plug-ins to obtain a logger.
- * 
+ *
  * @author Peter Jakubčo
  */
 public class LoggerFactory {
-    private static Map<Class, Logger> loggers = new HashMap<Class, Logger>();
-    
+    private static final Map<Class, Logger> loggers = new HashMap<>();
+
+    private LoggerFactory() {}
+
     /**
      * Get a logger for a class.
-     * 
-     * Only one instance of logger exists for one identification class. 
-     * 
+     *
+     * Only one instance of logger exists for one identification class.
+     *
      * @param identificationClass Class acting as an identification who logged such an information.
      * @return Logger object for specified class.
      */

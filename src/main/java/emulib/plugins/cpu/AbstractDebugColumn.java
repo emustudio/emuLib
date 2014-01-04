@@ -2,7 +2,7 @@
  * AbstractDebugColumn.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2011-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -23,14 +23,13 @@ package emulib.plugins.cpu;
 
 /**
  * Simple implementation of DebugColumn.
- * 
+ *
  * @author vbmacher
  */
 public abstract class AbstractDebugColumn implements DebugColumn {
-
-    private String title;
-    private Class<?> classType;
-    private boolean editable;
+    private final String title;
+    private final Class<?> classType;
+    private final boolean editable;
 
     /**
      * Creates a new instance of AbstractDebugColumn class. This class represents
@@ -66,7 +65,7 @@ public abstract class AbstractDebugColumn implements DebugColumn {
      */
     @Override
     public String getTitle() {
-        return this.title;
+        return title;
     }
 
     /**
@@ -75,7 +74,7 @@ public abstract class AbstractDebugColumn implements DebugColumn {
      */
     @Override
     public boolean isEditable() {
-        return this.editable;
+        return editable;
     }
 
 }

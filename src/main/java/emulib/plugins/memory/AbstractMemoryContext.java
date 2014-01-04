@@ -2,7 +2,7 @@
  * AbstractMemoryContext.java
  *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -31,7 +31,7 @@ import java.util.List;
  * interface, that can be useful in the programming of the own memory context.
  *
  * It is not thread safe.
- * 
+ *
  * @author Peter Jakubčo
  */
 public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
@@ -40,15 +40,7 @@ public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
      * the IMemoryListener interface. Methods within the listeners are called
      * on some events that happen inside memory (e.g. value change).
      */
-    protected List<MemoryListener> listeners;
-
-    /**
-     * Public constructor initializes listeners list and event object for
-     * event passing.
-     */
-    public AbstractMemoryContext() {
-        listeners = new ArrayList<MemoryListener>();
-    }
+    protected final List<MemoryListener> listeners = new ArrayList<>();
 
     /**
      * Adds a listener onto listeners list
@@ -72,7 +64,7 @@ public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
 
     /**
      * Notify all listeners that memory has changed.
-     * 
+     *
      * This method should be called whenever a some plug-in writes to the
      * memory.
      *
