@@ -35,10 +35,10 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class API {
     // emuStudio password for further emuLib communication
-    private final static AtomicReference<String> emuStudioPassword = new AtomicReference<String>();
+    private final static AtomicReference<String> emuStudioPassword = new AtomicReference<>();
     private final static API instance = new API();
-    
-    private final AtomicReference<DebugTable> debugTable = new AtomicReference<DebugTable>();
+
+    private final AtomicReference<DebugTable> debugTable = new AtomicReference<>();
 
     private API() {
     }
@@ -96,6 +96,17 @@ public class API {
         }
     }
 
+    public static boolean testPassword(Long hashCode) {
+        String tmpPassword = emuStudioPassword.get();
+        if (hashCode == null || tmpPassword == null) {
+            return false;
+        }
+        if (hashCode != tmpPassword.hashCode()) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Set debug table.
      *
@@ -104,6 +115,7 @@ public class API {
      * @param debugTable The debug table
      * @param password password that was assigned to the emuLib. It prevents
      * from misuse of this method by other plugins.
+     * @throws emulib.runtime.InvalidPasswordException
      */
     public void setDebugTable(DebugTable debugTable, String password) throws InvalidPasswordException {
         testPassword(password);

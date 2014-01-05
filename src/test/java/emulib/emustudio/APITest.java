@@ -27,6 +27,8 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.easymock.EasyMock.*;
 import org.junit.After;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -94,6 +96,23 @@ public class APITest {
 
     @Test(expected = InvalidPasswordException.class)
     public void testNullPassword() throws InvalidPasswordException {
-        API.testPassword(null);
+        API.testPassword((String)null);
     }
+
+    @Test
+    public void testHashCodePassword() {
+        assertTrue(API.testPassword((long)password.hashCode()));
+    }
+
+    @Test
+    public void testNullHashCodePassword() {
+        assertFalse(API.testPassword((Long)null));
+    }
+
+    @Test
+    public void testInvalidHashCodePassword() {
+        assertFalse(API.testPassword((long)password.hashCode() + 1));
+    }
+
+
 }

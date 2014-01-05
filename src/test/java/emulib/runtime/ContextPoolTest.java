@@ -47,7 +47,15 @@ public class ContextPoolTest {
     private CompilerContextStub compilerContextMock;
     private DeviceContextStub devContextMock;
     private ContextPool contextPool;
-    private final PluginConnections defaultComputer = new PluginConnections() {
+    private final PluginConnections defaultComputer = new ComputerStub(true);
+
+    class ComputerStub implements PluginConnections {
+        private final boolean connected;
+
+        public ComputerStub(boolean connected) {
+            this.connected = connected;
+        }
+
         @Override
         public PLUGIN_TYPE getPluginType(long pluginID) {
             switch ((int) pluginID) {
@@ -66,9 +74,9 @@ public class ContextPoolTest {
 
         @Override
         public boolean isConnected(long pluginID, long toPluginID) {
-            return true;
+            return connected;
         }
-    };
+    }
 
     @ContextType
     interface DifferentCPUContextStubWithEqualHash extends CPUContextStub {
@@ -369,14 +377,14 @@ public class ContextPoolTest {
     public void testGetDeviceContextWhichIsNotInterface() throws InvalidContextException {
         contextPool.getDeviceContext(0, devContextMock.getClass());
     }
-    
+
     @Test
     public void testComputerIsNotSetGetCPU() throws InvalidContextException, AlreadyRegisteredException, InvalidPasswordException {
         assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), null));
         contextPool.register(0, cpuContextMock, CPUContext.class);
         assertNull(contextPool.getCPUContext(0, CPUContext.class));
     }
-    
+
     @Test
     public void testUnregisterInvalidContext() throws AlreadyRegisteredException, InvalidContextException {
         contextPool.register(0, cpuContextMock, CPUContext.class);
@@ -386,6 +394,23 @@ public class ContextPoolTest {
         } finally {
             assertTrue(contextPool.unregister(0, CPUContext.class));
         }
+    }
+
+    @Test
+    public void testGetContextWithEmustudioPassword() throws InvalidPasswordException, AlreadyRegisteredException, InvalidContextException {
+        assertTrue(
+                contextPool.setComputer(
+                        APITest.getEmuStudioPassword(),
+                        new ComputerStub(false)
+                )
+        );
+        contextPool.register(0, cpuContextMock, CPUContext.class);
+        assertNotNull(
+                contextPool.getCPUContext(
+                        APITest.getEmuStudioPassword().hashCode(),
+                        CPUContext.class
+                )
+        );
     }
 
 }

@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * querying this pool.
  *
  * Context pool is not thread safe.
- * 
+ *
  * @author vbmacher
  */
 public class ContextPool {
@@ -470,6 +470,11 @@ public class ContextPool {
      * @return true if the plug-in is approved to access the context; false otherwise
      */
     private boolean checkPermission(long pluginID, Context context) {
+        // at first check if the pluginID == hash code of emuStudio password
+        if (API.testPassword(pluginID)) {
+            return true;
+        }
+
         // check if it is possible to check the plug-in for the permission
         PluginConnections tmpComputer = computer.get();
         if (tmpComputer == null) {
@@ -529,6 +534,8 @@ public class ContextPool {
      *
      * @param text Data to make hash from
      * @return SHA-1 hash Hexadecimal string, null if there was some error
+     * @throws java.security.NoSuchAlgorithmException
+     * @throws java.io.UnsupportedEncodingException
      */
     public static String SHA1(String text) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         MessageDigest md;

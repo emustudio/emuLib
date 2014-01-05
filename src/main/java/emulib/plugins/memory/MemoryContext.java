@@ -1,10 +1,10 @@
 /*
  * MemoryContext.java
- * 
+ *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -30,9 +30,11 @@ import emulib.plugins.memory.Memory.MemoryListener;
  * but if memory wants to support more functionality, this interface should be
  * extended by plugin programmer and he should then make it public, in order to
  * plugins have access to it.
- * 
+ *
  * The context is given to plugins (compiler, CPU, devices), that are connected
  * to the memory and they communicate by invoking following methods.
+ * 
+ * @param <T>
  */
 @ContextType
 public interface MemoryContext<T> extends Context {
@@ -48,16 +50,16 @@ public interface MemoryContext<T> extends Context {
      * Read two cells from a memory at once. Implementation of return value
      * is up to plugin programmer (concatenation of the cells). If cells in
      * memory are pure bytes (java type is e.g. <code>short</code>), concatenation
-     * can be realized as (in small endian): 
+     * can be realized as (in small endian):
      * <code>
      *     result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF);
      * </code>
-     * 
+     *
      * and in big endian as:
      * <code>
      *     result = ((mem[from]<<8)&0xFF) | (mem[from+1]&0xFF);
      * </code>
-     * 
+     *
      * @param memoryPosition  memory position (address) of the read cells
      * @return two read cells
      */
@@ -84,12 +86,12 @@ public interface MemoryContext<T> extends Context {
      * @return Java data type of memory cells
      */
     public Class<?> getDataType ();
-    
+
     /**
      * Clears the memory.
      */
     public void clear ();
-    
+
     /**
      * Adds the specified memory listener to receive memory events from this memory.
      * Memory events occur even if single cell is changed in memory.
@@ -102,7 +104,7 @@ public interface MemoryContext<T> extends Context {
     /**
      * Removes the specified memory listener so that it no longer receives memory
      * events from this memory. Memory events occur even if single cell is
-     * changed in memory. If listener is <code>null</code>, no exception is 
+     * changed in memory. If listener is <code>null</code>, no exception is
      * thrown and no action is performed.
      * @param listener  the memory listener to be removed
      */
