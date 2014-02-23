@@ -1,9 +1,5 @@
 /*
- * PluginLoader.java
- *
  * KISS, YAGNI, DRY
- *
- * (c) Copyright 2010-2013, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +27,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import org.slf4j.Logger;
@@ -119,9 +118,6 @@ public class PluginLoader extends URLClassLoader {
         }
         scanFileForClasses(filename);
         Class<Plugin> mainClass = findPluginMainClass(filename);
-        if (mainClass == null) {
-            throw new InvalidPluginException("Could not find main class of the plugin");
-        }
         return mainClass;
     }
 
@@ -137,7 +133,7 @@ public class PluginLoader extends URLClassLoader {
                 String jarEntryName = jarEntry.getName();
                 if (!jarEntryName.toLowerCase().endsWith(".class")) {
                     continue;
-                }                
+                }
                 List<String> classesList = fileNameToClassesList.get(filename);
                 if (classesList == null) {
                     classesList = new ArrayList<>();
@@ -151,20 +147,20 @@ public class PluginLoader extends URLClassLoader {
         }
     }
 
-    private Class<Plugin> findPluginMainClass(String filename) {
+    private Class<Plugin> findPluginMainClass(String filename) throws InvalidPluginException {
         List<String> classes = fileNameToClassesList.get(filename);
-        
+
         for (String className : classes) {
             try {
                 Class definedClass = findClass(className);
                 if (trustedPlugin(definedClass)) {
                     return (Class<Plugin>) definedClass;
                 }
-            } catch (ClassNotFoundException e) {
-                LOGGER.error("Could not find loaded class: " + className, e);
+            } catch (ClassNotFoundException | NoClassDefFoundError e) {
+                throw new InvalidPluginException("Could not find loaded class: " + className, e);
             }
         }
-        return null;
+        throw new InvalidPluginException("Could not find plug-in main class");
     }
 
     /**
