@@ -22,7 +22,6 @@
 package emulib.runtime;
 
 import emulib.annotations.ContextType;
-import emulib.annotations.PLUGIN_TYPE;
 import emulib.emustudio.APITest;
 import emulib.plugins.Context;
 import emulib.plugins.compiler.CompilerContext;
@@ -31,15 +30,16 @@ import emulib.plugins.device.DeviceContext;
 import emulib.plugins.memory.MemoryContext;
 import emulib.runtime.interfaces.PluginConnections;
 import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Test;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import org.junit.Before;
+import org.junit.Test;
 
 public class ContextPoolTest {
     private CPUContextStub cpuContextMock;
@@ -54,22 +54,6 @@ public class ContextPoolTest {
 
         public ComputerStub(boolean connected) {
             this.connected = connected;
-        }
-
-        @Override
-        public PLUGIN_TYPE getPluginType(long pluginID) {
-            switch ((int) pluginID) {
-                case 0:
-                    return PLUGIN_TYPE.CPU;
-                case 1:
-                    return PLUGIN_TYPE.COMPILER;
-                case 2:
-                    return PLUGIN_TYPE.MEMORY;
-                case 3:
-                    return PLUGIN_TYPE.DEVICE;
-                default:
-                    return PLUGIN_TYPE.OTHER;
-            }
         }
 
         @Override

@@ -1,9 +1,5 @@
 /*
- * PluginConnections.java
- * 
  * KISS, YAGNI, DRY
- *
- * Copyright (C) 2009-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,43 +18,25 @@
 
 package emulib.runtime.interfaces;
 
-import emulib.annotations.PLUGIN_TYPE;
-
 /**
- * This interface includes methods for retrieving computer structure -
- * plug-in interconnection.
+ * The interface provides method determining plug-ins interconnections.
  *
- * @author vbmacher
  */
 public interface PluginConnections {
 
     /**
-     * Get type of given plug-in.
+     * Determine if two plug-ins are connected within the abstract schema.
      *
-     * @param pluginID plug-in ID
-     * @return plug-in type
+     * Plug-in A is connected to plug-in B when there exists a direct connection from plug-in A to plug-in B.
+     * If so, plug-in A can get and use all contexts registered by plug-in B using context pool.
+     * 
+     * Plug-in B can get context registered by plug-in A only if the connection is bidirectional, i.e.
+     * in case when also isConnected(pluginB, pluginA) holds true.
+     *
+     * @param pluginA
+     * @param pluginB
+     * @return true if pluginA is connected to pluginB.
      */
-    public PLUGIN_TYPE getPluginType(long pluginID);
-
-    /**
-     * Check if two plug-ins are connected within the abstract schema.
-     *
-     * If it is said that "plugin1 is connected to plugin2", it means that
-     * the plugin1 should know plugin2, or that the plugin1 can ask or bother
-     * the plugin2. But this is not available in the opposite direction
-     * (plugin2 can not directly call plugin1).
-     *
-     * If the bidirectional connections wants to be checked, there must be
-     * two calls made - first <code>isConnected(plugin1,plugin2)</code> and
-     * then <code>isConnected(plugin2,plugin1)</code>. Both calls must return
-     * true for the bidirectional connection.
-     *
-     * This method checks, if pluginID is connected to toPluginID.
-     *
-     * @param pluginID
-     * @param toPluginID
-     * @return true if pluginID is connected to withPluginID.
-     */
-    public boolean isConnected(long pluginID, long toPluginID);
+    public boolean isConnected(long pluginA, long pluginB);
 
 }
