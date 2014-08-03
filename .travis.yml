@@ -1,17 +1,25 @@
 language: java
 jdk:
 - oraclejdk7
-
-script: mvn -Pcoveralls test jacoco:report coveralls:jacoco
-
+branches:
+  only:
+  - branch-9_0
 env:
   global:
-  - EMUSTUDIO_USERNAME=vbmacher
   - secure: |-
-      Onn6Yvmm8HYbn/+mypK7ub69zi8LzkGRDAwXZfDUPYJdlGdJY63eiTY5LW/a
-      ZSdDDNPYXk8UqYMjZn9MHG0ugemQRGuu91d6nc2qrr7KA6uCuGyXGMSyCPQo
-      S+iSbX9ffr1Arays4N1vJC/pQUTCQRwN94YBXunkIYmmPYSbcWM=
-
+      HmG0OVXWWz/ghCVWxuT2qwaWxb1zwxe+vPY68S/POOHarZxhJsPHKFGYfFDr
+      yvZmR2dhRmuyhT5ivLDfPSbypkwhiZlVY71Ma2AgG9EjCKULarSVUnzQN9Ir
+      Ly1j/0qwaqUlXI1g8o9tqK9Wrt4/G7ZIV/nBCPO4vV+IizWv6ts=
+  - secure: |-
+      CbY8AZrgDVoimuSqVdAWxlC9geMyxkbT79iz8zHO7FssO/r0sx4UkuXq4WnY
+      MJr4wX0EpUXXHVLr20A1+HavXx0CXyUkiiZj9930YAwMxlEIFZ6+lh5O+/Bq
+      3+Lm4axrMF0eCQaFI94jmvVD7H95T69NhAW6mm3DK3IcliCom9Q=
+  - secure: |-
+      fqODEDCTruRYtHCQgAkc3DVil9y+WRdfRSkJcnJ1NC/5jh45nDl/a9IphQk+
+      2tHnzQBH/vt+03ibHv4I4snlKXYxgt/hxykixpZ8iwkFsc+8B10GqIiUc5VS
+      ir2A65P87B9cGP+bAUdkMlN9MxBp63Xndv428z+PpTZU/w94sNU=
 after_success:
-- python scripts/addServer.py
-- mvn clean deploy --settings ~/.m2/mySettings.xml
+- mvn -Pcoveralls cobertura:cobertura coveralls:cobertura
+- python add_server.py
+- mvn deploy
+- python restore_backups.py
