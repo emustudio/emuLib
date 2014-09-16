@@ -32,8 +32,8 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testInitializeIsAlwaysSuccessful() {
-        assertTrue(cpu.initialize(null));
+    public void testInitializeDoesNotThrow() throws Exception {
+        cpu.initialize(null);
     }
 
     @Test

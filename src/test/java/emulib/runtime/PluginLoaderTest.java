@@ -1,9 +1,7 @@
 /*
- * PluginLoaderTest.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2010-2013, Peter Jakubčo
+ * (c) Copyright 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +25,7 @@ import emulib.annotations.PluginType;
 import emulib.emustudio.APITest;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.Plugin;
+import emulib.plugins.PluginInitializationException;
 import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
@@ -96,7 +95,9 @@ public class PluginLoaderTest {
         @Override
         public void reset() {}
         @Override
-        public boolean initialize(SettingsManager sHandler) { return false; }
+        public void initialize(SettingsManager sHandler) throws PluginInitializationException {
+            throw new PluginInitializationException(null);
+        }
         @Override
         public void destroy() {}
         @Override
@@ -136,8 +137,8 @@ public class PluginLoaderTest {
     @Test(expected = InvalidPluginException.class)
     public void testLoadNotAPlugin() throws Exception {
         pluginLoader.loadPlugin(NOT_A_PLUGIN_PATH, APITest.getEmuStudioPassword());
-    }    
-    
+    }
+
     @Test
     public void testDoesImplement() {
         // test for nested interface
@@ -183,9 +184,9 @@ public class PluginLoaderTest {
     public void testURLFromConstructor() throws MalformedURLException {
         URL fileURL = new File(GOOD_PLUGIN_PATH).toURI().toURL();
         String tmp = "jar:" + fileURL.toString() + "!/";
-        
+
         pluginLoader = new PluginLoader(new URL(tmp));
-        
+
         // The JAR file should be loaded automatically
         URL foundURL = pluginLoader.findResource("/META-INF/maven/net.sf.emustudio/brainduck-cpu/pom.xml");
         assertNotNull(foundURL);

@@ -26,8 +26,8 @@ public class AbstractCompilerTest {
     }
 
     @Test
-    public void testInitializeIsAlwaysSuccessful() {
-        assertTrue(compiler.initialize(null));
+    public void testInitializeDoesNotThrow() throws Exception {
+        compiler.initialize(null);
     }
 
     @Test

@@ -52,13 +52,17 @@ public interface Plugin {
     /**
      * Perform initialization of the plug-in.
      *
-     * Within this method, all provided contexts should be registered, or all required contexts requested from emuLib.
+     * Within this method, all provided contexts should be registered, or all
+     * required contexts requested from emuLib.
      *
-     * @param settingsManager  manager of plug-in's settings. Plug-in use it for getting/storing/removing
-     *        its custom settings. These settings are saved directly into the configuration file.
-     * @return true if initialization process was successful; false otherwise
+     * @param settingsManager  manager of plug-in's settings. Plug-in use it for
+     *   getting/storing/removing its custom settings. These settings are saved
+     *   directly into the configuration file.
+     * @throws PluginInitializationException
+     * thrown when initialization process was not successful
+
      */
-    public boolean initialize (SettingsManager settingsManager);
+    public void initialize (SettingsManager settingsManager) throws PluginInitializationException;
 
     /**
      * Destroys all plug-in resources.

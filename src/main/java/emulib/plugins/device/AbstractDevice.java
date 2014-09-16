@@ -22,6 +22,7 @@ package emulib.plugins.device;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
+import emulib.plugins.PluginInitializationException;
 
 /**
  * Simple device.
@@ -52,12 +53,10 @@ public abstract class AbstractDevice implements Device {
      * class field.
      *
      * @param settings settings manipulation object
-     * @return true
      */
     @Override
-    public boolean initialize(SettingsManager settings) {
+    public void initialize(SettingsManager settings) throws PluginInitializationException {
         this.settings = settings;
-        return true;
     }
 
     @Override

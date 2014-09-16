@@ -1,7 +1,6 @@
 package emulib.plugins.device;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,8 +13,8 @@ public class AbstractDeviceTest {
     }
 
     @Test
-    public void testInitializeIsAlwaysSuccessful() {
-        assertTrue(device.initialize(null));
+    public void testInitializeDoesNotThrow() throws Exception {
+        device.initialize(null);
     }
 
     @Test

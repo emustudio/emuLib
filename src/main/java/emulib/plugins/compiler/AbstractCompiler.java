@@ -22,6 +22,7 @@ package emulib.plugins.compiler;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
+import emulib.plugins.PluginInitializationException;
 import emulib.plugins.compiler.Message.MessageType;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -31,7 +32,6 @@ import java.util.Set;
  * useful within the implementation of own compiler plug-ins.
  */
 public abstract class AbstractCompiler implements Compiler {
-
     /**
      * Settings manipulation object
      */
@@ -73,12 +73,10 @@ public abstract class AbstractCompiler implements Compiler {
      * It should be overriden.
      *
      * @param sHandler settings manipulation object
-     * @return true
      */
     @Override
-    public boolean initialize(SettingsManager sHandler) {
+    public void initialize(SettingsManager sHandler) throws PluginInitializationException {
         this.settings = sHandler;
-        return true;
     }
 
     @Override

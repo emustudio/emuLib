@@ -22,6 +22,7 @@ package emulib.plugins.cpu;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
+import emulib.plugins.PluginInitializationException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +38,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     /**
      * List of all CPU stateObservers
      */
-    protected List<CPUListener> stateObservers;
+    protected final List<CPUListener> stateObservers = new ArrayList<>();
 
     /**
      * breakpoints list
@@ -73,7 +74,6 @@ public abstract class AbstractCPU implements CPU, Runnable {
     public AbstractCPU(Long pluginID) {
         runState = RunState.STATE_STOPPED_NORMAL;
         breaks = new HashSet<>();
-        stateObservers = new ArrayList<>();
         this.pluginID = pluginID;
         cpuThread = null;
     }
@@ -83,12 +83,10 @@ public abstract class AbstractCPU implements CPU, Runnable {
      * variables.
      *
      * @param settings object for settings manipulation
-     * @return true
      */
     @Override
-    public boolean initialize(SettingsManager settings) {
+    public void initialize(SettingsManager settings) throws PluginInitializationException {
         this.settings = settings;
-        return true;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package emulib.plugins.memory;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,8 +13,8 @@ public class AbstractMemoryTest {
     }
 
     @Test
-    public void testInitializeIsAlwaysSuccessful() {
-        assertTrue(memory.initialize(null));
+    public void testInitializeDoesNotThrow() throws Exception {
+        memory.initialize(null);
     }
 
     @Test

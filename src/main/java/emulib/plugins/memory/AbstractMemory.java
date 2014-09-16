@@ -22,6 +22,7 @@ package emulib.plugins.memory;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
+import emulib.plugins.PluginInitializationException;
 
 /**
  * This class implements some fundamental functionality that can be shared
@@ -61,12 +62,10 @@ public abstract class AbstractMemory implements Memory {
      * be overriden.
      *
      * @param sHandler settings manipulation object
-     * @return true
      */
     @Override
-    public boolean initialize(SettingsManager sHandler) {
+    public void initialize(SettingsManager sHandler)  throws PluginInitializationException {
         this.settings = sHandler;
-        return true;
     }
 
     /**
