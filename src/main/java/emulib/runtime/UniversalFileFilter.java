@@ -1,7 +1,5 @@
 /*
- * UniversalFileFilter.java
- *
- * Copyright (C) 2013 Peter Jakubčo
+ * Copyright (C) 2013-2014 Peter Jakubčo
  * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -84,7 +82,7 @@ public class UniversalFileFilter extends FileFilter {
     public void setDescription(String description) {
         this.description = description;
     }
-    
+
     /**
      * Get extensions count within this filter.
      *
@@ -93,5 +91,5 @@ public class UniversalFileFilter extends FileFilter {
     public int getExtensionsCount() {
         return extensions.size();
     }
-    
+
 }

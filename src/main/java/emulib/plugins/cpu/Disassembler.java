@@ -1,9 +1,7 @@
 /*
- * Disassembler.java
- *
  * KISS, YAGNI, DRY
  *
- * Copyright (C) 2011-2012, P. Jakubčo
+ * Copyright (C) 2011-2014, P. Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,7 +22,6 @@ package emulib.plugins.cpu;
 
 /**
  * An instruction disassembler interface.
- * @author Peter Jakubčo
  */
 public interface Disassembler {
 

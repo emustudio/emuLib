@@ -1,9 +1,7 @@
 /*
- * InvalidContextException.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2012, Peter Jakubčo
+ *
+ * (c) Copyright 2012-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,22 +20,21 @@
 package emulib.runtime;
 
 /**
- * This class represents an exception that can be raised when a context class does not fullfill context requirements.
- * 
- * @author Peter Jakubčo
+ * This class represents an exception that can be raised when a context class
+ * does not fulfill context requirements.
  */
 public class InvalidContextException extends Exception {
-    
+
     public InvalidContextException() {
-        
+
     }
-    
+
     public InvalidContextException(String cause) {
         super(cause);
     }
-    
+
     public InvalidContextException(String cause, Throwable e) {
         super(cause, e);
     }
-    
+
 }

@@ -1,9 +1,7 @@
 /*
- * Context.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,15 +24,13 @@ import emulib.annotations.ContextType;
 
 /**
  * Context is a functional structure of a plugin that can be used by the other plugins.
- * 
+ *
  * Plug-ins ask emuLib to get contexts of another plug-ins, by querying ContextController directly. If they are allowed
  * to get the context, emuLib returns the object (if it is found).
  *
  * Each plug-in can have none, one or more contexts, even implementing the same interface. Context interface can extend
  * standard context interfaces, provided by emuLib (such as CPUContext, MemoryContext, etc.). The last requirement is
  * to annotate context interfaces with @ContextType annotation.
- * 
- * @author Peter Jakubčo
  */
 @ContextType
 public interface Context {

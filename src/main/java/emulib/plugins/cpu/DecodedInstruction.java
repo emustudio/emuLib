@@ -1,6 +1,4 @@
 /*
- * DecodedInstruction.java
- *
  * KISS, YAGNI, DRY
  *
  * (c) Copyright 2012, M. Sulír

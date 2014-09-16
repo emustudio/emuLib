@@ -1,10 +1,8 @@
 /*
- * Device.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -29,15 +27,15 @@ import emulib.plugins.Plugin;
  * Design of the interface supports hierarchical connection of devices. Each
  * device can implement one or more device contexts. The contexts can be
  * identified by implemented interface, and/or the identification number (ID).
- * 
+ *
  */
 public interface Device extends Plugin {
 
     /**
      * Shows GUI of a device. Device don't have to have a GUI, but instead it
-     * should display information message. 
+     * should display information message.
      */
     public void showGUI ();
-    
+
 }
 

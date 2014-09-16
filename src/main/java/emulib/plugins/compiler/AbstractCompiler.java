@@ -1,9 +1,7 @@
 /*
- * AbstractCompiler.java
- *
  * KISS, YAGNI, DRY
  *
- * Copyright (C) 2010-2013, Peter Jakubčo
+ * Copyright (C) 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,8 +29,6 @@ import java.util.Set;
 /**
  * This class implements some fundamental functionality that can be
  * useful within the implementation of own compiler plug-ins.
- *
- * @author Peter Jakubčo
  */
 public abstract class AbstractCompiler implements Compiler {
 
@@ -62,7 +58,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Public constructor initializes compilerListeners list and event object for
      * event passing.
-     * 
+     *
      * @param pluginID ID of the plug-in assigned by emuStudio
      */
     public AbstractCompiler(Long pluginID) {
@@ -93,7 +89,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Returns program start address (memory location) after the compilation
      * process. If the compile process was not ran, it will return 0.
-     * 
+     *
      * @return program start address (memory location)
      */
     @Override
@@ -167,7 +163,7 @@ public abstract class AbstractCompiler implements Compiler {
 
     /**
      * Notifies the error message.
-     * 
+     *
      * @param mes text of the message
      */
     protected void notifyError(String mes) {

@@ -1,9 +1,7 @@
 /*
- * InvalidPasswordException.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2012, Peter Jakubčo
+ *
+ * (c) Copyright 2012-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,9 +21,7 @@ package emulib.runtime;
 
 /**
  * This exception is raised when wrong password is provided as parameter of some PluginLoader methods.
- * 
- * @author Peter Jakubčo
  */
 public class InvalidPasswordException extends Exception {
-    
+
 }

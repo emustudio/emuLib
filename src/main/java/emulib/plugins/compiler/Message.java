@@ -1,9 +1,7 @@
 /*
- * Message.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2011-2013, Peter Jakubčo
+ *
+ * (c) Copyright 2011-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,6 @@ package emulib.plugins.compiler;
  * This class provides the message object that will be passed when the compiler
  * wishes to print a message. Compilers that generate messages should use this
  * object.
- *
- * @author vbmacher
  */
 public class Message {
     public static final String INFO_FORMAT =    "[Info    (%03d)] ";
@@ -36,7 +32,7 @@ public class Message {
 
     public static final String POSITION_FORMAT = "(%3d,%3d) ";
     public static final String SOURCE_FILE_FORMAT = "<%s> ";
-    
+
     /**
      * Message type.
      */
@@ -143,7 +139,7 @@ public class Message {
             int errorCode) {
         this(message_type,message,-1,-1,sourceFile, errorCode);
     }
-    
+
     public int getErrorCode() {
         return errorCode;
     }
@@ -151,7 +147,7 @@ public class Message {
     public String getSourceFile() {
         return sourceFile;
     }
-    
+
     /**
      * Return formatted string that represents this Message object.
      *
@@ -216,7 +212,7 @@ public class Message {
     public MessageType getMessageType() {
         return messageType;
     }
-    
+
     @Override
     public String toString() {
         return getFormattedMessage();

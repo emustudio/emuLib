@@ -1,9 +1,7 @@
 /*
- * Context.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2012, Peter Jakubčo
+ *
+ * (c) Copyright 2012-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,10 +20,9 @@
 package emulib.runtime;
 
 /**
- * This class represents an exception raised when a plug-in tries to register a context which is already registered.
- * 
- * @author Peter Jakubčo
+ * This class represents an exception raised when a plug-in tries to register
+ * a context which is already registered.
  */
 public class AlreadyRegisteredException extends Exception {
-    
+
 }

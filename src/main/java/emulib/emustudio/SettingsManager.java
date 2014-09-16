@@ -1,10 +1,8 @@
 /*
- * SettingsManager.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -24,24 +22,24 @@ package emulib.emustudio;
 
 /**
  * Settings manager provides methods for reading/storing plugin settings.
- * 
+ *
  * It is implemented by the main module. Plugins get it withing the initialization process.
  */
 public interface SettingsManager {
 
     /**
-     * Read specified setting from configuration file.  Setting can be arbitrary. It 
+     * Read specified setting from configuration file.  Setting can be arbitrary. It
      * uses configuration file that user chosen after start of the emulator.
-     * 
+     *
      * @param pluginID  plugin ID
      * @param settingName  name of wanted setting (without spaces)
-     * @return setting if it exists (as a <code>String</code>), or 
+     * @return setting if it exists (as a <code>String</code>), or
      *         <code>null</code> if not
      */
     public String readSetting (long pluginID, String settingName);
 
     /**
-     * Write specified setting to a configuration file. Setting can be arbitrary. It 
+     * Write specified setting to a configuration file. Setting can be arbitrary. It
      * uses configuration file that user has chosen after start of the emulator.
      * @param pluginID  plugin ID
      * @param settingName  name of wanted setting (without spaces) to be written
@@ -51,7 +49,7 @@ public interface SettingsManager {
     public boolean writeSetting (long pluginID, String settingName, String val);
 
     /**
-     * Remove specified setting to from a configuration file. Be careful, setting can 
+     * Remove specified setting to from a configuration file. Be careful, setting can
      * be arbitrary. It uses configuration file that user chosen after start of the
      * emulator.
      * @param pluginID  plugin ID

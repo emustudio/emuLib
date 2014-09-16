@@ -1,9 +1,7 @@
 /*
- * AbstractMemoryContext.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,8 +29,6 @@ import java.util.List;
  * interface, that can be useful in the programming of the own memory context.
  *
  * It is not thread safe.
- *
- * @author Peter Jakubčo
  */
 public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
     /**

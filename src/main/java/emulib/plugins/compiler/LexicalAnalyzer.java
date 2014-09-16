@@ -1,10 +1,8 @@
 /*
- * LexicalAnalyzer.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -21,7 +19,6 @@
  */
 package emulib.plugins.compiler;
 
-import java.io.IOException;
 import java.io.Reader;
 
 
@@ -32,7 +29,7 @@ public interface LexicalAnalyzer {
 
     /**
      * Performs reset of the analyzer.
-     * 
+     *
      * Internal counters (actual position, actual column, row, etc.) should be cleared. Lexical analyzer should prepare
      * itself to start parsing from the beginning of the document.
      */
@@ -40,10 +37,10 @@ public interface LexicalAnalyzer {
 
     /**
      * Performs reset of the analyzer.
-     * 
+     *
      * Internal counters (actual position, actual column, row, etc.) should be cleared. Lexical analyzer should prepare
      * itself to start parsing from the beginning of the document.
-     * 
+     *
      * @param sourceCode <code>Reader</code> of the source code.
      * @param startLine from this line should lexical analyser start, usually 0
      * @param startChar from this char should lexical analyser start, usually 0

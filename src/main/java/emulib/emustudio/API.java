@@ -1,9 +1,7 @@
 /*
- * API.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2012-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,7 +29,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * It is a singleton class.
  *
  * Thread safe.
- * @author vbmacher
  */
 public class API {
     // emuStudio password for further emuLib communication

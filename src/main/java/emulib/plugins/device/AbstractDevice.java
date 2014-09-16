@@ -1,9 +1,7 @@
 /*
- * AbstractDevice.java
- *
  * KISS, YAGNI, DRY
  *
- * Copyright (C) 2010-2012, Peter Jakubčo
+ * Copyright (C) 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,8 +25,6 @@ import emulib.emustudio.SettingsManager;
 
 /**
  * Simple device.
- *
- * @author vbmacher
  */
 public abstract class AbstractDevice implements Device {
     /**

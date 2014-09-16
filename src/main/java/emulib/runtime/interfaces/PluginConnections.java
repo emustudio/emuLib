@@ -1,6 +1,8 @@
 /*
  * KISS, YAGNI, DRY
  *
+ * (c) Copyright 2012-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -29,7 +31,7 @@ public interface PluginConnections {
      *
      * Plug-in A is connected to plug-in B when there exists a direct connection from plug-in A to plug-in B.
      * If so, plug-in A can get and use all contexts registered by plug-in B using context pool.
-     * 
+     *
      * Plug-in B can get context registered by plug-in A only if the connection is bidirectional, i.e.
      * in case when also isConnected(pluginB, pluginA) holds true.
      *

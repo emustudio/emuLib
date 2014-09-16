@@ -1,10 +1,8 @@
 /*
- * PluginType.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2012-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -28,7 +26,7 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that the class is a plug-in's main class.
- * 
+ *
  * Besides, the main class must inherit from Plugin interface. This annotation
  * must be used once and only once within the plug-in. If this annotation is
  * used more than once (together with the inheritance of Plugin interface), the

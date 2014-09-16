@@ -1,10 +1,8 @@
 /*
- * Token.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -83,74 +81,74 @@ public interface Token {
 
     /**
      * Get token ID.
-     * 
+     *
      * The token ID is compiler-specific value. Each token must have unique ID.
-     * 
+     *
      * @return ID of the token
      */
     public int getID ();
 
     /**
      * Get token type.
-     * 
+     *
      * The token type mus be one of the pre-defined constants located inside this interface (e.g. <code>RESERVED</code>,
      * <code>PREPROCESSOR</code>, etc.).
-     * 
+     *
      * @return type of the token
      */
     public int getType ();
 
     /**
      * Get 0-based starting line (row) of token position.
-     * 
+     *
      * @return start line number of the token
      */
     public int getLine ();
 
     /**
      * Get 0-based starting column of token position.
-     * 
+     *
      * @return start column number of the token
      */
     public int getColumn ();
 
     /**
      * Get 0-based starting offset of token position.
-     * 
+     *
      * @return starting offset of the token in the source code
      */
     public int getOffset ();
 
     /**
      * Get length of the token.
-     * 
+     *
      * @return length of the token
      */
     public int getLength ();
-    
+
     /**
      * Get error string for this token.
-     * 
+     *
      * If the token is not errorneous, return empty string ("").
-     * 
+     *
      * @return error string message for this token
      */
     public String getErrorString ();
-    
+
     /**
      * Get token value.
-     * 
+     *
      * @return token value
      */
     public String getText ();
-    
+
     /**
      * Check if the token is in initial lexical state.
-     * 
+     *
      * Initial lexical state represents a position in the source code, from what the lexical analyzer can safely start
      * parsing the source code - as it would parse it from the start of the document. They are useful especially for
      * syntax highlighting.
-     *  
+     *
      * @return true if token is in initial lexical state; false otherwise.
      */
     public boolean isInitialLexicalState();

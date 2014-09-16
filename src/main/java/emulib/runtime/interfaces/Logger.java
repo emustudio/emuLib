@@ -1,7 +1,5 @@
 /*
- * Logger.java
- * 
- * Copyright (C) 2009-2012 Peter Jakubčo
+ * Copyright (C) 2009-2014 Peter Jakubčo
  * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -22,53 +20,51 @@ package emulib.runtime.interfaces;
 
 /**
  * Logger interface for plug-ins.
- * 
+ *
  * Any plug-in can obtain a logger by calling LoggerFactory.getLogger().
- * 
- * @author Peter Jakubčo
  */
 public interface Logger {
-    
+
     /**
      * Log informational message.
-     * 
+     *
      * @param message message string
      */
     public void info(String message);
-    
+
     /**
      * Log informational message with exception stacktrace.
-     * 
+     *
      * @param message message string
      * @param throwable exception object
      */
     public void info(String message, Throwable throwable);
-    
+
     /**
      * Log error message.
-     * 
+     *
      * @param message message string
      */
     public void error(String message);
-    
+
     /**
      * Log error message with exception stacktrace.
-     * 
+     *
      * @param message message string
      * @param throwable exception object
      */
     public void error(String message, Throwable throwable);
-    
+
     /**
      * Log warning message.
-     * 
+     *
      * @param message message string
      */
     public void warning(String message);
 
     /**
      * Log warning message with exception stacktrace.
-     * 
+     *
      * @param message message string
      * @param throwable exception object
      */
@@ -76,21 +72,21 @@ public interface Logger {
 
     /**
      * Log debug message.
-     * 
+     *
      * If debug is not enabled, does nothing.
-     * 
+     *
      * @param message message string
      */
     public void debug(String message);
-    
+
     /**
      * Log debug message with exception stacktrace.
-     * 
+     *
      * If debug is not enabled, does nothing.
-     * 
+     *
      * @param message message string
      * @param throwable exception object
      */
     public void debug(String message, Throwable throwable);
-    
+
 }

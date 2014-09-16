@@ -1,9 +1,7 @@
 /*
- * AbstractMemory.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,8 +26,6 @@ import emulib.emustudio.SettingsManager;
 /**
  * This class implements some fundamental functionality that can be shared
  * by most memory implementations.
- *
- * @author vbmacher
  */
 public abstract class AbstractMemory implements Memory {
     /**

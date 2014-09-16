@@ -1,9 +1,7 @@
 /*
- * AbstractDisassembler.java
- *
  * KISS, YAGNI, DRY
  *
- * Copyright (C) 2011-2012, Peter Jakubčo
+ * Copyright (C) 2011-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -26,8 +24,6 @@ package emulib.plugins.cpu;
 /**
  * This abstract class implements some fundamental methods of Disassembler
  * interface. It can be used as foundation for implementing own disassembler.
- *
- * @author vbmacher
  */
 public abstract class AbstractDisassembler implements Disassembler {
     protected final Decoder decoder;

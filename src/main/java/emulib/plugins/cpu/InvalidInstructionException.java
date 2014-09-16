@@ -1,8 +1,6 @@
 /*
- * InvalidInstructionException.java
- *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, M. Sulír
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -26,5 +24,5 @@ package emulib.plugins.cpu;
  * @author Matúš Sulír
  */
 public class InvalidInstructionException extends Exception {
-    
+
 }

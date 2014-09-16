@@ -1,7 +1,5 @@
 /*
- * LoggerImpl.java
- * 
- * Copyright (C) 2009-2012 Peter Jakubčo
+ * Copyright (C) 2009-2014 Peter Jakubčo
  * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,17 +22,15 @@ import emulib.runtime.interfaces.Logger;
 
 /**
  * Implementation class of a logger.
- * 
+ *
  * It is based on SLF4J logger, but plug-ins don't have to know that.
- * 
- * @author Peter Jakubčo
  */
 public class LoggerImpl implements Logger {
     private final org.slf4j.Logger logger;
-    
+
     /**
      * Instance of this class can be made only within this package, for security reasons.
-     * 
+     *
      * @param logger SLF4j logger instance
      */
     LoggerImpl(org.slf4j.Logger logger) {
@@ -80,5 +76,5 @@ public class LoggerImpl implements Logger {
     public void debug(String message, Throwable throwable) {
         logger.debug(message, throwable);
     }
-    
+
 }

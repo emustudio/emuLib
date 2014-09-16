@@ -1,10 +1,8 @@
 /*
- * DeviceContext.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -28,8 +26,6 @@ import emulib.plugins.Context;
  * Interface for basic context of the device. If device support more
  * functionality than input or output, it should be extended (or implemented
  * by an abstract class), and then made public.
- *
- * @author vbmacher
  */
 @ContextType
 public interface DeviceContext<T> extends Context {
@@ -45,7 +41,7 @@ public interface DeviceContext<T> extends Context {
      * @return elementary data read from device
      */
     public T read ();
-    
+
     /**
      * Writes/sends data to the device.
      *
@@ -57,7 +53,7 @@ public interface DeviceContext<T> extends Context {
      * @param val  data to be written to the device
      */
     public void write (T val);
-    
+
     /**
      * Get the type of transferred data. As you can see, methods
      * <code>read</code> and <code>write</code> use <code>Object</code> as

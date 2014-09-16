@@ -1,8 +1,6 @@
 /*
- * Decoder.java
- *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, M. Sulír
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,11 +26,11 @@ package emulib.plugins.cpu;
 public interface Decoder {
     /**
      * Decodes an instruction.
-     * 
+     *
      * @param memoryPosition the address of the start of the instruction
      * @return the decoded instruction object
      * @throws InvalidInstructionException when decoding is not successful
      */
     public DecodedInstruction decode(int memoryPosition) throws InvalidInstructionException;
-    
+
 }

@@ -1,9 +1,7 @@
 /*
- * CompilerContext.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ *
+ * (c) Copyright 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,8 +24,6 @@ import emulib.plugins.Context;
 
 /**
  * This interface defines compiler context.
- *
- * @author vbmacher
  */
 @ContextType
 public interface CompilerContext extends Context {

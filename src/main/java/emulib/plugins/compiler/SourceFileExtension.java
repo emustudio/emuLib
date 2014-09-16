@@ -1,9 +1,7 @@
 /*
- * SourceFileExtension.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2011-2012, Peter Jakubčo
+ *
+ * (c) Copyright 2011-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,8 +31,6 @@ package emulib.plugins.compiler;
  * The description of the extension should be in any form.
  *
  * Immutable object.
- * 
- * @author vbmacher
  */
 public class SourceFileExtension {
     private final String extension;
@@ -76,11 +72,11 @@ public class SourceFileExtension {
      *
      * The formatting represents combining the raw description with the
      * file extension, enclosed in brackets.
-     * 
+     *
      * For example, if the raw description was "Assembler source" and the
      * extension "asm", then the formatted description will be:
      * "Assembler source (*.asm)"
-     * 
+     *
      * @return formatted file-extension description
      */
     public String getFormattedDescription() {

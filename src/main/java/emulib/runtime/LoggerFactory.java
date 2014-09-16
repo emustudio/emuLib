@@ -1,7 +1,5 @@
 /*
- * LoggerFactory.java
- *
- * Copyright (C) 2009-2013 Peter Jakubčo
+ * Copyright (C) 2009-2014 Peter Jakubčo
  * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -28,8 +26,6 @@ import java.util.Map;
  * Logger factory which provides loggers for given classes.
  *
  * It is preferred way for plug-ins to obtain a logger.
- *
- * @author Peter Jakubčo
  */
 public class LoggerFactory {
     private static final Map<Class, Logger> loggers = new HashMap<>();

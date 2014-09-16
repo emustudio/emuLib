@@ -1,9 +1,7 @@
 /*
- * ContextType.java
- *
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2012, Peter Jakubčo
+ *
+ * (c) Copyright 2012-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,9 +27,8 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that the annotated interace represent plugin context.
- * 
+ *
  * This annotation should be used only on classes.
- * @author vbmacher
  */
 @Inherited
 @Retention(value = RetentionPolicy.RUNTIME)

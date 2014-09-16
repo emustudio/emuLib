@@ -1,9 +1,7 @@
 /*
- * MemoryContext.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2012, Peter Jakubčo
+ * (c) Copyright 2008-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,8 +31,6 @@ import emulib.plugins.memory.Memory.MemoryListener;
  *
  * The context is given to plugins (compiler, CPU, devices), that are connected
  * to the memory and they communicate by invoking following methods.
- * 
- * @param <T>
  */
 @ContextType
 public interface MemoryContext<T> extends Context {

@@ -1,9 +1,7 @@
 /*
- * HEXFileManager.java
- *
  * Created on Sobota, 2007, október 13, 16:21
  *
- * Copyright (C) 2007-2013, Peter Jakubčo
+ * Copyright (C) 2007-2014, Peter Jakubčo
  * KISS, YAGNI, DRY
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,7 +22,6 @@ package emulib.runtime;
 
 import emulib.plugins.memory.MemoryContext;
 import java.io.BufferedWriter;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -33,8 +30,6 @@ import java.util.*;
 
 /**
  * This class generates and loads 16 bit Intel hex files.
- *
- * @author Peter Jakubčo
  */
 public class HEXFileManager {
     private final Map<Integer, String> program;
@@ -46,18 +41,18 @@ public class HEXFileManager {
     }
 
     /**
-     * Put a series of bytes to the code table. 
-     * 
+     * Put a series of bytes to the code table.
+     *
      * The bytes must be given as a hexadecimal string of any length.
      * Each byte must have a form of two characters. For example:
-     * 
+     *
      * <code>0A0B10</code>
-     * 
+     *
      * represents 3 bytes: <code>0x0A</code>, <code>0x0B</code> and <code>0x10</code>.
-     * 
+     *
      * The code table is modified so that all addresses starting from the current
      * one up to the code length will contain corresponding byte.
-     * 
+     *
      * The current address is then increased by the code length.
      * If a byte exists on an address already, it is overwritten.
      *
@@ -235,7 +230,7 @@ public class HEXFileManager {
             return 0;
         }
     }
-    
+
     private static char ignoreSpaces(Reader reader) throws IOException {
         int input = reader.read();
         while (input == ' ') {
@@ -251,7 +246,7 @@ public class HEXFileManager {
         }
         return (char) input;
     }
-    
+
     private static int readWord(Reader reader) throws Exception {
         int input = reader.read();
         if (input == -1) {
@@ -295,11 +290,11 @@ public class HEXFileManager {
         char wordLow = (char) input;
         return Integer.decode(String.format("0x%c%c%c%c", dwordHigh, dwordLow, wordHigh, wordLow));
     }
-    
+
     // line beginning with ; is ignored
     public static HEXFileManager parseFromFile(String filename) throws Exception {
         HEXFileManager hexFile = new HEXFileManager();
-        
+
         try (FileReader reader = new FileReader(filename)) {
             int input;
             while ((input = reader.read()) != -1) {
@@ -323,14 +318,14 @@ public class HEXFileManager {
                 }
                 // address
                 int address = readDword(reader);
-                
+
                 // data type
                 int dataType = readWord(reader);
                 if (dataType != 0) {
                     reader.close();
                     throw new IOException("Unexpected data type: " + dataType);
                 } // doesnt support other data types
-                
+
                 // data...
                 hexFile.setNextAddress(address);
                 for (int y = 0; y < bytesCount; y++) {
@@ -347,7 +342,7 @@ public class HEXFileManager {
         }
         return hexFile;
     }
-    
+
     public static int loadIntoMemory(String fileName, MemoryContext<Short> memory) throws Exception {
         HEXFileManager hexFile = HEXFileManager.parseFromFile(fileName);
         hexFile.loadIntoMemory(memory);

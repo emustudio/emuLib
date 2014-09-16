@@ -1,9 +1,7 @@
 /*
- * Compiler.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -75,7 +73,7 @@ public interface Compiler extends Plugin {
     }
 
     /**
-     * Compile a file into output file. Output file name the compiler should 
+     * Compile a file into output file. Output file name the compiler should
      * derive from input file name.
      * @param fileName  name of input file (source code)
      * @param in        <code>Reader</code> object of the document - source code.
@@ -83,7 +81,7 @@ public interface Compiler extends Plugin {
      * @return true if compile was successful, false otherwise
      */
     public boolean compile (String fileName, Reader in);
-    
+
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
      * syntax highlighting. In the compilation process the compiler should
@@ -93,7 +91,7 @@ public interface Compiler extends Plugin {
      * @return lexical analyzer object
      */
     public LexicalAnalyzer getLexer(Reader in);
-    
+
     /**
      * Gets starting address of compiled source. It is (or can be) called only
      * after compilation process. It should return the first occurrence of compiled

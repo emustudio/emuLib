@@ -1,9 +1,7 @@
 /*
- * AbstractCPU.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2010-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,8 +32,6 @@ import java.util.Set;
  * by your own plug-ins.
  *
  * The CPU execution is realized via separated thread.
- *
- * @author vbmacher
  */
 public abstract class AbstractCPU implements CPU, Runnable {
     /**

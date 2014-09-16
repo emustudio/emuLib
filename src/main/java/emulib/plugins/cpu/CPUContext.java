@@ -1,10 +1,8 @@
 /*
- * CPUContext.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2008-2012, Peter Jakubčo
- * 
+ *
+ * (c) Copyright 2008-2014, Peter Jakubčo
+ *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2 of the License, or
@@ -28,36 +26,36 @@ import emulib.plugins.device.DeviceContext;
 /**
  * Basic interface for CPU context. The context is used by plugins, that are
  * connected to CPU.
- * 
- * CPU plugins can extend this interface to their own (with some new methods) 
+ *
+ * CPU plugins can extend this interface to their own (with some new methods)
  * and then the programmer should make it to be public in order to other plugins
  * could have access to it.
- * 
+ *
  * Extended context may have methods for e.g. connecting devices to CPU, etc.
  */
 @ContextType
 public interface CPUContext extends Context {
-    
+
     /**
      * Determine whether this CPU supports raw interrupts.
-     * 
+     *
      * @return true, if raw interrupts are supported, false otherwise
      */
     public boolean isRawInterruptSupported();
-    
+
     /**
      * Send raw interrupt signal to the CPU.
-     * 
+     *
      * Does nothing if raw interrupts are not supported.
      *
      * @param device Device that interrupts the CPU
      * @param data interrupt data
      */
     public void signalRawInterrupt(DeviceContext device, byte []data);
-    
+
     /**
      * Determine whether this CPU supports interrupts.
-     * 
+     *
      * @return true, if interrupts are supported, false otherwise
      */
     public boolean isInterruptSupported();
@@ -80,10 +78,10 @@ public interface CPUContext extends Context {
 
     /**
      * Get CPU frequency in kHz
-     * 
+     *
      * @return CPU frequency in kHz or 0 if it is not supported
      */
     public int getCPUFrequency();
-    
+
 }
 

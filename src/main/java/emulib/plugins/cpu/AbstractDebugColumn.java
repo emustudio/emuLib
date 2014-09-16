@@ -1,9 +1,7 @@
 /*
- * AbstractDebugColumn.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2011-2012, Peter Jakubčo
+ * (c) Copyright 2011-2014, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,8 +21,6 @@ package emulib.plugins.cpu;
 
 /**
  * Simple implementation of DebugColumn.
- *
- * @author vbmacher
  */
 public abstract class AbstractDebugColumn implements DebugColumn {
     private final String title;
