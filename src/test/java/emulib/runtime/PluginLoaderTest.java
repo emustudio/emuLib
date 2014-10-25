@@ -17,7 +17,6 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
 package emulib.runtime;
 
 import emulib.annotations.PLUGIN_TYPE;
@@ -31,81 +30,143 @@ import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import javax.swing.JPanel;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
 public class PluginLoaderTest {
-    private static final String GOOD_PLUGIN_PATH = "src/test/resources/plugin-valid.jar";
-    private static final String BAD_PLUGIN_PATH = "src/test/resources/plugin-invalid.jar";
-    private static final String NOT_A_PLUGIN_PATH = "src/test/resources/not-a-plugin.jar";
+    private static final String RESOURCES_PATH = "src" + File.separator + "test"
+            + File.separator + "resources" + File.separator;
+    
+    private static final String GOOD_PLUGIN_PATH = RESOURCES_PATH + "plugin-valid.jar";
+    private static final String BAD_PLUGIN_PATH = RESOURCES_PATH + "plugin-invalid.jar";
+    private static final String NOT_A_PLUGIN_PATH = RESOURCES_PATH + "not-a-plugin.jar";
+    private static final String DEPENDENT_PLUGIN_PATH = RESOURCES_PATH
+            + "dependencies" + File.separator;
+    private static final String PLUGIN_A_DEPENDS_ON_B = DEPENDENT_PLUGIN_PATH
+            + "A.jar";
 
     private PluginLoader pluginLoader;
 
     private class CPUListenerStub implements CPUListener {
+
         @Override
-        public void runStateChanged(RunState runState) {}
+        public void runStateChanged(RunState runState) {
+        }
+
         @Override
-        public void internalStateChanged() {}
+        public void internalStateChanged() {
+        }
     }
 
-    private abstract class SuperCPUStub implements CPU { }
+    private abstract class SuperCPUStub implements CPU {
+    }
 
-    @PluginType(title="CPU", description="", type=PLUGIN_TYPE.CPU, copyright="(c)")
+    @PluginType(title = "CPU", description = "", type = PLUGIN_TYPE.CPU, copyright = "(c)")
     private class CPUImplStub extends SuperCPUStub {
+
         @Override
         public boolean addCPUListener(CPUListener listener) {
             return true;
         }
+
         @Override
         public boolean removeCPUListener(CPUListener listener) {
             return true;
         }
+
         @Override
-        public void step() {}
+        public void step() {
+        }
+
         @Override
-        public void execute() {}
+        public void execute() {
+        }
+
         @Override
-        public void pause() {}
+        public void pause() {
+        }
+
         @Override
-        public void stop() {}
+        public void stop() {
+        }
+
         @Override
-        public JPanel getStatusPanel() { return null; }
+        public JPanel getStatusPanel() {
+            return null;
+        }
+
         @Override
-        public boolean isBreakpointSupported() { return false; }
+        public boolean isBreakpointSupported() {
+            return false;
+        }
+
         @Override
-        public void setBreakpoint(int pos) {}
+        public void setBreakpoint(int pos) {
+        }
+
         @Override
-        public void unsetBreakpoint(int pos) {}
+        public void unsetBreakpoint(int pos) {
+        }
+
         @Override
-        public boolean isBreakpointSet(int pos) { return false; }
+        public boolean isBreakpointSet(int pos) {
+            return false;
+        }
+
         @Override
-        public void reset(int startAddress) {}
+        public void reset(int startAddress) {
+        }
+
         @Override
-        public int getInstructionPosition() { return 0; }
+        public int getInstructionPosition() {
+            return 0;
+        }
+
         @Override
-        public boolean setInstructionPosition(int pos) { return false; }
+        public boolean setInstructionPosition(int pos) {
+            return false;
+        }
+
         @Override
-        public Disassembler getDisassembler() { return null; }
+        public Disassembler getDisassembler() {
+            return null;
+        }
+
         @Override
-        public void reset() {}
+        public void reset() {
+        }
+
         @Override
         public void initialize(SettingsManager sHandler) throws PluginInitializationException {
             throw new PluginInitializationException(null);
         }
+
         @Override
-        public void destroy() {}
+        public void destroy() {
+        }
+
         @Override
-        public void showSettings() {}
+        public void showSettings() {
+        }
+
         @Override
-        public boolean isShowSettingsSupported() { return false; }
+        public boolean isShowSettingsSupported() {
+            return false;
+        }
+
         @Override
-        public String getVersion() { return ""; }
+        public String getVersion() {
+            return "";
+        }
+
         @Override
         public String getTitle() {
             return CPUImplStub.class.getAnnotation(PluginType.class).title();
@@ -118,11 +179,11 @@ public class PluginLoaderTest {
         pluginLoader = new PluginLoader();
     }
 
-    private Class<Plugin> loadGoodPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException, IOException {
+    private Class<Plugin> loadGoodPlugin(PluginLoader instance) throws Exception {
         return instance.loadPlugin(GOOD_PLUGIN_PATH, APITest.getEmuStudioPassword());
     }
 
-    private Class<Plugin> loadBadPlugin(PluginLoader instance) throws InvalidPasswordException, InvalidPluginException, IOException {
+    private Class<Plugin> loadBadPlugin(PluginLoader instance) throws Exception {
         return instance.loadPlugin(BAD_PLUGIN_PATH, APITest.getEmuStudioPassword());
     }
 
@@ -153,8 +214,8 @@ public class PluginLoaderTest {
         assertFalse(PluginLoader.trustedPlugin(CPUListenerStub.class));
     }
 
-    @Test(expected = InvalidPluginException.class)
-    public void testLoadPluginNullFileName() throws InvalidPasswordException, InvalidPluginException, IOException {
+    @Test(expected = NullPointerException.class)
+    public void testLoadPluginNullFileName() throws Exception {
         pluginLoader.loadPlugin(null, APITest.getEmuStudioPassword());
     }
 
@@ -192,4 +253,13 @@ public class PluginLoaderTest {
         assertNotNull(foundURL);
     }
 
+    @Test
+    public void testDependenciesAreLoadedCorrectly() throws Exception {
+        Class<Plugin> cl = pluginLoader.loadPlugin(
+                PLUGIN_A_DEPENDS_ON_B,
+                APITest.getEmuStudioPassword(),
+                RESOURCES_PATH + "dependencies"
+        );
+        cl.getDeclaredMethod("hello").invoke(cl.newInstance());
+    }
 }

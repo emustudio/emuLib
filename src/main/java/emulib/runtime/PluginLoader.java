@@ -30,11 +30,17 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.StringTokenizer;
+import java.util.jar.Attributes.Name;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
+import java.util.jar.Manifest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +93,30 @@ public class PluginLoader extends URLClassLoader {
 
         return false;
     }
+    
+    private List<File> getDependencies(File plugin, String dependencyBasePath) throws IOException {
+        JarFile pluginJar = new JarFile(plugin);
+        Manifest manifest = pluginJar.getManifest();
+        
+        String classPath = manifest.getMainAttributes().getValue(Name.CLASS_PATH);
+        List<File> dependencies = new ArrayList<>();
+        if (classPath != null) {
+            StringTokenizer tokenizer = new StringTokenizer(classPath);
+            while (tokenizer.hasMoreTokens()) {
+                dependencies.add(new File(
+                        dependencyBasePath,
+                        tokenizer.nextToken())
+                );
+            }
+        }
+        return dependencies;
+    }
+
+    private URL toJarURL(File plugin) throws MalformedURLException {
+        String urlName = plugin.toURI().toURL().toString();
+        urlName = "jar:" + urlName + "!/";
+        return new URL(urlName);
+    }
 
     /**
      * Method loads emuStudio plugin into memory.
@@ -105,16 +135,43 @@ public class PluginLoader extends URLClassLoader {
      * @throws java.io.IOException
      */
     public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException, IOException {
+       return loadPlugin(filename, password, System.getProperty("user.dir"));
+    }
+
+    /**
+     * Method loads emuStudio plugin into memory.
+     *
+     * The plug-in should be in JAR format. The loaded classes are not resolved. After this method call
+     * (and all possible multiple calls),
+     * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
+     * called.
+     *
+     * @param filename file name of the plugin (relative path is accepted, too).
+     * If the filename does not contain '.jar' suffix, it will be added automatically.
+     * @param password emuStudio password.
+     * @param dependenciesBasePath Base directory for loading plugin dependencies
+     * @return Plugin main class, or null when an error occured or the main class is not found
+     * @throws emulib.runtime.InvalidPasswordException
+     * @throws emulib.runtime.InvalidPluginException
+     * @throws java.io.IOException
+     */
+    public Class<Plugin> loadPlugin(String filename, String password, String dependenciesBasePath) throws InvalidPasswordException, InvalidPluginException, IOException {
         API.testPassword(password);
 
-        if (filename == null) {
-            throw new InvalidPluginException("File name cannot be null");
-        }
+        Objects.requireNonNull(filename);
+        Objects.requireNonNull(dependenciesBasePath);
         try {
-            File tmpFile = new File(filename);
-            String urlName = tmpFile.toURI().toURL().toString();
-            urlName = "jar:" + urlName + "!/";
-            addURL(new URL(urlName));
+            File pluginFile = new File(filename);
+            addURL(toJarURL(pluginFile));
+            
+            List<File> dependencies = getDependencies(pluginFile, dependenciesBasePath);
+            List<String> dependenciesStrings = new ArrayList<>();
+            for (File dependency : dependencies) {
+                addURL(toJarURL(dependency));
+                dependenciesStrings.add(dependency.getCanonicalPath());
+            }
+            LOGGER.debug("[plugin={}] List of dependencies: {}", 
+                        filename, Arrays.toString(dependenciesStrings.toArray()));
         } catch (MalformedURLException e) {
             throw new InvalidPluginException("Could not open JAR file", e);
         }
