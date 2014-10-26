@@ -211,7 +211,10 @@ public class PluginLoader extends URLClassLoader {
 
         for (String className : classes) {
             try {
-                Class definedClass = findClass(className);
+                Class definedClass = findLoadedClass(className);
+                if (definedClass == null) {
+                    definedClass = findClass(className);
+                }
                 if (trustedPlugin(definedClass)) {
                     return (Class<Plugin>) definedClass;
                 }
