@@ -17,10 +17,15 @@ public class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public boolean compile(String fileName, Reader in) {
+    public boolean compile(String inputFileName, String outputFileName) {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public boolean compile(String inputFileName) {
+        throw new UnsupportedOperationException();
+    }
+    
     @Override
     public LexicalAnalyzer getLexer(Reader in) {
         throw new UnsupportedOperationException();

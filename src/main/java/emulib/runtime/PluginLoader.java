@@ -168,7 +168,7 @@ public class PluginLoader extends URLClassLoader {
             List<String> dependenciesStrings = new ArrayList<>();
             for (File dependency : dependencies) {
                 addURL(toJarURL(dependency));
-                dependenciesStrings.add(dependency.getCanonicalPath());
+                dependenciesStrings.add(dependency.getAbsolutePath());
             }
             LOGGER.debug("[plugin={}] List of dependencies: {}", 
                         filename, Arrays.toString(dependenciesStrings.toArray()));

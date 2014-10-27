@@ -73,15 +73,28 @@ public interface Compiler extends Plugin {
     }
 
     /**
-     * Compile a file into output file. Output file name the compiler should
-     * derive from input file name.
-     * @param fileName  name of input file (source code)
-     * @param in        <code>Reader</code> object of the document - source code.
+     * Compile an input file into the output file.
+     * 
+     * @param inputFileName  name of the input file (source code)
+     * @param outputFileName  name of the output file (compiled code)
      *
      * @return true if compile was successful, false otherwise
      */
-    public boolean compile (String fileName, Reader in);
+    public boolean compile (String inputFileName, String outputFileName);
 
+    /**
+     * Compile an input file into the output file.
+     * 
+     * Output file name is derived by the compiler itself. Usually, the 
+     * extension of the input file is replaced by another one, denoting
+     * compiled file. It is compiler-specific.
+     * 
+     * @param inputFileName  name of the input file (source code)
+     *
+     * @return true if compile was successful, false otherwise
+     */
+    public boolean compile (String inputFileName);
+    
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
      * syntax highlighting. In the compilation process the compiler should

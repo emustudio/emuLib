@@ -53,7 +53,7 @@ public abstract class AbstractCompiler implements Compiler {
      * if the compiler wants to print something out on the screen (info, warning
      * or error message).
      */
-    protected Set<CompilerListener> compilerListeners;
+    protected final Set<CompilerListener> compilerListeners;
 
     /**
      * Public constructor initializes compilerListeners list and event object for
