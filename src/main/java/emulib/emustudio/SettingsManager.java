@@ -26,6 +26,8 @@ package emulib.emustudio;
  * It is implemented by the main module. Plugins get it withing the initialization process.
  */
 public interface SettingsManager {
+    public static final String NO_GUI = "nogui";
+    public static final String AUTO = "auto";
 
     /**
      * Read specified setting from configuration file.  Setting can be arbitrary. It
