@@ -57,8 +57,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
     /**
      * Run state of this CPU.
      */
-    @GuardedBy("this")
-    private RunState runState = RunState.STATE_STOPPED_NORMAL;
+    private volatile RunState runState = RunState.STATE_STOPPED_NORMAL;
 
     /**
      * Object for settings manipulation.
@@ -124,22 +123,29 @@ public abstract class AbstractCPU implements CPU, Runnable {
 
     protected synchronized void setRunState(RunState tmpRunState) {
         this.runState = tmpRunState;
-        if (tmpRunState != RunState.STATE_RUNNING) {
-            if (cpuThread != null) {
-                try {
-                    cpuThread.join();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                cpuThread = null;
+        notifyStateChanged(tmpRunState);
+    }
+
+    protected RunState getRunState() {
+        return runState;
+    }
+
+    private synchronized void stopCpuThread() {
+        if (cpuThread != null) {
+            try {
+                cpuThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
-        } else if (tmpRunState == RunState.STATE_RUNNING) {
-            if (cpuThread == null) {
-                cpuThread = new Thread(this);
-                cpuThread.start();
-            }
+            cpuThread = null;
         }
-        notifyStateChanged(runState);
+    }
+
+    private synchronized void startCpuThread() {
+        if (cpuThread == null) {
+            cpuThread = new Thread(this);
+            cpuThread.start();
+        }
     }
 
     /**
@@ -155,8 +161,9 @@ public abstract class AbstractCPU implements CPU, Runnable {
      * @param addr memory location where to begin the emulation
      */
     @Override
-    public void reset(int addr) {
+    public synchronized void reset(int addr) {
         setRunState(RunState.STATE_STOPPED_BREAK);
+        stopCpuThread();
     }
 
     /**
@@ -191,12 +198,52 @@ public abstract class AbstractCPU implements CPU, Runnable {
         }
     }
 
-    /**
-     * Creates and starts new thread of this class.
-     */
     @Override
-    public void execute() {
-        setRunState(RunState.STATE_RUNNING);
+    public synchronized void execute() {
+        if (runState == RunState.STATE_STOPPED_BREAK) {
+            setRunState(RunState.STATE_RUNNING);
+            startCpuThread();
+        }
     }
+
+    @Override
+    public synchronized void pause() {
+        if (runState == RunState.STATE_RUNNING) {
+            setRunState(RunState.STATE_STOPPED_BREAK);
+            stopCpuThread();
+        }
+    }
+
+    @Override
+    public synchronized void stop() {
+        if (runState == RunState.STATE_STOPPED_BREAK || runState == RunState.STATE_RUNNING) {
+            setRunState(RunState.STATE_STOPPED_NORMAL);
+            stopCpuThread();
+        }
+    }
+
+    @Override
+    public synchronized void step() {
+        if (runState == RunState.STATE_STOPPED_BREAK) {
+            try {
+                runState = RunState.STATE_RUNNING;
+                stepInternal();
+                if (runState == RunState.STATE_RUNNING) {
+                    runState = RunState.STATE_STOPPED_BREAK;
+                }
+            } catch (IndexOutOfBoundsException e) {
+                runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+            } catch (Exception e) {
+                runState = RunState.STATE_STOPPED_BAD_INSTR;
+            }
+            // notify CPU run state
+            notifyStateChanged(runState);
+        }
+    }
+
+    /**
+     * Perform one emulation step in synchronized context.
+     */
+    protected abstract void stepInternal();
 
 }

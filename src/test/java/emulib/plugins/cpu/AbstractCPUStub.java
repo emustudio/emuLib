@@ -2,9 +2,10 @@ package emulib.plugins.cpu;
 
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
+
+import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.swing.JPanel;
 
 @PluginType(
         type = PLUGIN_TYPE.CPU,
@@ -21,15 +22,7 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    public void step() {
-    }
-
-    @Override
-    public void pause() {
-    }
-
-    @Override
-    public void stop() {
+    protected void stepInternal() {
     }
 
     @Override

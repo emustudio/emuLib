@@ -3,6 +3,7 @@ package emulib.plugins.cpu;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,6 +21,11 @@ public class AbstractCPUTest {
     @Before
     public void setUp() {
         cpu = new AbstractCPUStub(0L);
+    }
+
+    @After
+    public void tearDown() {
+        cpu.stop();
     }
 
     private CPUListener createCPUListenerMock(RunState runState) {
@@ -59,6 +65,7 @@ public class AbstractCPUTest {
     public void testNotifyChange() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
 
+        cpu.reset();
         cpu.addCPUListener(listener);
         cpu.execute();
 
@@ -70,6 +77,7 @@ public class AbstractCPUTest {
         CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
         replay(listener);
 
+        cpu.reset();
         cpu.addCPUListener(listener);
         cpu.removeCPUListener(listener);
         cpu.execute();
@@ -79,6 +87,7 @@ public class AbstractCPUTest {
 
     @Test
     public void testRunCalledWhenCPUIsExecuted() throws InterruptedException {
+        cpu.reset();
         cpu.execute();
         assertTrue(cpu.wasRunCalled());
     }
