@@ -244,6 +244,6 @@ public abstract class AbstractCPU implements CPU, Runnable {
     /**
      * Perform one emulation step in synchronized context.
      */
-    protected abstract void stepInternal();
+    protected abstract void stepInternal() throws Exception;
 
 }
