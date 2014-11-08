@@ -23,10 +23,13 @@ package emulib.plugins.cpu;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.PluginInitializationException;
-import java.util.ArrayList;
-import java.util.HashSet;
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * This class implements some fundamental functionality that can be used
@@ -34,36 +37,39 @@ import java.util.Set;
  *
  * The CPU execution is realized via separated thread.
  */
+@ThreadSafe
 public abstract class AbstractCPU implements CPU, Runnable {
     /**
      * List of all CPU stateObservers
      */
-    protected final List<CPUListener> stateObservers = new ArrayList<>();
+    protected final List<CPUListener> stateObservers = new CopyOnWriteArrayList<>();
 
     /**
      * breakpoints list
      */
-    protected Set<Integer> breaks;
+    protected final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
 
     /**
      * ID of this plug-in assigned by emuStudio.
      */
-    protected long pluginID;
+    protected final long pluginID;
 
     /**
      * Run state of this CPU.
      */
-    protected RunState runState;
+    @GuardedBy("this")
+    private RunState runState = RunState.STATE_STOPPED_NORMAL;
 
     /**
      * Object for settings manipulation.
      */
-    protected SettingsManager settings;
+    protected volatile SettingsManager settings;
 
     /**
      * This thread object. It is used for the CPU execution.
      */
-    protected Thread cpuThread;
+    @GuardedBy("this")
+    private Thread cpuThread;
 
 
     /**
@@ -72,10 +78,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
      * @param pluginID plug-in identification number
      */
     public AbstractCPU(Long pluginID) {
-        runState = RunState.STATE_STOPPED_NORMAL;
-        breaks = new HashSet<>();
         this.pluginID = pluginID;
-        cpuThread = null;
     }
 
     /**
@@ -106,17 +109,37 @@ public abstract class AbstractCPU implements CPU, Runnable {
 
     @Override
     public void setBreakpoint(int memLocation) {
-        breaks.add(memLocation);
+        breakpoints.add(memLocation);
     }
 
     @Override
     public void unsetBreakpoint(int memLocation) {
-        breaks.remove(memLocation);
+        breakpoints.remove(memLocation);
     }
 
     @Override
     public boolean isBreakpointSet(int memLocation) {
-        return breaks.contains(memLocation);
+        return breakpoints.contains(memLocation);
+    }
+
+    protected synchronized void setRunState(RunState tmpRunState) {
+        this.runState = tmpRunState;
+        if (tmpRunState != RunState.STATE_RUNNING) {
+            if (cpuThread != null) {
+                try {
+                    cpuThread.join();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                cpuThread = null;
+            }
+        } else if (tmpRunState == RunState.STATE_RUNNING) {
+            if (cpuThread == null) {
+                cpuThread = new Thread(this);
+                cpuThread.start();
+            }
+        }
+        notifyStateChanged(runState);
     }
 
     /**
@@ -133,9 +156,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
      */
     @Override
     public void reset(int addr) {
-        runState = RunState.STATE_STOPPED_BREAK;
-        cpuThread = null;
-        notifyStateChanged(runState);
+        setRunState(RunState.STATE_STOPPED_BREAK);
     }
 
     /**
@@ -163,12 +184,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
         return stateObservers.remove(listener);
     }
 
-    /**
-     * Notifies all observers that CPU state has been changed.
-     *
-     * @param runState new CPU state
-     */
-    public void notifyStateChanged(RunState runState) {
+    private void notifyStateChanged(RunState runState) {
         for (CPUListener observer : stateObservers) {
             observer.runStateChanged(runState);
             observer.internalStateChanged();
@@ -180,8 +196,7 @@ public abstract class AbstractCPU implements CPU, Runnable {
      */
     @Override
     public void execute() {
-        cpuThread = new Thread(this);
-        cpuThread.start();
+        setRunState(RunState.STATE_RUNNING);
     }
 
 }

@@ -3,6 +3,9 @@ package emulib.plugins.cpu;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -10,8 +13,6 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
 
 public class AbstractCPUTest {
     private AbstractCPUStub cpu;
@@ -59,7 +60,7 @@ public class AbstractCPUTest {
         CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
 
         cpu.addCPUListener(listener);
-        cpu.notifyStateChanged(RunState.STATE_RUNNING);
+        cpu.execute();
 
         verify(listener);
     }
@@ -71,7 +72,7 @@ public class AbstractCPUTest {
 
         cpu.addCPUListener(listener);
         cpu.removeCPUListener(listener);
-        cpu.notifyStateChanged(RunState.STATE_RUNNING);
+        cpu.execute();
 
         verify(listener);
     }
