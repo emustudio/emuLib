@@ -21,18 +21,23 @@
 package emulib.plugins;
 
 import emulib.annotations.ContextType;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * Context is a functional structure of a plugin that can be used by the other plugins.
  *
- * Plug-ins ask emuLib to get contexts of another plug-ins, by querying ContextController directly. If they are allowed
- * to get the context, emuLib returns the object (if it is found).
+ * Plug-ins obtain needed contexts of another plug-ins by querying ContextPool directly. Plugins must be interconnected
+ * and compatible to get the contexts.
  *
- * Each plug-in can have none, one or more contexts, even implementing the same interface. Context interface can extend
- * standard context interfaces, provided by emuLib (such as CPUContext, MemoryContext, etc.). The last requirement is
- * to annotate context interfaces with @ContextType annotation.
+ * Each plug-in can implement none, one or more contexts, implementing the same interface is allowed. Plug-in can
+ * declare new context interface, which would be derived (directly or indirectly) from this interface.
+ * 
+ * Another requirement is to annotate context interfaces with @ContextType annotation.
+ * 
+ * Contexts are required to be thread-safe, since there's no guarantee in which threads plug-ins communicate.
  */
 @ContextType
+@ThreadSafe
 public interface Context {
 
 }

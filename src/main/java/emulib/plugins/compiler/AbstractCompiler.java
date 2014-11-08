@@ -164,7 +164,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param mes text of the message
      */
-    protected void notifyError(String mes) {
+    public void notifyError(String mes) {
         notifyOnMessage(new Message(MessageType.TYPE_ERROR, mes));
     }
 
@@ -173,7 +173,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param mes text of the message
      */
-    protected void notifyInfo(String mes) {
+    public void notifyInfo(String mes) {
         notifyOnMessage(new Message(MessageType.TYPE_INFO, mes));
     }
 
@@ -182,7 +182,7 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * @param mes text of the message
      */
-    protected void notifyWarning(String mes) {
+    public void notifyWarning(String mes) {
         notifyOnMessage(new Message(MessageType.TYPE_WARNING, mes));
     }
 
