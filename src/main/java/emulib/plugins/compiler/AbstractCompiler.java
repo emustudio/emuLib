@@ -24,6 +24,9 @@ import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.PluginInitializationException;
 import emulib.plugins.compiler.Message.MessageType;
+import emulib.runtime.LoggerFactory;
+import emulib.runtime.interfaces.Logger;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -32,6 +35,8 @@ import java.util.Set;
  * useful within the implementation of own compiler plug-ins.
  */
 public abstract class AbstractCompiler implements Compiler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompiler.class);
+
     /**
      * Settings manipulation object
      */
@@ -125,7 +130,11 @@ public abstract class AbstractCompiler implements Compiler {
      */
     protected void notifyCompileStart() {
         for (CompilerListener listener : compilerListeners) {
-            listener.onStart();
+            try {
+                listener.onStart();
+            } catch (Exception e) {
+                LOGGER.error("Compiler listener error", e);
+            }
         }
     }
 
@@ -139,7 +148,11 @@ public abstract class AbstractCompiler implements Compiler {
      */
     protected void notifyCompileFinish(int errorCode) {
         for (CompilerListener listener : compilerListeners) {
-            listener.onFinish(errorCode);
+            try {
+                listener.onFinish(errorCode);
+            } catch (Exception e) {
+                LOGGER.error("Compiler listener error", e);
+            }
         }
     }
 
@@ -155,7 +168,11 @@ public abstract class AbstractCompiler implements Compiler {
      */
     public void notifyOnMessage(Message message) {
         for (CompilerListener listener : compilerListeners) {
-            listener.onMessage(message);
+            try {
+                listener.onMessage(message);
+            } catch (Exception e) {
+                LOGGER.error("Compiler listener error", e);
+            }
         }
     }
 

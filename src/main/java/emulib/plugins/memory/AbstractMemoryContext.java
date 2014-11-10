@@ -21,6 +21,9 @@
 package emulib.plugins.memory;
 
 import emulib.plugins.memory.Memory.MemoryListener;
+import emulib.runtime.LoggerFactory;
+import emulib.runtime.interfaces.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +34,8 @@ import java.util.List;
  * It is not thread safe.
  */
 public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
+
     /**
      * List of all memory listeners. The listeners are objects implementing
      * the IMemoryListener interface. Methods within the listeners are called
@@ -68,7 +73,11 @@ public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
      */
     public void notifyMemoryChanged(int position) {
         for (MemoryListener listener : listeners) {
-            listener.memoryChanged(position);
+            try {
+                listener.memoryChanged(position);
+            } catch (Exception e) {
+                LOGGER.error("Memory listener error", e);
+            }
         }
     }
 

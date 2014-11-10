@@ -4,6 +4,9 @@ import emulib.plugins.compiler.Compiler.CompilerListener;
 import emulib.plugins.compiler.Message.MessageType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.easymock.EasyMock.and;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -12,9 +15,9 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class AbstractCompilerTest {
     private final static long ID = System.currentTimeMillis();
@@ -85,6 +88,19 @@ public class AbstractCompilerTest {
         CompilerListener listener = createNiceMock(CompilerListener.class);
         listener.onMessage(anyObject(Message.class));
         expectLastCall().once();
+        replay(listener);
+
+        compiler.addCompilerListener(listener);
+        compiler.notifyOnMessage(createNiceMock(Message.class));
+
+        verify(listener);
+    }
+
+    @Test
+    public void testNotifyOnMessageDoesNotThrow() throws Exception {
+        CompilerListener listener = createNiceMock(CompilerListener.class);
+        listener.onMessage(anyObject(Message.class));
+        expectLastCall().andThrow(new RuntimeException()).once();
         replay(listener);
 
         compiler.addCompilerListener(listener);

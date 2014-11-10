@@ -23,6 +23,8 @@ package emulib.plugins.cpu;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.PluginInitializationException;
+import emulib.runtime.LoggerFactory;
+import emulib.runtime.interfaces.Logger;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
@@ -39,6 +41,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 @ThreadSafe
 public abstract class AbstractCPU implements CPU, Runnable {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractCPU.class);
+
     /**
      * List of all CPU stateObservers
      */
@@ -193,8 +197,12 @@ public abstract class AbstractCPU implements CPU, Runnable {
 
     private void notifyStateChanged(RunState runState) {
         for (CPUListener observer : stateObservers) {
-            observer.runStateChanged(runState);
-            observer.internalStateChanged();
+            try {
+                observer.runStateChanged(runState);
+                observer.internalStateChanged();
+            } catch (Exception e) {
+                LOGGER.error("CPU Listener error", e);
+            }
         }
     }
 

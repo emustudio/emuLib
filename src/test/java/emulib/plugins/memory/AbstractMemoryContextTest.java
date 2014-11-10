@@ -1,12 +1,14 @@
 package emulib.plugins.memory;
 
 import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+
+import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import org.junit.Before;
-import org.junit.Test;
 
 public class AbstractMemoryContextTest {
     private AbstractMemoryContext memory;
@@ -43,4 +45,16 @@ public class AbstractMemoryContextTest {
         verify(listener);
     }
 
+    @Test
+    public void testNotifyDoesNotThrow() throws Exception {
+        Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
+        listener.memoryChanged(anyInt());
+        expectLastCall().andThrow(new RuntimeException()).once();
+        replay(listener);
+
+        memory.addMemoryListener(listener);
+        memory.notifyMemoryChanged(234);
+
+        verify(listener);
+    }
 }

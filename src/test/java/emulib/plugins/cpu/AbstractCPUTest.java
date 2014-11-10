@@ -73,6 +73,38 @@ public class AbstractCPUTest {
     }
 
     @Test
+    public void testNotifyInternalStateChangeDoesNotThrow() throws Exception {
+        CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().andThrow(new RuntimeException()).once();
+        listener.runStateChanged(RunState.STATE_RUNNING);
+        expectLastCall().anyTimes();
+        replay(listener);
+
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testNotifyRunStateChangeDoesNotThrow() throws Exception {
+        CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().anyTimes();
+        listener.runStateChanged(RunState.STATE_RUNNING);
+        expectLastCall().andThrow(new RuntimeException()).once();
+        replay(listener);
+
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        verify(listener);
+    }
+
+    @Test
     public void testNotifyChangeDoesNotCallObserverAfterItsRemoval() {
         CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
         replay(listener);
