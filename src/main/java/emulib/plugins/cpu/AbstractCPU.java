@@ -21,62 +21,83 @@
 package emulib.plugins.cpu;
 
 import emulib.annotations.PluginType;
-import emulib.emustudio.SettingsManager;
-import emulib.plugins.PluginInitializationException;
 import emulib.runtime.LoggerFactory;
 import emulib.runtime.interfaces.Logger;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class implements some fundamental functionality that can be used
- * by your own plug-ins.
+ * This class implements some fundamental functionality that can be used by your own plug-ins. Such as:
  *
- * The CPU execution is realized via separated thread.
+ * - support of breakpoints
+ * - thread safe controlling of run states
+ * - managing CPU state listeners
+ *
  */
 @ThreadSafe
-public abstract class AbstractCPU implements CPU, Runnable {
+public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractCPU.class);
+    private final static Runnable EMPTY_TASK = new Runnable() {
+        @Override
+        public void run() {
+
+        }
+    };
+
+    private final AtomicBoolean isDestroyed = new AtomicBoolean();
+    private final ExecutorService eventReceiver = Executors.newSingleThreadExecutor();
+
+    private final ExecutorService cpuExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService cpuStoppedWatcher = Executors.newSingleThreadExecutor();
+
+    private final long pluginID;
+    private final List<CPUListener> stateObservers = new CopyOnWriteArrayList<>();
+    private final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
+
+    @GuardedBy("eventReceiver")
+    private RunState runState = RunState.STATE_STOPPED_NORMAL;
+
+
+    private class CPUWatchTask implements Runnable {
+        private final Future<RunState> cpuFuture;
+
+        private CPUWatchTask(Future<RunState> cpuFuture) {
+            this.cpuFuture = cpuFuture;
+        }
+
+        @Override
+        public void run() {
+            try {
+                runState = cpuFuture.get();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IndexOutOfBoundsException) {
+                    runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                } else {
+                    runState = RunState.STATE_STOPPED_BAD_INSTR;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } finally {
+                notifyStateChanged();
+            }
+        }
+    }
 
     /**
-     * List of all CPU stateObservers
-     */
-    protected final List<CPUListener> stateObservers = new CopyOnWriteArrayList<>();
-
-    /**
-     * breakpoints list
-     */
-    protected final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
-
-    /**
-     * ID of this plug-in assigned by emuStudio.
-     */
-    protected final long pluginID;
-
-    /**
-     * Run state of this CPU.
-     */
-    private volatile RunState runState = RunState.STATE_STOPPED_NORMAL;
-
-    /**
-     * Object for settings manipulation.
-     */
-    protected volatile SettingsManager settings;
-
-    /**
-     * This thread object. It is used for the CPU execution.
-     */
-    @GuardedBy("this")
-    private Thread cpuThread;
-
-
-    /**
-     * Public constructor initializes run state and some variables.
+     * Initializes the CPU.
      *
      * @param pluginID plug-in identification number
      */
@@ -85,14 +106,12 @@ public abstract class AbstractCPU implements CPU, Runnable {
     }
 
     /**
-     * This method initializes the CPU. It stores pluginID and settings into
-     * variables.
+     * Get plug-in ID assigned by emuStudio.
      *
-     * @param settings object for settings manipulation
+     * @return plug-in ID
      */
-    @Override
-    public void initialize(SettingsManager settings) throws PluginInitializationException {
-        this.settings = settings;
+    protected long getPluginID() {
+        return pluginID;
     }
 
     @Override
@@ -125,51 +144,6 @@ public abstract class AbstractCPU implements CPU, Runnable {
         return breakpoints.contains(memLocation);
     }
 
-    protected synchronized void setRunState(RunState tmpRunState) {
-        this.runState = tmpRunState;
-        notifyStateChanged(tmpRunState);
-    }
-
-    protected RunState getRunState() {
-        return runState;
-    }
-
-    private synchronized void stopCpuThread() {
-        if (cpuThread != null) {
-            try {
-                cpuThread.join();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            cpuThread = null;
-        }
-    }
-
-    private synchronized void startCpuThread() {
-        if (cpuThread == null) {
-            cpuThread = new Thread(this);
-            cpuThread.start();
-        }
-    }
-
-    /**
-     * This method resets the CPU by calling overriden method reset(int).
-     */
-    @Override
-    public void reset() { reset(0); }
-
-    /**
-     * Sets the run_state to STATE_STOPPED_BREAK and nulls the thread
-     * object. Should be overriden.
-     *
-     * @param addr memory location where to begin the emulation
-     */
-    @Override
-    public synchronized void reset(int addr) {
-        setRunState(RunState.STATE_STOPPED_BREAK);
-        stopCpuThread();
-    }
-
     /**
      * Add new CPU listener to the list of stateObservers. CPU listener is an
      * implementation object of CPUListener interface. The methods are
@@ -195,10 +169,52 @@ public abstract class AbstractCPU implements CPU, Runnable {
         return stateObservers.remove(listener);
     }
 
-    private void notifyStateChanged(RunState runState) {
+    private void stopExecutor(ExecutorService executor) {
+        Objects.requireNonNull(executor);
+        executor.shutdown();
+        try {
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    public void destroy() {
+        if (isDestroyed.compareAndSet(false, true)) {
+            try {
+                stop();
+                stopExecutor(eventReceiver);
+                stopExecutor(cpuExecutor);
+                stopExecutor(cpuStoppedWatcher);
+                stateObservers.clear();
+            } finally {
+                destroyInternal();
+            }
+        }
+    }
+
+    /**
+     * Called by original destroy() method. Do not override the original destroy() method. Subsequent calls of
+     * destroy() will call this only once.
+     */
+    protected abstract void destroyInternal();
+
+    private void waitForFuture(Future future) {
+        Objects.requireNonNull(future);
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            LOGGER.error("Unexpected error", e);
+        }
+    }
+
+    private void notifyStateChanged() {
+        final RunState tmpRunState = runState;
         for (CPUListener observer : stateObservers) {
             try {
-                observer.runStateChanged(runState);
+                observer.runStateChanged(tmpRunState);
                 observer.internalStateChanged();
             } catch (Exception e) {
                 LOGGER.error("CPU Listener error", e);
@@ -206,52 +222,120 @@ public abstract class AbstractCPU implements CPU, Runnable {
         }
     }
 
-    @Override
-    public synchronized void execute() {
-        if (runState == RunState.STATE_STOPPED_BREAK) {
-            setRunState(RunState.STATE_RUNNING);
-            startCpuThread();
+    private void ensureCpuIsStopped() {
+        try {
+            cpuStoppedWatcher.submit(EMPTY_TASK).get();
+        } catch (ExecutionException e) {
+            LOGGER.error("CPU reset - Unexpected error", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
     @Override
-    public synchronized void pause() {
-        if (runState == RunState.STATE_RUNNING) {
-            setRunState(RunState.STATE_STOPPED_BREAK);
-            stopCpuThread();
-        }
-    }
+    public void reset() { reset(0); }
 
     @Override
-    public synchronized void stop() {
-        if (runState == RunState.STATE_STOPPED_BREAK || runState == RunState.STATE_RUNNING) {
-            setRunState(RunState.STATE_STOPPED_NORMAL);
-            stopCpuThread();
-        }
-    }
-
-    @Override
-    public synchronized void step() {
-        if (runState == RunState.STATE_STOPPED_BREAK) {
-            try {
-                runState = RunState.STATE_RUNNING;
-                stepInternal();
-                if (runState == RunState.STATE_RUNNING) {
-                    runState = RunState.STATE_STOPPED_BREAK;
-                }
-            } catch (IndexOutOfBoundsException e) {
-                runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
-            } catch (Exception e) {
-                runState = RunState.STATE_STOPPED_BAD_INSTR;
+    public void reset(int addr) {
+        Future future = eventReceiver.submit(new Runnable() {
+            @Override
+            public void run() {
+                requestStop();
+                ensureCpuIsStopped();
+                runState = RunState.STATE_STOPPED_BREAK;
+                notifyStateChanged();
             }
-            // notify CPU run state
-            notifyStateChanged(runState);
-        }
+        });
+        waitForFuture(future);
+    }
+
+    @Override
+    public void execute() {
+        Future future = eventReceiver.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (runState == RunState.STATE_STOPPED_BREAK) {
+                    runState = RunState.STATE_RUNNING;
+                    notifyStateChanged();
+
+                    Future<RunState> cpuFuture = cpuExecutor.submit(AbstractCPU.this);
+                    cpuStoppedWatcher.submit(new CPUWatchTask(cpuFuture));
+                }
+            }
+        });
+        waitForFuture(future);
+    }
+
+    @Override
+    public void pause() {
+        Future future = eventReceiver.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (runState == RunState.STATE_RUNNING) {
+                    requestStop();
+                    ensureCpuIsStopped();
+                    if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_NORMAL) {
+                        runState = RunState.STATE_STOPPED_BREAK;
+                    }
+                    notifyStateChanged();
+                }
+            }
+        });
+        waitForFuture(future);
+    }
+
+    @Override
+    public void stop() {
+        Future future = eventReceiver.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (runState == RunState.STATE_STOPPED_BREAK || runState == RunState.STATE_RUNNING) {
+                    requestStop();
+                    ensureCpuIsStopped();
+                    if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_BREAK) {
+                        runState = RunState.STATE_STOPPED_NORMAL;
+                    }
+                    notifyStateChanged();
+                }
+
+            }
+        });
+        waitForFuture(future);
+    }
+
+    @Override
+    public void step() {
+        Future future = eventReceiver.submit(new Runnable() {
+            @Override
+            public void run() {
+                if (runState == RunState.STATE_STOPPED_BREAK) {
+                    try {
+                        runState = stepInternal();
+                        if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_NORMAL) {
+                            runState = RunState.STATE_STOPPED_BREAK;
+                        }
+                    } catch (IndexOutOfBoundsException e) {
+                        runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                    } catch (Exception e) {
+                        runState = RunState.STATE_STOPPED_BAD_INSTR;
+                    }
+                    notifyStateChanged();
+                }
+            }
+        });
+        waitForFuture(future);
     }
 
     /**
-     * Perform one emulation step in synchronized context.
+     * Request CPU implementation about stopping the execution loop.
      */
-    protected abstract void stepInternal() throws Exception;
+    protected abstract void requestStop();
+
+    /**
+     * Perform one emulation step in synchronized context.
+     *
+     * @return new CPU state. If nothing bad happened, it should return RunState.STATE_STOPPED_BREAK.
+     */
+    protected abstract RunState stepInternal() throws Exception;
 
 }

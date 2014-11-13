@@ -7,6 +7,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -14,6 +17,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AbstractCPUTest {
     private AbstractCPUStub cpu;
@@ -25,7 +29,7 @@ public class AbstractCPUTest {
 
     @After
     public void tearDown() {
-        cpu.stop();
+        cpu.destroy();
     }
 
     private CPUListener createCPUListenerMock(RunState runState) {
@@ -133,4 +137,39 @@ public class AbstractCPUTest {
 
         verify(listener);
     }
+
+    @Test
+    public void testCPUisDestroyedAfterCrazyRequestsAndThenDestroyCalled() {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        for (int i = 0; i < 100; i++) {
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    cpu.execute();
+                }
+            });
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    cpu.stop();
+                }
+            });
+            executorService.submit(new Runnable() {
+                @Override
+                public void run() {
+                    cpu.step();
+                }
+            });
+        }
+        cpu.destroy();
+
+        try {
+            cpu.execute();
+            fail("Expected RuntimeException");
+        } catch (Exception e) {
+            // expected, because CPU is destroyed
+        }
+    }
+
+
 }

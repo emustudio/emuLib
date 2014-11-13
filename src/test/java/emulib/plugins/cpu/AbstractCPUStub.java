@@ -2,6 +2,8 @@ package emulib.plugins.cpu;
 
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
+import emulib.emustudio.SettingsManager;
+import emulib.plugins.PluginInitializationException;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
@@ -22,7 +24,12 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    protected void stepInternal() {
+    protected void destroyInternal() {
+    }
+
+    @Override
+    protected RunState stepInternal() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -46,7 +53,7 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    public void destroy() {
+    public void initialize(SettingsManager settingsManager) throws PluginInitializationException {
     }
 
     @Override
@@ -65,9 +72,15 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    public void run() {
+    protected void requestStop() {
+
+    }
+
+    @Override
+    public RunState call() {
         runCalled = true;
         latch.countDown();
+        return RunState.STATE_STOPPED_NORMAL;
     }
 
     public boolean wasRunCalled() throws InterruptedException {
