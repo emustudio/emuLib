@@ -106,5 +106,14 @@ public interface MemoryContext<T> extends Context {
      */
     public void removeMemoryListener (MemoryListener listener);
 
+    /**
+     * Get memory size.
+     *
+     * The size is a number of cells of the generic type T.
+     *
+     * @return memory size
+     */
+    public int getSize();
+
 }
 

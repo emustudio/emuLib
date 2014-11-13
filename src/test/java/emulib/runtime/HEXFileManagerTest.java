@@ -23,6 +23,9 @@ package emulib.runtime;
 
 import emulib.plugins.memory.Memory;
 import emulib.plugins.memory.MemoryContext;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -30,9 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Before;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class HEXFileManagerTest {
     private static final String VALID_HEX_FILE = "src/test/resources/valid.hex";
@@ -243,7 +247,11 @@ public class HEXFileManagerTest {
         public void removeMemoryListener(Memory.MemoryListener listener) {
             throw new UnsupportedOperationException();
         }
-        
+
+        @Override
+        public int getSize() {
+            return 0;
+        }
     }
     
     @Test

@@ -32,4 +32,8 @@ public class AbstractMemoryContextStub extends AbstractMemoryContext {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public int getSize() {
+        throw new UnsupportedOperationException();
+    }
 }
