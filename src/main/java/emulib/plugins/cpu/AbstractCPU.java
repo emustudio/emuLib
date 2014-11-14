@@ -23,7 +23,6 @@ package emulib.plugins.cpu;
 import emulib.annotations.PluginType;
 import emulib.runtime.LoggerFactory;
 import emulib.runtime.interfaces.Logger;
-import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.List;
@@ -67,8 +66,8 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final List<CPUListener> stateObservers = new CopyOnWriteArrayList<>();
     private final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
 
-    @GuardedBy("eventReceiver")
-    private RunState runState = RunState.STATE_STOPPED_NORMAL;
+    // Contract: set only in "eventReceiver" or "cpuWatchTask" in a non-concurrent way
+    private volatile RunState runState = RunState.STATE_STOPPED_NORMAL;
 
 
     private class CPUWatchTask implements Runnable {
