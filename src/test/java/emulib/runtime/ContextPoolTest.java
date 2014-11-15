@@ -30,15 +30,16 @@ import emulib.plugins.device.DeviceContext;
 import emulib.plugins.memory.MemoryContext;
 import emulib.runtime.interfaces.PluginConnections;
 import org.easymock.EasyMock;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import org.junit.After;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
 
 public class ContextPoolTest {
     private CPUContextStub cpuContextMock;
@@ -99,7 +100,7 @@ public class ContextPoolTest {
         devContextMock = EasyMock.createNiceMock(DeviceContextStub.class);
         replay(cpuContextMock, memContextMock, compilerContextMock, devContextMock);
 
-        contextPool = ContextPool.getInstance();
+        contextPool = new ContextPool();
         APITest.assignEmuStudioPassword();
         assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), defaultComputer));
     }
@@ -109,12 +110,6 @@ public class ContextPoolTest {
         contextPool.clearAll(APITest.getEmuStudioPassword());
         verify(cpuContextMock, memContextMock, compilerContextMock, devContextMock);
         contextPool = null;
-    }
-
-    @Test
-    public void testThatContextIsSingleton() {
-        assertNotNull(contextPool);
-        assertEquals(contextPool, ContextPool.getInstance());
     }
 
     @Test

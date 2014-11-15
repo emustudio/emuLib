@@ -27,16 +27,24 @@ import emulib.plugins.cpu.CPUContext;
 import emulib.plugins.device.DeviceContext;
 import emulib.plugins.memory.MemoryContext;
 import emulib.runtime.interfaces.PluginConnections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class manages all plug-in contexts.
@@ -64,30 +72,12 @@ public class ContextPool {
      */
     private final Map<Long,List<Context>> contextOwners = new HashMap<>();
 
-    private final static ContextPool instance = new ContextPool();
-
     /**
      * Virtual computer loaded by emuStudio
      */
     private final AtomicReference<PluginConnections> computer = new AtomicReference<>();
 
     private final ReadWriteLock registeringLock = new ReentrantReadWriteLock();
-
-    /**
-     * Private constructor.
-     */
-    private ContextPool() {
-    }
-
-    /**
-     * Return an instance of this class. By calling more than 1 time, the same
-     * instance is returned.
-     *
-     * @return ContextPool instance
-     */
-    public static ContextPool getInstance() {
-        return instance;
-    }
 
     /**
      * This method registers plug-in's context interface.

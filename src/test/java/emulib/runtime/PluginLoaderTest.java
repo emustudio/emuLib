@@ -29,17 +29,20 @@ import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.Disassembler;
+import org.easymock.EasyMock;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.swing.JPanel;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
-import javax.swing.JPanel;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
 
 public class PluginLoaderTest {
     private static final String RESOURCES_PATH = "src" + File.separator + "test"
@@ -191,8 +194,8 @@ public class PluginLoaderTest {
     public void testLoadJAR() throws Exception {
         Class<Plugin> result = loadGoodPlugin(pluginLoader);
         assertNotNull(result);
-        Constructor<Plugin> constructor = result.getConstructor(Long.class);
-        constructor.newInstance(0L);
+        Constructor<Plugin> constructor = result.getConstructor(Long.class, ContextPool.class);
+        constructor.newInstance(0L, EasyMock.createNiceMock(ContextPool.class));
     }
 
     @Test(expected = InvalidPluginException.class)
@@ -237,8 +240,8 @@ public class PluginLoaderTest {
     public void testBadPlugin() throws Exception {
         Class<Plugin> result = loadBadPlugin(pluginLoader);
         assertNotNull(result);
-        Constructor<Plugin> constructor = result.getConstructor(Long.class);
-        constructor.newInstance(0);
+        Constructor<Plugin> constructor = result.getConstructor(Long.class, ContextPool.class);
+        constructor.newInstance(0, EasyMock.createNiceMock(ContextPool.class));
     }
 
     @Test
