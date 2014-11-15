@@ -23,6 +23,9 @@ import emulib.annotations.EMULIB_VERSION;
 import emulib.annotations.PluginType;
 import emulib.emustudio.API;
 import emulib.plugins.Plugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,8 +44,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class provides methods for dynamic loading of emuStudio plug-ins (which in turn are JAR files.)
@@ -121,41 +122,33 @@ public class PluginLoader extends URLClassLoader {
     /**
      * Method loads emuStudio plugin into memory.
      *
-     * The plug-in should be in JAR format. The loaded classes are not resolved. After this method call
-     * (and all possible multiple calls),
-     * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
-     * called.
+     * The plug-in should be in JAR format.
      *
      * @param filename file name of the plugin (relative path is accepted, too).
      * If the filename does not contain '.jar' suffix, it will be added automatically.
      * @param password emuStudio password.
-     * @return Plugin main class, or null when an error occured or the main class is not found
-     * @throws emulib.runtime.InvalidPasswordException
-     * @throws emulib.runtime.InvalidPluginException
-     * @throws java.io.IOException
+     * @return Plugin main class
+     * @throws emulib.runtime.InvalidPasswordException if given password is invalid
+     * @throws emulib.runtime.InvalidPluginException if main class could not be found.
      */
-    public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException, IOException {
+    public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException {
        return loadPlugin(filename, password, System.getProperty("user.dir"));
     }
 
     /**
      * Method loads emuStudio plugin into memory.
      *
-     * The plug-in should be in JAR format. The loaded classes are not resolved. After this method call
-     * (and all possible multiple calls),
-     * {@link emulib.runtime.PluginLoader#resolveLoadedClasses() PluginLoader.resolveLoadedClasses} method must be
-     * called.
+     * The plug-in should be in JAR format.
      *
      * @param filename file name of the plugin (relative path is accepted, too).
      * If the filename does not contain '.jar' suffix, it will be added automatically.
      * @param password emuStudio password.
      * @param dependenciesBasePath Base directory for loading plugin dependencies
-     * @return Plugin main class, or null when an error occured or the main class is not found
-     * @throws emulib.runtime.InvalidPasswordException
-     * @throws emulib.runtime.InvalidPluginException
-     * @throws java.io.IOException
+     * @return Plugin main class
+     * @throws emulib.runtime.InvalidPasswordException if given password is invalid
+     * @throws emulib.runtime.InvalidPluginException if main class could not be found.
      */
-    public Class<Plugin> loadPlugin(String filename, String password, String dependenciesBasePath) throws InvalidPasswordException, InvalidPluginException, IOException {
+    public Class<Plugin> loadPlugin(String filename, String password, String dependenciesBasePath) throws InvalidPasswordException, InvalidPluginException {
         API.testPassword(password);
 
         Objects.requireNonNull(filename);
@@ -163,19 +156,19 @@ public class PluginLoader extends URLClassLoader {
         try {
             File pluginFile = new File(filename);
             addURL(toJarURL(pluginFile));
-            
+
             List<File> dependencies = getDependencies(pluginFile, dependenciesBasePath);
             List<String> dependenciesStrings = new ArrayList<>();
             for (File dependency : dependencies) {
                 addURL(toJarURL(dependency));
                 dependenciesStrings.add(dependency.getAbsolutePath());
             }
-            LOGGER.debug("[plugin={}] List of dependencies: {}", 
-                        filename, Arrays.toString(dependenciesStrings.toArray()));
-        } catch (MalformedURLException e) {
-            throw new InvalidPluginException("Could not open JAR file", e);
+            LOGGER.debug("[plugin={}] List of dependencies: {}",
+                    filename, Arrays.toString(dependenciesStrings.toArray()));
+            scanFileForClasses(filename);
+        } catch (IOException e) {
+            throw new InvalidPluginException("Could not load JAR file", e);
         }
-        scanFileForClasses(filename);
         Class<Plugin> mainClass = findPluginMainClass(filename);
         return mainClass;
     }
@@ -215,7 +208,7 @@ public class PluginLoader extends URLClassLoader {
                 if (definedClass == null) {
                     definedClass = findClass(className);
                 }
-                if (trustedPlugin(definedClass)) {
+                if (definedClass != null && trustedPlugin(definedClass)) {
                     return (Class<Plugin>) definedClass;
                 }
             } catch (ClassNotFoundException | NoClassDefFoundError e) {
@@ -253,6 +246,8 @@ public class PluginLoader extends URLClassLoader {
      * @return true if the class meets plug-in requirements; false otherwise
      */
     public static boolean trustedPlugin(Class<?> pluginClass) {
+        Objects.requireNonNull(pluginClass);
+
         if (pluginClass.isInterface()) {
             return false;
         }
