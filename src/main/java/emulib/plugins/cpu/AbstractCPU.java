@@ -310,7 +310,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
                 if (runState == RunState.STATE_STOPPED_BREAK) {
                     try {
                         runState = stepInternal();
-                        if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_NORMAL) {
+                        if (runState == RunState.STATE_RUNNING) {
                             runState = RunState.STATE_STOPPED_BREAK;
                         }
                     } catch (IndexOutOfBoundsException e) {
