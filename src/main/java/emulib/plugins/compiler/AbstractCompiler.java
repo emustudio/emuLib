@@ -24,8 +24,8 @@ import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.PluginInitializationException;
 import emulib.plugins.compiler.Message.MessageType;
-import emulib.runtime.LoggerFactory;
-import emulib.runtime.interfaces.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;

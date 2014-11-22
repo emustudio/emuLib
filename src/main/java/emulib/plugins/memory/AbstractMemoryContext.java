@@ -21,8 +21,8 @@
 package emulib.plugins.memory;
 
 import emulib.plugins.memory.Memory.MemoryListener;
-import emulib.runtime.LoggerFactory;
-import emulib.runtime.interfaces.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;

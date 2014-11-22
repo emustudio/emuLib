@@ -21,9 +21,9 @@
 package emulib.plugins.cpu;
 
 import emulib.annotations.PluginType;
-import emulib.runtime.LoggerFactory;
-import emulib.runtime.interfaces.Logger;
 import net.jcip.annotations.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
