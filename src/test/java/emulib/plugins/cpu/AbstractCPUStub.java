@@ -72,11 +72,6 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    protected void requestStop() {
-
-    }
-
-    @Override
     public RunState call() {
         runCalled = true;
         latch.countDown();

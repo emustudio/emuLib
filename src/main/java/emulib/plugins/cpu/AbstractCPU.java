@@ -66,15 +66,17 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final List<CPUListener> stateObservers = new CopyOnWriteArrayList<>();
     private final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
 
-    // Contract: set only in "eventReceiver" or "cpuWatchTask" in a non-concurrent way
+    // ** CONTRACT: set only in "eventReceiver" or "cpuWatchTask" in a non-concurrent way **
     private volatile RunState runState = RunState.STATE_STOPPED_NORMAL;
-
+    // set only in "execute" event
+    private volatile CPUWatchTask cpuWatchTask;
+    // ** END OF CONTRACT **
 
     private class CPUWatchTask implements Runnable {
         private final Future<RunState> cpuFuture;
 
         private CPUWatchTask(Future<RunState> cpuFuture) {
-            this.cpuFuture = cpuFuture;
+            this.cpuFuture = Objects.requireNonNull(cpuFuture);
         }
 
         @Override
@@ -92,6 +94,10 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
             } finally {
                 notifyStateChanged();
             }
+        }
+
+        public void requestStop() {
+            cpuFuture.cancel(true);
         }
     }
 
@@ -225,7 +231,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
         try {
             cpuStoppedWatcher.submit(EMPTY_TASK).get();
         } catch (ExecutionException e) {
-            LOGGER.error("CPU reset - Unexpected error", e);
+            LOGGER.error("Unexpected error while waiting for CPU stop", e);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -258,7 +264,8 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
                     notifyStateChanged();
 
                     Future<RunState> cpuFuture = cpuExecutor.submit(AbstractCPU.this);
-                    cpuStoppedWatcher.submit(new CPUWatchTask(cpuFuture));
+                    cpuWatchTask = new CPUWatchTask(cpuFuture);
+                    cpuStoppedWatcher.submit(cpuWatchTask);
                 }
             }
         });
@@ -327,8 +334,14 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     /**
      * Request CPU implementation about stopping the execution loop.
+     * CONTRACT: run in event thread
      */
-    protected abstract void requestStop();
+    private void requestStop() {
+        CPUWatchTask tmpCpuWatchTask = cpuWatchTask;
+        if (tmpCpuWatchTask != null) {
+            tmpCpuWatchTask.requestStop();
+        }
+    }
 
     /**
      * Perform one emulation step in synchronized context.
