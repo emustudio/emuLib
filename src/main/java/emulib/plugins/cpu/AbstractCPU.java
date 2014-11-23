@@ -89,6 +89,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
                 } else {
                     runState = RunState.STATE_STOPPED_BAD_INSTR;
                 }
+                LOGGER.error("Unexpected error during emulation", e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
@@ -322,8 +323,10 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
                         }
                     } catch (IndexOutOfBoundsException e) {
                         runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                        LOGGER.error("Unexpected error during emulation", e);
                     } catch (Exception e) {
                         runState = RunState.STATE_STOPPED_BAD_INSTR;
+                        LOGGER.error("Unexpected error during emulation", e);
                     }
                     notifyStateChanged();
                 }
