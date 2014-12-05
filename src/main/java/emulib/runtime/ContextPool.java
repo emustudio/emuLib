@@ -242,7 +242,7 @@ public class ContextPool {
      * @param index
      *   the index if more than one context are found. If -1 is
      *   provided, any matched context is used
-     * @return requested context
+     * @return requested context, which plugin owner != pluginId
      * @throws InvalidContextException
      *   if the context interface does not fullfill context requirements
      * @throws ContextNotFoundException
@@ -503,7 +503,7 @@ public class ContextPool {
         // THIS is the permission check
         LOGGER.debug("Checking permission of plugin with ID=" + pluginID + " to context owner with ID=" + contextOwner
                 + " (" + context + ")");
-        return (pluginID == contextOwner) || tmpComputer.isConnected(pluginID, contextOwner);
+        return tmpComputer.isConnected(pluginID, contextOwner);
     }
 
     /**

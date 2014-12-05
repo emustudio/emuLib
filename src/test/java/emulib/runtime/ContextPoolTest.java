@@ -58,6 +58,9 @@ public class ContextPoolTest {
 
         @Override
         public boolean isConnected(long pluginID, long toPluginID) {
+            if (pluginID == toPluginID) {
+                return false;
+            }
             return connected;
         }
     }
@@ -115,7 +118,7 @@ public class ContextPoolTest {
     @Test
     public void testRegisterCPU() throws Exception {
         contextPool.register(0, cpuContextMock, CPUContext.class);
-        assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(1, CPUContext.class));
         assertTrue(contextPool.unregister(0, CPUContext.class));
     }
 
@@ -139,23 +142,35 @@ public class ContextPoolTest {
     @Test
     public void testRegisterCPUAccessibleByTwoInterfacesWithEqualHash() throws Exception {
         contextPool.register(0, cpuContextMock, CPUContextStub.class);
-        assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContextStub.class));
-        assertEquals(cpuContextMock, contextPool.getCPUContext(0, DifferentCPUContextStubWithEqualHash.class));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(1, CPUContextStub.class));
+        assertEquals(cpuContextMock, contextPool.getCPUContext(1, DifferentCPUContextStubWithEqualHash.class));
         assertTrue(contextPool.unregister(0, CPUContextStub.class));
+    }
+
+    @Test
+    public void testUnregisterCanOnlyOwner() throws Exception {
+        contextPool.register(0, cpuContextMock, CPUContextStub.class);
+        assertFalse(contextPool.unregister(1, CPUContextStub.class));
+    }
+
+    @Test(expected = ContextNotFoundException.class)
+    public void testContextCannotBeRetrievedFromOwnerIfItIsNotRecursivelyConnected() throws Exception {
+        contextPool.register(1, compilerContextMock, CompilerContext.class);
+        contextPool.getCompilerContext(1, CompilerContext.class);
     }
 
     @Test
     public void testRegisterCompiler() throws Exception {
         contextPool.register(1, compilerContextMock, CompilerContext.class);
-        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContext.class));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(2, CompilerContext.class));
         assertTrue(contextPool.unregister(1, CompilerContext.class));
     }
 
     @Test
     public void testRegisterCompilerAccessibleByTwoInterfacesWithEqualHash() throws Exception {
         contextPool.register(1, compilerContextMock, CompilerContextStub.class);
-        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, CompilerContextStub.class));
-        assertEquals(compilerContextMock, contextPool.getCompilerContext(1, DifferentCompilerContextStubWithEqualHash.class));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(2, CompilerContextStub.class));
+        assertEquals(compilerContextMock, contextPool.getCompilerContext(2, DifferentCompilerContextStubWithEqualHash.class));
         assertTrue(contextPool.unregister(1, CompilerContextStub.class));
     }
 
@@ -179,15 +194,15 @@ public class ContextPoolTest {
     @Test
     public void testRegisterMemory() throws Exception {
         contextPool.register(2, memContextMock, MemoryContext.class);
-        assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContext.class));
+        assertEquals(memContextMock, contextPool.getMemoryContext(3, MemoryContext.class));
         assertTrue(contextPool.unregister(2, MemoryContext.class));
     }
 
     @Test
     public void testRegisterMemoryAccessibleByTwoInterfacesWithEqualHash() throws Exception {
         contextPool.register(2, memContextMock, MemoryContextStub.class);
-        assertEquals(memContextMock, contextPool.getMemoryContext(2, MemoryContextStub.class));
-        assertEquals(memContextMock, contextPool.getMemoryContext(2, DifferentMemoryContextStubWithEqualHash.class));
+        assertEquals(memContextMock, contextPool.getMemoryContext(3, MemoryContextStub.class));
+        assertEquals(memContextMock, contextPool.getMemoryContext(3, DifferentMemoryContextStubWithEqualHash.class));
         assertTrue(contextPool.unregister(2, MemoryContextStub.class));
     }
 
@@ -211,15 +226,15 @@ public class ContextPoolTest {
     @Test
     public void testRegisterDevice() throws Exception {
         contextPool.register(3, devContextMock, DeviceContext.class);
-        assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContext.class));
+        assertEquals(devContextMock, contextPool.getDeviceContext(4, DeviceContext.class));
         assertTrue(contextPool.unregister(3, DeviceContext.class));
     }
 
     @Test
     public void testRegisterDeviceAccessibleByTwoInterfacesWithEqualHash() throws Exception {
         contextPool.register(3, devContextMock, DeviceContextStub.class);
-        assertEquals(devContextMock, contextPool.getDeviceContext(3, DeviceContextStub.class));
-        assertEquals(devContextMock, contextPool.getDeviceContext(3, DifferentDeviceContextStubWithEqualHash.class));
+        assertEquals(devContextMock, contextPool.getDeviceContext(4, DeviceContextStub.class));
+        assertEquals(devContextMock, contextPool.getDeviceContext(4, DifferentDeviceContextStubWithEqualHash.class));
         assertTrue(contextPool.unregister(3, DeviceContextStub.class));
     }
 
@@ -373,7 +388,7 @@ public class ContextPoolTest {
     public void testUnregisterInvalidContext() throws Exception {
         contextPool.register(0, cpuContextMock, CPUContext.class);
         try {
-            assertEquals(cpuContextMock, contextPool.getCPUContext(0, CPUContext.class));
+            assertEquals(cpuContextMock, contextPool.getCPUContext(1, CPUContext.class));
             assertFalse(contextPool.unregister(0, MemoryContext.class));
         } finally {
             assertTrue(contextPool.unregister(0, CPUContext.class));
