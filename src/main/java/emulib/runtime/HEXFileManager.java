@@ -26,7 +26,12 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * This class generates and loads 16 bit Intel hex files.
@@ -191,7 +196,7 @@ public class HEXFileManager {
         Collections.sort(adrs);
         Iterator<Integer> e = adrs.iterator();
         while (e.hasNext()) {
-            int adr = (Integer) e.next();
+            int adr = e.next();
             String code = program.get(adr);
             for (int i = 0, j = 0; i < code.length() - 1; i += 2, j++) {
                 String hexCode = code.substring(i, i + 2);

@@ -37,25 +37,37 @@ public interface CPU extends Plugin {
          * CPU is stopped (naturally or by user) and should not be run until its
          * reset.
          */
-        STATE_STOPPED_NORMAL,
+        STATE_STOPPED_NORMAL("stopped"),
         /**
          * CPU is in breakpoint state (paused).
          */
-        STATE_STOPPED_BREAK,
+        STATE_STOPPED_BREAK("breakpoint"),
         /**
          * CPU is stopped because of address fallout error. It should not be
          * run until its reset.
          */
-        STATE_STOPPED_ADDR_FALLOUT,
+        STATE_STOPPED_ADDR_FALLOUT("stopped (address fallout)"),
         /**
          * CPU is stopped because of instruction fallout (unknown instruction)
          * error. It should not be run until its reset.
          */
-        STATE_STOPPED_BAD_INSTR,
+        STATE_STOPPED_BAD_INSTR("stopped (instruction fallout)"),
         /**
          * CPU is running.
          */
-        STATE_RUNNING
+        STATE_RUNNING("running");
+
+        private final String name;
+
+        private RunState(String name) {
+            this.name = name;
+        }
+        
+        @Override
+        public String toString() {
+            return this.name;
+        }
+        
     }
 
     /**
