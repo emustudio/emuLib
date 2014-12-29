@@ -93,9 +93,6 @@ public class RadixUtilsTest {
         assertEquals(expResult, result);
     }
 
-    /**
-     * Test of convertToNumber method, of class RadixUtils.
-     */
     @Test
     public void testConvertToNumber() {
         String number = "300";
@@ -132,9 +129,6 @@ public class RadixUtilsTest {
         }
     }
 
-    /**
-     * Test of parseRadix method, of class RadixUtils.
-     */
     @Test
     public void testParseRadix() {
         String number = "0x20";
@@ -172,7 +166,15 @@ public class RadixUtilsTest {
         number = 0x231F;
         assertEquals("231F", RadixUtils.getWordHexString(number));
     }
-    
+
+    @Test
+    public void testGetWordHexStringUpperLower() throws Exception {
+        short upper = 1;
+        short lower = 2;
+
+        assertEquals("0102", RadixUtils.getWordHexString(upper, lower));
+    }
+
     @Test
     public void testGetByteHexString() {
         int number = 1;

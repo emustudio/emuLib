@@ -367,11 +367,24 @@ public class RadixUtils {
     }
 
     /**
+     * Get formatted string of a word.
+     *
+     * Formatting is using pattern "%04X".
+     *
+     * @param upper high order byte (high 8 bits)
+     * @param lower low order byte (low 8bits)
+     * @return formatted string as a hexadecimal number, with string length=4
+     */
+    public static String getWordHexString(short upper, short lower) {
+        return String.format("%04X", ((upper << 8) | lower) & 0xFFFF);
+    }
+
+    /**
      * Get formatted string of a dword.
      *
      * Formatting is using pattern "%08X".
      *
-     * @param dwordNumber a number, assumed size is a double word (4 bytes)
+     * @param number a number, assumed size is a double word (4 bytes)
      * @return formatted string as a hexadecimal number, with string length=8
      */
     public static String getDwordHexString(int number) {
