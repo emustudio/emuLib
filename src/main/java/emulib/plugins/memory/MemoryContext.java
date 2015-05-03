@@ -33,14 +33,14 @@ import emulib.plugins.memory.Memory.MemoryListener;
  * to the memory and they communicate by invoking following methods.
  */
 @ContextType
-public interface MemoryContext<T> extends Context {
+public interface MemoryContext<ByteType, WordType> extends Context {
 
     /**
      * Read one cell from a memory.
      * @param memoryPosition  memory position (address) of the read cell
      * @return read cell
      */
-    public T read (int memoryPosition);
+    ByteType read (int memoryPosition);
 
     /**
      * Read two cells from a memory at once. Implementation of return value
@@ -59,14 +59,14 @@ public interface MemoryContext<T> extends Context {
      * @param memoryPosition  memory position (address) of the read cells
      * @return two read cells
      */
-    public Object readWord (int memoryPosition);
+    WordType readWord (int memoryPosition);
 
     /**
      * Write one cell-size (e.g. byte) data to a cell to a memory on specified location.
      * @param memoryPosition   memory position (address) of the cell where data will be written
      * @param value  data to be written
      */
-    public void write (int memoryPosition, T value);
+    void write (int memoryPosition, ByteType value);
 
     /**
      * Write two cell-size (e.g. word - usually two bytes) data to a cell to a memory on specified
@@ -75,18 +75,18 @@ public interface MemoryContext<T> extends Context {
      * @param memoryPosition   memory position (address) of the read cells
      * @param value  two cells in one <code>Object</code> value
      */
-    public void writeWord (int memoryPosition, Object value);
+    void writeWord (int memoryPosition, WordType value);
 
     /**
      * Get the type of memory cells.
      * @return Java data type of memory cells
      */
-    public Class<?> getDataType ();
+    Class<?> getDataType ();
 
     /**
      * Clears the memory.
      */
-    public void clear ();
+    void clear ();
 
     /**
      * Adds the specified memory listener to receive memory events from this memory.
@@ -95,7 +95,7 @@ public interface MemoryContext<T> extends Context {
      * performed.
      * @param listener  the memory listener
      */
-    public void addMemoryListener (MemoryListener listener);
+    void addMemoryListener (MemoryListener listener);
 
     /**
      * Removes the specified memory listener so that it no longer receives memory
@@ -104,7 +104,7 @@ public interface MemoryContext<T> extends Context {
      * thrown and no action is performed.
      * @param listener  the memory listener to be removed
      */
-    public void removeMemoryListener (MemoryListener listener);
+    void removeMemoryListener (MemoryListener listener);
 
     /**
      * Get memory size.
@@ -113,7 +113,7 @@ public interface MemoryContext<T> extends Context {
      *
      * @return memory size
      */
-    public int getSize();
+    int getSize();
 
 }
 

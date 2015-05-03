@@ -33,7 +33,7 @@ import java.util.List;
  *
  * It is not thread safe.
  */
-public abstract class AbstractMemoryContext<T> implements MemoryContext<T> {
+public abstract class AbstractMemoryContext<ByteType, WordType> implements MemoryContext<ByteType, WordType> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     /**

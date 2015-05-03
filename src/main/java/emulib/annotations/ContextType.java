@@ -26,7 +26,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicates that the annotated interace represent plugin context.
+ * Indicates that the annotated interface represent plugin context.
  *
  * This annotation should be used only on classes.
  */
