@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -63,7 +64,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final ExecutorService cpuStoppedWatcher = Executors.newSingleThreadExecutor();
 
     private final long pluginID;
-    private final List<CPUListener> stateObservers = new CopyOnWriteArrayList<>();
+    private final Set<CPUListener> stateObservers = new CopyOnWriteArraySet<>();
     private final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
 
     // ** CONTRACT: set only in "eventReceiver" or "cpuWatchTask" in a non-concurrent way **

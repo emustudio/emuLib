@@ -25,7 +25,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class implements some fundamental functionality of MemoryContext
@@ -41,7 +44,7 @@ public abstract class AbstractMemoryContext<ByteType, WordType> implements Memor
      * the IMemoryListener interface. Methods within the listeners are called
      * on some events that happen inside memory (e.g. value change).
      */
-    protected final List<MemoryListener> listeners = new ArrayList<>();
+    protected final Set<MemoryListener> listeners = new CopyOnWriteArraySet<>();
 
     /**
      * Adds a listener onto listeners list

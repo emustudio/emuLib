@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class implements some fundamental functionality that can be
@@ -67,7 +69,7 @@ public abstract class AbstractCompiler implements Compiler {
      * @param pluginID ID of the plug-in assigned by emuStudio
      */
     public AbstractCompiler(Long pluginID) {
-        compilerListeners = new LinkedHashSet<>();
+        compilerListeners = new CopyOnWriteArraySet<>();
         this.pluginID = pluginID;
     }
 
