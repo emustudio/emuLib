@@ -26,10 +26,6 @@ package emulib.runtime;
  */
 public class InvalidPluginException extends Exception {
 
-    public InvalidPluginException() {
-
-    }
-
     public InvalidPluginException(String cause) {
         super(cause);
     }

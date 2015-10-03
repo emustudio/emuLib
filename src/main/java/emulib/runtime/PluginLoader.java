@@ -55,7 +55,7 @@ public class PluginLoader extends URLClassLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
 
-    private final Map<String, List<String>> fileNameToClassesList = new HashMap<>();
+    private final Map<File, List<String>> fileNameToClassesList = new HashMap<>();
 
     /**
      * Create an instance of the PluginLoader.
@@ -124,15 +124,15 @@ public class PluginLoader extends URLClassLoader {
      *
      * The plug-in should be in JAR format.
      *
-     * @param filename file name of the plugin (relative path is accepted, too).
+     * @param file file name of the plugin (relative path is accepted, too).
      * If the filename does not contain '.jar' suffix, it will be added automatically.
      * @param password emuStudio password.
      * @return Plugin main class
      * @throws emulib.runtime.InvalidPasswordException if given password is invalid
      * @throws emulib.runtime.InvalidPluginException if main class could not be found.
      */
-    public Class<Plugin> loadPlugin(String filename, String password) throws InvalidPasswordException, InvalidPluginException {
-       return loadPlugin(filename, password, System.getProperty("user.dir"));
+    public Class<Plugin> loadPlugin(File file, String password) throws InvalidPasswordException, InvalidPluginException {
+       return loadPlugin(file, password, System.getProperty("user.dir"));
     }
 
     /**
@@ -140,7 +140,7 @@ public class PluginLoader extends URLClassLoader {
      *
      * The plug-in should be in JAR format.
      *
-     * @param filename file name of the plugin (relative path is accepted, too).
+     * @param file file name of the plugin (relative path is accepted, too).
      * If the filename does not contain '.jar' suffix, it will be added automatically.
      * @param password emuStudio password.
      * @param dependenciesBasePath Base directory for loading plugin dependencies
@@ -148,33 +148,32 @@ public class PluginLoader extends URLClassLoader {
      * @throws emulib.runtime.InvalidPasswordException if given password is invalid
      * @throws emulib.runtime.InvalidPluginException if main class could not be found.
      */
-    public Class<Plugin> loadPlugin(String filename, String password, String dependenciesBasePath) throws InvalidPasswordException, InvalidPluginException {
+    public Class<Plugin> loadPlugin(File file, String password, String dependenciesBasePath) throws InvalidPasswordException, InvalidPluginException {
         API.testPassword(password);
 
-        Objects.requireNonNull(filename);
+        Objects.requireNonNull(file);
         Objects.requireNonNull(dependenciesBasePath);
         try {
-            File pluginFile = new File(filename);
-            addURL(toJarURL(pluginFile));
+            addURL(toJarURL(file));
 
-            List<File> dependencies = getDependencies(pluginFile, dependenciesBasePath);
+            List<File> dependencies = getDependencies(file, dependenciesBasePath);
             List<String> dependenciesStrings = new ArrayList<>();
             for (File dependency : dependencies) {
                 addURL(toJarURL(dependency));
                 dependenciesStrings.add(dependency.getAbsolutePath());
             }
             LOGGER.debug("[plugin={}] List of dependencies: {}",
-                    filename, Arrays.toString(dependenciesStrings.toArray()));
-            scanFileForClasses(filename);
+                    file, Arrays.toString(dependenciesStrings.toArray()));
+            scanFileForClasses(file);
         } catch (IOException e) {
             throw new InvalidPluginException("Could not load JAR file", e);
         }
-        Class<Plugin> mainClass = findPluginMainClass(filename);
+        Class<Plugin> mainClass = findPluginMainClass(file);
         return mainClass;
     }
 
-    private void scanFileForClasses(String filename) throws IOException {
-        JarInputStream jis = new JarInputStream(new FileInputStream(filename));
+    private void scanFileForClasses(File file) throws IOException {
+        JarInputStream jis = new JarInputStream(new FileInputStream(file));
         JarEntry jarEntry;
 
         try {
@@ -186,10 +185,10 @@ public class PluginLoader extends URLClassLoader {
                 if (!jarEntryName.toLowerCase().endsWith(".class")) {
                     continue;
                 }
-                List<String> classesList = fileNameToClassesList.get(filename);
+                List<String> classesList = fileNameToClassesList.get(file);
                 if (classesList == null) {
                     classesList = new ArrayList<>();
-                    fileNameToClassesList.put(filename, classesList);
+                    fileNameToClassesList.put(file, classesList);
                 }
                 String className = getValidClassName(jarEntryName);
                 classesList.add(className);
@@ -199,8 +198,8 @@ public class PluginLoader extends URLClassLoader {
         }
     }
 
-    private Class<Plugin> findPluginMainClass(String filename) throws InvalidPluginException {
-        List<String> classes = fileNameToClassesList.get(filename);
+    private Class<Plugin> findPluginMainClass(File file) throws InvalidPluginException {
+        List<String> classes = fileNameToClassesList.get(file);
 
         for (String className : classes) {
             try {

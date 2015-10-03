@@ -46,7 +46,7 @@ public class AbstractMemoryContextTest {
     }
 
     @Test
-    public void testNotifyDoesNotThrow() throws Exception {
+    public void testNotifyMemChangedDoesNotThrow() throws Exception {
         Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
         listener.memoryChanged(anyInt());
         expectLastCall().andThrow(new RuntimeException()).once();
@@ -57,4 +57,18 @@ public class AbstractMemoryContextTest {
 
         verify(listener);
     }
+
+    @Test
+    public void testNotifyMemSizeChangedDoesNotThrow() throws Exception {
+        Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
+        listener.memorySizeChanged();
+        expectLastCall().andThrow(new RuntimeException()).once();
+        replay(listener);
+
+        memory.addMemoryListener(listener);
+        memory.notifyMemorySizeChanged();
+
+        verify(listener);
+    }
+
 }

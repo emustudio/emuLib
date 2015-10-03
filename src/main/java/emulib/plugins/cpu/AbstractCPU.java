@@ -25,12 +25,10 @@ import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -88,7 +86,12 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
                 if (e.getCause() instanceof IndexOutOfBoundsException) {
                     runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
                 } else {
-                    runState = RunState.STATE_STOPPED_BAD_INSTR;
+                    Throwable cause = e.getCause().getCause();
+                    if (cause != null && (cause instanceof IndexOutOfBoundsException)) {
+                        runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                    } else {
+                        runState = RunState.STATE_STOPPED_BAD_INSTR;
+                    }
                 }
                 LOGGER.error("Unexpected error during emulation", e);
             } catch (InterruptedException e) {
@@ -104,12 +107,13 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     /**
-     * Initializes the CPU.
+     * Creates new instance of CPU.
      *
      * @param pluginID plug-in identification number
+     * @throws NullPointerException if pluginID is null
      */
     public AbstractCPU(Long pluginID) {
-        this.pluginID = pluginID;
+        this.pluginID = Objects.requireNonNull(pluginID);
     }
 
     /**

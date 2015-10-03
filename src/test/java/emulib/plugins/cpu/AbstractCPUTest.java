@@ -2,6 +2,7 @@ package emulib.plugins.cpu;
 
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
+import emulib.plugins.cpu.stubs.AbstractCPUStub;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
@@ -9,7 +10,9 @@ import org.junit.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.LockSupport;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -33,7 +36,7 @@ public class AbstractCPUTest {
     }
 
     private CPUListener createCPUListenerMock(RunState runState) {
-        CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
+        CPUListener listener = createMock(CPUListener.class);
         listener.internalStateChanged();
         expectLastCall().once();
         listener.runStateChanged(eq(runState));
@@ -42,9 +45,9 @@ public class AbstractCPUTest {
         return listener;
     }
 
-    @Test
-    public void testInitializeDoesNotThrow() throws Exception {
-        cpu.initialize(null);
+    @Test(expected = NullPointerException.class)
+    public void testCreateInstanceWithNullPluginIDThrows() throws Exception {
+        new AbstractCPUStub(null);
     }
 
     @Test
@@ -169,6 +172,268 @@ public class AbstractCPUTest {
         } catch (Exception e) {
             // expected, because CPU is destroyed
         }
+    }
+
+    @Test
+    public void testPauseAfterExecuteSetsBreakpointState() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_RUNNING));
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_STOPPED_BREAK));
+        expectLastCall().once();
+        replay(listener);
+
+        cpu.setLoopUntilThreadIsInterrupted(true);
+
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+        cpu.pause();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testPauseOnBreakpointStateHasNoEffect() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        replay(listener);
+
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.pause();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testPauseOnNormalStopHasNoEffect() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        replay(listener);
+
+        cpu.addCPUListener(listener);
+        cpu.pause();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testCallingStepWhileRunningHasNoEffect() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
+
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithRunningStateSetBreakpointState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BREAK);
+
+        cpu.setRunStateToReturn(RunState.STATE_RUNNING);
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithNormalStopStateKeepsNormalStopState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_NORMAL);
+
+        cpu.setRunStateToReturn(RunState.STATE_STOPPED_NORMAL);
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithBreakpointStateKeepsBreakpointState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BREAK);
+
+        cpu.setRunStateToReturn(RunState.STATE_STOPPED_BREAK);
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_ADDR_FALLOUT);
+
+        cpu.setExceptionToThrow(new IndexOutOfBoundsException());
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithArrayIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_ADDR_FALLOUT);
+
+        cpu.setExceptionToThrow(new ArrayIndexOutOfBoundsException());
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithRuntimeExceptionWithCauseIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_ADDR_FALLOUT);
+
+        cpu.setExceptionToThrow(new RuntimeException(new ArrayIndexOutOfBoundsException()));
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testStepWithOtherExceptionSetsInstructionFalloutState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BAD_INSTR);
+
+        cpu.setExceptionToThrow(new RuntimeException());
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.step();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithRunningStateHasNoEffect() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        replay(listener);
+
+        cpu.setRunStateToReturn(RunState.STATE_RUNNING);
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithNormalStopHasNoEffect() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        replay(listener);
+
+        cpu.setRunStateToReturn(RunState.STATE_STOPPED_NORMAL);
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithBreakpointStateChangeToRunningState() throws Exception {
+        CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
+
+        cpu.setRunStateToReturn(RunState.STATE_STOPPED_BREAK);
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_RUNNING));
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_STOPPED_ADDR_FALLOUT));
+        expectLastCall().once();
+        replay(listener);
+
+        cpu.setExceptionToThrow(new IndexOutOfBoundsException());
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        LockSupport.parkNanos(100000000);
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithRuntimeExceptionWithCauseIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_RUNNING));
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_STOPPED_ADDR_FALLOUT));
+        expectLastCall().once();
+        replay(listener);
+
+        cpu.setExceptionToThrow(new RuntimeException(new IndexOutOfBoundsException()));
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        LockSupport.parkNanos(100000000);
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithArrayIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_RUNNING));
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_STOPPED_ADDR_FALLOUT));
+        expectLastCall().once();
+        replay(listener);
+
+        cpu.setExceptionToThrow(new ArrayIndexOutOfBoundsException());
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        LockSupport.parkNanos(100000000);
+
+        verify(listener);
+    }
+
+    @Test
+    public void testExecuteWithOtherExceptionSetsInstructionFalloutState() throws Exception {
+        CPUListener listener = createMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_RUNNING));
+        expectLastCall().once();
+        listener.runStateChanged(eq(RunState.STATE_STOPPED_BAD_INSTR));
+        expectLastCall().once();
+        replay(listener);
+
+        cpu.setExceptionToThrow(new RuntimeException());
+        cpu.reset();
+        cpu.addCPUListener(listener);
+        cpu.execute();
+
+        LockSupport.parkNanos(100000000);
+
+        verify(listener);
     }
 
 

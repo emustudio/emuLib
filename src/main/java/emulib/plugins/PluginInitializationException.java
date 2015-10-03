@@ -1,30 +1,27 @@
 package emulib.plugins;
 
+import java.util.Objects;
+
 public class PluginInitializationException extends Exception {
     private final Plugin plugin;
 
     public PluginInitializationException(Plugin plugin) {
-        this.plugin = plugin;
+        this.plugin = Objects.requireNonNull(plugin);
     }
 
     public PluginInitializationException(Plugin plugin, String message) {
         super(message);
-        this.plugin = plugin;
+        this.plugin = Objects.requireNonNull(plugin);
     }
 
     public PluginInitializationException(Plugin plugin, String message, Throwable cause) {
         super(message, cause);
-        this.plugin = plugin;
+        this.plugin = Objects.requireNonNull(plugin);
     }
 
     public PluginInitializationException(Plugin plugin, Throwable cause) {
         super(cause);
-        this.plugin = plugin;
-    }
-
-    public PluginInitializationException(Plugin plugin, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-        this.plugin = plugin;
+        this.plugin = Objects.requireNonNull(plugin);
     }
 
     public Plugin getPlugin() {

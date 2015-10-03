@@ -19,162 +19,36 @@
  */
 package emulib.runtime;
 
-import emulib.annotations.PLUGIN_TYPE;
-import emulib.annotations.PluginType;
 import emulib.emustudio.APITest;
-import emulib.emustudio.SettingsManager;
 import emulib.plugins.Plugin;
-import emulib.plugins.PluginInitializationException;
 import emulib.plugins.cpu.CPU;
-import emulib.plugins.cpu.CPU.CPUListener;
-import emulib.plugins.cpu.CPU.RunState;
-import emulib.plugins.cpu.Disassembler;
+import emulib.runtime.stubs.CPUImplStub;
+import emulib.runtime.stubs.CPUListenerStub;
+import emulib.runtime.stubs.UnannotatedCPUStub;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.swing.JPanel;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class PluginLoaderTest {
-    private static final String RESOURCES_PATH = "src" + File.separator + "test"
-            + File.separator + "resources" + File.separator;
-    
-    private static final String GOOD_PLUGIN_PATH = RESOURCES_PATH + "plugin-valid.jar";
-    private static final String BAD_PLUGIN_PATH = RESOURCES_PATH + "plugin-invalid.jar";
-    private static final String NOT_A_PLUGIN_PATH = RESOURCES_PATH + "not-a-plugin.jar";
-    private static final String DEPENDENT_PLUGIN_PATH = RESOURCES_PATH
-            + "dependencies" + File.separator;
-    private static final String PLUGIN_A_DEPENDS_ON_B = DEPENDENT_PLUGIN_PATH
-            + "A.jar";
+    private static final String GOOD_PLUGIN_PATH = "plugin-valid.jar";
+    private static final String BAD_PLUGIN_PATH = "plugin-invalid.jar";
+    private static final String NOT_A_PLUGIN_PATH = "not-a-plugin.jar";
+    private static final String DEPENDENT_PLUGIN_PATH = "dependencies" + File.separator;
+    private static final String PLUGIN_A_DEPENDS_ON_B = DEPENDENT_PLUGIN_PATH + "A.jar";
 
     private PluginLoader pluginLoader;
-
-    private class CPUListenerStub implements CPUListener {
-
-        @Override
-        public void runStateChanged(RunState runState) {
-        }
-
-        @Override
-        public void internalStateChanged() {
-        }
-    }
-
-    private abstract class SuperCPUStub implements CPU {
-    }
-
-    @PluginType(title = "CPU", description = "", type = PLUGIN_TYPE.CPU, copyright = "(c)")
-    private class CPUImplStub extends SuperCPUStub {
-
-        @Override
-        public boolean addCPUListener(CPUListener listener) {
-            return true;
-        }
-
-        @Override
-        public boolean removeCPUListener(CPUListener listener) {
-            return true;
-        }
-
-        @Override
-        public void step() {
-        }
-
-        @Override
-        public void execute() {
-        }
-
-        @Override
-        public void pause() {
-        }
-
-        @Override
-        public void stop() {
-        }
-
-        @Override
-        public JPanel getStatusPanel() {
-            return null;
-        }
-
-        @Override
-        public boolean isBreakpointSupported() {
-            return false;
-        }
-
-        @Override
-        public void setBreakpoint(int pos) {
-        }
-
-        @Override
-        public void unsetBreakpoint(int pos) {
-        }
-
-        @Override
-        public boolean isBreakpointSet(int pos) {
-            return false;
-        }
-
-        @Override
-        public void reset(int startAddress) {
-        }
-
-        @Override
-        public int getInstructionPosition() {
-            return 0;
-        }
-
-        @Override
-        public boolean setInstructionPosition(int pos) {
-            return false;
-        }
-
-        @Override
-        public Disassembler getDisassembler() {
-            return null;
-        }
-
-        @Override
-        public void reset() {
-        }
-
-        @Override
-        public void initialize(SettingsManager sHandler) throws PluginInitializationException {
-            throw new PluginInitializationException(null);
-        }
-
-        @Override
-        public void destroy() {
-        }
-
-        @Override
-        public void showSettings() {
-        }
-
-        @Override
-        public boolean isShowSettingsSupported() {
-            return false;
-        }
-
-        @Override
-        public String getVersion() {
-            return "";
-        }
-
-        @Override
-        public String getTitle() {
-            return CPUImplStub.class.getAnnotation(PluginType.class).title();
-        }
-    }
 
     @Before
     public void setUp() throws MalformedURLException {
@@ -182,12 +56,16 @@ public class PluginLoaderTest {
         pluginLoader = new PluginLoader();
     }
 
+    private File toFile(String filename) throws URISyntaxException {
+        return new File(getClass().getClassLoader().getResource(filename).toURI());
+    }
+
     private Class<Plugin> loadGoodPlugin(PluginLoader instance) throws Exception {
-        return instance.loadPlugin(GOOD_PLUGIN_PATH, APITest.getEmuStudioPassword());
+        return instance.loadPlugin(toFile(GOOD_PLUGIN_PATH), APITest.getEmuStudioPassword());
     }
 
     private Class<Plugin> loadBadPlugin(PluginLoader instance) throws Exception {
-        return instance.loadPlugin(BAD_PLUGIN_PATH, APITest.getEmuStudioPassword());
+        return instance.loadPlugin(toFile(BAD_PLUGIN_PATH), APITest.getEmuStudioPassword());
     }
 
     @Test
@@ -200,7 +78,7 @@ public class PluginLoaderTest {
 
     @Test(expected = InvalidPluginException.class)
     public void testLoadNotAPlugin() throws Exception {
-        pluginLoader.loadPlugin(NOT_A_PLUGIN_PATH, APITest.getEmuStudioPassword());
+        pluginLoader.loadPlugin(toFile(NOT_A_PLUGIN_PATH), APITest.getEmuStudioPassword());
     }
 
     @Test
@@ -212,41 +90,60 @@ public class PluginLoaderTest {
     }
 
     @Test
-    public void testTrustedPlugin() {
+    public void testCorrectTrustedPlugin() {
         assertTrue(PluginLoader.trustedPlugin(CPUImplStub.class));
+    }
+
+    @Test
+    public void testTrustedPluginOnNotAPluginClassReturnsFalse() {
         assertFalse(PluginLoader.trustedPlugin(CPUListenerStub.class));
     }
 
+    @Test
+    public void testTrustedPluginOnInterfaceReturnsFalse() {
+        assertFalse(PluginLoader.trustedPlugin(CPU.class));
+    }
+
+    @Test
+    public void testTrustedPluginOnPluginClassWithoutAnnotation() {
+        assertFalse(PluginLoader.trustedPlugin(UnannotatedCPUStub.class));
+    }
+
     @Test(expected = NullPointerException.class)
-    public void testLoadPluginNullFileName() throws Exception {
+    public void testLoadPluginNullFileNameThrows() throws Exception {
         pluginLoader.loadPlugin(null, APITest.getEmuStudioPassword());
     }
 
     @Test
-    public void testFindResource() throws Exception {
+    public void testFindExistingResourceReturnsCorrectURL() throws Exception {
         loadGoodPlugin(pluginLoader);
-        URL foundURL = pluginLoader.findResource("/META-INF/maven/net.sf.emustudio/brainduck-cpu/pom.xml");
-        assertNotNull(foundURL);
+
+        String resource = "/META-INF/maven/net.sf.emustudio/brainduck-cpu/pom.xml";
+        URL foundURL = pluginLoader.findResource(resource);
+
+        String file = foundURL.getFile();
+
+        assertEquals(resource, file.substring(file.lastIndexOf('!') + 1));
     }
 
     @Test
-    public void testFindNonexistantResource() throws Exception {
+    public void testNonExistantResourceReturnsNullAndDoesNotThrow() throws Exception {
         loadGoodPlugin(pluginLoader);
         URL foundURL = pluginLoader.findResource("non-existent-resource");
         assertNull(foundURL);
     }
 
-    @Test(expected = NoClassDefFoundError.class)
-    public void testBadPlugin() throws Exception {
+    @Test(expected = Throwable.class)
+    public void testInvalidPluginConstructorThrows() throws Exception {
         Class<Plugin> result = loadBadPlugin(pluginLoader);
+
         assertNotNull(result);
-        Constructor<Plugin> constructor = result.getConstructor(Long.class, ContextPool.class);
-        constructor.newInstance(0, EasyMock.createNiceMock(ContextPool.class));
+        result.getConstructor(Long.class, ContextPool.class);
     }
 
     @Test
-    public void testURLFromConstructor() throws MalformedURLException {
-        URL fileURL = new File(GOOD_PLUGIN_PATH).toURI().toURL();
+    public void testURLFromConstructorLoadsPlugin() throws Exception {
+        URL fileURL = toFile(GOOD_PLUGIN_PATH).toURI().toURL();
         String tmp = "jar:" + fileURL.toString() + "!/";
 
         pluginLoader = new PluginLoader(new URL(tmp));
@@ -258,10 +155,13 @@ public class PluginLoaderTest {
 
     @Test
     public void testDependenciesAreLoadedCorrectly() throws Exception {
+        File file = toFile(PLUGIN_A_DEPENDS_ON_B);
+        File base = file.getParentFile();
+
         Class<Plugin> cl = pluginLoader.loadPlugin(
-                PLUGIN_A_DEPENDS_ON_B,
+                toFile(PLUGIN_A_DEPENDS_ON_B),
                 APITest.getEmuStudioPassword(),
-                RESOURCES_PATH + "dependencies"
+                base.getPath()
         );
         cl.getDeclaredMethod("hello").invoke(cl.newInstance());
     }

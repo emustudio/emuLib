@@ -19,8 +19,9 @@
  */
 package emulib.runtime;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -32,22 +33,22 @@ import java.util.regex.Pattern;
  * in all times. This class tries to make parsing, converting and working with
  * various number radixes easier.
  *
- * @author vbmacher
  */
+@NotThreadSafe
 public class RadixUtils {
+    private static final double LOG102 = 0.30102999566398114;
+    private static final RadixUtils INSTANCE = new RadixUtils();
 
-    private final static double LOG102 = 0.30102999566398114;
-    private static RadixUtils instance;
-    private List<NumberPattern> patterns;
+    private final List<NumberPattern> patterns = new ArrayList<>();
 
     /**
      * This class represents a number pattern in single radix
      */
     public static class NumberPattern {
-        private Pattern pattern;
-        private int radix;
-        private int start;
-        private int end;
+        private final Pattern pattern;
+        private final int radix;
+        private final int start;
+        private final int end;
 
         /**
          * Create instance of the NumberPattern
@@ -61,8 +62,7 @@ public class RadixUtils {
          *   Count of characters that will be cut from the end of a number by
          *   calling <code>prepareNumber</code> method.
          */
-        public NumberPattern(String regex, int radix, int cutFromStart,
-                int cutFromEnd) {
+        public NumberPattern(String regex, int radix, int cutFromStart, int cutFromEnd) {
             pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
             this.radix = radix;
             this.start = cutFromStart;
@@ -109,13 +109,11 @@ public class RadixUtils {
         }
     }
 
-    /**
-     * Creates instance of the RadixUtils.
-     */
     private RadixUtils() {
-        patterns = new ArrayList<NumberPattern>();
+        initializeDefaultPatterns();
+    }
 
-        // Add some predefined patterns
+    private void initializeDefaultPatterns() {
         patterns.add(new NumberPattern("0x[0-9a-f]+", 16, 2, 0));
         patterns.add(new NumberPattern("[0-9a-f]+h", 16, 0, 1));
         patterns.add(new NumberPattern("[0-9]+", 10, 0, 0));
@@ -125,10 +123,15 @@ public class RadixUtils {
     }
 
     public static RadixUtils getInstance() {
-        if (instance == null) {
-            instance = new RadixUtils();
-        }
-        return instance;
+        return INSTANCE;
+    }
+
+    /**
+     * Clears all user-defined patterns
+     */
+    public void setDefaults() {
+        patterns.clear();
+        initializeDefaultPatterns();
     }
 
     /**
@@ -240,23 +243,21 @@ public class RadixUtils {
      *
      * @param number String representing number in hexa, octal or decadic radix
      * @param toRadix target radix of the number
-     * @return String of a number in specified radix, or null if the original
-     *         radix is not recognized
+     * @return String of a number in specified radix
+     * @throws NumberFormatException if the number is not in known format
      */
     public String convertToRadix(String number, int toRadix) {
-        int size = patterns.size();
-        for (int i = 0; i < size; i++) {
-            NumberPattern pattern = patterns.get(i);
+        for (NumberPattern pattern : patterns) {
             if (pattern.matches(number)) {
                 if (pattern.getRadix() == toRadix) {
-                    return number;
+                    return pattern.prepareNumber(number);
                 }
-                return convertToRadix(convertToNumber(
-                        pattern.prepareNumber(number),
-                        pattern.getRadix()), toRadix, true);
+                return convertToRadix(
+                        convertToNumber(pattern.prepareNumber(number), pattern.getRadix()), toRadix, true
+                );
             }
         }
-        return null;
+        throw new NumberFormatException("Number not recognized");
     }
 
     /**
@@ -286,41 +287,23 @@ public class RadixUtils {
      * @return Array of binary components of that number
      */
     public static byte[] convertToNumber(String number, int fromRadix) {
-        number = number.trim().toUpperCase();
-        int numLen = number.length();
-        byte[] bytes = new byte[numLen]; // maximum number of bytes
+        List<Byte> bytes = new ArrayList<>();
 
-        int tmp;
-        int actualByte;
-        for (int i = numLen-1; i >= 0; i--) {
-            short digit;
-            if (fromRadix <= 10) {
-                digit = (short)((int)number.charAt(i) - (int)'0');
-            } else {
-                digit = (short)((int)number.charAt(i) - (int)'A');
-            }
-
-            tmp = (int)(bytes[0] + digit * Math.pow(fromRadix, numLen - i - 1));
-
-
-            bytes[0] = (byte)(tmp % 256);
-            actualByte = 1;
-            while (tmp > 256) {
-                tmp = (bytes[actualByte] & 0xFF) + tmp / 256;
-                bytes[actualByte++] = (byte)(tmp % 256);
-            }
+        long parsed = Long.parseLong(number, fromRadix);
+        if (parsed < 0) {
+            throw new NumberFormatException("Too big number to parse");
+        }
+        while (parsed != 0) {
+            bytes.add((byte)(parsed & 0xFF));
+            parsed >>>= 8;
         }
 
-        // Remove unused zeros from the right
-        tmp = 0;
-        for (int i = bytes.length - 1; i >= 0; i--) {
-            if (bytes[i] == 0) {
-                tmp++;
-            } else {
-                break;
-            }
+        byte[] result = new byte[bytes.size()];
+        for (int i = 0; i < result.length; i++) {
+            result[i] = bytes.get(i);
         }
-        return Arrays.copyOfRange(bytes, 0, bytes.length - tmp);
+
+        return result;
     }
 
     /**
@@ -331,12 +314,26 @@ public class RadixUtils {
      * @throws NumberFormatException if the number is not in known format
      */
     public int parseRadix(String number) throws NumberFormatException {
-        int size = patterns.size();
-        for (int i = 0; i < size; i++) {
-            NumberPattern pattern = patterns.get(i);
+        for (NumberPattern pattern : patterns) {
             if (pattern.matches(number)) {
-                return Integer.parseInt(pattern.prepareNumber(number),
-                        pattern.getRadix());
+                return Integer.parseInt(pattern.prepareNumber(number), pattern.getRadix());
+            }
+        }
+        throw new NumberFormatException("Number not recognized");
+    }
+
+    /**
+     * Parses a number in known radix into integer.
+     *
+     * @param number number in some known radix
+     * @param radix radix of the number (known pattern must exist for parsing)
+     * @return parsed integer
+     * @throws NumberFormatException if there is no pattern available for given radix or the number is unparseable
+     */
+    public int parseRadix(String number, int radix) throws NumberFormatException {
+        for (NumberPattern pattern : patterns) {
+            if (pattern.getRadix() == radix && pattern.matches(number)) {
+                return Integer.parseInt(pattern.prepareNumber(number), radix);
             }
         }
         throw new NumberFormatException("Number not recognized");

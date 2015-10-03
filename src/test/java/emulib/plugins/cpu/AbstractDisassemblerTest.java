@@ -1,5 +1,6 @@
 package emulib.plugins.cpu;
 
+import emulib.plugins.cpu.stubs.AbstractDisassemblerStub;
 import org.junit.Test;
 import static org.junit.Assert.*;
 

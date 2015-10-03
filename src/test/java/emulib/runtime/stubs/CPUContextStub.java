@@ -1,7 +1,9 @@
 /*
+ * CPUContextInterface.java
+ * 
  * KISS, YAGNI, DRY
- *
- * (c) Copyright 2012-2014, Peter Jakubčo
+ * 
+ * (c) Copyright 2010-2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,20 +19,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.stubs;
+
+import emulib.annotations.ContextType;
+import emulib.plugins.cpu.CPUContext;
 
 /**
- * This class represents an exception that can be raised when a context class
- * does not fulfill context requirements.
+ * Mock CPUContext interface.
+ * 
+ * @author vbmacher
  */
-public class InvalidContextException extends Exception {
-
-    public InvalidContextException(String cause) {
-        super(cause);
-    }
-
-    public InvalidContextException(String cause, Throwable e) {
-        super(cause, e);
-    }
-
+@ContextType
+public interface CPUContextStub extends CPUContext {
+    public void testMethod();
 }

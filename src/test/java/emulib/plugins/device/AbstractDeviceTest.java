@@ -1,8 +1,11 @@
 package emulib.plugins.device;
 
-import static org.junit.Assert.assertEquals;
+import emulib.emustudio.SettingsManager;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.easymock.EasyMock.createMock;
+import static org.junit.Assert.assertEquals;
 
 public class AbstractDeviceTest {
     private AbstractDeviceStub device;
@@ -12,9 +15,19 @@ public class AbstractDeviceTest {
         device = new AbstractDeviceStub(0L);
     }
 
-    @Test
-    public void testInitializeDoesNotThrow() throws Exception {
+    @Test(expected = NullPointerException.class)
+    public void testCreateInstanceWithNullPluginIDThrows() throws Exception {
+        new AbstractDeviceStub(null);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testInitializeWithNullParameterThrows() throws Exception {
         device.initialize(null);
+    }
+
+    @Test
+    public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
+        device.initialize(createMock(SettingsManager.class));
     }
 
     @Test
@@ -22,4 +35,8 @@ public class AbstractDeviceTest {
         assertEquals("title", device.getTitle());
     }
 
+    @Test
+    public void testResetForIncreasingCoverage() throws Exception {
+        device.reset();
+    }
 }

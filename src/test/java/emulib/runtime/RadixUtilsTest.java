@@ -1,9 +1,7 @@
 /*
- * RadixUtilsTest.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012-2013, Peter Jakubčo
+ * (c) Copyright 2012-2015, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,112 +19,75 @@
  */
 package emulib.runtime;
 
-import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 public class RadixUtilsTest {
-    
-    /**
-     * Test of convertToRadix method, of class RadixUtils.
-     */
-    @Test
-    public void testConvertToRadix_shortArr_int() {
-        byte[] radix10Number = { (byte)0xA0, 0xC };
-        int toRadix = 16;
-        String expResult = "CA0";
-        String result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
-        assertEquals(expResult, result);
-        
-        radix10Number = new byte[] { 0xF, 0xF };
-        expResult = "F0F";
-        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
-        assertEquals(expResult, result);
-        
-        radix10Number = new byte[] { 040 };
-        expResult = "40";
-        toRadix = 8;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
-        assertEquals(expResult, result);
 
-        radix10Number = new byte[] { 2, 1 }; // 201h stored as 2-byte int
-        expResult = "201";
-        toRadix = 16;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix, false);
-        assertEquals(expResult, result);
-        
-        radix10Number = new byte[] { 32 };
-        expResult = "1012";
-        toRadix = 3;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
-        assertEquals(expResult, result);
-        
-        radix10Number = new byte[] { 0x2C, 1 };
-        expResult = "300";
-        toRadix = 10;
-        result = RadixUtils.convertToRadix(radix10Number, toRadix, true);
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of convertToRadix method, of class RadixUtils.
-     */
-    @Test
-    public void testConvertToRadix_String_int() {
-        String number = "142832";
-        int toRadix = 16;
-        String expResult = "22DF0";
-        RadixUtils instance = RadixUtils.getInstance();
-        String result = instance.convertToRadix(number, toRadix);
-        assertEquals(expResult, result);
-    }
-
-    /**
-     * Test of convertToRadix method, of class RadixUtils.
-     */
-    @Test
-    public void testConvertToRadix_3args() {
-        String number = "101";
-        int fromRadix = 2;
-        int toRadix = 10;
-        String expResult = "5";
-        String result = RadixUtils.convertToRadix(number, fromRadix, toRadix);
-        assertEquals(expResult, result);
+    @Before
+    public void setUp() throws Exception {
+        RadixUtils.getInstance().setDefaults();
     }
 
     @Test
-    public void testConvertToNumber() {
-        String number = "300";
-        int fromRadix = 10;
-        byte[] expResult = new byte[] { 0x2C, 1 };
-        byte[] result = RadixUtils.convertToNumber(number, fromRadix);
-        
-        assertTrue(expResult.length == result.length);
-        
-        for (int i = 0; i < expResult.length; i++) {
-            assertEquals(expResult[i], result[i]);
-        }
-        
-        number = "142832";
-        fromRadix = 10;
-        expResult = new byte[] { (byte)240, 45, 2 };
-        result = RadixUtils.convertToNumber(number, fromRadix);
-        
-        assertTrue(expResult.length == result.length);
-        
-        for (int i = 0; i < expResult.length; i++) {
-            assertEquals(expResult[i], result[i]);
-        }
+    public void testConvertToRadix10to16() throws Exception {
+        assertEquals("CA0", RadixUtils.convertToRadix(new byte[]{ (byte)0xA0, 0xC }, 16, true));
+        assertEquals("F0F", RadixUtils.convertToRadix(new byte[] { 0xF, 0xF }, 16, true));
 
-        number = "11010110";
-        fromRadix = 2;
-        expResult = new byte[] { (byte)214 };
-        result = RadixUtils.convertToNumber(number, fromRadix);
-        
-        assertTrue(expResult.length == result.length);
-        
-        for (int i = 0; i < expResult.length; i++) {
-            assertEquals(expResult[i], result[i]);
-        }
+        // big endian
+        assertEquals("201", RadixUtils.convertToRadix(new byte[]{2, 1}, 16, false));
+    }
+
+    @Test
+    public void testConvertToRadix10to8() throws Exception {
+        assertEquals("40", RadixUtils.convertToRadix(new byte[] { 040 }, 8, true));
+    }
+
+    @Test
+    public void testConvertToRadix10to3() throws Exception {
+        assertEquals("1012", RadixUtils.convertToRadix(new byte[] { 32 }, 3, true));
+    }
+
+    @Test
+    public void testConvertToRadix10to10() {
+        assertEquals("300", RadixUtils.convertToRadix(new byte[]{0x2C, 1}, 10, true));
+    }
+
+    @Test
+    public void testConvertToRadixString10to16() {
+        assertEquals("22DF0", RadixUtils.getInstance().convertToRadix("142832", 16));
+    }
+
+    @Test
+    public void testConvertToRadixString2to10() {
+        assertEquals("5", RadixUtils.convertToRadix("101", 2, 10));
+    }
+
+    @Test
+    public void testConvertToNumberFrom10to10() throws Exception {
+        byte[] expected = new byte[] { 0x2C, 1 };
+        byte[] result = RadixUtils.convertToNumber("300", 10);
+
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testConvertToNumberFrom16to10() throws Exception {
+        byte[] expected = new byte[] { (byte)0xF0, 0x2D, 2 };
+        byte[] result = RadixUtils.convertToNumber("22DF0", 16);
+
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testConvertToNumberFrom2to10() throws Exception {
+        byte[] expected = new byte[] { (byte)214 };
+        byte[] result = RadixUtils.convertToNumber("11010110", 2);
+
+        assertArrayEquals(expected, result);
     }
 
     @Test
@@ -183,6 +144,40 @@ public class RadixUtilsTest {
         number = 0x1F;
         assertEquals("1F", RadixUtils.getByteHexString(number));
     }
-    
-    
+
+    @Test(expected = NumberFormatException.class)
+    public void testParseUnknownRadixThrows() throws Exception {
+        RadixUtils.getInstance().parseRadix("ppp");
+    }
+
+    @Test
+    public void testConvertToRadixSameRadixesReturnUnmodifiedInputImmediately() throws Exception {
+        assertEquals("bullshit", RadixUtils.convertToRadix("bullshit", 18, 18));
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void testConvertToRadixUnrecognizedNumber() throws Exception {
+        RadixUtils.getInstance().convertToRadix("ppp", 99);
+    }
+
+    @Test
+    public void testConvertToRadixSameRadixAsFoundPattern() throws Exception {
+        assertEquals("15", RadixUtils.getInstance().convertToRadix("15h", 16));
+    }
+
+    @Test
+    public void testAddBinaryPattern() throws Exception {
+        RadixUtils radixUtils = RadixUtils.getInstance();
+        radixUtils.addNumberPattern(new RadixUtils.NumberPattern("[01]+b", 2, 0, 1));
+        radixUtils.addNumberPattern(new RadixUtils.NumberPattern("[01]+", 2, 0, 0));
+
+        assertEquals(6, radixUtils.parseRadix("110b", 2));
+        assertEquals(6, radixUtils.parseRadix("110", 2));
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void testParseNonexistantRadixThrows() throws Exception {
+        RadixUtils.getInstance().parseRadix("15h", 18);
+    }
 }
+

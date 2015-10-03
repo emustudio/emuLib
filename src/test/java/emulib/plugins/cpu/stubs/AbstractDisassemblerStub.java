@@ -1,4 +1,8 @@
-package emulib.plugins.cpu;
+package emulib.plugins.cpu.stubs;
+
+import emulib.plugins.cpu.AbstractDisassembler;
+import emulib.plugins.cpu.DisassembledInstruction;
+import emulib.plugins.cpu.InvalidInstructionException;
 
 public class AbstractDisassemblerStub extends AbstractDisassembler {
     public static final int[] NEXT_INSTR_POS = new int[] {

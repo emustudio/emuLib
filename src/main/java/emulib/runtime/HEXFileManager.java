@@ -21,7 +21,9 @@
 package emulib.runtime;
 
 import emulib.plugins.memory.MemoryContext;
+
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,7 +31,6 @@ import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -113,10 +114,9 @@ public class HEXFileManager {
     public void addTable(Map<Integer, String> ha) {
         List<Integer> adrs = new ArrayList<>(ha.keySet());
         int largestAdr = nextAddress;
-        Iterator<Integer> e = adrs.iterator();
-        while (e.hasNext()) {
-            nextAddress = (Integer) e.next();
-            String cd = (String) ha.get(nextAddress);
+        for (Integer adr : adrs) {
+            nextAddress = adr;
+            String cd = ha.get(nextAddress);
             putCode(cd);
             if (nextAddress > largestAdr) {
                 largestAdr = nextAddress;
@@ -146,10 +146,7 @@ public class HEXFileManager {
         Collections.sort(adrs);
 
         // for all code elements (they won't be separated)
-        Iterator<Integer> e = adrs.iterator();
-        while (e.hasNext()) {
-            int adr = (Integer) e.next();
-
+        for (Integer adr : adrs) {
             // is line very beginning ?
             if (lineAddress.isEmpty()) {
                 address = adr;
@@ -169,7 +166,7 @@ public class HEXFileManager {
             }
 
             // code have to be stored as number of separate pairs of hex digits
-            String cd = (String) program.get(adr);
+            String cd = program.get(adr);
             line += cd;
             address += (cd.length() / 2); // compute next address
             bytesCount += (cd.length() / 2);
@@ -194,9 +191,7 @@ public class HEXFileManager {
     public boolean loadIntoMemory(MemoryContext<Short, Integer> mem) {
         List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
-        Iterator<Integer> e = adrs.iterator();
-        while (e.hasNext()) {
-            int adr = e.next();
+        for (Integer adr : adrs) {
             String code = program.get(adr);
             for (int i = 0, j = 0; i < code.length() - 1; i += 2, j++) {
                 String hexCode = code.substring(i, i + 2);
@@ -229,8 +224,8 @@ public class HEXFileManager {
     public int getProgramStart() {
         List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
-        if (adrs.isEmpty() == false) {
-            return (Integer) adrs.get(0);
+        if (!adrs.isEmpty()) {
+            return adrs.get(0);
         } else {
             return 0;
         }
@@ -297,10 +292,10 @@ public class HEXFileManager {
     }
 
     // line beginning with ; is ignored
-    public static HEXFileManager parseFromFile(String filename) throws Exception {
+    public static HEXFileManager parseFromFile(File file) throws Exception {
         HEXFileManager hexFile = new HEXFileManager();
 
-        try (FileReader reader = new FileReader(filename)) {
+        try (FileReader reader = new FileReader(file)) {
             int input;
             while ((input = reader.read()) != -1) {
                 if (input == ' ') {
@@ -348,8 +343,8 @@ public class HEXFileManager {
         return hexFile;
     }
 
-    public static int loadIntoMemory(String fileName, MemoryContext<Short, Integer> memory) throws Exception {
-        HEXFileManager hexFile = HEXFileManager.parseFromFile(fileName);
+    public static int loadIntoMemory(File file, MemoryContext<Short, Integer> memory) throws Exception {
+        HEXFileManager hexFile = HEXFileManager.parseFromFile(file);
         hexFile.loadIntoMemory(memory);
         return hexFile.getProgramStart();
     }

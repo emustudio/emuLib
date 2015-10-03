@@ -24,6 +24,8 @@ import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.PluginInitializationException;
 
+import java.util.Objects;
+
 /**
  * This class implements some fundamental functionality that can be shared
  * by most memory implementations.
@@ -49,9 +51,10 @@ public abstract class AbstractMemory implements Memory {
      * Sets up plug-in id.
      *
      * @param pluginID plug-in identification number
+     * @throws NullPointerException if pluginID is null
      */
     public AbstractMemory(Long pluginID) {
-        this.pluginID = pluginID;
+        this.pluginID = Objects.requireNonNull(pluginID);
     }
 
     /**
@@ -61,11 +64,12 @@ public abstract class AbstractMemory implements Memory {
      * It is called by emuStudio in the initialization process. Should
      * be overriden.
      *
-     * @param sHandler settings manipulation object
+     * @param settings settings manipulation object
+     * @throws NullPointerException if settings is null
      */
     @Override
-    public void initialize(SettingsManager sHandler)  throws PluginInitializationException {
-        this.settings = sHandler;
+    public void initialize(SettingsManager settings)  throws PluginInitializationException {
+        this.settings = Objects.requireNonNull(settings);
     }
 
     /**

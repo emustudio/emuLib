@@ -1,4 +1,6 @@
-package emulib.plugins.cpu;
+package emulib.plugins.cpu.stubs;
+
+import emulib.plugins.cpu.AbstractDebugColumn;
 
 public class AbstractDebugColumnStub extends AbstractDebugColumn {
 

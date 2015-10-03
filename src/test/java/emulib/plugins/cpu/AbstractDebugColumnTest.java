@@ -1,6 +1,8 @@
 package emulib.plugins.cpu;
 
 import static org.junit.Assert.assertEquals;
+
+import emulib.plugins.cpu.stubs.AbstractDebugColumnStub;
 import org.junit.Test;
 
 public class AbstractDebugColumnTest {

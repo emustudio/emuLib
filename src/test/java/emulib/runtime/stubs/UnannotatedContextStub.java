@@ -1,8 +1,8 @@
 /*
- * CompilerContextInterface.java
- *
+ * MockBadHashCPUContext.java
+ * 
  * KISS, YAGNI, DRY
- *
+ * 
  * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,17 +19,15 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.stubs;
 
-import emulib.annotations.ContextType;
-import emulib.plugins.compiler.CompilerContext;
+import emulib.plugins.Context;
 
 /**
- * Mock CompilerContext interface.
- *
+ * This class has the same contents as C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
+ * 
  * @author vbmacher
  */
-@ContextType
-public interface CompilerContextStub extends CompilerContext {
-    public void testCompilerMethod();
+public interface UnannotatedContextStub extends Context {
+    public void testMethod();
 }

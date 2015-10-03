@@ -17,10 +17,4 @@ public class ContextNotFoundException extends Exception {
         super(cause);
     }
 
-    public ContextNotFoundException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-        super(message, cause, enableSuppression, writableStackTrace);
-    }
-
-    
-
 }

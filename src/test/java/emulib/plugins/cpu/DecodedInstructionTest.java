@@ -1,12 +1,13 @@
 package emulib.plugins.cpu;
 
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
 
 public class DecodedInstructionTest {
     private DecodedInstruction instruction;
@@ -75,17 +76,19 @@ public class DecodedInstructionTest {
     }
 
     @Test
-    public void testSingleKeyForMultipleAdditions() {
+    public void testMultipleAdditionsSetLastKey() {
         instruction.add(0, "A", 5);
         instruction.add(0, "A", 6);
         assertEquals(1, instruction.getKeys().size());
+        assertEquals(6, instruction.get(0));
     }
 
     @Test
-    public void testSingleKeyForMultipleAdditios() {
-        byte[] image = new byte[] {};
+    public void testSetImage() {
+        byte[] image = new byte[] { 6 };
         instruction.setImage(image);
         assertSame(image, instruction.getImage());
+        assertEquals(1, instruction.getLength());
     }
 
 }

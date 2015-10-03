@@ -1,9 +1,7 @@
 /*
- * DeviceContextInterface.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012, Peter Jakubčo
+ * (c) Copyright 2015, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,19 +17,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.stubs;
 
-import emulib.annotations.ContextType;
-import emulib.plugins.device.DeviceContext;
+import emulib.plugins.cpu.CPU;
 
-/**
- * Mock DeviceContext interface.
- *
- * @author vbmacher
- */
-@ContextType
-public interface DeviceContextStub extends DeviceContext {
+public class CPUListenerStub implements CPU.CPUListener {
 
-    public void testDeviceMethod();
+    @Override
+    public void runStateChanged(CPU.RunState runState) {
+    }
 
+    @Override
+    public void internalStateChanged() {
+    }
 }

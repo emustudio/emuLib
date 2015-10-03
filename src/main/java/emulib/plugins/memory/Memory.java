@@ -22,29 +22,35 @@ package emulib.plugins.memory;
 import emulib.plugins.Plugin;
 
 /**
- * This is the main interface that memory plugin should implement.
+ * Main interface for memory plugins.
  */
 public interface Memory extends Plugin {
 
     /**
-     * The listener interface for receiving memory events.
+     * The listener interface for receiving memory related events.
      *
      * The class that is interested in processing a memory event implements this interface, and the object created with
      * that class is registered with a memory, using the memory's <code>addMemoryListener</code> method. Memory events
      * occur even if single cell is changed in memory and then is invoked <code>memChange</code> method.
      */
-    public interface MemoryListener {
+    interface MemoryListener {
         /**
-         * This method is invoked when memory event is occurred - when a single
-         * cell is changed.
+         * Invoked when a single memory cell is changed.
          * @param memoryPosition  memory position (address) of changed cell
          */
-        public void memoryChanged (int memoryPosition);
+        void memoryChanged (int memoryPosition);
+
+        /**
+         * Some memories can be dynamic-sized. This method is invoked when memory size has changed.
+         */
+        void memorySizeChanged();
 
     }
 
     /**
-     * Sets program start address. This method is called by main module when
+     * Sets program start address.
+     *
+     * This method is called by main module when
      * compiler finishes compilation process and return known start address of
      * compiled program. This start address is then used by CPU, in reset
      * operation - PC (program counter, or something similar) should be set
@@ -52,26 +58,28 @@ public interface Memory extends Plugin {
      * method.
      * @param location  starting memory position (address) of a program
      */
-    public void setProgramStart (int location);
+    void setProgramStart (int location);
 
     /**
-     * Gets size of memory. If memory uses some techniques as banking, real
+     * Gets size of memory.
+     *
+     * If memory uses some techniques as banking, real
      * size of the memory is not computed. It is only returned a value set
      * in architecture configuration.
      * @return basic size of the memory
      */
-    public int getSize ();
+    int getSize ();
 
     /**
-     * Gets program's start address. The start address is set invoking
-     * memory's method <code>Memory.setProgramStart()</code> by main module
-     * when compiler finishes compilation process of a program and if the compiler
-     * know the starting address. This address is used by main module for
-     * CPU reset process.
+     * Gets program's start address.
+     *
+     * The start address is set invoking memory's method <code>Memory.setProgramStart()</code> by main module
+     * when compiler finishes compilation process of a program and if the compiler know the starting address.
+     * This address is used by main module for CPU reset process.
      *
      * @return program's start address in memory
      */
-    public int getProgramStart ();
+    int getProgramStart ();
 
 }
 

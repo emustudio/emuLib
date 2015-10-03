@@ -27,8 +27,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,13 +40,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class HEXFileManagerTest {
-    private static final String VALID_HEX_FILE = "src/test/resources/valid.hex";
-    private static final String INVALID_HEX_FILE = "src/test/resources/invalid.hex";
-    private static final String INVALID2_HEX_FILE = "src/test/resources/invalid2.hex";
-    private static final String INVALID3_HEX_FILE = "src/test/resources/invalid3.hex";
-    private static final String INVALID4_HEX_FILE = "src/test/resources/invalid4.hex";
-    private static final String INVALID5_HEX_FILE = "src/test/resources/invalid5.hex";
-    private static final String INVALID6_HEX_FILE = "src/test/resources/invalid6.hex";
+    private static final String VALID_HEX_FILE = "valid.hex";
+    private static final String INVALID_HEX_FILE = "invalid.hex";
+    private static final String INVALID2_HEX_FILE = "invalid2.hex";
+    private static final String INVALID3_HEX_FILE = "invalid3.hex";
+    private static final String INVALID4_HEX_FILE = "invalid4.hex";
+    private static final String INVALID5_HEX_FILE = "invalid5.hex";
+    private static final String INVALID6_HEX_FILE = "invalid6.hex";
     private HEXFileManager hexFile;
     
     @Before
@@ -53,22 +54,19 @@ public class HEXFileManagerTest {
         hexFile = new HEXFileManager();
     }
 
-    private String[] readFileContent(String fileName) throws IOException {
-        List<String> lines = new ArrayList<>();
-        try (RandomAccessFile file = new RandomAccessFile(fileName, "r")) {
-            String tmp;
-            while ((tmp = file.readLine()) != null) {
-                lines.add(tmp);
-            }
-        }
-        return lines.toArray(new String[0]);
+    public File toFile(String file) throws URISyntaxException {
+        return new File(getClass().getClassLoader().getResource(file).toURI());
+    }
+
+    private List<String> readFileContent(File fileName) throws Exception {
+        return Files.readAllLines(Paths.get(fileName.toURI()));
     }
     
-    private String[] generateReadAndDeleteHexFile() throws IOException {
+    private List<String> generateReadAndDeleteHexFile() throws Exception {
         String tmpName = "tmp" + System.currentTimeMillis();
         hexFile.generateFile(tmpName);
         try {
-            return readFileContent(tmpName);
+            return readFileContent(new File(tmpName));
         } finally {
             new File(tmpName).delete();
         }
@@ -117,31 +115,31 @@ public class HEXFileManagerTest {
     }
 
     @Test
-    public void testEmptyHex() throws IOException {
-        String[] content = generateReadAndDeleteHexFile();
-        assertEquals(1, content.length);
-        assertEquals(":00000001FF", content[0]);
+    public void testEmptyHex() throws Exception {
+        List<String> content = generateReadAndDeleteHexFile();
+        assertEquals(1, content.size());
+        assertEquals(":00000001FF", content.get(0));
     }
    
     @Test
-    public void testValidHex() throws IOException {
+    public void testValidHex() throws Exception {
         hexFile.putCode("0102030405060708090A0B0C0D0E0F101112131415161718191A");
-        String[] content = generateReadAndDeleteHexFile();
-        assertEquals(3, content.length);
+        List<String> content = generateReadAndDeleteHexFile();
+        assertEquals(3, content.size());
         for (String line : content) {
             assertHexLineIsValid(line);
         }
     }
     
     @Test
-    public void testPutEmptyCode() throws IOException {
+    public void testPutEmptyCode() throws Exception {
         hexFile.putCode("");
-        String[] content = generateReadAndDeleteHexFile();
-        assertEquals(1, content.length);
-        assertEquals(":00000001FF", content[0]);
+        List<String> content = generateReadAndDeleteHexFile();
+        assertEquals(1, content.size());
+        assertEquals(":00000001FF", content.get(0));
     }
         
-    private String[] preprocessContent(String[] hexContent) {
+    private List<String> preprocessContent(List<String> hexContent) {
         List<String> content = new ArrayList<>();
         for (String line : hexContent) {
             line = line.trim();
@@ -149,46 +147,46 @@ public class HEXFileManagerTest {
                 content.add(line);
             }
         }
-        return content.toArray(new String[0]);
+        return content;
     }
     
     @Test
     public void testParsingValidHexFile() throws Exception {
-        String[] expected = preprocessContent(readFileContent(VALID_HEX_FILE));
+        List<String> expected = preprocessContent(readFileContent(toFile(VALID_HEX_FILE)));
 
-        hexFile = HEXFileManager.parseFromFile(VALID_HEX_FILE);
-        String[] content = generateReadAndDeleteHexFile();
-        assertArrayEquals(expected, content);
+        hexFile = HEXFileManager.parseFromFile(toFile(VALID_HEX_FILE));
+        List<String> content = generateReadAndDeleteHexFile();
+        assertArrayEquals(expected.toArray(), content.toArray());
     }
 
     @Test(expected = Exception.class)
     public void testParsingInvalidHexFile() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(INVALID_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(INVALID_HEX_FILE));
     }
     
     @Test(expected = Exception.class)
     public void testParsingInvalid2HexFile() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(INVALID2_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(INVALID2_HEX_FILE));
     }
 
     @Test(expected = Exception.class)
     public void testParsingInvalid3HexFile() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(INVALID3_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(INVALID3_HEX_FILE));
     }
 
     @Test(expected = Exception.class)
     public void testParsingInvalid4HexFile() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(INVALID4_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(INVALID4_HEX_FILE));
     }
 
     @Test(expected = Exception.class)
     public void testParsingInvalid5HexFile() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(INVALID5_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(INVALID5_HEX_FILE));
     }
     
     @Test(expected = Exception.class)
     public void testParsingInvalid6HexFile() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(INVALID6_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(INVALID6_HEX_FILE));
     }
 
     @Test
@@ -265,10 +263,10 @@ public class HEXFileManagerTest {
     
     @Test
     public void testStaticLoadIntoMemory() throws Exception {
-        hexFile = HEXFileManager.parseFromFile(VALID_HEX_FILE);
+        hexFile = HEXFileManager.parseFromFile(toFile(VALID_HEX_FILE));
 
         MemoryContext<Short, Integer> mc = new MemoryContextStub();
-        int programStart = HEXFileManager.loadIntoMemory(VALID_HEX_FILE, mc);
+        int programStart = HEXFileManager.loadIntoMemory(toFile(VALID_HEX_FILE), mc);
         assertEquals(hexFile.getProgramStart(), programStart);
         
         Map<Integer, String> codeTable = hexFile.getTable();

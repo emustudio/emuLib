@@ -1,9 +1,7 @@
 /*
- * CPUContextInterface.java
- * 
  * KISS, YAGNI, DRY
- * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ *
+ * (c) Copyright 2015, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -19,17 +17,9 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.stubs;
 
-import emulib.annotations.ContextType;
-import emulib.plugins.cpu.CPUContext;
+import emulib.plugins.cpu.CPU;
 
-/**
- * Mock CPUContext interface.
- * 
- * @author vbmacher
- */
-@ContextType
-public interface CPUContextStub extends CPUContext {
-    public void testMethod();
+abstract class AbstractCPUStub implements CPU {
 }

@@ -24,9 +24,6 @@ import emulib.plugins.memory.Memory.MemoryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -78,6 +75,19 @@ public abstract class AbstractMemoryContext<ByteType, WordType> implements Memor
         for (MemoryListener listener : listeners) {
             try {
                 listener.memoryChanged(position);
+            } catch (Exception e) {
+                LOGGER.error("Memory listener error", e);
+            }
+        }
+    }
+
+    /**
+     * Notify listeners that memory size has changed.
+     */
+    public void notifyMemorySizeChanged() {
+        for (MemoryListener listener : listeners) {
+            try {
+                listener.memorySizeChanged();
             } catch (Exception e) {
                 LOGGER.error("Memory listener error", e);
             }

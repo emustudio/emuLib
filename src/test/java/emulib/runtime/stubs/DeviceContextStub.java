@@ -1,8 +1,8 @@
 /*
- * MockBadHashCPUContext.java
- * 
+ * DeviceContextInterface.java
+ *
  * KISS, YAGNI, DRY
- * 
+ *
  * (c) Copyright 2012, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,15 +19,19 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.stubs;
 
-import emulib.plugins.Context;
+import emulib.annotations.ContextType;
+import emulib.plugins.device.DeviceContext;
 
 /**
- * This class has the same contents as C4664566E71E3C14D1732E34E2F66E8E31EE6951E.java
- * 
+ * Mock DeviceContext interface.
+ *
  * @author vbmacher
  */
-public interface UnannotatedContextStub extends Context {
-    public void testMethod();
+@ContextType
+public interface DeviceContextStub extends DeviceContext {
+
+    public void testDeviceMethod();
+
 }

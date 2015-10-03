@@ -1,8 +1,11 @@
 package emulib.plugins.memory;
 
-import static org.junit.Assert.assertEquals;
+import emulib.emustudio.SettingsManager;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.easymock.EasyMock.createMock;
+import static org.junit.Assert.assertEquals;
 
 public class AbstractMemoryTest {
     private AbstractMemoryStub memory;
@@ -12,9 +15,19 @@ public class AbstractMemoryTest {
         memory = new AbstractMemoryStub(0L);
     }
 
-    @Test
-    public void testInitializeDoesNotThrow() throws Exception {
+    @Test(expected = NullPointerException.class)
+    public void testInitializeWithThrows() throws Exception {
         memory.initialize(null);
+    }
+
+    @Test
+    public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
+        memory.initialize(createMock(SettingsManager.class));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testNewInstanceWithNullIdThrows() throws Exception {
+        new AbstractMemoryStub(null);
     }
 
     @Test
@@ -33,4 +46,8 @@ public class AbstractMemoryTest {
         assertEquals(555, memory.getProgramStart());
     }
 
+    @Test
+    public void testResetCallForIncreasingCoverage() throws Exception {
+        memory.reset();
+    }
 }

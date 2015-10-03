@@ -1,9 +1,11 @@
-package emulib.plugins.cpu;
+package emulib.plugins.cpu.stubs;
 
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.PluginInitializationException;
+import emulib.plugins.cpu.AbstractCPU;
+import emulib.plugins.cpu.Disassembler;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
@@ -19,6 +21,10 @@ public class AbstractCPUStub extends AbstractCPU {
     private volatile boolean runCalled = false;
     private final CountDownLatch latch = new CountDownLatch(1);
 
+    private RunState runStateToReturn = RunState.STATE_STOPPED_NORMAL;
+    private RuntimeException exceptionToThrow;
+    private boolean loopUntilThreadIsInterrupted;
+
     public AbstractCPUStub(Long id) {
         super(id);
     }
@@ -27,9 +33,28 @@ public class AbstractCPUStub extends AbstractCPU {
     protected void destroyInternal() {
     }
 
+    public void setRunStateToReturn(RunState runStateToReturn) {
+        this.runStateToReturn = runStateToReturn;
+    }
+
+    public void setExceptionToThrow(RuntimeException exceptionToThrow) {
+        this.exceptionToThrow = exceptionToThrow;
+    }
+
+    public void setLoopUntilThreadIsInterrupted(boolean loopUntilThreadIsInterrupted) {
+        this.loopUntilThreadIsInterrupted = loopUntilThreadIsInterrupted;
+    }
+
     @Override
     protected RunState stepInternal() {
-        throw new UnsupportedOperationException();
+        throwIfSet();
+        return runStateToReturn;
+    }
+
+    private void throwIfSet() {
+        if (exceptionToThrow != null) {
+            throw exceptionToThrow;
+        }
     }
 
     @Override
@@ -75,7 +100,13 @@ public class AbstractCPUStub extends AbstractCPU {
     public RunState call() {
         runCalled = true;
         latch.countDown();
-        return RunState.STATE_STOPPED_NORMAL;
+        throwIfSet();
+
+        while (loopUntilThreadIsInterrupted && !Thread.currentThread().isInterrupted()) {
+
+        }
+
+        return runStateToReturn;
     }
 
     public boolean wasRunCalled() throws InterruptedException {
