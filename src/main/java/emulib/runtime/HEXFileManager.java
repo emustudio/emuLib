@@ -188,7 +188,7 @@ public class HEXFileManager {
      * @param mem context of operating memory
      * @return true if the hex file was successfully loaded, false otherwise
      */
-    public boolean loadIntoMemory(MemoryContext<Short, Integer> mem) {
+    public boolean loadIntoMemory(MemoryContext<Short> mem) {
         List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
         for (Integer adr : adrs) {
@@ -343,7 +343,7 @@ public class HEXFileManager {
         return hexFile;
     }
 
-    public static int loadIntoMemory(File file, MemoryContext<Short, Integer> memory) throws Exception {
+    public static int loadIntoMemory(File file, MemoryContext<Short> memory) throws Exception {
         HEXFileManager hexFile = HEXFileManager.parseFromFile(file);
         hexFile.loadIntoMemory(memory);
         return hexFile.getProgramStart();

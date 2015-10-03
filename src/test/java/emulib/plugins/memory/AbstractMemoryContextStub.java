@@ -8,7 +8,7 @@ public class AbstractMemoryContextStub extends AbstractMemoryContext {
     }
 
     @Override
-    public Object readWord(int memoryPosition) {
+    public Object[] readWord(int memoryPosition) {
         throw new UnsupportedOperationException();
     }
 
@@ -18,7 +18,7 @@ public class AbstractMemoryContextStub extends AbstractMemoryContext {
     }
 
     @Override
-    public void writeWord(int memoryPosition, Object value) {
+    public void writeWord(int memoryPosition, Object[] value) {
         throw new UnsupportedOperationException();
     }
 

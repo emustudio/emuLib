@@ -203,7 +203,7 @@ public class HEXFileManagerTest {
         assertEquals("03", codeTable.get(3));
     }
     
-    private static class MemoryContextStub implements MemoryContext<Short, Integer> {
+    private static class MemoryContextStub implements MemoryContext<Short> {
         Map<Integer, Short> code = new HashMap<>();
     
         @Override
@@ -212,7 +212,7 @@ public class HEXFileManagerTest {
         }
 
         @Override
-        public Integer readWord(int memoryPosition) {
+        public Short[] readWord(int memoryPosition) {
             throw new UnsupportedOperationException();
         }
 
@@ -222,7 +222,7 @@ public class HEXFileManagerTest {
         }
 
         @Override
-        public void writeWord(int memoryPosition, Integer value) {
+        public void writeWord(int memoryPosition, Short[] value) {
             throw new UnsupportedOperationException();
         }
 
@@ -254,7 +254,7 @@ public class HEXFileManagerTest {
     
     @Test
     public void testLoadIntoMemory() {
-        MemoryContext<Short, Integer> mc = new MemoryContextStub();
+        MemoryContext<Short> mc = new MemoryContextStub();
         hexFile.setNextAddress(4);
         hexFile.putCode("010203");
         hexFile.loadIntoMemory(mc);
@@ -265,7 +265,7 @@ public class HEXFileManagerTest {
     public void testStaticLoadIntoMemory() throws Exception {
         hexFile = HEXFileManager.parseFromFile(toFile(VALID_HEX_FILE));
 
-        MemoryContext<Short, Integer> mc = new MemoryContextStub();
+        MemoryContext<Short> mc = new MemoryContextStub();
         int programStart = HEXFileManager.loadIntoMemory(toFile(VALID_HEX_FILE), mc);
         assertEquals(hexFile.getProgramStart(), programStart);
         

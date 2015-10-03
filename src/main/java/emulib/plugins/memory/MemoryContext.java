@@ -33,19 +33,21 @@ import emulib.plugins.memory.Memory.MemoryListener;
  * to the memory and they communicate by invoking following methods.
  */
 @ContextType
-public interface MemoryContext<ByteType, WordType> extends Context {
+public interface MemoryContext<CellType> extends Context {
 
     /**
-     * Read one cell from a memory.
+     * Reads one cell from a memory.
+     *
      * @param memoryPosition  memory position (address) of the read cell
      * @return read cell
      */
-    ByteType read (int memoryPosition);
+    CellType read (int memoryPosition);
 
     /**
-     * Read two cells from a memory at once. Implementation of return value
-     * is up to plugin programmer (concatenation of the cells). If cells in
-     * memory are pure bytes (java type is e.g. <code>short</code>), concatenation
+     * Reads two adjacent cells from a memory at once.
+     *
+     * Implementation of return value is up to plugin programmer (e.g. ordering of cells).
+     * If cells in memory are pure bytes (java type is e.g. <code>short</code>), concatenation
      * can be realized as (in small endian):
      * <code>
      *     result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF);
@@ -57,25 +59,24 @@ public interface MemoryContext<ByteType, WordType> extends Context {
      * </code>
      *
      * @param memoryPosition  memory position (address) of the read cells
-     * @return two read cells
+     * @return two read cells, accessible at indexes 0 and 1, respectively.
      */
-    WordType readWord (int memoryPosition);
+    CellType[] readWord(int memoryPosition);
 
     /**
-     * Write one cell-size (e.g. byte) data to a cell to a memory on specified location.
+     * Write one cell-size (e.g. byte) data to a cell to a memory at specified location.
      * @param memoryPosition   memory position (address) of the cell where data will be written
      * @param value  data to be written
      */
-    void write (int memoryPosition, ByteType value);
+    void write (int memoryPosition, CellType value);
 
     /**
-     * Write two cell-size (e.g. word - usually two bytes) data to a cell to a memory on specified
-     * location. Implementation of data value is up to plugin programmer
-     * (concatenation of the cells) and have to be understandable by memory.
-     * @param memoryPosition   memory position (address) of the read cells
-     * @param value  two cells in one <code>Object</code> value
+     * Write two cell-size (e.g. word - usually two bytes) data to a cell to a memory at specified location.
+     *
+     * @param memoryPosition   memory position (address) of the cell with index 0
+     * @param value  two cells at indexes 0 and 1, respectively.
      */
-    void writeWord (int memoryPosition, WordType value);
+    void writeWord (int memoryPosition, CellType[] value);
 
     /**
      * Get the type of memory cells.

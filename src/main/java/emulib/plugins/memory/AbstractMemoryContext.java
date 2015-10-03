@@ -33,7 +33,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  *
  * It is not thread safe.
  */
-public abstract class AbstractMemoryContext<ByteType, WordType> implements MemoryContext<ByteType, WordType> {
+public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<ByteType> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     /**
