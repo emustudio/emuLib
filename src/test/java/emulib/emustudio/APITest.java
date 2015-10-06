@@ -23,11 +23,15 @@ package emulib.emustudio;
 
 import emulib.emustudio.debugtable.DebugTable;
 import emulib.runtime.InvalidPasswordException;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import static org.easymock.EasyMock.*;
-import org.junit.After;
+
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -80,14 +84,9 @@ public class APITest {
         replay(debug);
 
         apiInstance.setDebugTable(debug, password);
-        apiInstance.refreshDebugTable();
+        apiInstance.getDebugTable().refresh();
         API.getInstance().setDebugTable(null, password);
         verify(debug);
-    }
-
-    public void testRefreshUnsetDebugTable() {
-        apiInstance.refreshDebugTable();
-
     }
 
     @Test(expected = InvalidPasswordException.class)

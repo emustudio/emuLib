@@ -57,7 +57,6 @@ public class API {
         debugTable.set(null);
     }
 
-
     /**
      * Assigns a password for most crucial emuLib operations.
      *
@@ -123,18 +122,12 @@ public class API {
     }
 
     /**
-     * Refresh debug table in the emuStudio.
+     * Gets debug table from emuStudio.
      *
-     * If debug table was not set by emuStudio earlier, then it does nothing.
+     * @return debug table in emuStudio. If debug table was not set by emuStudio earlier, returns null.
      */
-    public void refreshDebugTable() {
-        DebugTable tmpDebugTable = debugTable.get();
-        if (tmpDebugTable == null) {
-            return;
-        }
-        tmpDebugTable.refresh();
+    public DebugTable getDebugTable() {
+        return debugTable.get();
     }
-
-
 
 }
