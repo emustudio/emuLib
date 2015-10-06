@@ -21,6 +21,7 @@
 package emulib.plugins.memory;
 
 import emulib.plugins.memory.Memory.MemoryListener;
+import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +32,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * This class implements some fundamental functionality of MemoryContext
  * interface, that can be useful in the programming of the own memory context.
  *
- * It is not thread safe.
  */
+@ThreadSafe
 public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<ByteType> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
@@ -85,9 +86,11 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
      * Notify listeners that memory size has changed.
      */
     public void notifyMemorySizeChanged() {
+        System.out.println("MEM SI CHA!");
         for (MemoryListener listener : listeners) {
             try {
                 listener.memorySizeChanged();
+                System.out.println("I ME DI!");
             } catch (Exception e) {
                 LOGGER.error("Memory listener error", e);
             }

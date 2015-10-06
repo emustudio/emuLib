@@ -17,7 +17,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.emustudio;
+package emulib.emustudio.debugtable;
+
+import emulib.plugins.cpu.DebugColumn;
+
+import java.util.List;
 
 /**
  * This interface allows updating Debug table in emuStudio by any plugin.
@@ -27,6 +31,24 @@ public interface DebugTable {
     /**
      * Redraws debug table according to actual values.
      */
-    public void refresh();
+    void refresh();
+
+    /**
+     * Set custom columns in debugger.
+     *
+     * @param customColumns non-null debug columns
+     * @see AddressColumn
+     * @see BreakpointColumn
+     * @see MnemoColumn
+     * @see OpcodeColumn
+     */
+    void setCustomColumns(List<DebugColumn> customColumns);
+
+    /**
+     * Set default columns in debugger.
+     *
+     * Default columns is specific for emuStudio. Usually, there is breakpoint column, address, mnemo and opcode.
+     */
+    void setDefaultColumns();
 
 }

@@ -21,6 +21,7 @@
  */
 package emulib.emustudio;
 
+import emulib.emustudio.debugtable.DebugTable;
 import emulib.runtime.InvalidPasswordException;
 import org.junit.Assert;
 import org.junit.Before;

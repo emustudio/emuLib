@@ -31,23 +31,22 @@ public interface DebugColumn {
      * class.
      * @return Java type of this column
      */
-    public Class getClassType ();
+    Class getClassType ();
 
     /**
      * Gets name (title) of the column.
      * @return title of this column
      */
-    public String getTitle ();
+    String getTitle ();
 
     /**
      * Determines whether this column is editable by user. For example, mnemonics
      * column shouldn't be editable (if CPU doesn't support assembly in runtime),
-     * but breakpoint cells should. If the column is editable, main module after
-     * editing the corresponding cell invokes <code>ICPU.setDebugValue</code>
-     * method and this method should take care of internal change in CPU.
+     * but breakpoint cells should.
+     *
      * @return true if column (with all its cells) is editable, false otherwise
      */
-    public boolean isEditable ();
+    boolean isEditable ();
 
     /**
      * Called when user sets a value to a cell in debug window. This method
@@ -57,14 +56,23 @@ public interface DebugColumn {
      * @param location memory address (not row in debug table)
      * @param value  new value of the cell
      */
-    public void setDebugValue (int location, Object value);
+    void setDebugValue (int location, Object value);
 
     /**
      * Gets the value of a cell in debug window at specified position.
      * @param location  memory address (not row in debug table)
      * @return value of the cell
      */
-    public Object getDebugValue (int location);
+    Object getDebugValue (int location);
+
+    /**
+     * Get default width of the column.
+     *
+     * If it is not known, this method should return -1.
+     *
+     * @return default width of the column or -1 if it is not known
+     */
+    int getDefaultWidth();
 
 }
 

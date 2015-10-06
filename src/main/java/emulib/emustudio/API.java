@@ -19,7 +19,10 @@
  */
 package emulib.emustudio;
 
+import emulib.emustudio.debugtable.DebugTable;
 import emulib.runtime.InvalidPasswordException;
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -28,8 +31,8 @@ import java.util.concurrent.atomic.AtomicReference;
  * Through this class, plug-ins are enabled to call emuStudio directly.
  * It is a singleton class.
  *
- * Thread safe.
  */
+@ThreadSafe
 public class API {
     // emuStudio password for further emuLib communication
     private final static AtomicReference<String> emuStudioPassword = new AtomicReference<>();
@@ -131,5 +134,7 @@ public class API {
         }
         tmpDebugTable.refresh();
     }
+
+
 
 }
