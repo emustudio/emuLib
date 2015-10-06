@@ -86,11 +86,9 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
      * Notify listeners that memory size has changed.
      */
     public void notifyMemorySizeChanged() {
-        System.out.println("MEM SI CHA!");
         for (MemoryListener listener : listeners) {
             try {
                 listener.memorySizeChanged();
-                System.out.println("I ME DI!");
             } catch (Exception e) {
                 LOGGER.error("Memory listener error", e);
             }
