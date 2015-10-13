@@ -3,18 +3,72 @@ emuLib - emuStudio library
 [![Build Status](https://travis-ci.org/vbmacher/emuLib.png)](https://travis-ci.org/vbmacher/emuLib)
 [![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.png?branch=branch-9_0)](https://coveralls.io/r/vbmacher/emuLib?branch=branch-9_0)
 
-emuLib is run-time library used by [emuStudio](http://github.com/vbmacher/emuStudio) platform and related plug-ins.
+emuLib is the run-time library used by [emuStudio](http://github.com/vbmacher/emuStudio) platform and its plug-ins.
+The features include:
+ 
+* Core plug-in API in the form of Java interfaces
 
-It basically includes all main and related interfaces used for plug-ins implementation. Besides, some helper functions
-are provided as well.
+* Some abstract implementations of the API which partially implement the common stuff
 
-Main purpose of emuLib is to hold information about used emulated computer (plug-ins objects and their connection
-information) that is provided to emuStudio. Currently, emuLib is not just a back-end of emulation and emuStudio is not
-just a GUI front-end. By far, emulation control is located in emuStudio.
+* Context pool or register which holds all registered plug-ins, which can be then obtained easily by other plug-ins 
 
+* emuStudio API which can be used by plug-ins
 
-Installation
-------------
+* Helper classes and methods, like:
 
-The library should be put to `lib` directory where emuStudio is installed.
+    * Java Swing dialogs for showing errors and other messages
+    * Radix conversion utils
+    * HEX file encoder
+    * Universal file filter
+ 
+The main purpose of emuLib is to hold information about used emulated computer (plug-ins objects and their connection
+information) which is then used by emuStudio.
+
+Design
+------
+
+Currently, emuLib is not just a back-end for the emulation and emuStudio is not just a front-end. So far, emulation
+control is located in emuStudio. Design of the library does not conform well to Single Responsibility Principle,
+but hopefully it will improve in the future versions.
+
+Usage
+-----
+
+In order to use emuLib in your Maven project, it is necessary to declare in the `pom.xml` the emuStudio repository:
+
+```
+<repositories>
+    ...
+    <repository>
+        <id>emustudio-repository</id>
+        <name>emuStudio Repository</name>
+        <url>http://emustudio.sf.net/repository/</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+    </repository>
+</repositories>
+```
+
+And then the dependency itself:
+
+```
+<dependencies>
+    <dependency>
+        <groupId>net.sf.emustudio</groupId>
+        <artifactId>emuLib</artifactId>
+        <version>9.0.0-SNAPSHOT</version>
+    </dependency>
+</dependencies>
+```
+
+Installation in emuStudio
+-------------------------
+
+The library should be put to `lib/` directory where emuStudio is installed.
 For example: `emuStudio/lib/emuLib.jar`.
+
+License
+-------
+
+This project is released under GNU GPL v2 license.
