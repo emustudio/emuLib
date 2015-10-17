@@ -33,7 +33,7 @@ public interface Disassembler {
      * @return Object that represents the disassembled instruction.
      * @throws InvalidInstructionException when instruction coul not be disassembled
      */
-    public DisassembledInstruction disassemble(int memoryPosition) throws InvalidInstructionException;
+    DisassembledInstruction disassemble(int memoryPosition) throws InvalidInstructionException;
 
     /**
      * Returns an address in the memory of the next instruction, that is
@@ -43,19 +43,6 @@ public interface Disassembler {
      * @return Memory position of next instruction
      * @throws IndexOutOfBoundsException when memory location exceeds the bounds
      */
-    public int getNextInstructionPosition(int memoryPosition) throws IndexOutOfBoundsException;
-
-    /**
-     * Returns memory address of previous instruction.
-     *
-     * This method relies hlighly upon von-Neuman sequential model of
-     * computation.
-     *
-     * @param memoryPosition The memory location of current instruction
-     * @return memory position of previous instruction. If no instruction can be
-     * found (the location is invalid), negative value is returned.
-     * @throws IndexOutOfBoundsException when memory location exceeds the bounds
-     */
-    public int getPreviousInstructionPosition(int memoryPosition) throws IndexOutOfBoundsException;
+    int getNextInstructionPosition(int memoryPosition) throws IndexOutOfBoundsException;
 
 }
