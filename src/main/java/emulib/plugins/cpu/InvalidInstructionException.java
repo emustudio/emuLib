@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012, M. Sulír
+ * (c) Copyright 2012-2016, M. Sulír, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@ package emulib.plugins.cpu;
 
 /**
  * An exception representing an unsuccessful decoding process.
- * @author Matúš Sulír
  */
 public class InvalidInstructionException extends Exception {
 

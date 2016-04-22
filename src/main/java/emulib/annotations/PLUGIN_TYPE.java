@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012-2014, Peter Jakubčo
+ * (c) Copyright 2012-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,5 +23,5 @@ package emulib.annotations;
  * Indicates type of the plug-in.
  */
 public enum PLUGIN_TYPE {
-    COMPILER, CPU, MEMORY, DEVICE, OTHER
+    COMPILER, CPU, MEMORY, DEVICE
 }

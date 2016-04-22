@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,57 +27,57 @@ public interface Token {
     /**
      * Token is a reserved word.
      */
-    public static final int RESERVED = 0x100;
+    int RESERVED = 0x100;
 
     /**
      * Token is a preprocessor keyword.
      */
-    public static final int PREPROCESSOR = 0x200;
+    int PREPROCESSOR = 0x200;
 
     /**
      * Token is a CPU register.
      */
-    public static final int REGISTER = 0x300;
+    int REGISTER = 0x300;
 
     /**
      * Token is a separator (e.g. ' ', tab, '\n', ...).
      */
-    public static final int SEPARATOR = 0x400;
+    int SEPARATOR = 0x400;
 
     /**
      * Token is a operator (e.g. +, -, *, /, ...).
      */
-    public static final int OPERATOR = 0x500;
+    int OPERATOR = 0x500;
 
     /**
      * Token is a comment. Most assemblers used semicolon (";") as start of a comment.
      */
-    public static final int COMMENT = 0x600;
+    int COMMENT = 0x600;
 
     /**
      * Token is a literal (e.g. number, string, char, ...).
      */
-    public static final int LITERAL = 0x700;
+    int LITERAL = 0x700;
 
     /**
      * Token is an identifier (e.g. name of variable, name of macro...).
      */
-    public static final int IDENTIFIER = 0x800;
+    int IDENTIFIER = 0x800;
 
     /**
      * Token is an label identifier.
      */
-    public static final int LABEL = 0x900;
+    int LABEL = 0x900;
 
     /**
      * Token is of unknown type.
      */
-    public static final int ERROR = 1;
+    int ERROR = 1;
 
     /**
      * Token represents end-of-file. This token should be the last found token.
      */
-    public static final int TEOF = 0;
+    int TEOF = 0;
 
     /**
      * Get token ID.
@@ -86,7 +86,7 @@ public interface Token {
      *
      * @return ID of the token
      */
-    public int getID ();
+    int getID ();
 
     /**
      * Get token type.
@@ -96,35 +96,35 @@ public interface Token {
      *
      * @return type of the token
      */
-    public int getType ();
+    int getType ();
 
     /**
      * Get 0-based starting line (row) of token position.
      *
      * @return start line number of the token
      */
-    public int getLine ();
+    int getLine ();
 
     /**
      * Get 0-based starting column of token position.
      *
      * @return start column number of the token
      */
-    public int getColumn ();
+    int getColumn ();
 
     /**
      * Get 0-based starting offset of token position.
      *
      * @return starting offset of the token in the source code
      */
-    public int getOffset ();
+    int getOffset ();
 
     /**
      * Get length of the token.
      *
      * @return length of the token
      */
-    public int getLength ();
+    int getLength ();
 
     /**
      * Get error string for this token.
@@ -133,14 +133,14 @@ public interface Token {
      *
      * @return error string message for this token
      */
-    public String getErrorString ();
+    String getErrorString ();
 
     /**
      * Get token value.
      *
      * @return token value
      */
-    public String getText ();
+    String getText ();
 
     /**
      * Check if the token is in initial lexical state.
@@ -151,7 +151,7 @@ public interface Token {
      *
      * @return true if token is in initial lexical state; false otherwise.
      */
-    public boolean isInitialLexicalState();
+    boolean isInitialLexicalState();
 
 }
 

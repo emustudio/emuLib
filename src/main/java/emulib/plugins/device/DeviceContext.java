@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ public interface DeviceContext<T> extends Context {
      *
      * @return elementary data read from device
      */
-    public T read ();
+    T read ();
 
     /**
      * Writes/sends data to the device.
@@ -52,7 +52,7 @@ public interface DeviceContext<T> extends Context {
      *
      * @param val  data to be written to the device
      */
-    public void write (T val);
+    void write (T val);
 
     /**
      * Get the type of transferred data. As you can see, methods
@@ -61,7 +61,7 @@ public interface DeviceContext<T> extends Context {
      *
      * @return type of transferred data
      */
-    public Class getDataType();
+    Class getDataType();
 
 }
 

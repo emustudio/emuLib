@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012-2014, Peter Jakubčo
+ * (c) Copyright 2012-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,6 +39,6 @@ public interface PluginConnections {
      * @param pluginB
      * @return true if pluginA is connected to pluginB.
      */
-    public boolean isConnected(long pluginA, long pluginB);
+    boolean isConnected(long pluginA, long pluginB);
 
 }

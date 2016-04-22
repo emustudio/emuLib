@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ public interface Plugin {
      *
      * Reset process depends on the type of the plugin and it should bring it to some default initial state.
      */
-    public void reset ();
+    void reset ();
 
     /**
      * Perform initialization of the plug-in.
@@ -62,7 +62,7 @@ public interface Plugin {
      * thrown when initialization process was not successful
 
      */
-    public void initialize (SettingsManager settingsManager) throws PluginInitializationException;
+    void initialize (SettingsManager settingsManager) throws PluginInitializationException;
 
     /**
      * Destroys all plug-in resources.
@@ -73,7 +73,7 @@ public interface Plugin {
      *   - unregister all registered contexts for this plug-in
      *   - execute clean-up/destroy code for used resources (GUIs, timers, threads, sockets, memory, etc).
      */
-    public void destroy ();
+    void destroy ();
 
     /**
      * Show GUI of plug-in settings, if it is provided.
@@ -82,13 +82,13 @@ public interface Plugin {
      *
      * In the case of memory plug-in, show GUI of a memory. Each memory plugin should have a GUI, but it is not a must.
      */
-    public void showSettings ();
+    void showSettings ();
 
     /**
      * Check if showSettings() is supported by this plug-in.
      * @return true if the plug-in has a GUI for settings; false otherwise
      */
-    public boolean isShowSettingsSupported();
+    boolean isShowSettingsSupported();
 
     /**
      * Get run-time title of this plug-in.
@@ -99,14 +99,14 @@ public interface Plugin {
      *
      * @return run-time title of the plug-in
      */
-    public String getTitle();
+    String getTitle();
 
     /**
      * Get version of the plug-in.
      *
      * @return version string
      */
-    public String getVersion();
+    String getVersion();
 
 }
 

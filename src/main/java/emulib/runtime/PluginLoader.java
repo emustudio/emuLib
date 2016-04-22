@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012-2014, Peter Jakubčo
+ * (c) Copyright 2012-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ import emulib.annotations.EMULIB_VERSION;
 import emulib.annotations.PluginType;
 import emulib.emustudio.API;
 import emulib.plugins.Plugin;
+import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,9 +49,8 @@ import java.util.jar.Manifest;
 /**
  * This class provides methods for dynamic loading of emuStudio plug-ins (which in turn are JAR files.)
  *
- * The class is not thread safe.
- * @author vbmacher
  */
+@NotThreadSafe
 public class PluginLoader extends URLClassLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;

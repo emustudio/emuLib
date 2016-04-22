@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ public interface Compiler extends Plugin {
      * @param listener CompilerListener object
      * @return true if the listener was added, false otherwise
      */
-    public boolean addCompilerListener (CompilerListener listener);
+    boolean addCompilerListener (CompilerListener listener);
 
     /**
      * Removes CompilerListener object from the listeners list.
@@ -45,31 +45,31 @@ public interface Compiler extends Plugin {
      * @param listener CompilerListener object
      * @return true if the listener was removed, false otherwise
      */
-    public boolean removeCompilerListener (CompilerListener listener);
+    boolean removeCompilerListener (CompilerListener listener);
 
     /**
      * This is an interface that should be implemented by the emuStudio,
      * and/or other plug-ins that want to process the output of the compiler.
      */
-    public interface CompilerListener {
+    interface CompilerListener {
         /**
          * This method is called whenever a compiler begins to work.
          */
-        public void onStart ();
+        void onStart ();
 
         /**
          * Method will be invoked when compiler would like to print info message.
          *
          * @param message Message from the compiler
          */
-        public void onMessage (Message message);
+        void onMessage (Message message);
 
         /**
          * This method is called whenever the compiler finishes the compilation.
          *
          * @param errorCode compiler-specific error code
          */
-        public void onFinish (int errorCode);
+        void onFinish (int errorCode);
     }
 
     /**
@@ -80,7 +80,7 @@ public interface Compiler extends Plugin {
      *
      * @return true if compile was successful, false otherwise
      */
-    public boolean compile (String inputFileName, String outputFileName);
+    boolean compile (String inputFileName, String outputFileName);
 
     /**
      * Compile an input file into the output file.
@@ -93,7 +93,7 @@ public interface Compiler extends Plugin {
      *
      * @return true if compile was successful, false otherwise
      */
-    public boolean compile (String inputFileName);
+    boolean compile (String inputFileName);
     
     /**
      * Get a lexical analyzer of the compiler. It is used by main module for
@@ -103,7 +103,7 @@ public interface Compiler extends Plugin {
      * @param in  <code>Reader</code> object of the document - source code.
      * @return lexical analyzer object
      */
-    public LexicalAnalyzer getLexer(Reader in);
+    LexicalAnalyzer getLexer(Reader in);
 
     /**
      * Gets starting address of compiled source. It is (or can be) called only
@@ -115,7 +115,7 @@ public interface Compiler extends Plugin {
      *
      * @return address of program's first occurrence
      */
-    public int getProgramStartAddress ();
+    int getProgramStartAddress ();
 
     /**
      * Gets the list of supported source file name suffixes. The list is case
@@ -123,7 +123,7 @@ public interface Compiler extends Plugin {
      *
      * @return list of supported source file name suffixes
      */
-    public SourceFileExtension[] getSourceSuffixList();
+    SourceFileExtension[] getSourceSuffixList();
 
 }
 

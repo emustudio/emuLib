@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ public interface Device extends Plugin {
      * Shows GUI of a device. Device don't have to have a GUI, but instead it
      * should display information message.
      */
-    public void showGUI ();
+    void showGUI ();
 
 }
 

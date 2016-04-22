@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ public interface CPU extends Plugin {
     /**
      * The run state of the CPU.
      */
-    public enum RunState {
+    enum RunState {
         /**
          * CPU is stopped (naturally or by user) and should not be run until its
          * reset.
@@ -59,7 +59,7 @@ public interface CPU extends Plugin {
 
         private final String name;
 
-        private RunState(String name) {
+        RunState(String name) {
             this.name = name;
         }
         
@@ -83,19 +83,19 @@ public interface CPU extends Plugin {
      *         method is invoked.</li>
      * </ul>
      */
-    public interface CPUListener {
+    interface CPUListener {
 
         /**
          * Invoked when an CPU's run state changes.
          * @param runState  new run state of the CPU
          */
-        public void runStateChanged (RunState runState);
+        void runStateChanged (RunState runState);
 
         /**
          * Invoked when an CPU's internal state changes. The state can be register change,
          * flags change, or other CPU's internal state change.
          */
-        public void internalStateChanged ();
+        void internalStateChanged ();
 
     }
 
@@ -110,7 +110,7 @@ public interface CPU extends Plugin {
      * @param listener  the CPU listener
      * @return true if the listener was added, false otherwise
      */
-    public boolean addCPUListener (CPUListener listener);
+    boolean addCPUListener (CPUListener listener);
 
     /**
      * Removes the specified CPU listener so that it no longer receives CPU
@@ -124,7 +124,7 @@ public interface CPU extends Plugin {
      * @param listener  the CPU listener to be removed
      * @return true if the listener was removed, false otherwise
      */
-    public boolean removeCPUListener (CPUListener listener);
+    boolean removeCPUListener (CPUListener listener);
 
     /**
      * Perform one step of CPU emulation. It means that one instruction should
@@ -132,7 +132,7 @@ public interface CPU extends Plugin {
      * instruction, and then it should return to state "breakpoint" or "stopped".
      * Correct timing of executed instruction isn't so important.
      */
-    public void step ();
+    void step ();
 
     /**
      * Runs CPU emulation. Change state of CPU to "running" and start
@@ -147,14 +147,14 @@ public interface CPU extends Plugin {
      * Debug window should not be updated after each instruction execution,
      * in order to the execution loop would be faster.
      */
-    public void execute ();
+    void execute ();
 
     /**
      * Pauses the CPU emulation. If a thread was used for CPU execution
      * and is running, then it should be stopped (destroyed) but the CPU state
      * has to be saved for future run. CPU changes it state to "breakpoint".
      */
-    public void pause ();
+    void pause ();
 
     /**
      * Stops the CPU emulation. If a thread was used for CPU execution
@@ -164,7 +164,7 @@ public interface CPU extends Plugin {
      * <code>execute()</code> until user resets the CPU. Debug window in main
      * module should be updated with saved CPU state.
      */
-    public void stop ();
+    void stop ();
 
     /**
      * Get CPU status panel.
@@ -178,13 +178,14 @@ public interface CPU extends Plugin {
      *
      * @return CPU status panel
      */
-    public JPanel getStatusPanel ();
+    @SuppressWarnings("unused")
+    JPanel getStatusPanel ();
 
     /**
      * Determine whether breakpoints are supported by CPU.
      * @return true if breakpoints are supported, false otherwise
      */
-    public boolean isBreakpointSupported ();
+    boolean isBreakpointSupported ();
 
     /**
      * Set a breakpoint at a memory location.
@@ -193,7 +194,7 @@ public interface CPU extends Plugin {
      * @param memLocation  memory location where the breakpoint will be set
      * @see CPU#isBreakpointSupported
      */
-    public void setBreakpoint (int memLocation);
+    void setBreakpoint (int memLocation);
 
     /**
      * Unset a breakpoint at a memory location.
@@ -202,7 +203,7 @@ public interface CPU extends Plugin {
      * @param memLocation  memory location from where the breakpoint will be unset
      * @see CPU#isBreakpointSupported
      */
-    public void unsetBreakpoint (int memLocation);
+    void unsetBreakpoint (int memLocation);
 
     /**
      * Determine if a breakpoint is set at a memory location.
@@ -211,7 +212,7 @@ public interface CPU extends Plugin {
      * @return true if breakpoint is set in the location, false otherwise or if breakpoints are not supported.
      * @see CPU#isBreakpointSupported
      */
-    public boolean isBreakpointSet (int memLocation);
+    boolean isBreakpointSet (int memLocation);
 
     /**
      * Perform reset of the CPU with specific starting address. This is used
@@ -220,7 +221,7 @@ public interface CPU extends Plugin {
      *
      * @param startAddress Starting address/memory position of the program counter
      */
-    public void reset(int startAddress);
+    void reset(int startAddress);
 
     /**
      * Get actual instruction position (before its execution). Can be said,
@@ -229,7 +230,7 @@ public interface CPU extends Plugin {
      *
      * @return memory position (address) of next instruction
      */
-    public int getInstructionPosition ();
+    int getInstructionPosition ();
 
     /**
      * Set new actual instruction position (that will be executed as next). It
@@ -242,13 +243,13 @@ public interface CPU extends Plugin {
      * @param pos  new address of actual instruction
      * @return true if operation was successful, false otherwise
      */
-    public boolean setInstructionPosition (int pos);
+    boolean setInstructionPosition (int pos);
 
     /**
      * Get disassembler object. EmuStudio uses this for creating debug table.
      *
      * @return disassembler object
      */
-    public Disassembler getDisassembler();
+    Disassembler getDisassembler();
 }
 

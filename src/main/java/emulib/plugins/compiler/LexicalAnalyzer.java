@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ public interface LexicalAnalyzer {
      * Internal counters (actual position, actual column, row, etc.) should be cleared. Lexical analyzer should prepare
      * itself to start parsing from the beginning of the document.
      */
-    public void reset ();
+    void reset ();
 
     /**
      * Performs reset of the analyzer.
@@ -46,7 +46,7 @@ public interface LexicalAnalyzer {
      * @param startChar from this char should lexical analyser start, usually 0
      * @param startColumn from this column should lexical analyser start, usually 0
      */
-    public void reset (Reader sourceCode, int startLine, int startChar, int startColumn);
+    void reset (Reader sourceCode, int startLine, int startChar, int startColumn);
 
     /**
      * Gets next lexical symbol from source code, from actual position. This is
@@ -57,7 +57,7 @@ public interface LexicalAnalyzer {
      * @throws java.io.IOException
      * @return next found token
      */
-    public Token getSymbol () throws java.io.IOException;
+    Token getSymbol () throws java.io.IOException;
 
 }
 

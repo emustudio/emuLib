@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2008-2014, Peter Jakubčo
+ * (c) Copyright 2008-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ public interface CPUContext extends Context {
      *
      * @return true, if raw interrupts are supported, false otherwise
      */
-    public boolean isRawInterruptSupported();
+    boolean isRawInterruptSupported();
 
     /**
      * Send raw interrupt signal to the CPU.
@@ -51,14 +51,14 @@ public interface CPUContext extends Context {
      * @param device Device that interrupts the CPU
      * @param data interrupt data
      */
-    public void signalRawInterrupt(DeviceContext device, byte []data);
+    void signalRawInterrupt(DeviceContext device, byte []data);
 
     /**
      * Determine whether this CPU supports interrupts.
      *
      * @return true, if interrupts are supported, false otherwise
      */
-    public boolean isInterruptSupported();
+    boolean isInterruptSupported();
 
     /**
      * Send interrupt signal to the CPU.
@@ -66,7 +66,7 @@ public interface CPUContext extends Context {
      * @param device Device that interrupts the CPU
      * @param mask interrupt mask
      */
-    public void signalInterrupt(DeviceContext device, int mask);
+    void signalInterrupt(DeviceContext device, int mask);
 
     /**
      * Cancel sending interrupt signal if it was not handled yet.
@@ -74,14 +74,14 @@ public interface CPUContext extends Context {
      * @param device Device that wants to cancel the interrupt signal
      * @param mask clear interrupt mask
      */
-    public void clearInterrupt(DeviceContext device, int mask);
+    void clearInterrupt(DeviceContext device, int mask);
 
     /**
      * Get CPU frequency in kHz
      *
      * @return CPU frequency in kHz or 0 if it is not supported
      */
-    public int getCPUFrequency();
+    int getCPUFrequency();
 
 }
 

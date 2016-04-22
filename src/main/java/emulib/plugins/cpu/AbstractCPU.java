@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2010-2014, Peter Jakubčo
+ * (c) Copyright 2010-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,12 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ThreadSafe
 public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractCPU.class);
-    private final static Runnable EMPTY_TASK = new Runnable() {
-        @Override
-        public void run() {
-
-        }
-    };
+    private final static Runnable EMPTY_TASK = () -> {};
 
     private final AtomicBoolean isDestroyed = new AtomicBoolean();
     private final ExecutorService eventReceiver = Executors.newSingleThreadExecutor();
@@ -128,6 +123,24 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     @Override
     public String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
+    }
+
+    /**
+     * Does nothing.
+     */
+    @Override
+    public void showSettings() {
+
+    }
+
+    /**
+     * This class does not support showing settings
+     *
+     * @return false
+     */
+    @Override
+    public boolean isShowSettingsSupported() {
+        return false;
     }
 
     /**
@@ -298,47 +311,41 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void stop() {
-        Future future = eventReceiver.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (runState == RunState.STATE_STOPPED_BREAK || runState == RunState.STATE_RUNNING) {
-                    requestStop();
-                    ensureCpuIsStopped();
-                    if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_BREAK) {
-                        runState = RunState.STATE_STOPPED_NORMAL;
-                    }
-                    notifyStateChanged();
+        Future future = eventReceiver.submit(() -> {
+            if (runState == RunState.STATE_STOPPED_BREAK || runState == RunState.STATE_RUNNING) {
+                requestStop();
+                ensureCpuIsStopped();
+                if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_BREAK) {
+                    runState = RunState.STATE_STOPPED_NORMAL;
                 }
-
+                notifyStateChanged();
             }
+
         });
         waitForFuture(future);
     }
 
     @Override
     public void step() {
-        Future future = eventReceiver.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (runState == RunState.STATE_STOPPED_BREAK) {
-                    try {
-                        runState = stepInternal();
-                        if (runState == RunState.STATE_RUNNING) {
-                            runState = RunState.STATE_STOPPED_BREAK;
-                        }
-                    } catch (IndexOutOfBoundsException e) {
-                        runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
-                        LOGGER.error("Unexpected error during emulation", e);
-                    } catch (Exception e) {
-                        if (e.getCause() != null && e.getCause() instanceof IndexOutOfBoundsException) {
-                            runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
-                        } else {
-                            runState = RunState.STATE_STOPPED_BAD_INSTR;
-                        }
-                        LOGGER.error("Unexpected error during emulation", e);
+        Future future = eventReceiver.submit(() -> {
+            if (runState == RunState.STATE_STOPPED_BREAK) {
+                try {
+                    runState = stepInternal();
+                    if (runState == RunState.STATE_RUNNING) {
+                        runState = RunState.STATE_STOPPED_BREAK;
                     }
-                    notifyStateChanged();
+                } catch (IndexOutOfBoundsException e) {
+                    runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                    LOGGER.error("Unexpected error during emulation", e);
+                } catch (Exception e) {
+                    if (e.getCause() != null && e.getCause() instanceof IndexOutOfBoundsException) {
+                        runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                    } else {
+                        runState = RunState.STATE_STOPPED_BAD_INSTR;
+                    }
+                    LOGGER.error("Unexpected error during emulation", e);
                 }
+                notifyStateChanged();
             }
         });
         waitForFuture(future);
