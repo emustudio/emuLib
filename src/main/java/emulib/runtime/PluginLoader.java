@@ -34,13 +34,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
-import java.util.jar.Attributes.Name;
 import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
-import java.util.jar.Manifest;
 
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.toList;
 
 /**
  * This class provides methods for dynamic loading of emuStudio plug-ins (which in turn are JAR files.)
@@ -50,16 +47,6 @@ import static java.util.stream.Collectors.toSet;
 public class PluginLoader {
     private final static Logger LOGGER = LoggerFactory.getLogger(PluginLoader.class);
     private final static EMULIB_VERSION CURRENT_EMULIB_VERSION = EMULIB_VERSION.VERSION_9;
-
-    private final String dependencyBasePath;
-
-    PluginLoader(String dependencyBasePath) {
-        this.dependencyBasePath = Objects.requireNonNull(dependencyBasePath);
-    }
-
-    public PluginLoader() {
-        this(System.getProperty("user.dir"));
-    }
 
     /**
      * Loads emuStudio plugins.
@@ -71,8 +58,9 @@ public class PluginLoader {
      * @return List of plugins main classes
      * @throws emulib.runtime.InvalidPasswordException if given password is invalid
      * @throws emulib.runtime.InvalidPluginException if main class could not be found.
+     * @throws IOException if other error happens
      */
-    public Set<Class<Plugin>> loadPlugins(String password, File... pluginFiles) throws InvalidPasswordException,
+    public List<Class<Plugin>> loadPlugins(String password, File... pluginFiles) throws InvalidPasswordException,
             IOException {
         API.testPassword(password);
 
@@ -81,7 +69,6 @@ public class PluginLoader {
         final Set<URL> urlsToLoad = new HashSet<>();
         for (File pluginFile : pluginFiles) {
             urlsToLoad.add(pluginFile.toURI().toURL());
-         //   urlsToLoad.addAll(findDependencies(pluginFile));
         }
 
         LOGGER.debug("Loading {} plugin files", urlsToLoad.size());
@@ -91,7 +78,7 @@ public class PluginLoader {
             return Arrays.asList(pluginFiles).stream()
                     .map(this::findClassesInJAR)
                     .map(l -> findMainClass(pluginsClassLoader, l))
-                    .collect(toSet());
+                    .collect(toList());
         } catch (Exception e) {
             if (e instanceof InvalidPluginException || e instanceof IOException) {
                 throw e;
@@ -107,7 +94,7 @@ public class PluginLoader {
      * @param theInterface interface that the class should implement
      * @return true if the class implements given interface, false otherwise
      */
-    static boolean doesImplement(Class<?> theClass, Class<?> theInterface) {
+    public static boolean doesImplement(Class<?> theClass, Class<?> theInterface) {
         do {
             Class<?>[] interfaces = theClass.getInterfaces();
             for (Class<?> tmpInterface : interfaces) {
@@ -148,6 +135,7 @@ public class PluginLoader {
         return classes;
     }
 
+    @SuppressWarnings("unchecked")
     private Class<Plugin> findMainClass(ClassLoader classLoader, List<String> classes) {
         for (String className : classes) {
             try {
@@ -201,10 +189,7 @@ public class PluginLoader {
             return false;
         }
         PluginType pluginType = pluginClass.getAnnotation(PluginType.class);
-        if (pluginType.emuLibVersion() != CURRENT_EMULIB_VERSION) {
-            return false;
-        }
-        return doesImplement(pluginClass, Plugin.class);
+        return pluginType.emuLibVersion() == CURRENT_EMULIB_VERSION && doesImplement(pluginClass, Plugin.class);
     }
 
 }

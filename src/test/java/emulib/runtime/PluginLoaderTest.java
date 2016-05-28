@@ -42,8 +42,6 @@ import java.util.Collection;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class PluginLoaderTest {
@@ -152,7 +150,7 @@ public class PluginLoaderTest {
         File plugin = createJar("dependencies/APluginDependsOnB.class", secondDep.getAbsolutePath());
 
         // Since PluginLoader must share ClassLoader with current one, emuLib is preloaded automatically
-        pluginLoader = new PluginLoader(plugin.getParentFile().getPath());
+        pluginLoader = new PluginLoader();
         Class<Plugin> cl = pluginLoader.loadPlugins(APITest.getEmuStudioPassword(), plugin).iterator().next();
 
         Constructor<Plugin> constructor = cl.getDeclaredConstructor(Long.class, ContextPool.class);
