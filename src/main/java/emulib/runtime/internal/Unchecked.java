@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2012-2016, Peter Jakubčo
+ * (c) Copyright 2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,16 +17,20 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.internal;
 
 /**
- * This class represents an exception that can be raised when a context class
- * does not fulfill context requirements.
+ * This code was borrowed from:
+ *
+ * http://stackoverflow.com/questions/19757300/java-8-lambda-streams-filter-by-method-with-exception
  */
-public class InvalidContextException extends Exception {
+public class Unchecked {
 
-    public InvalidContextException(String cause) {
-        super(cause);
+    public static <T> T sneakyThrow(Throwable e) {
+        return Unchecked.<RuntimeException, T>sneakyThrow0(e);
     }
 
+    private static <E extends Throwable, T> T sneakyThrow0(Throwable t) throws E {
+        throw (E) t;
+    }
 }
