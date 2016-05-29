@@ -3,7 +3,7 @@
  * 
  * KISS, YAGNI, DRY
  * 
- * (c) Copyright 2010-2012, Peter Jakubčo
+ * (c) Copyright 2006-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,5 +31,5 @@ import emulib.plugins.cpu.CPUContext;
  */
 @ContextType
 public interface CPUContextStub extends CPUContext {
-    public void testMethod();
+    void testMethod();
 }

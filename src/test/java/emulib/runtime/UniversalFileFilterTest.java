@@ -1,9 +1,7 @@
 /*
- * UniversalFileFilterTest.java
- *
  * KISS, YAGNI, DRY
  *
- * (c) Copyright 2013, Peter Jakubčo
+ * (c) Copyright 2006-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,10 +19,15 @@
  */
 package emulib.runtime;
 
-import java.io.File;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class UniversalFileFilterTest {
     private UniversalFileFilter filter;

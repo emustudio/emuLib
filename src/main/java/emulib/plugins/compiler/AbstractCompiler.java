@@ -1,7 +1,7 @@
 /*
  * KISS, YAGNI, DRY
  *
- * Copyright (C) 2010-2016, Peter Jakubčo
+ * Copyright (C) 2006-2016, Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,9 +27,7 @@ import emulib.plugins.compiler.Message.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**

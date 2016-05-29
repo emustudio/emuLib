@@ -1,6 +1,7 @@
 /*
- * Copyright (C) 2013-2016 Peter Jakubčo
  * KISS, YAGNI, DRY
+ *
+ * (c) Copyright 2006-2016 Peter Jakubčo
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,10 +19,10 @@
  */
 package emulib.runtime;
 
+import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import javax.swing.filechooser.FileFilter;
 
 public class UniversalFileFilter extends FileFilter {
     private final Set<String> extensions = new LinkedHashSet<>();
