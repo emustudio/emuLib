@@ -26,11 +26,24 @@ package emulib.runtime.internal;
  */
 public class Unchecked {
 
+    public static void run(RunnableWhichCanThrow r) {
+        try {
+            r.run();
+        } catch (Exception e) {
+            sneakyThrow(e);
+        }
+    }
+
     public static <T> T sneakyThrow(Throwable e) {
         return Unchecked.<RuntimeException, T>sneakyThrow0(e);
     }
 
     private static <E extends Throwable, T> T sneakyThrow0(Throwable t) throws E {
         throw (E) t;
+    }
+
+    @FunctionalInterface
+    public interface RunnableWhichCanThrow {
+        void run() throws Exception;
     }
 }
