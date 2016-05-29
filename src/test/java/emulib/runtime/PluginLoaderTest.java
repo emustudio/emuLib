@@ -35,7 +35,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -55,7 +54,7 @@ public class PluginLoaderTest {
     private PluginLoader pluginLoader;
 
     @Before
-    public void setUp() throws MalformedURLException {
+    public void setUp() {
         APITest.assignEmuStudioPassword();
         pluginLoader = new PluginLoader();
     }

@@ -33,8 +33,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 
 import static java.util.stream.Collectors.toList;
@@ -57,7 +65,7 @@ public class PluginLoader {
      * @param pluginFiles plugin files.
      * @return List of plugins main classes
      * @throws emulib.runtime.InvalidPasswordException if given password is invalid
-     * @throws emulib.runtime.InvalidPluginException if main class could not be found.
+     * @throws emulib.runtime.InvalidPluginException if main class could not be found (sneaky exception).
      * @throws IOException if other error happens
      */
     public List<Class<Plugin>> loadPlugins(String password, File... pluginFiles) throws InvalidPasswordException,
@@ -69,6 +77,7 @@ public class PluginLoader {
         final Set<URL> urlsToLoad = new HashSet<>();
         for (File pluginFile : pluginFiles) {
             urlsToLoad.add(pluginFile.toURI().toURL());
+            urlsToLoad.addAll(findDependencies(pluginFile));
         }
 
         LOGGER.debug("Loading {} plugin files", urlsToLoad.size());
@@ -85,6 +94,21 @@ public class PluginLoader {
             }
             throw new IOException(e);
         }
+    }
+
+    public List<URL> findDependencies(File pluginFile) throws IOException {
+        List<URL> dependencies = new ArrayList<>();
+
+        try (JarFile file = new JarFile(pluginFile)) {
+            String classPath = file.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH);
+            if (classPath != null) {
+                StringTokenizer tokenizer = new StringTokenizer(classPath);
+                while (tokenizer.hasMoreTokens()) {
+                    dependencies.add(new File(tokenizer.nextToken()).toURI().toURL());
+                }
+            }
+        }
+        return dependencies;
     }
 
     /**
