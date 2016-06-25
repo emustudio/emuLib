@@ -56,22 +56,11 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>cobertura-maven-plugin</artifactId>
             <configuration>
-              <check>
-                <haltOnFailure>true</haltOnFailure>
-                <totalLineRate>90</totalLineRate>
-              </check>
+              <check/>
               <format>xml</format>
               <maxmem>256m</maxmem>
               <aggregate>true</aggregate>
             </configuration>
-            <executions>
-              <execution>
-                <phase>verify</phase>
-                <goals>
-                  <goal>check</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
