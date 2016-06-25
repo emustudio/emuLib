@@ -22,6 +22,7 @@ package emulib.emustudio.debugtable;
 import emulib.plugins.cpu.CPU;
 import org.junit.Test;
 
+import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -170,5 +171,32 @@ public class BreakpointColumnTest {
     @Test
     public void testDefaultWidthIsPredefined() throws Exception {
         assertFalse(-1 == new BreakpointColumn(createMock(CPU.class)).getDefaultWidth());
+    }
+
+    @Test
+    public void testSetDebugValueOnInvalidLocationDoesNotThrow() throws Exception {
+        CPU cpu = createMock(CPU.class);
+        expect(cpu.isBreakpointSupported()).andReturn(true);
+        cpu.setBreakpoint(anyInt());
+        expectLastCall().andThrow(new IndexOutOfBoundsException());
+        replay(cpu);
+
+        BreakpointColumn column = new BreakpointColumn(cpu);
+        column.setDebugValue(0, true);
+
+        verify(cpu);
+    }
+
+    @Test
+    public void testGetDebugValueOnInvalidLocationDoesNotThrow() throws Exception {
+        CPU cpu = createMock(CPU.class);
+        expect(cpu.isBreakpointSupported()).andReturn(true);
+        expect(cpu.isBreakpointSet(anyInt())).andThrow(new IndexOutOfBoundsException());
+        replay(cpu);
+
+        BreakpointColumn column = new BreakpointColumn(cpu);
+        assertFalse((Boolean) column.getDebugValue(0));
+
+        verify(cpu);
     }
 }

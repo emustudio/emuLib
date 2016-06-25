@@ -26,9 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-/**
- * Breakpoint column.
- */
 public class BreakpointColumn extends AbstractDebugColumn {
     private final static Logger LOGGER = LoggerFactory.getLogger(BreakpointColumn.class);
 

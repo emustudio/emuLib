@@ -1,0 +1,18 @@
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+[*.{java,py,sh}]
+charset = utf-8
+
+[*.{java,py}]
+indent_style = space
+indent_size = 4
+
+[.travis.yml]
+indent_style = space
+indent_size = 2
+
+[pom.xml]
+indent_style = space
+indent_size = 2

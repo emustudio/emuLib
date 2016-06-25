@@ -261,31 +261,26 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void reset(int addr) {
-        Future future = eventReceiver.submit(new Runnable() {
-            @Override
-            public void run() {
-                requestStop();
-                ensureCpuIsStopped();
-                runState = RunState.STATE_STOPPED_BREAK;
-                notifyStateChanged();
-            }
+        Future future = eventReceiver.submit(() -> {
+            requestStop();
+            ensureCpuIsStopped();
+            resetInternal();
+            runState = RunState.STATE_STOPPED_BREAK;
+            notifyStateChanged();
         });
         waitForFuture(future);
     }
 
     @Override
     public void execute() {
-        Future future = eventReceiver.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (runState == RunState.STATE_STOPPED_BREAK) {
-                    runState = RunState.STATE_RUNNING;
-                    notifyStateChanged();
+        Future future = eventReceiver.submit(() -> {
+            if (runState == RunState.STATE_STOPPED_BREAK) {
+                runState = RunState.STATE_RUNNING;
+                notifyStateChanged();
 
-                    Future<RunState> cpuFuture = cpuExecutor.submit(AbstractCPU.this);
-                    cpuWatchTask = new CPUWatchTask(cpuFuture);
-                    cpuStoppedWatcher.submit(cpuWatchTask);
-                }
+                Future<RunState> cpuFuture = cpuExecutor.submit(AbstractCPU.this);
+                cpuWatchTask = new CPUWatchTask(cpuFuture);
+                cpuStoppedWatcher.submit(cpuWatchTask);
             }
         });
         waitForFuture(future);
@@ -293,17 +288,14 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void pause() {
-        Future future = eventReceiver.submit(new Runnable() {
-            @Override
-            public void run() {
-                if (runState == RunState.STATE_RUNNING) {
-                    requestStop();
-                    ensureCpuIsStopped();
-                    if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_NORMAL) {
-                        runState = RunState.STATE_STOPPED_BREAK;
-                    }
-                    notifyStateChanged();
+        Future future = eventReceiver.submit(() -> {
+            if (runState == RunState.STATE_RUNNING) {
+                requestStop();
+                ensureCpuIsStopped();
+                if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_NORMAL) {
+                    runState = RunState.STATE_STOPPED_BREAK;
                 }
+                notifyStateChanged();
             }
         });
         waitForFuture(future);
@@ -368,5 +360,12 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
      * @return new CPU state. If nothing bad happened, it should return RunState.STATE_STOPPED_BREAK.
      */
     protected abstract RunState stepInternal() throws Exception;
+
+    /**
+     * Performs specific CPU reset.
+     *
+     * CONTRACT: If this method throws an exception, the behavior is undefined.     *
+     */
+    protected abstract void resetInternal();
 
 }

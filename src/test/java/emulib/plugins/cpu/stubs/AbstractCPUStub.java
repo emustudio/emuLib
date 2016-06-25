@@ -101,6 +101,11 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
+    protected void resetInternal() {
+
+    }
+
+    @Override
     public void showSettings() {
         throw new UnsupportedOperationException();
     }
