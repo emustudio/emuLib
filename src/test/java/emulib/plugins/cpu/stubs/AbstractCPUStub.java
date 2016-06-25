@@ -101,9 +101,7 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    protected void resetInternal() {
-
-    }
+    protected void resetInternal(int startPos) { }
 
     @Override
     public void showSettings() {

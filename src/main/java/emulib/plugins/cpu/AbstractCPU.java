@@ -264,7 +264,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
         Future future = eventReceiver.submit(() -> {
             requestStop();
             ensureCpuIsStopped();
-            resetInternal();
+            resetInternal(addr);
             runState = RunState.STATE_STOPPED_BREAK;
             notifyStateChanged();
         });
@@ -364,8 +364,10 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     /**
      * Performs specific CPU reset.
      *
-     * CONTRACT: If this method throws an exception, the behavior is undefined.     *
+     * CONTRACT: If this method throws an exception, the behavior is undefined.
+     *
+     * @param startPos starting position (similar to calling <code>reset(pos)</code>)
      */
-    protected abstract void resetInternal();
+    protected abstract void resetInternal(int startPos);
 
 }
