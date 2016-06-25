@@ -37,7 +37,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -517,14 +516,7 @@ public class ContextPool {
      */
     public static String computeHash(Class<? extends Context> contextInterface) {
         List<Method> contextMethods = Arrays.asList(contextInterface.getMethods());
-        Collections.<Method>sort(contextMethods, new Comparator<Method>() {
-
-            @Override
-            public int compare(Method m1, Method m2) {
-                return m1.getName().compareTo(m2.getName());
-            }
-
-        });
+        Collections.sort(contextMethods, (m1, m2) -> m1.getName().compareTo(m2.getName()));
 
         String hash = "";
         for (Method method : contextMethods.toArray(new Method[0])) {

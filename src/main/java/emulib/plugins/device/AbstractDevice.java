@@ -27,18 +27,14 @@ import emulib.plugins.PluginInitializationException;
 import java.util.Objects;
 
 /**
- * Simple device.
+ * Abstract device class. Implements some fundamental methods.
+ *
  */
 public abstract class AbstractDevice implements Device {
     /**
      * Plug-in identification number
      */
-    protected long pluginID;
-
-    /**
-     * Settings manipulation object
-     */
-    protected SettingsManager settings;
+    protected final long pluginID;
 
     /**
      * Initializes this AbstractDevice. Only assigns the plug-in ID into
@@ -52,15 +48,13 @@ public abstract class AbstractDevice implements Device {
     }
 
     /**
-     * Initializes this AbstractDevice. Only assigns the settings to the
-     * class field.
+     * No-operation. Should be overriden if needed.
      *
      * @param settings settings manipulation object
-     * @throws NullPointerException if settings is null
      */
     @Override
     public void initialize(SettingsManager settings) throws PluginInitializationException {
-        this.settings = Objects.requireNonNull(settings);
+
     }
 
     @Override
@@ -69,7 +63,7 @@ public abstract class AbstractDevice implements Device {
     }
 
     /**
-     * Has no effect.
+     * No-operation. Should be overriden if needed.
      */
     @Override
     public void reset() {

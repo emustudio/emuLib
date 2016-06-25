@@ -53,14 +53,14 @@ public class Message {
         * The message is of unknown type.
         */
         TYPE_UNKNOWN
-    };
+    }
 
-    private MessageType messageType;
-    private String message;
-    private String sourceFile;
-    private int line;
-    private int column;
-    private int errorCode;
+    private final MessageType messageType;
+    private final String message;
+    private final String sourceFile;
+    private final int line;
+    private final int column;
+    private final int errorCode;
 
     /**
      * This constructor creates the Message object. Messages are created by

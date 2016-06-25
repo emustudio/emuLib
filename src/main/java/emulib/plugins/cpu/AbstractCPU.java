@@ -46,6 +46,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  */
 @ThreadSafe
+@SuppressWarnings("unused")
 public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractCPU.class);
     private final static Runnable EMPTY_TASK = () -> {};
@@ -96,7 +97,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
             }
         }
 
-        public void requestStop() {
+        void requestStop() {
             cpuFuture.cancel(true);
         }
     }

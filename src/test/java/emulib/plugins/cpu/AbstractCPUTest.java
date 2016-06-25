@@ -164,24 +164,9 @@ public class AbstractCPUTest {
     public void testCPUisDestroyedAfterCrazyRequestsAndThenDestroyCalled() {
         ExecutorService executorService = Executors.newCachedThreadPool();
         for (int i = 0; i < 100; i++) {
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    cpu.execute();
-                }
-            });
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    cpu.stop();
-                }
-            });
-            executorService.submit(new Runnable() {
-                @Override
-                public void run() {
-                    cpu.step();
-                }
-            });
+            executorService.submit(() -> cpu.execute());
+            executorService.submit(() -> cpu.stop());
+            executorService.submit(() -> cpu.step());
         }
         cpu.destroy();
 
@@ -203,8 +188,6 @@ public class AbstractCPUTest {
         listener.runStateChanged(eq(RunState.STATE_STOPPED_BREAK));
         expectLastCall().once();
         replay(listener);
-
-        cpu.setLoopUntilThreadIsInterrupted(true);
 
         cpu.reset();
         cpu.addCPUListener(listener);

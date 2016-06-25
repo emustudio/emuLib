@@ -54,49 +54,46 @@ public class ContextPoolTest {
     private ContextPool contextPool;
     private final PluginConnections defaultComputer = new ComputerStub(true);
 
-    class ComputerStub implements PluginConnections {
+    private class ComputerStub implements PluginConnections {
         private final boolean connected;
 
-        public ComputerStub(boolean connected) {
+        ComputerStub(boolean connected) {
             this.connected = connected;
         }
 
         @Override
         public boolean isConnected(long pluginID, long toPluginID) {
-            if (pluginID == toPluginID) {
-                return false;
-            }
-            return connected;
+            return pluginID != toPluginID && connected;
         }
     }
 
     @ContextType
-    interface DifferentCPUContextStubWithEqualHash extends CPUContextStub {
+    private interface DifferentCPUContextStubWithEqualHash extends CPUContextStub {
 
     }
 
     @ContextType
-    interface DifferentCompilerContextStubWithEqualHash extends CompilerContextStub {
+    private interface DifferentCompilerContextStubWithEqualHash extends CompilerContextStub {
 
     }
 
     @ContextType
-    interface DifferentMemoryContextStubWithEqualHash extends MemoryContextStub {
+    private interface DifferentMemoryContextStubWithEqualHash extends MemoryContextStub {
 
     }
 
     @ContextType
-    interface DifferentDeviceContextStubWithEqualHash extends DeviceContextStub {
+    private interface DifferentDeviceContextStubWithEqualHash extends DeviceContextStub {
 
     }
 
     @ContextType
-    interface FirstEmptyContextStub extends Context {
+    private interface FirstEmptyContextStub extends Context {
 
     }
 
     @ContextType
-    interface SecondEmptyContextStub extends Context {
+    private interface SecondEmptyContextStub extends Context {
 
     }
 

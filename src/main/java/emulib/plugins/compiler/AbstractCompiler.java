@@ -38,11 +38,6 @@ public abstract class AbstractCompiler implements Compiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompiler.class);
 
     /**
-     * Settings manipulation object
-     */
-    protected SettingsManager settings;
-
-    /**
      * Program start address (memory location)
      */
     protected int programStart = 0; // actualize after compile
@@ -50,7 +45,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Identification number of this plug-in assigned by emuStudio
      */
-    protected long pluginID;
+    protected final long pluginID;
 
     /**
      * List of all compiler compilerListeners. The compilerListeners are objects implementing
@@ -58,7 +53,7 @@ public abstract class AbstractCompiler implements Compiler {
      * if the compiler wants to print something out on the screen (info, warning
      * or error message).
      */
-    protected final Set<CompilerListener> compilerListeners;
+    private final Set<CompilerListener> compilerListeners = new CopyOnWriteArraySet<>();
 
     /**
      * Public constructor initializes compilerListeners list and event object for
@@ -67,7 +62,6 @@ public abstract class AbstractCompiler implements Compiler {
      * @param pluginID ID of the plug-in assigned by emuStudio
      */
     public AbstractCompiler(Long pluginID) {
-        compilerListeners = new CopyOnWriteArraySet<>();
         this.pluginID = pluginID;
     }
 
@@ -77,11 +71,11 @@ public abstract class AbstractCompiler implements Compiler {
      *
      * It should be overriden.
      *
-     * @param sHandler settings manipulation object
+     * @param settings settings manipulation object
      */
     @Override
-    public void initialize(SettingsManager sHandler) throws PluginInitializationException {
-        this.settings = sHandler;
+    public void initialize(SettingsManager settings) throws PluginInitializationException {
+
     }
 
     @Override

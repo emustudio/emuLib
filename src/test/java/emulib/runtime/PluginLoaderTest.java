@@ -153,7 +153,7 @@ public class PluginLoaderTest {
         Class<Plugin> cl = pluginLoader.loadPlugins(APITest.getEmuStudioPassword(), plugin).iterator().next();
 
         Constructor<Plugin> constructor = cl.getDeclaredConstructor(Long.class, ContextPool.class);
-        cl.getDeclaredMethod("hi").invoke(constructor.newInstance(new Long(0), new ContextPool()));
+        cl.getDeclaredMethod("hi").invoke(constructor.newInstance(0L, new ContextPool()));
     }
 
     @Test(expected = InvalidPasswordException.class)

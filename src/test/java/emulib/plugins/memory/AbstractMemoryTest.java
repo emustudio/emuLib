@@ -15,11 +15,6 @@ public class AbstractMemoryTest {
         memory = new AbstractMemoryStub(0L);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testInitializeWithThrows() throws Exception {
-        memory.initialize(null);
-    }
-
     @Test
     public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
         memory.initialize(createMock(SettingsManager.class));

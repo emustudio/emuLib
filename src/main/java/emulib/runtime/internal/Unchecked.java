@@ -38,6 +38,7 @@ public class Unchecked {
         return Unchecked.<RuntimeException, T>sneakyThrow0(e);
     }
 
+    @SuppressWarnings("unchecked")
     private static <E extends Throwable, T> T sneakyThrow0(Throwable t) throws E {
         throw (E) t;
     }

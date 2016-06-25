@@ -97,13 +97,7 @@ public class API {
 
     public static boolean testPassword(Long hashCode) {
         String tmpPassword = emuStudioPassword.get();
-        if (hashCode == null || tmpPassword == null) {
-            return false;
-        }
-        if (hashCode != tmpPassword.hashCode()) {
-            return false;
-        }
-        return true;
+        return !(hashCode == null || tmpPassword == null) && hashCode == tmpPassword.hashCode();
     }
 
     /**

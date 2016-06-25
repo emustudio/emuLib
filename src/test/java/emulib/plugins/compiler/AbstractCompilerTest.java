@@ -39,12 +39,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class AbstractCompilerTest {
-    private final static long ID = System.currentTimeMillis();
     private AbstractCompilerStub compiler;
 
     @Before
     public void setUp() {
-        compiler = new AbstractCompilerStub(ID);
+        compiler = new AbstractCompilerStub();
     }
 
     @Test
@@ -140,7 +139,7 @@ public class AbstractCompilerTest {
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.testInfo("Some info");
+        compiler.testInfo();
 
         assertEquals(MessageType.TYPE_INFO, captured.getValue().getMessageType());
         verify(listener);
@@ -158,7 +157,7 @@ public class AbstractCompilerTest {
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.testError("Some error");
+        compiler.testError();
 
         assertEquals(MessageType.TYPE_ERROR, captured.getValue().getMessageType());
         verify(listener);
@@ -176,7 +175,7 @@ public class AbstractCompilerTest {
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.testWarning("Some warning");
+        compiler.testWarning();
 
         assertEquals(MessageType.TYPE_WARNING, captured.getValue().getMessageType());
         verify(listener);

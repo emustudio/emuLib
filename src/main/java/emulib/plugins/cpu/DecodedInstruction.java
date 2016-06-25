@@ -137,7 +137,7 @@ public class DecodedInstruction {
      * @return the set of keys
      */
     public Set<Integer> getKeys() {
-        Set<Integer> keys = new HashSet(constants.keySet());
+        Set<Integer> keys = new HashSet<>(constants.keySet());
         keys.addAll(bits.keySet());
         return keys;
     }

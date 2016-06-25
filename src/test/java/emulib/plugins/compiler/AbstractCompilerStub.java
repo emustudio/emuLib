@@ -29,10 +29,10 @@ import java.io.Reader;
         copyright = "copyright",
         description = "description"
 )
-public class AbstractCompilerStub extends AbstractCompiler {
+class AbstractCompilerStub extends AbstractCompiler {
 
-    public AbstractCompilerStub(Long aa) {
-        super(aa);
+    AbstractCompilerStub() {
+        super(0L);
     }
 
     @Override
@@ -73,16 +73,16 @@ public class AbstractCompilerStub extends AbstractCompiler {
         throw new UnsupportedOperationException();
     }
         
-    public void testError(String msg) {
-        notifyError(msg);
+    public void testError() {
+        notifyError("Some error");
     }
     
-    public void testInfo(String msg) {
-        notifyInfo(msg);
+    public void testInfo() {
+        notifyInfo("Some info");
     }
     
-    public void testWarning(String msg) {
-        notifyWarning(msg);
+    public void testWarning() {
+        notifyWarning("Some warning");
     }
     
 }

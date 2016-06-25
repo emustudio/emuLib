@@ -124,9 +124,7 @@ public class HEXFileManagerTest {
         hexFile.putCode("0102030405060708090A0B0C0D0E0F101112131415161718191A");
         List<String> content = generateReadAndDeleteHexFile();
         assertEquals(3, content.size());
-        for (String line : content) {
-            assertHexLineIsValid(line);
-        }
+        content.forEach(this::assertHexLineIsValid);
     }
     
     @Test
@@ -202,7 +200,7 @@ public class HEXFileManagerTest {
     }
     
     private static class MemoryContextStub implements MemoryContext<Short> {
-        Map<Integer, Short> code = new HashMap<>();
+        final Map<Integer, Short> code = new HashMap<>();
     
         @Override
         public Short read(int memoryPosition) {

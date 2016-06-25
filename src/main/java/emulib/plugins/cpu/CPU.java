@@ -82,7 +82,11 @@ public interface CPU extends Plugin {
      *     <li>if the event is CPU's run state change, then object's <code>runStateChanged()</code>
      *         method is invoked.</li>
      * </ul>
+     *
+     * CONTRACT: Never call further actions on CPU (start,stop,step,reset) from the same thread as from which these
+     * methods are called.
      */
+    @SuppressWarnings("unused")
     interface CPUListener {
 
         /**

@@ -168,9 +168,8 @@ public class StaticDialogs {
      */
     public static String inputStringValue(String message, String title, String initial) {
         if (guiSupported) {
-            String s = (String) JOptionPane.showInputDialog(null, message, title,
+            return (String) JOptionPane.showInputDialog(null, message, title,
                     JOptionPane.QUESTION_MESSAGE, null, null, initial);
-            return s;
         } else {
             // TODO: System.in
             return null;

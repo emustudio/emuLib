@@ -42,7 +42,6 @@ public class AbstractCPUStub extends AbstractCPU {
 
     private RunState runStateToReturn = RunState.STATE_STOPPED_NORMAL;
     private RuntimeException exceptionToThrow;
-    private boolean loopUntilThreadIsInterrupted;
 
     public AbstractCPUStub(Long id) {
         super(id);
@@ -58,10 +57,6 @@ public class AbstractCPUStub extends AbstractCPU {
 
     public void setExceptionToThrow(RuntimeException exceptionToThrow) {
         this.exceptionToThrow = exceptionToThrow;
-    }
-
-    public void setLoopUntilThreadIsInterrupted(boolean loopUntilThreadIsInterrupted) {
-        this.loopUntilThreadIsInterrupted = loopUntilThreadIsInterrupted;
     }
 
     @Override
@@ -124,7 +119,7 @@ public class AbstractCPUStub extends AbstractCPU {
         latch.countDown();
         throwIfSet();
 
-        while (loopUntilThreadIsInterrupted && !Thread.currentThread().isInterrupted()) {
+        while (!Thread.currentThread().isInterrupted()) {
 
         }
 

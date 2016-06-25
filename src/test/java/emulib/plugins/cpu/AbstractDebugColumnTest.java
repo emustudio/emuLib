@@ -30,17 +30,16 @@ public class AbstractDebugColumnTest {
     public void testGetValues() {
         String title = "title";
         Class<?> classType = Short.class;
-        boolean editable = false;
 
         AbstractDebugColumn instance = new AbstractDebugColumnStub(
                 title,
                 classType,
-                editable
+                false
         );
 
         assertEquals(title, instance.getTitle());
         assertEquals(classType, instance.getClassType());
-        assertEquals(editable, instance.isEditable());
+        assertEquals(false, instance.isEditable());
     }
 
 }

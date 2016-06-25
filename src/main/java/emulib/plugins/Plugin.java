@@ -23,20 +23,33 @@ package emulib.plugins;
 import emulib.emustudio.SettingsManager;
 
 /**
- * Main interface for plug-ins implementation.
+ * Plug-in main interface. The interface methods are available only to emuStudio. Plug-ins communicate between
+ * each other using special entities called "contexts".
+ *
+ * CONTRACT:
  *
  * Each plug-in must meet several requirements:
- *   - it has to implement single class that implements this (or derived) interface (main class)
- *   - the main class has to have @PluginType annotation with parameters as title, copyright, etc.
- *   - the main class has to have single constructor with single parameter of Long type.
  *
- * Within the constructor, the plug-in receives the identification number (pluginID). The plug-in should keep this ID
- * for future communication with emuLib.
+ *   - this interface, or its derivate, must be implemented by one and only one class (so-called "main-class")
+ *   - the main class has to be annotated with @PluginType annotation with required parameters
+ *   - the main class has to have single constructor with two parameters.
  *
- * Context initialization and registration should be made inside initialize method.
+ * The constructor signature must be as follows:
  *
- * Each method inside this interface can be called only by emuStudio. Other plug-ins cannot get plug-in objects, they
- * communicate through contexts only.
+ *     SamplePlugin(Long pluginId, ContextPool contextPool) {
+ *         ...
+ *     }
+ *
+ * 1. pluginId is a unique plug-in identification. Various emuLib operations (like reading plug-in settings) require
+ *    pluginId as input argument.
+ *
+ * 2. contextPool represents a pool of communication entities called "contexts". Contexts represent plug-in API intended
+ *    for the communication with other plug-ins.
+ *
+ * Plug-ins should initialize and register the contexts they provide into the contextPool within the plug-in constructor.
+ *
+ * Plug-ins must not try to obtain other context from the contextPool within the constructor. For this purpose there
+ * exists the initialize() method.
  *
  */
 

@@ -39,11 +39,6 @@ public class AbstractDeviceTest {
         new AbstractDeviceStub(null);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testInitializeWithNullParameterThrows() throws Exception {
-        device.initialize(null);
-    }
-
     @Test
     public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
         device.initialize(createMock(SettingsManager.class));

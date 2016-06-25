@@ -26,8 +26,8 @@ package emulib.emustudio;
  * It is implemented by the main module. Plugins get it withing the initialization process.
  */
 public interface SettingsManager {
-    public static final String NO_GUI = "nogui";
-    public static final String AUTO = "auto";
+    String NO_GUI = "nogui";
+    String AUTO = "auto";
 
     /**
      * Read specified setting from configuration file.  Setting can be arbitrary. It
@@ -38,7 +38,7 @@ public interface SettingsManager {
      * @return setting if it exists (as a <code>String</code>), or
      *         <code>null</code> if not
      */
-    public String readSetting (long pluginID, String settingName);
+    String readSetting (long pluginID, String settingName);
 
     /**
      * Write specified setting to a configuration file. Setting can be arbitrary. It
@@ -48,7 +48,7 @@ public interface SettingsManager {
      * @param val          value of the setting (has to be <code>String</code> type)
      * @return true if the setting was successfully written; false otherwise
      */
-    public boolean writeSetting (long pluginID, String settingName, String val);
+    boolean writeSetting (long pluginID, String settingName, String val);
 
     /**
      * Remove specified setting to from a configuration file. Be careful, setting can
@@ -58,7 +58,7 @@ public interface SettingsManager {
      * @param settingName  name of wanted setting (without spaces) to be removed
      * @return true if the setting was successfully removed; false otherwise
      */
-    public boolean removeSetting (long pluginID, String settingName);
+    boolean removeSetting (long pluginID, String settingName);
 
 }
 
