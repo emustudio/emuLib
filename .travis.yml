@@ -26,6 +26,9 @@ env:
       2tHnzQBH/vt+03ibHv4I4snlKXYxgt/hxykixpZ8iwkFsc+8B10GqIiUc5VS
       ir2A65P87B9cGP+bAUdkMlN9MxBp63Xndv428z+PpTZU/w94sNU=
 
+script:
+  - mvn install -B -DskipTests=true
+
 after_success:
 - mvn -Pcoveralls cobertura:cobertura coveralls:report
 - python add_server.py
