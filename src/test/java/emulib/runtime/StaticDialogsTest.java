@@ -20,6 +20,7 @@
 package emulib.runtime;
 
 import emulib.emustudio.APITest;
+import emulib.runtime.exceptions.InvalidPasswordException;
 import org.junit.Before;
 import org.junit.Test;
 

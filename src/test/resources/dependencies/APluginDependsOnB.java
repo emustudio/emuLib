@@ -5,7 +5,7 @@ import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.Plugin;
-import emulib.plugins.PluginInitializationException;
+import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.runtime.ContextPool;
 import dependencies.hidden.BdependsOnC;
 

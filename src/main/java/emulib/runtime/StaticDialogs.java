@@ -20,6 +20,7 @@
 package emulib.runtime;
 
 import emulib.emustudio.API;
+import emulib.runtime.exceptions.InvalidPasswordException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

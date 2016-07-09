@@ -22,7 +22,7 @@ package emulib.plugins.compiler;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.plugins.PluginInitializationException;
+import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.plugins.compiler.Message.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

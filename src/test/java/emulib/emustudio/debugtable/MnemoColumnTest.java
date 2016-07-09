@@ -21,7 +21,7 @@ package emulib.emustudio.debugtable;
 
 import emulib.plugins.cpu.DisassembledInstruction;
 import emulib.plugins.cpu.Disassembler;
-import emulib.plugins.cpu.InvalidInstructionException;
+import emulib.runtime.exceptions.InvalidInstructionException;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.createMock;

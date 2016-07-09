@@ -23,6 +23,8 @@ import emulib.annotations.EMULIB_VERSION;
 import emulib.annotations.PluginType;
 import emulib.emustudio.API;
 import emulib.plugins.Plugin;
+import emulib.runtime.exceptions.InvalidPasswordException;
+import emulib.runtime.exceptions.InvalidPluginException;
 import emulib.runtime.internal.Unchecked;
 import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
@@ -64,8 +66,8 @@ public class PluginLoader {
      * @param password emuStudio password.
      * @param pluginFiles plugin files.
      * @return List of plugins main classes
-     * @throws emulib.runtime.InvalidPasswordException if given password is invalid
-     * @throws emulib.runtime.InvalidPluginException if main class could not be found (sneaky exception).
+     * @throws InvalidPasswordException if given password is invalid
+     * @throws InvalidPluginException if main class could not be found (sneaky exception).
      * @throws IOException if other error happens
      */
     public List<Class<Plugin>> loadPlugins(String password, File... pluginFiles) throws InvalidPasswordException,

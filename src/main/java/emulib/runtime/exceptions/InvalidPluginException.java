@@ -17,16 +17,21 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.exceptions;
 
 /**
- * This class represents an exception that can be raised when a context class
- * does not fulfill context requirements.
+ * This class represents an exception that can be raised during PluginLoader.loadPlugin method if a main plug-in class
+ * does not meet requirements for Plugin classes.
+ *
  */
-public class InvalidContextException extends Exception {
+public class InvalidPluginException extends Exception {
 
-    public InvalidContextException(String cause) {
+    public InvalidPluginException(String cause) {
         super(cause);
+    }
+
+    public InvalidPluginException(String cause, Throwable e) {
+        super(cause, e);
     }
 
 }

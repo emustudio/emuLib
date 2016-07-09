@@ -73,9 +73,4 @@ public abstract class AbstractDebugColumn implements DebugColumn {
         return editable;
     }
 
-    @Override
-    public int getDefaultWidth() {
-        return -1;
-    }
-
 }

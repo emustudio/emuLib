@@ -17,34 +17,16 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.plugins;
+package emulib.runtime.exceptions;
 
-import java.util.Objects;
+/**
+ * This class represents an exception that can be raised when a context class
+ * does not fulfill context requirements.
+ */
+public class InvalidContextException extends Exception {
 
-public class PluginInitializationException extends Exception {
-    private final Plugin plugin;
-
-    public PluginInitializationException(Plugin plugin) {
-        this.plugin = Objects.requireNonNull(plugin);
-    }
-
-    public PluginInitializationException(Plugin plugin, String message) {
-        super(message);
-        this.plugin = Objects.requireNonNull(plugin);
-    }
-
-    public PluginInitializationException(Plugin plugin, String message, Throwable cause) {
-        super(message, cause);
-        this.plugin = Objects.requireNonNull(plugin);
-    }
-
-    public PluginInitializationException(Plugin plugin, Throwable cause) {
+    public InvalidContextException(String cause) {
         super(cause);
-        this.plugin = Objects.requireNonNull(plugin);
-    }
-
-    public Plugin getPlugin() {
-        return plugin;
     }
 
 }

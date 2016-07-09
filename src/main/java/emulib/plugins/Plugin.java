@@ -21,6 +21,7 @@
 package emulib.plugins;
 
 import emulib.emustudio.SettingsManager;
+import emulib.runtime.exceptions.PluginInitializationException;
 
 /**
  * Plug-in main interface. The interface methods are available only to emuStudio. Plug-ins communicate between

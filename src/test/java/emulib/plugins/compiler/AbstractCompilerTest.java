@@ -27,9 +27,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.and;
+import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
@@ -63,21 +64,21 @@ public class AbstractCompilerTest {
 
     @Test
     public void testAddAndRemoveCompilerListener() {
-        CompilerListener r = createNiceMock(CompilerListener.class);
+        CompilerListener r = createMock(CompilerListener.class);
         assertTrue(compiler.addCompilerListener(r));
         assertTrue(compiler.removeCompilerListener(r));
     }
 
     @Test
     public void testAddCompilerListenerTwice() {
-        CompilerListener r = createNiceMock(CompilerListener.class);
+        CompilerListener r = createMock(CompilerListener.class);
         compiler.addCompilerListener(r);
         assertFalse(compiler.addCompilerListener(r));
     }
 
     @Test
     public void testNotifyCompilerStart() {
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         listener.onStart();
         expectLastCall().once();
         replay(listener);
@@ -88,10 +89,23 @@ public class AbstractCompilerTest {
     }
 
     @Test
+    public void testNotifyCompilerStartDoesNotThrow() throws Exception {
+        CompilerListener listener = createMock(CompilerListener.class);
+        listener.onStart();
+        expectLastCall().andThrow(new RuntimeException()).once();
+        replay(listener);
+
+        compiler.addCompilerListener(listener);
+        compiler.notifyCompileStart();
+        verify(listener);
+    }
+
+
+    @Test
     public void testNotifyCompilerFinish() {
         int errorCode = 5;
 
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         listener.onFinish(EasyMock.eq(errorCode));
         expectLastCall().once();
         replay(listener);
@@ -102,34 +116,47 @@ public class AbstractCompilerTest {
     }
 
     @Test
+    public void testNotifyCompilerFinishDoesNotThrow() throws Exception {
+        CompilerListener listener = createMock(CompilerListener.class);
+        listener.onFinish(anyInt());
+        expectLastCall().andThrow(new RuntimeException()).once();
+        replay(listener);
+
+        compiler.addCompilerListener(listener);
+        compiler.notifyCompileFinish(5);
+        verify(listener);
+    }
+
+
+    @Test
     public void testNotifyOnMessage() {
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         listener.onMessage(anyObject(Message.class));
         expectLastCall().once();
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.notifyOnMessage(createNiceMock(Message.class));
+        compiler.notifyOnMessage(createMock(Message.class));
 
         verify(listener);
     }
 
     @Test
     public void testNotifyOnMessageDoesNotThrow() throws Exception {
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         listener.onMessage(anyObject(Message.class));
         expectLastCall().andThrow(new RuntimeException()).once();
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.notifyOnMessage(createNiceMock(Message.class));
+        compiler.notifyOnMessage(createMock(Message.class));
 
         verify(listener);
     }
 
     @Test
     public void testNotifyInfo() {
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         Capture<Message> captured = new Capture<>();
         listener.onMessage(and(
                 isA(Message.class),
@@ -147,7 +174,7 @@ public class AbstractCompilerTest {
 
     @Test
     public void testNotifyError() {
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         Capture<Message> captured = new Capture<>();
         listener.onMessage(and(
                 isA(Message.class),
@@ -165,7 +192,7 @@ public class AbstractCompilerTest {
 
     @Test
     public void testNotifyWarning() {
-        CompilerListener listener = createNiceMock(CompilerListener.class);
+        CompilerListener listener = createMock(CompilerListener.class);
         Capture<Message> captured = new Capture<>();
         listener.onMessage(and(
                 isA(Message.class),
@@ -180,6 +207,5 @@ public class AbstractCompilerTest {
         assertEquals(MessageType.TYPE_WARNING, captured.getValue().getMessageType());
         verify(listener);
     }
-
 
 }

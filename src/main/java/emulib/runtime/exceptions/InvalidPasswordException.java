@@ -17,12 +17,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.exceptions;
 
 /**
- * This class represents an exception raised when a plug-in tries to register
- * a context which is already registered.
+ * This exception is raised when wrong password is provided as parameter of some PluginLoader methods.
  */
-public class AlreadyRegisteredException extends Exception {
+public class InvalidPasswordException extends Exception {
 
 }

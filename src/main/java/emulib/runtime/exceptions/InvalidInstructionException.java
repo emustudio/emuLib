@@ -2,6 +2,7 @@
  * KISS, YAGNI, DRY
  *
  * (c) Copyright 2006-2016, Peter Jakubčo
+ * (c) Copyright 2012, M. Sulír
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,21 +18,17 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.runtime;
+package emulib.runtime.exceptions;
 
 /**
- * This class represents an exception that can be raised during PluginLoader.loadPlugin method if a main plug-in class
- * does not meet requirements for Plugin classes.
- *
+ * An exception representing an unsuccessful decoding process.
  */
-public class InvalidPluginException extends Exception {
+public class InvalidInstructionException extends Exception {
 
-    public InvalidPluginException(String cause) {
-        super(cause);
+    public InvalidInstructionException() {
     }
 
-    public InvalidPluginException(String cause, Throwable e) {
-        super(cause, e);
+    public InvalidInstructionException(String message) {
+        super(message);
     }
-
 }

@@ -22,7 +22,7 @@ package emulib.plugins.cpu.stubs;
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.plugins.PluginInitializationException;
+import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.plugins.cpu.AbstractCPU;
 import emulib.plugins.cpu.Disassembler;
 
@@ -97,16 +97,6 @@ public class AbstractCPUStub extends AbstractCPU {
 
     @Override
     protected void resetInternal(int startPos) { }
-
-    @Override
-    public void showSettings() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isShowSettingsSupported() {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public String getVersion() {

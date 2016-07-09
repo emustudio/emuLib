@@ -2,7 +2,6 @@
  * KISS, YAGNI, DRY
  *
  * (c) Copyright 2006-2016, Peter Jakubčo
- * (c) Copyright 2012, M. Sulír
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -18,11 +17,12 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-package emulib.plugins.cpu;
+package emulib.runtime.exceptions;
 
 /**
- * An exception representing an unsuccessful decoding process.
+ * This class represents an exception raised when a plug-in tries to register
+ * a context which is already registered.
  */
-public class InvalidInstructionException extends Exception {
+public class AlreadyRegisteredException extends Exception {
 
 }

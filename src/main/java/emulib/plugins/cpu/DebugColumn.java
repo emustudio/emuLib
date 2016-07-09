@@ -72,7 +72,9 @@ public interface DebugColumn {
      *
      * @return default width of the column or -1 if it is not known
      */
-    int getDefaultWidth();
+    default int getDefaultWidth() {
+        return -1;
+    }
 
 }
 

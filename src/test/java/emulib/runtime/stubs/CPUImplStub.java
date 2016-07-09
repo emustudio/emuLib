@@ -22,7 +22,7 @@ package emulib.runtime.stubs;
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.plugins.PluginInitializationException;
+import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.plugins.cpu.Disassembler;
 
 import javax.swing.JPanel;
@@ -104,7 +104,7 @@ public class CPUImplStub extends AbstractCPUStub {
 
     @Override
     public void initialize(SettingsManager sHandler) throws PluginInitializationException {
-        throw new PluginInitializationException(null);
+        throw new PluginInitializationException();
     }
 
     @Override

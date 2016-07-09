@@ -20,7 +20,7 @@
 package emulib.emustudio;
 
 import emulib.emustudio.debugtable.DebugTable;
-import emulib.runtime.InvalidPasswordException;
+import emulib.runtime.exceptions.InvalidPasswordException;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -108,7 +108,7 @@ public class API {
      * @param debugTable The debug table
      * @param password password that was assigned to the emuLib. It prevents
      * from misuse of this method by other plugins.
-     * @throws emulib.runtime.InvalidPasswordException
+     * @throws InvalidPasswordException
      */
     public void setDebugTable(DebugTable debugTable, String password) throws InvalidPasswordException {
         testPassword(password);

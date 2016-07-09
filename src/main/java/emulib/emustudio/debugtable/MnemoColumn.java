@@ -23,7 +23,7 @@ package emulib.emustudio.debugtable;
 import emulib.plugins.cpu.AbstractDebugColumn;
 import emulib.plugins.cpu.DisassembledInstruction;
 import emulib.plugins.cpu.Disassembler;
-import emulib.plugins.cpu.InvalidInstructionException;
+import emulib.runtime.exceptions.InvalidInstructionException;
 
 import java.util.Objects;
 

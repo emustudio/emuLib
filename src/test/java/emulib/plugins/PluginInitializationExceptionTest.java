@@ -19,6 +19,7 @@
  */
 package emulib.plugins;
 
+import emulib.runtime.exceptions.PluginInitializationException;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.createMock;
@@ -28,7 +29,7 @@ public class PluginInitializationExceptionTest {
 
     @Test(expected = NullPointerException.class)
     public void testNullPluginThrows() throws Exception {
-        new PluginInitializationException(null);
+        new PluginInitializationException((Plugin)null);
     }
 
     @Test(expected = NullPointerException.class)
@@ -48,7 +49,7 @@ public class PluginInitializationExceptionTest {
 
     @Test(expected = NullPointerException.class)
     public void testThrowableNullPluginThrows() throws Exception {
-        new PluginInitializationException(null, new Exception());
+        new PluginInitializationException((Plugin)null, new Exception());
     }
 
     @Test
@@ -56,6 +57,6 @@ public class PluginInitializationExceptionTest {
         Plugin plugin = createMock(Plugin.class);
         PluginInitializationException exception = new PluginInitializationException(plugin);
 
-        assertSame(plugin, exception.getPlugin());
+        assertSame(plugin, exception.getPlugin().get());
     }
 }

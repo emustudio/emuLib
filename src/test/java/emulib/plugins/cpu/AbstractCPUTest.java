@@ -42,11 +42,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class AbstractCPUTest {
+    private final long PLUGIN_ID = 44;
     private AbstractCPUStub cpu;
 
     @Before
     public void setUp() {
-        cpu = new AbstractCPUStub(0L);
+        cpu = new AbstractCPUStub(PLUGIN_ID);
     }
 
     @After
@@ -438,5 +439,14 @@ public class AbstractCPUTest {
         verify(listener);
     }
 
+    @Test
+    public void testShowSettingsDoesNothing() throws Exception {
+        assertFalse(cpu.isShowSettingsSupported());
+        cpu.showSettings();
+    }
 
+    @Test
+    public void testGetPluginIDReturnsCorrectValue() throws Exception {
+        assertEquals(PLUGIN_ID, cpu.getPluginID());
+    }
 }

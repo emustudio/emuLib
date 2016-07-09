@@ -23,6 +23,8 @@ import emulib.JarCreator;
 import emulib.emustudio.APITest;
 import emulib.plugins.Plugin;
 import emulib.plugins.cpu.CPU;
+import emulib.runtime.exceptions.InvalidPasswordException;
+import emulib.runtime.exceptions.InvalidPluginException;
 import emulib.runtime.stubs.CPUImplStub;
 import emulib.runtime.stubs.CPUListenerStub;
 import emulib.runtime.stubs.UnannotatedCPUStub;

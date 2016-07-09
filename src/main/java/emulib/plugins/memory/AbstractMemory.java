@@ -22,7 +22,7 @@ package emulib.plugins.memory;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.plugins.PluginInitializationException;
+import emulib.runtime.exceptions.PluginInitializationException;
 
 import java.util.Objects;
 

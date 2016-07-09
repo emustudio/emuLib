@@ -20,6 +20,8 @@
 
 package emulib.plugins.cpu;
 
+import emulib.runtime.exceptions.InvalidInstructionException;
+
 /**
  * An instruction disassembler interface.
  */

@@ -20,7 +20,7 @@
 package emulib.runtime.stubs;
 
 import emulib.emustudio.SettingsManager;
-import emulib.plugins.PluginInitializationException;
+import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.plugins.cpu.CPU;
 import emulib.plugins.cpu.Disassembler;
 
