@@ -22,6 +22,8 @@ package emulib.plugins.device;
 import emulib.annotations.ContextType;
 import emulib.plugins.Context;
 
+import java.io.IOException;
+
 /**
  * Interface for basic context of the device. If device support more
  * functionality than input or output, it should be extended (or implemented
@@ -39,8 +41,9 @@ public interface DeviceContext<T> extends Context {
      * are considered as events that occurred onto this device.
      *
      * @return elementary data read from device
+     * @throws IOException if something goes wrong
      */
-    T read ();
+    T read () throws IOException;
 
     /**
      * Writes/sends data to the device.
@@ -51,8 +54,9 @@ public interface DeviceContext<T> extends Context {
      * considered as events that occurred onto this device.
      *
      * @param val  data to be written to the device
+     * @throws IOException if something goes wrong
      */
-    void write (T val);
+    void write (T val) throws IOException;
 
     /**
      * Get the type of transferred data. As you can see, methods
@@ -61,7 +65,7 @@ public interface DeviceContext<T> extends Context {
      *
      * @return type of transferred data
      */
-    Class getDataType();
+    Class<T> getDataType();
 
 }
 
