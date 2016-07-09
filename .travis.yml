@@ -29,6 +29,8 @@ env:
 before_script:
   - python add_server.py
 
+install: true
+
 script:
   - mvn -Pcoveralls cobertura:cobertura coveralls:report deploy
 
