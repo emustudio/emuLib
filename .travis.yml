@@ -1,38 +1,21 @@
 language: java
 sudo: false
-
 jdk:
 - oraclejdk8
-
 os:
 - linux
-
 branches:
   only:
   - branch-9_0
-
 env:
   global:
-  - secure: |-
-      HmG0OVXWWz/ghCVWxuT2qwaWxb1zwxe+vPY68S/POOHarZxhJsPHKFGYfFDr
-      yvZmR2dhRmuyhT5ivLDfPSbypkwhiZlVY71Ma2AgG9EjCKULarSVUnzQN9Ir
-      Ly1j/0qwaqUlXI1g8o9tqK9Wrt4/G7ZIV/nBCPO4vV+IizWv6ts=
-  - secure: |-
-      CbY8AZrgDVoimuSqVdAWxlC9geMyxkbT79iz8zHO7FssO/r0sx4UkuXq4WnY
-      MJr4wX0EpUXXHVLr20A1+HavXx0CXyUkiiZj9930YAwMxlEIFZ6+lh5O+/Bq
-      3+Lm4axrMF0eCQaFI94jmvVD7H95T69NhAW6mm3DK3IcliCom9Q=
-  - secure: |-
-      fqODEDCTruRYtHCQgAkc3DVil9y+WRdfRSkJcnJ1NC/5jh45nDl/a9IphQk+
-      2tHnzQBH/vt+03ibHv4I4snlKXYxgt/hxykixpZ8iwkFsc+8B10GqIiUc5VS
-      ir2A65P87B9cGP+bAUdkMlN9MxBp63Xndv428z+PpTZU/w94sNU=
-
+  - secure: ZJtCYq2K54/EcxwAUawFN7Q4FHDIMhT294gu1DUT0b2fbWd4gkQGW7PHeFjixCn66YXIUwA+rEUnvgyqS63uMd2mYq90XriOJXWpsHgILNPY1CJbIOZaeJT+zktTIShXvHKfBfnDxAzhEdiYRFrZ+BXyMrztOsWSpxZ1vIwcjzE=
+  - secure: VJ0Wgs91eueqPDnGyh9KZ2t8kEBSLergoatBZM+347pL/RFCDQ3COLzWyeIi6DIzfDZ/R8x/oFzOuS8NyQ7JRyid3LriUAu0pejADKE0aRbC4YBsCjCuYRB/yRTN3IMFvRE6Ql2+YdDD+llYTmrebiO4MJq7Uc4D4NfWFkfsoAw=
+  - secure: StRXgi+6hg4P2MrkbzFsaHQ7cqkfx+UpzrJwAldV1Ohm7m4uaWyPI8Xfko63NNHa4UcpXOWb+b5KbYaKr8dfdAHAXkMhNSBiTcYlEaASZlA1VN3aqG3vqdCey94SWGptOHfhBDSzFdcNAwPagt2u/FAESu0veM70vms6C//rbCU=
 before_script:
-  - python add_server.py
-
+- python add_server.py
 install: true
-
 script:
-  - mvn -Pcoveralls cobertura:cobertura coveralls:report deploy
-
+- mvn -Pcoveralls cobertura:cobertura coveralls:report deploy
 after_script:
-  - python restore_backups.py
+- python restore_backups.py
