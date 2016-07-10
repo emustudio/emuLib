@@ -250,7 +250,7 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public Context getContext(long pluginID, Class<? extends Context> contextInterface,
+    public <T extends Context> T getContext(long pluginID, Class<T> contextInterface,
             int index) throws InvalidContextException, ContextNotFoundException {
         trustedContext(contextInterface);
         registeringLock.readLock().lock();
@@ -270,7 +270,7 @@ public class ContextPool {
                 if (checkPermission(pluginID, context)) {
                     if ((index == -1) || (j == index)) {
                         LOGGER.debug("Found context with index " + j);
-                        return context;
+                        return (T)context;
                     }
                 }
                 j++;
@@ -303,10 +303,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public CPUContext getCPUContext(long pluginID,
-            Class<? extends CPUContext> contextInterface) throws InvalidContextException,
-            ContextNotFoundException {
-        return (CPUContext)getContext(pluginID, contextInterface, -1);
+    public <T extends CPUContext> T getCPUContext(long pluginID, Class<T> contextInterface)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -327,8 +327,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public CPUContext getCPUContext(long pluginID, Class<? extends CPUContext> contextInterface, int index) throws InvalidContextException, ContextNotFoundException {
-        return (CPUContext)getContext(pluginID, contextInterface, index);
+    public <T extends CPUContext> T getCPUContext(long pluginID, Class<T> contextInterface, int index)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, index);
     }
 
     /**
@@ -349,8 +351,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface) throws InvalidContextException, ContextNotFoundException {
-        return (CompilerContext)getContext(pluginID, contextInterface, -1);
+    public <T extends CompilerContext> T getCompilerContext(long pluginID, Class<T> contextInterface)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -371,8 +375,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public CompilerContext getCompilerContext(long pluginID, Class<? extends CompilerContext> contextInterface, int index) throws InvalidContextException, ContextNotFoundException {
-        return (CompilerContext)getContext(pluginID, contextInterface, index);
+    public <T extends CompilerContext> T getCompilerContext(long pluginID, Class<T> contextInterface, int index)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, index);
     }
 
     /**
@@ -393,8 +399,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface) throws InvalidContextException, ContextNotFoundException {
-        return (MemoryContext)getContext(pluginID, contextInterface, -1);
+    public <T extends MemoryContext> T getMemoryContext(long pluginID, Class<T> contextInterface)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -415,8 +423,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public MemoryContext getMemoryContext(long pluginID, Class<? extends MemoryContext> contextInterface, int index) throws InvalidContextException, ContextNotFoundException {
-        return (MemoryContext)getContext(pluginID, contextInterface, index);
+    public <T extends MemoryContext> T getMemoryContext(long pluginID, Class<T> contextInterface, int index)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, index);
     }
 
     /**
@@ -437,8 +447,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface) throws InvalidContextException, ContextNotFoundException {
-        return (DeviceContext)getContext(pluginID, contextInterface, -1);
+    public <T extends DeviceContext> T getDeviceContext(long pluginID, Class<T> contextInterface)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, -1);
     }
 
     /**
@@ -459,8 +471,10 @@ public class ContextPool {
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
-    public DeviceContext getDeviceContext(long pluginID, Class<? extends DeviceContext> contextInterface, int index) throws InvalidContextException, ContextNotFoundException {
-        return (DeviceContext)getContext(pluginID, contextInterface, index);
+    public <T extends DeviceContext> T getDeviceContext(long pluginID, Class<T> contextInterface, int index)
+        throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, contextInterface, index);
     }
 
     private Long findContextOwner(Context context) {
