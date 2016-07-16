@@ -246,7 +246,7 @@ public class ContextPool {
      *   provided, any matched context is used
      * @return requested context, which plugin owner != pluginId
      * @throws InvalidContextException
-     *   if the context interface does not fullfill context requirements
+     *   if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -299,7 +299,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @return CPUContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fulfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -323,7 +323,7 @@ public class ContextPool {
      * @param index 0-based the order of the context if they are more than one. Does nothing if the index is out of
      *        the bounds. If index is -1, it uses any found context.
      * @return CPUContext object if it is found and the plug-in has the permission; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -347,7 +347,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the compiler context
      * @param contextInterface Interface of the context, if requesting plugin has permission to acccess it
      * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -371,7 +371,7 @@ public class ContextPool {
      * @param index the order of the context if they are more than one. Does nothing if the index is out of bounds.
      * If the index is -1, it uses any found context.
      * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -395,7 +395,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -419,7 +419,7 @@ public class ContextPool {
      * @param index the index of the context if they are more than one. Does nothing if the index is out of bounds.
      * If the index is -1, it uses any found context.
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -443,7 +443,7 @@ public class ContextPool {
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */
@@ -467,7 +467,7 @@ public class ContextPool {
      * @param index index of the context implementation. Does nothing if the index is out of bounds.
      * If the index is -1, it uses any found context.
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
-     * @throws InvalidContextException if the context interface does not fullfill context requirements
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
      * @throws ContextNotFoundException
      *   if the context does not exist or the plug-in is not allowed to get it
      */

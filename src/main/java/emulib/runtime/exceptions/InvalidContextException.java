@@ -23,7 +23,7 @@ package emulib.runtime.exceptions;
  * This class represents an exception that can be raised when a context class
  * does not fulfill context requirements.
  */
-public class InvalidContextException extends Exception {
+public class InvalidContextException extends PluginInitializationException {
 
     public InvalidContextException(String cause) {
         super(cause);

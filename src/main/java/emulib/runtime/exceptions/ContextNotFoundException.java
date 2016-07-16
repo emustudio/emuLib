@@ -19,7 +19,7 @@
  */
 package emulib.runtime.exceptions;
 
-public class ContextNotFoundException extends Exception {
+public class ContextNotFoundException extends PluginInitializationException {
 
     public ContextNotFoundException(String message) {
         super(message);
