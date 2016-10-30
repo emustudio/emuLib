@@ -71,7 +71,7 @@ public class NumberUtils {
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static <T extends Number> int readInt(T[] word, int strategy) {
-        int result = 0;
+        int result;
   
         if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
             result = (word[3].intValue() & 0xFF)
@@ -135,7 +135,7 @@ public class NumberUtils {
         writeInt(value, tmp, strategy);
         
         for (int i = 0; i < tmp.length; i++) {
-            output[i] = tmp[i].byteValue();
+            output[i] = (byte)(tmp[i] & 0xFF);
         }
     }
    
@@ -153,7 +153,7 @@ public class NumberUtils {
         writeInt(value, tmp, strategy);
         
         for (int i = 0; i < tmp.length; i++) {
-            output[i] = tmp[i].shortValue();
+            output[i] = (short)(tmp[i] & 0xFFFF);
         }
     }
 
