@@ -37,6 +37,16 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<ByteType> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
+    private volatile boolean notificationsEnabled = true;
+
+    public void setNotificationsEnabled(boolean notificationsEnabled) {
+        this.notificationsEnabled = notificationsEnabled;
+    }
+
+    public boolean areNotificationsEnabled() {
+        return notificationsEnabled;
+    }
+
     /**
      * List of all memory listeners. The listeners are objects implementing
      * the IMemoryListener interface. Methods within the listeners are called
@@ -73,11 +83,13 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
      * @param position memory position (address) on which the value has changed
      */
     public void notifyMemoryChanged(int position) {
-        for (MemoryListener listener : listeners) {
-            try {
-                listener.memoryChanged(position);
-            } catch (Exception e) {
-                LOGGER.error("Memory listener error", e);
+        if (notificationsEnabled) {
+            for (MemoryListener listener : listeners) {
+                try {
+                    listener.memoryChanged(position);
+                } catch (Exception e) {
+                    LOGGER.error("Memory listener error", e);
+                }
             }
         }
     }
@@ -86,11 +98,13 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
      * Notify listeners that memory size has changed.
      */
     public void notifyMemorySizeChanged() {
-        for (MemoryListener listener : listeners) {
-            try {
-                listener.memorySizeChanged();
-            } catch (Exception e) {
-                LOGGER.error("Memory listener error", e);
+        if (notificationsEnabled) {
+            for (MemoryListener listener : listeners) {
+                try {
+                    listener.memorySizeChanged();
+                } catch (Exception e) {
+                    LOGGER.error("Memory listener error", e);
+                }
             }
         }
     }
