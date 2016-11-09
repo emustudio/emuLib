@@ -39,12 +39,14 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
 
     private volatile boolean notificationsEnabled = true;
 
-    public void setNotificationsEnabled(boolean notificationsEnabled) {
-        this.notificationsEnabled = notificationsEnabled;
+    @Override
+    public boolean areMemoryNotificationsEnabled() {
+        return notificationsEnabled;
     }
 
-    public boolean areNotificationsEnabled() {
-        return notificationsEnabled;
+    @Override
+    public void setMemoryNotificationsEnabled(boolean enabled) {
+        this.notificationsEnabled = enabled;
     }
 
     /**

@@ -116,5 +116,21 @@ public interface MemoryContext<CellType> extends Context {
      */
     int getSize();
 
+    /**
+     * Enable/disable notifications of memory changes globally.
+     *
+     * Enabled by default.
+     *
+     * @param enabled - true if enabled, false if disabled.
+     */
+    void setMemoryNotificationsEnabled(boolean enabled);
+
+    /**
+     * Determine if notifications of memory changes are globally enabled or disabled.
+     *
+     * @return true if notifications are enabled, false if disabled.
+     */
+    boolean areMemoryNotificationsEnabled();
+
 }
 

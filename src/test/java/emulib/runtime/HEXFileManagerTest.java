@@ -246,6 +246,16 @@ public class HEXFileManagerTest {
         public int getSize() {
             return 0;
         }
+
+        @Override
+        public boolean areMemoryNotificationsEnabled() {
+            return false;
+        }
+
+        @Override
+        public void setMemoryNotificationsEnabled(boolean enabled) {
+
+        }
     }
     
     @Test
