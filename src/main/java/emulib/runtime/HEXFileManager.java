@@ -81,7 +81,7 @@ public class HEXFileManager {
     /**
      * Set the next address where the next value will be assigned.
      *
-     * @param address
+     * @param address next address
      */
     public void setNextAddress(int address) {
         nextAddress = address;
@@ -205,7 +205,7 @@ public class HEXFileManager {
      * Generates a Intel Hex file based on the cached program map.
      *
      * @param filename file name where to store the hex file
-     * @throws java.io.IOException
+     * @throws java.io.IOException if the HEX file could not be written
      */
     public void generateFile(String filename) throws java.io.IOException {
         String fileData = generateHEX();

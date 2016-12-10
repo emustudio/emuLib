@@ -49,14 +49,20 @@ public interface MemoryContext<CellType> extends Context {
      * Implementation of return value is up to plugin programmer (e.g. ordering of cells).
      * If cells in memory are pure bytes (java type is e.g. <code>short</code>), concatenation
      * can be realized as (in small endian):
-     * <code>
-     *     result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF);
-     * </code>
+     *
+     * <pre>
+     * {@code
+     * result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF);
+     * }
+     * </pre>
      *
      * and in big endian as:
-     * <code>
-     *     result = ((mem[from]<<8)&0xFF) | (mem[from+1]&0xFF);
-     * </code>
+     *
+     * <pre>
+     * {@code
+     * result = ((mem[from]<<8)&0xFF) | (mem[from+1]&0xFF);
+     * }
+     * </pre>
      *
      * @param memoryPosition  memory position (address) of the read cells
      * @return two read cells, accessible at indexes 0 and 1, respectively.
@@ -65,6 +71,7 @@ public interface MemoryContext<CellType> extends Context {
 
     /**
      * Write one cell-size (e.g. byte) data to a cell to a memory at specified location.
+     *
      * @param memoryPosition   memory position (address) of the cell where data will be written
      * @param value  data to be written
      */

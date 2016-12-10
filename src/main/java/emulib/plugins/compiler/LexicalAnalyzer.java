@@ -54,7 +54,7 @@ public interface LexicalAnalyzer {
      * increase internal counters to next unread text (actual position, actual
      * row, column, etc.)
      *
-     * @throws java.io.IOException
+     * @throws java.io.IOException is thrown when the token could not be read
      * @return next found token
      */
     Token getSymbol () throws java.io.IOException;

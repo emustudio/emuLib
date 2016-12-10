@@ -359,6 +359,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
      * Perform one emulation step in synchronized context.
      *
      * @return new CPU state. If nothing bad happened, it should return RunState.STATE_STOPPED_BREAK.
+     * @throws Exception The emulator is allowed to throw any exception
      */
     protected abstract RunState stepInternal() throws Exception;
 

@@ -108,7 +108,7 @@ public class API {
      * @param debugTable The debug table
      * @param password password that was assigned to the emuLib. It prevents
      * from misuse of this method by other plugins.
-     * @throws InvalidPasswordException
+     * @throws InvalidPasswordException if the password do not match with the password set by emuStudio
      */
     public void setDebugTable(DebugTable debugTable, String password) throws InvalidPasswordException {
         testPassword(password);

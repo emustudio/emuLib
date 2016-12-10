@@ -67,7 +67,6 @@ public class PluginLoader {
      * @param pluginFiles plugin files.
      * @return List of plugins main classes
      * @throws InvalidPasswordException if given password is invalid
-     * @throws InvalidPluginException if main class could not be found (sneaky exception).
      * @throws IOException if other error happens
      */
     public List<Class<Plugin>> loadPlugins(String password, File... pluginFiles) throws InvalidPasswordException,

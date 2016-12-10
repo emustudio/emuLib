@@ -53,7 +53,7 @@ public class AddressColumn extends AbstractDebugColumn {
      * Return formatted address into hexadecimal digit, aligned to 4 digits.
      *
      * @param location  memory address (not row in debug table)
-     * @return
+     * @return String value with formatted address
      */
     @Override
     public Object getDebugValue(int location) {

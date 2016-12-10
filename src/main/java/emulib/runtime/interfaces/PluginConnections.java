@@ -35,8 +35,8 @@ public interface PluginConnections {
      * Plug-in B can get context registered by plug-in A only if the connection is bidirectional, i.e.
      * in case when also isConnected(pluginB, pluginA) holds true.
      *
-     * @param pluginA
-     * @param pluginB
+     * @param pluginA first plugin ID
+     * @param pluginB second plugin ID
      * @return true if pluginA is connected to pluginB.
      */
     boolean isConnected(long pluginA, long pluginB);

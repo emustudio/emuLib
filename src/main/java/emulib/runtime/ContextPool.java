@@ -239,6 +239,7 @@ public class ContextPool {
     /**
      * Get plug-in context.
      *
+     * @param <T> Specific context type
      * @param pluginID ID of requesting plug-in
      * @param contextInterface wanted context interface (implemented by the plug-in)
      * @param index
@@ -296,6 +297,7 @@ public class ContextPool {
      *
      * This method call is equivalent to the call of <code>getCPUContext(pluginID, contextInterface, -1);</code>
      *
+     * @param <T> Specific CPU context
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @return CPUContext object if it is found and the plug-in has the permission to access it; null otherwise
@@ -318,6 +320,7 @@ public class ContextPool {
      * If the CPU has more than one context implementing required context interface, it returns context indexed by index
      * parameter.
      *
+     * @param <T> Specific CPU Context
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
      * @param index 0-based the order of the context if they are more than one. Does nothing if the index is out of
@@ -344,6 +347,7 @@ public class ContextPool {
      *
      * This method call is equivalent to the call of <code>getCompilerContext(pluginID, contextInterface, -1);</code>
      *
+     * @param <T> Specific compiler context
      * @param pluginID plug-in requesting the compiler context
      * @param contextInterface Interface of the context, if requesting plugin has permission to acccess it
      * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
@@ -366,6 +370,7 @@ public class ContextPool {
      * If the compiler has more than one context implementing required context interface, it returns context indexed by
      * index parameter.
      *
+     * @param <T> Specific compiler context
      * @param pluginID plug-in requesting the Compiler context
      * @param contextInterface Interface of the context
      * @param index the order of the context if they are more than one. Does nothing if the index is out of bounds.
@@ -392,6 +397,7 @@ public class ContextPool {
      *
      * This method call is equivalent to the call of <code>getMemoryContext(pluginID, contextInterface, -1);</code>
      *
+     * @param <T> Specific memory context
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
@@ -414,6 +420,7 @@ public class ContextPool {
      * If the memory has more than one context implementing required context interface, it returns context indexed by
      * index parameter.
      *
+     * @param <T> Specific memory context
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
      * @param index the index of the context if they are more than one. Does nothing if the index is out of bounds.
@@ -440,6 +447,7 @@ public class ContextPool {
      *
      * This method call is equivalent to the call of <code>getDeviceContext(pluginID, contextInterface, -1);</code>
      *
+     * @param <T> Specific device context
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
@@ -462,6 +470,7 @@ public class ContextPool {
      * If the device has more than one context implementing required context interface, it returns context indexed by
      * index parameter.
      *
+     * @param <T> Specific device context
      * @param pluginID plug-in requesting the device context
      * @param contextInterface Interface of the context
      * @param index index of the context implementation. Does nothing if the index is out of bounds.
@@ -559,8 +568,8 @@ public class ContextPool {
      *
      * @param text Data to make hash from
      * @return SHA-1 hash Hexadecimal string, null if there was some error
-     * @throws java.security.NoSuchAlgorithmException
-     * @throws java.io.UnsupportedEncodingException
+     * @throws java.security.NoSuchAlgorithmException self-descriptive
+     * @throws java.io.UnsupportedEncodingException self-descriptive
      */
     public static String SHA1(String text) throws NoSuchAlgorithmException, UnsupportedEncodingException {
         MessageDigest md;
