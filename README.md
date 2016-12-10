@@ -2,7 +2,6 @@ emuLib - emuStudio library
 --------------------------
 [![Build Status](https://travis-ci.org/vbmacher/emuLib.svg)](https://travis-ci.org/vbmacher/emuLib)
 [![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.svg?branch=branch-9_0)](https://coveralls.io/r/vbmacher/emuLib?branch=branch-9_0)
-[![Dependency Status](https://www.versioneye.com/user/projects/578295c176ef40003fba7d4a/badge.svg?style=flat-square)](https://www.versioneye.com/user/projects/578295c176ef40003fba7d4a)
 
 emuLib is the run-time library used by [emuStudio](http://github.com/vbmacher/emuStudio) platform and its plug-ins.
 The features include:
