@@ -41,9 +41,11 @@ public class NumberUtilsTest {
         
         Byte[] word2 = new Byte[] { 0xB, 6, 9, 0xB };
         assertEquals(0x0B06090B, NumberUtils.readInt(word2, Strategy.BIG_ENDIAN));
+
         
-        assertEquals(0xD06090D0, NumberUtils.readInt(word2, Strategy.REVERSE_BITS));
-        assertEquals(0xD09060D0, NumberUtils.readInt(word2, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
+        assertEquals(String.format("Was: 0x%X", NumberUtils.readInt(word2, Strategy.REVERSE_BITS)) ,
+                0xD09060D0, NumberUtils.readInt(word2, Strategy.REVERSE_BITS));
+        assertEquals(0xD06090D0, NumberUtils.readInt(word2, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
     }
     
     @Test(expected = IndexOutOfBoundsException.class)
@@ -90,6 +92,16 @@ public class NumberUtilsTest {
         Byte[] word = new Byte[] {1,2,3,4,5,6,7,8,9};
         NumberUtils.writeInt(0x0B06090B, word, Strategy.BIG_ENDIAN);
         assertArrayEquals(new Byte[] { 0xB, 6, 9, 0xB, 5,6,7,8,9 }, word);
+    }
+    
+    @Test
+    public void testWriteThenReadReversedGivesBackTheSameResult() {
+        Byte[] word = new Byte[] {0,0,0,0};
+        
+        NumberUtils.writeInt(0x123456, word, Strategy.REVERSE_BITS);
+        int result = NumberUtils.readInt(word, Strategy.REVERSE_BITS);
+        
+        assertEquals(0x123456, result);
     }
     
 }

@@ -58,6 +58,41 @@ public class NumberUtils {
         }
         return result;
     }
+
+    /**
+     * Reads an integer from the array of numbers.
+     * 
+     * Uses binary arithmetic. The array must have 4 items, each one must represent a byte. If the value in the
+     * array is larger than a byte, the higher-order bits are cut.
+     * 
+     * @param word the array of 4 bytes
+     * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
+     * @return Single integer number which combines the array of bytes into one 32-bit value
+     */
+    public static int readInt(Byte[] word, int strategy) {
+        int result;
+        int b0,b1,b2,b3;
+        
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            b0 = (byte)reverseBits(word[0].intValue(), 8);
+            b1 = (byte)reverseBits(word[1].intValue(), 8);
+            b2 = (byte)reverseBits(word[2].intValue(), 8);
+            b3 = (byte)reverseBits(word[3].intValue(), 8);
+        } else {
+            b0 = word[0].intValue();
+            b1 = word[1].intValue();
+            b2 = word[2].intValue();
+            b3 = word[3].intValue();
+        }
+  
+        if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
+            result = (b3 & 0xFF) | ((b2 & 0xFF) << 8) | ((b1 & 0xFF) << 16) | ((b0 & 0xFF) << 24);
+        } else {
+            result = (b0 & 0xFF) | ((b1 & 0xFF) << 8) | ((b2 & 0xFF) << 16) | ((b3 & 0xFF) << 24);
+        }
+        
+        return result;
+    }
     
     /**
      * Reads an integer from the array of numbers.
@@ -65,29 +100,32 @@ public class NumberUtils {
      * Uses binary arithmetic. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      * 
-     * @param <T> type of the array. Must be a Number
-     * @param word the array of bytes
+     * @param word the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
-    public static <T extends Number> int readInt(T[] word, int strategy) {
+    public static int readInt(Integer[] word, int strategy) {
         int result;
-  
-        if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
-            result = (word[3].intValue() & 0xFF)
-                | ((word[2].intValue() & 0xFF) << 8)
-                | ((word[1].intValue() & 0xFF) << 16)
-                | ((word[0].intValue() & 0xFF) << 24);
-        } else {
-            result = (word[0].intValue() & 0xFF)
-                | ((word[1].intValue() & 0xFF) << 8)
-                | ((word[2].intValue() & 0xFF) << 16)
-                | ((word[3].intValue() & 0xFF) << 24);
-        }
+        int b0,b1,b2,b3;
         
         if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            result = reverseBits(result, 32);
+            b0 = reverseBits(word[0], 8);
+            b1 = reverseBits(word[1], 8);
+            b2 = reverseBits(word[2], 8);
+            b3 = reverseBits(word[3], 8);
+        } else {
+            b0 = word[0];
+            b1 = word[1];
+            b2 = word[2];
+            b3 = word[3];
         }
+  
+        if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
+            result = (b3 & 0xFF) | ((b2 & 0xFF) << 8) | ((b1 & 0xFF) << 16) | ((b0 & 0xFF) << 24);
+        } else {
+            result = (b0 & 0xFF) | ((b1 & 0xFF) << 8) | ((b2 & 0xFF) << 16) | ((b3 & 0xFF) << 24);
+        }
+
         return result;
     }
     
@@ -112,7 +150,7 @@ public class NumberUtils {
             output[2] = (value >>> 16) & 0xFF;
             output[3] = (value >>> 24) & 0xFF;
         }
-        
+
         if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
             output[0] = reverseBits(output[0], 8);
             output[1] = reverseBits(output[1], 8);
@@ -120,7 +158,7 @@ public class NumberUtils {
             output[3] = reverseBits(output[3], 8);
         }
     }
-    
+
     /**
      * Split the value into 4 bytes.
      * 
