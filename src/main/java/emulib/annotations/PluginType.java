@@ -30,14 +30,14 @@ import java.lang.annotation.Target;
  * Besides, the main class must inherit from Plugin interface. This annotation
  * must be used once and only once within the plug-in. If this annotation is
  * used more than once (together with the inheritance of Plugin interface), the
- * first occurence is used.
+ * first occurrence is used.
  */
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface PluginType {
     String title();
     String copyright();
-    String description();
+    String description() default "";
     PLUGIN_TYPE type();
     EMULIB_VERSION emuLibVersion() default EMULIB_VERSION.VERSION_9;
 }
