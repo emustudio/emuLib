@@ -22,7 +22,7 @@ package emulib.plugins.memory;
 import emulib.plugins.Plugin;
 
 /**
- * Main interface for memory plugins.
+ * Main interface for memory plug-ins.
  */
 public interface Memory extends Plugin {
 

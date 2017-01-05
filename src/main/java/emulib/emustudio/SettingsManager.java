@@ -21,9 +21,9 @@
 package emulib.emustudio;
 
 /**
- * Settings manager provides methods for reading/storing plugin settings.
+ * Settings manager provides methods for reading/storing plug-in settings.
  *
- * It is implemented by the main module. Plugins get it withing the initialization process.
+ * It is implemented by the main module. Plug-ins get it within the initialization process.
  */
 public interface SettingsManager {
     String NO_GUI = "nogui";
@@ -33,7 +33,7 @@ public interface SettingsManager {
      * Read specified setting from configuration file.  Setting can be arbitrary. It
      * uses configuration file that user chosen after start of the emulator.
      *
-     * @param pluginID  plugin ID
+     * @param pluginID  plug-in ID
      * @param settingName  name of wanted setting (without spaces)
      * @return setting if it exists (as a <code>String</code>), or
      *         <code>null</code> if not
@@ -43,7 +43,7 @@ public interface SettingsManager {
     /**
      * Write specified setting to a configuration file. Setting can be arbitrary. It
      * uses configuration file that user has chosen after start of the emulator.
-     * @param pluginID  plugin ID
+     * @param pluginID  plug-in ID
      * @param settingName  name of wanted setting (without spaces) to be written
      * @param val          value of the setting (has to be <code>String</code> type)
      * @return true if the setting was successfully written; false otherwise
@@ -54,7 +54,7 @@ public interface SettingsManager {
      * Remove specified setting to from a configuration file. Be careful, setting can
      * be arbitrary. It uses configuration file that user chosen after start of the
      * emulator.
-     * @param pluginID  plugin ID
+     * @param pluginID  plug-in ID
      * @param settingName  name of wanted setting (without spaces) to be removed
      * @return true if the setting was successfully removed; false otherwise
      */

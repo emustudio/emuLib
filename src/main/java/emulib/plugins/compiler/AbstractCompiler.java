@@ -22,13 +22,12 @@ package emulib.plugins.compiler;
 
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.plugins.compiler.Message.MessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import emulib.runtime.exceptions.PluginInitializationException;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class implements some fundamental functionality that can be
@@ -69,9 +68,10 @@ public abstract class AbstractCompiler implements Compiler {
      * This method semi-initializes the simple compiler. It only
      * set-up data members - pluginID and SettingsManager object.
      *
-     * It should be overriden.
+     * It should be overridden.
      *
      * @param settings settings manipulation object
+     * @throws PluginInitializationException never in the default implementation
      */
     @Override
     public void initialize(SettingsManager settings) throws PluginInitializationException {
@@ -79,7 +79,7 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     @Override
-    public String getTitle() {
+    public final String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 
@@ -123,13 +123,13 @@ public abstract class AbstractCompiler implements Compiler {
      * This method should be called whenever the compiler begins to run.
      */
     protected void notifyCompileStart() {
-        for (CompilerListener listener : compilerListeners) {
+        compilerListeners.forEach(listener -> {
             try {
                 listener.onStart();
             } catch (Exception e) {
                 LOGGER.error("Compiler listener error", e);
             }
-        }
+        });
     }
 
     /**
@@ -141,13 +141,13 @@ public abstract class AbstractCompiler implements Compiler {
      * @param errorCode compiler-specific error code
      */
     protected void notifyCompileFinish(int errorCode) {
-        for (CompilerListener listener : compilerListeners) {
+        compilerListeners.forEach(listener -> {
             try {
                 listener.onFinish(errorCode);
             } catch (Exception e) {
                 LOGGER.error("Compiler listener error", e);
             }
-        }
+        });
     }
 
     /**
@@ -161,13 +161,13 @@ public abstract class AbstractCompiler implements Compiler {
      * @param message The message
      */
     public void notifyOnMessage(Message message) {
-        for (CompilerListener listener : compilerListeners) {
+        compilerListeners.forEach(listener -> {
             try {
                 listener.onMessage(message);
             } catch (Exception e) {
                 LOGGER.error("Compiler listener error", e);
             }
-        }
+        });
     }
 
     /**

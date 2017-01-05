@@ -21,13 +21,14 @@ package emulib.plugins.device;
 
 import emulib.annotations.ContextType;
 import emulib.plugins.Context;
-
 import java.io.IOException;
 
 /**
  * Interface for basic context of the device. If device support more
  * functionality than input or output, it should be extended (or implemented
  * by an abstract class), and then made public.
+ * 
+ * @param <T> Type of data which can be transferred to/from this device
  */
 @ContextType
 public interface DeviceContext<T> extends Context {

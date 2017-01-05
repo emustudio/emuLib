@@ -23,7 +23,6 @@ package emulib.plugins.device;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.runtime.exceptions.PluginInitializationException;
-
 import java.util.Objects;
 
 /**
@@ -40,7 +39,7 @@ public abstract class AbstractDevice implements Device {
      * Initializes this AbstractDevice. Only assigns the plug-in ID into
      * the class field.
      *
-     * @param pluginID plugin id
+     * @param pluginID plug-in id
      * @throws NullPointerException if pluginID is null
      */
     public AbstractDevice(Long pluginID) {
@@ -48,9 +47,10 @@ public abstract class AbstractDevice implements Device {
     }
 
     /**
-     * No-operation. Should be overriden if needed.
+     * No-operation. Should be overridden if needed.
      *
      * @param settings settings manipulation object
+     * @throws PluginInitializationException never in the default implementation
      */
     @Override
     public void initialize(SettingsManager settings) throws PluginInitializationException {
@@ -58,12 +58,12 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
-    public String getTitle() {
+    public final String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 
     /**
-     * No-operation. Should be overriden if needed.
+     * No-operation. Should be overridden if needed.
      */
     @Override
     public void reset() {

@@ -21,20 +21,19 @@ package emulib.runtime;
 
 import emulib.emustudio.API;
 import emulib.runtime.exceptions.InvalidPasswordException;
+import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JOptionPane;
-
 /**
  * This class offers static methods that show some messages on the screen.
- * Plugins should use these methods for displaying messages. Example of use:
+ * Plug-ins should use these methods for displaying messages. Example of use:
  * <code>
  *     StaticDialogs.showMessage("Hello, world!");
  * </code>
  */
 public class StaticDialogs {
-    private final static String InputDialogMSG = "Please insert a value";
+    private final static String INPUT_DIALOG_MSG = "Please insert a value";
     private final static Logger LOGGER = LoggerFactory.getLogger(StaticDialogs.class);
 
     /** YES option for the confirm message dialogs */
@@ -127,7 +126,7 @@ public class StaticDialogs {
      *         integral input otherwise
      */
     public static Integer inputIntValue(String message) {
-        return inputIntValue(message,InputDialogMSG,0);
+        return inputIntValue(message,INPUT_DIALOG_MSG,0);
     }
 
     /**
@@ -156,7 +155,7 @@ public class StaticDialogs {
      *         string input otherwise
      */
     public static String inputStringValue(String message) {
-        return inputStringValue(message, InputDialogMSG, "");
+        return inputStringValue(message, INPUT_DIALOG_MSG, "");
     }
 
     /**
@@ -184,7 +183,7 @@ public class StaticDialogs {
      *         double input otherwise
      */
     public static Double inputDoubleValue(String message) {
-        return inputDoubleValue(message, InputDialogMSG, 0);
+        return inputDoubleValue(message, INPUT_DIALOG_MSG, 0);
     }
 
     /**

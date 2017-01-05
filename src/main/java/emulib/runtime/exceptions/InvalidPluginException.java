@@ -21,7 +21,7 @@ package emulib.runtime.exceptions;
 
 /**
  * This class represents an exception that can be raised during PluginLoader.loadPlugin method if a main plug-in class
- * does not meet requirements for Plugin classes.
+ * does not meet requirements for Plug-in classes.
  *
  */
 public class InvalidPluginException extends Exception {

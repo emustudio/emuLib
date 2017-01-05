@@ -21,20 +21,20 @@
 package emulib.plugins.memory;
 
 import emulib.plugins.memory.Memory.MemoryListener;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class implements some fundamental functionality of MemoryContext
  * interface, that can be useful in the programming of the own memory context.
  *
+ * @param <Type> the memory cell type
  */
 @ThreadSafe
-public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<ByteType> {
+public abstract class AbstractMemoryContext<Type> implements MemoryContext<Type> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     private volatile boolean notificationsEnabled = true;
@@ -86,13 +86,13 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
      */
     public void notifyMemoryChanged(int position) {
         if (notificationsEnabled) {
-            for (MemoryListener listener : listeners) {
+            listeners.forEach(listener -> {
                 try {
                     listener.memoryChanged(position);
                 } catch (Exception e) {
                     LOGGER.error("Memory listener error", e);
                 }
-            }
+            });
         }
     }
 
@@ -101,13 +101,13 @@ public abstract class AbstractMemoryContext<ByteType> implements MemoryContext<B
      */
     public void notifyMemorySizeChanged() {
         if (notificationsEnabled) {
-            for (MemoryListener listener : listeners) {
+            listeners.forEach(listener -> {
                 try {
                     listener.memorySizeChanged();
                 } catch (Exception e) {
                     LOGGER.error("Memory listener error", e);
                 }
-            }
+            });
         }
     }
 

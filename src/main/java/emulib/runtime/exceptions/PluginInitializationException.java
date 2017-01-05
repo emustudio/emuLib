@@ -20,12 +20,11 @@
 package emulib.runtime.exceptions;
 
 import emulib.plugins.Plugin;
-
 import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Exception representing general plugin initialization error.
+ * Exception representing general plug-in initialization error.
  */
 public class PluginInitializationException extends Exception {
     private final Plugin plugin;

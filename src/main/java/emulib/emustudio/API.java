@@ -21,9 +21,8 @@ package emulib.emustudio;
 
 import emulib.emustudio.debugtable.DebugTable;
 import emulib.runtime.exceptions.InvalidPasswordException;
-import net.jcip.annotations.ThreadSafe;
-
 import java.util.concurrent.atomic.AtomicReference;
+import net.jcip.annotations.ThreadSafe;
 
 /**
  * This class represents public API of emuStudio offered to plug-ins.
@@ -34,9 +33,8 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 @ThreadSafe
 public class API {
-    // emuStudio password for further emuLib communication
-    private final static AtomicReference<String> emuStudioPassword = new AtomicReference<>();
-    private final static API instance = new API();
+    private final static AtomicReference<String> EMUSTUDIO_PASSWORD = new AtomicReference<>();
+    private final static API INSTANCE = new API();
 
     private final AtomicReference<DebugTable> debugTable = new AtomicReference<>();
 
@@ -49,7 +47,7 @@ public class API {
      * @return instance of this class
      */
     public static API getInstance() {
-        return instance;
+        return INSTANCE;
     }
 
     public synchronized void clearAll(String password) throws InvalidPasswordException {
@@ -62,18 +60,18 @@ public class API {
      *
      * This password should be a hash string by which the emuStudio is allowed to
      * perform crucial operations in the emuLib, such as plug-in loading, or providing
-     * information about plug-in connections. These operations must be strictly proteted
+     * information about plug-in connections. These operations must be strictly protected
      * from plug-ins.
      *
      * This method is called only once, and by the emuStudio. After each next call,
      * it does nothing and returns false.
      *
      * @param password emuStudio hash string, the "password".
-     * @return true if the assignment was successfull (first call), false
+     * @return true if the assignment was successful (first call), false
      *         otherwise.
      */
     public static boolean assignPassword(String password) {
-        return emuStudioPassword.compareAndSet(null, password);
+        return EMUSTUDIO_PASSWORD.compareAndSet(null, password);
     }
 
     /**
@@ -86,7 +84,7 @@ public class API {
      * @throws InvalidPasswordException thrown if password is wrong or trustedInstance is not trusted
      */
     public static void testPassword(String password) throws InvalidPasswordException {
-        String tmpPassword = emuStudioPassword.get();
+        String tmpPassword = EMUSTUDIO_PASSWORD.get();
         if ((password == null) || (tmpPassword == null)) {
             throw new InvalidPasswordException();
         }
@@ -96,7 +94,7 @@ public class API {
     }
 
     public static boolean testPassword(Long hashCode) {
-        String tmpPassword = emuStudioPassword.get();
+        String tmpPassword = EMUSTUDIO_PASSWORD.get();
         return !(hashCode == null || tmpPassword == null) && hashCode == tmpPassword.hashCode();
     }
 
@@ -107,7 +105,7 @@ public class API {
      *
      * @param debugTable The debug table
      * @param password password that was assigned to the emuLib. It prevents
-     * from misuse of this method by other plugins.
+     * from misuse of this method by other plug-ins.
      * @throws InvalidPasswordException if the password do not match with the password set by emuStudio
      */
     public void setDebugTable(DebugTable debugTable, String password) throws InvalidPasswordException {

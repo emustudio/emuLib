@@ -26,11 +26,13 @@ import emulib.plugins.memory.Memory.MemoryListener;
 /**
  * Interface provides a context for operating memory. It supports basic methods,
  * but if memory wants to support more functionality, this interface should be
- * extended by plugin programmer and he should then make it public, in order to
- * plugins have access to it.
+ * extended by plug-in programmer and he should then make it public, in order to
+ * plug-ins have access to it.
  *
- * The context is given to plugins (compiler, CPU, devices), that are connected
+ * The context is given to plug-ins (compiler, CPU, devices), that are connected
  * to the memory and they communicate by invoking following methods.
+ * 
+ * @param <CellType> The type of the memory cell. It can be any object.
  */
 @ContextType
 public interface MemoryContext<CellType> extends Context {
@@ -46,7 +48,7 @@ public interface MemoryContext<CellType> extends Context {
     /**
      * Reads two adjacent cells from a memory at once.
      *
-     * Implementation of return value is up to plugin programmer (e.g. ordering of cells).
+     * Implementation of return value is up to plug-in programmer (e.g. ordering of cells).
      * If cells in memory are pure bytes (java type is e.g. <code>short</code>), concatenation
      * can be realized as (in small endian):
      *

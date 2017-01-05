@@ -20,11 +20,10 @@
 package emulib.emustudio.debugtable;
 
 import emulib.plugins.cpu.DebugColumn;
-
 import java.util.List;
 
 /**
- * This interface allows updating Debug table in emuStudio by any plugin.
+ * This interface allows updating Debug table in emuStudio by any plug-in.
  */
 public interface DebugTable {
 

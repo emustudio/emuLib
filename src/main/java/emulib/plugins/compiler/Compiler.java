@@ -24,14 +24,14 @@ import emulib.plugins.Plugin;
 import java.io.Reader;
 
 /**
- * This interface is the core for compiler plugin types. These plugins
+ * This interface is the core for compiler plug-in types. These plug-ins
  * should implement this interface once and only once.
  */
 public interface Compiler extends Plugin {
 
     /**
      * Adds CompilerListener object into list of listeners.
-     * If some event is occured in the compiler, listeners methods will be
+     * If some event is occurred in the compiler, listeners methods will be
      * called.
      *
      * @param listener CompilerListener object

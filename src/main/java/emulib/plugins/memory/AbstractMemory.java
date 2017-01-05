@@ -23,7 +23,6 @@ package emulib.plugins.memory;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.runtime.exceptions.PluginInitializationException;
-
 import java.util.Objects;
 
 /**
@@ -51,9 +50,10 @@ public abstract class AbstractMemory implements Memory {
     }
 
     /**
-     * No-operation. Should be overriden if needed.
+     * No-operation. Should be overridden if needed.
      *
      * @param settings settings manipulation object
+     * @throws PluginInitializationException never in the default implementation
      */
     @Override
     public void initialize(SettingsManager settings)  throws PluginInitializationException {
@@ -85,12 +85,12 @@ public abstract class AbstractMemory implements Memory {
     }
 
     @Override
-    public String getTitle() {
+    public final String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 
     /**
-     * No-operation. Should be overriden if needed.
+     * No-operation. Should be overridden if needed.
      */
     @Override
     public void reset() {

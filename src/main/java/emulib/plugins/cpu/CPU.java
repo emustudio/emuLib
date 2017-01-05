@@ -25,7 +25,7 @@ import javax.swing.JPanel;
 /**
  * Interface that covers CPU common operations.
  *
- * This is the main interface that CPU plugin has to implement.
+ * This is the main interface that CPU plug-in has to implement.
  */
 public interface CPU extends Plugin {
 

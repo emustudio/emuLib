@@ -19,10 +19,10 @@
  */
 package emulib.runtime;
 
-import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import javax.swing.filechooser.FileFilter;
 
 public class UniversalFileFilter extends FileFilter {
     private final Set<String> extensions = new LinkedHashSet<>();
@@ -50,16 +50,12 @@ public class UniversalFileFilter extends FileFilter {
         }
         String ext = getExtension(f);
         if (ext != null) {
-            for (String extension : extensions) {
-                if (extension.equals(ext) || extension.equals("*")) {
-                    return true;
-                }
+            if (extensions.stream().anyMatch(extension -> (extension.equals(ext) || extension.equals("*")))) {
+                return true;
             }
         } else {
-            for (String extension : extensions) {
-                if (extension.equals("*")) {
-                    return true;
-                }
+            if (extensions.stream().anyMatch(extension -> (extension.equals("*")))) {
+                return true;
             }
         }
         return false;

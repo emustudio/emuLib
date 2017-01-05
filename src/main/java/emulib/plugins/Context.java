@@ -24,9 +24,9 @@ import emulib.annotations.ContextType;
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * Context is a functional structure of a plugin that can be used by the other plugins.
+ * Context is a functional structure of a plug-in that can be used by the other plug-ins.
  *
- * Plug-ins obtain needed contexts of another plug-ins by querying ContextPool directly. Plugins must be interconnected
+ * Plug-ins obtain needed contexts of another plug-ins by querying ContextPool directly. Plug-ins must be interconnected
  * and compatible to get the contexts.
  *
  * Each plug-in can implement none, one or more contexts, implementing the same interface is allowed. Plug-in can

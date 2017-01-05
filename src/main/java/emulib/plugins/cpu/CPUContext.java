@@ -24,11 +24,11 @@ import emulib.plugins.Context;
 import emulib.plugins.device.DeviceContext;
 
 /**
- * Basic interface for CPU context. The context is used by plugins, that are
+ * Basic interface for CPU context. The context is used by plug-ins, that are
  * connected to CPU.
  *
- * CPU plugins can extend this interface to their own (with some new methods)
- * and then the programmer should make it to be public in order to other plugins
+ * CPU plug-ins can extend this interface to their own (with some new methods)
+ * and then the programmer should make it to be public in order to other plug-ins
  * could have access to it.
  *
  * Extended context may have methods for e.g. connecting devices to CPU, etc.

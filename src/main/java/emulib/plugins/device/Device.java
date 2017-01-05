@@ -22,7 +22,7 @@ package emulib.plugins.device;
 import emulib.plugins.Plugin;
 
 /**
- * Main interface that has to be implemented by device plugin.
+ * Main interface that has to be implemented by device plug-in.
  *
  * Design of the interface supports hierarchical connection of devices. Each
  * device can implement one or more device contexts. The contexts can be

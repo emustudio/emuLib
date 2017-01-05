@@ -19,6 +19,7 @@
  */
 package emulib.plugins.compiler;
 
+import java.io.IOException;
 import java.io.Reader;
 
 
@@ -42,9 +43,9 @@ public interface LexicalAnalyzer {
      * itself to start parsing from the beginning of the document.
      *
      * @param sourceCode <code>Reader</code> of the source code.
-     * @param startLine from this line should lexical analyser start, usually 0
-     * @param startChar from this char should lexical analyser start, usually 0
-     * @param startColumn from this column should lexical analyser start, usually 0
+     * @param startLine from this line should lexical analyzer start, usually 0
+     * @param startChar from this char should lexical analyzer start, usually 0
+     * @param startColumn from this column should lexical analyzer start, usually 0
      */
     void reset (Reader sourceCode, int startLine, int startChar, int startColumn);
 
@@ -57,7 +58,7 @@ public interface LexicalAnalyzer {
      * @throws java.io.IOException is thrown when the token could not be read
      * @return next found token
      */
-    Token getSymbol () throws java.io.IOException;
+    Token getSymbol () throws IOException;
 
 }
 

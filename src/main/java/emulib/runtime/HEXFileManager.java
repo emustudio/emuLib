@@ -20,7 +20,6 @@
 package emulib.runtime;
 
 import emulib.plugins.memory.MemoryContext;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -190,14 +189,14 @@ public class HEXFileManager {
     public boolean loadIntoMemory(MemoryContext<Short> mem) {
         List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
-        for (Integer adr : adrs) {
+        adrs.forEach(adr -> {
             String code = program.get(adr);
             for (int i = 0, j = 0; i < code.length() - 1; i += 2, j++) {
                 String hexCode = code.substring(i, i + 2);
                 short num = (short) ((Short.decode("0x" + hexCode)) & 0xFF);
                 mem.write(adr + j, num);
             }
-        }
+        });
         return true;
     }
 

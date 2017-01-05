@@ -21,10 +21,6 @@
 package emulib.plugins.cpu;
 
 import emulib.annotations.PluginType;
-import net.jcip.annotations.ThreadSafe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -36,6 +32,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import net.jcip.annotations.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class implements some fundamental functionality that can be used by your own plug-ins. Such as:
@@ -122,7 +121,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     @Override
-    public String getTitle() {
+    public final String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 
@@ -204,6 +203,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
         }
     }
 
+    @Override
     public void destroy() {
         if (isDestroyed.compareAndSet(false, true)) {
             try {
@@ -237,14 +237,14 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     private void notifyStateChanged() {
         final RunState tmpRunState = runState;
-        for (CPUListener observer : stateObservers) {
+        stateObservers.forEach(observer -> {
             try {
                 observer.runStateChanged(tmpRunState);
                 observer.internalStateChanged();
             } catch (Exception e) {
                 LOGGER.error("CPU Listener error", e);
             }
-        }
+        });
     }
 
     private void ensureCpuIsStopped() {
