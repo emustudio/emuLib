@@ -85,7 +85,7 @@ public abstract class AbstractMemory implements Memory {
     }
 
     @Override
-    public final String getTitle() {
+    public String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 

@@ -21,6 +21,10 @@
 package emulib.plugins.cpu;
 
 import emulib.annotations.PluginType;
+import net.jcip.annotations.ThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -32,9 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import net.jcip.annotations.ThreadSafe;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class implements some fundamental functionality that can be used by your own plug-ins. Such as:
@@ -121,7 +122,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     @Override
-    public final String getTitle() {
+    public String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 

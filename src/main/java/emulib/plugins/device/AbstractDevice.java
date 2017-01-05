@@ -58,7 +58,7 @@ public abstract class AbstractDevice implements Device {
     }
 
     @Override
-    public final String getTitle() {
+    public String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 

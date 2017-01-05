@@ -24,10 +24,11 @@ import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
 import emulib.plugins.compiler.Message.MessageType;
 import emulib.runtime.exceptions.PluginInitializationException;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class implements some fundamental functionality that can be
@@ -79,7 +80,7 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     @Override
-    public final String getTitle() {
+    public String getTitle() {
         return getClass().getAnnotation(PluginType.class).title();
     }
 
