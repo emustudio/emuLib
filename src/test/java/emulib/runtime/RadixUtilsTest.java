@@ -91,6 +91,30 @@ public class RadixUtilsTest {
     }
 
     @Test
+    public void testConvertToNumberZero() throws Exception {
+        byte[] expected = new byte[] { 0 };
+        byte[] result = RadixUtils.convertToNumber("00000000000000000000000000000000", 2);
+
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testConvertToNumberZeroWithBytesCount() throws Exception {
+        byte[] expected = new byte[] { 0,0,0,0 };
+        byte[] result = RadixUtils.convertToNumber("000", 2, 4);
+
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
+    public void testConvertToNumberWithBytesCount() throws Exception {
+        byte[] expected = new byte[] { 9,0,0,0 };
+        byte[] result = RadixUtils.convertToNumber("1001", 2, 4);
+
+        assertArrayEquals(expected, result);
+    }
+
+    @Test
     public void testParseRadix() {
         String number = "0x20";
         int expResult = 32;

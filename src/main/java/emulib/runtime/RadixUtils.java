@@ -280,7 +280,7 @@ public class RadixUtils {
      * Convert a integer number in some radix (stored in String) to binary
      * components in little endian.
      *
-     * Complexity: O(n^2)
+     * Complexity: O(n)
      *
      * @param number number stored as String
      * @param fromRadix the radix of the number
@@ -302,7 +302,33 @@ public class RadixUtils {
         for (int i = 0; i < result.length; i++) {
             result[i] = bytes.get(i);
         }
+        if (result.length == 0) {
+            result = new byte[] { 0 };
+        }
 
+        return result;
+    }
+
+    /**
+     * Convert a integer number in some radix (stored in String) to binary
+     * components in little endian.
+     *
+     * Complexity: O(n)
+     *
+     * @param number number stored as String
+     * @param fromRadix the radix of the number
+     * @param bytesCount number of bytes. If the results has fewer bytes, they will be appended from the left. If
+     *                   it contains more bytes, they will be cut from the left (from MSB).
+     * @return Array of binary components of that number
+     */
+    public static byte[] convertToNumber(String number, int fromRadix, int bytesCount) {
+        byte[] result = convertToNumber(number, fromRadix);
+        if (result.length != bytesCount) {
+            byte[] newResult = new byte[bytesCount];
+
+            System.arraycopy(result,0, newResult, 0, Math.min(result.length, bytesCount));
+            return newResult;
+        }
         return result;
     }
 
