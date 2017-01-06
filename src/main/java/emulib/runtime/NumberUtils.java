@@ -59,6 +59,15 @@ public class NumberUtils {
         return result;
     }
 
+    public static Byte[] toObjectArray(byte[] array) {
+        Byte[] objArray = new Byte[array.length];
+        for (int i = 0; i < array.length; i++) {
+            objArray[i] = array[i];
+        }
+        return objArray;
+    }
+
+
     /**
      * Reads an integer from the array of numbers.
      * 
