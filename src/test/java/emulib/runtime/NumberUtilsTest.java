@@ -20,9 +20,10 @@
 package emulib.runtime;
 
 import emulib.runtime.NumberUtils.Strategy;
+import org.junit.Test;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import org.junit.Test;
 
 public class NumberUtilsTest {
     
@@ -103,5 +104,12 @@ public class NumberUtilsTest {
         
         assertEquals(0x123456, result);
     }
-    
+
+    @Test
+    public void testToObjectArray() throws Exception {
+        byte[] vals = new byte[] { 0,1,2,3,4,5,6 };
+        Byte[] objVals = new Byte[] { 0,1,2,3,4,5,6 };
+
+        assertArrayEquals(objVals, NumberUtils.toObjectArray(vals));
+    }
 }
