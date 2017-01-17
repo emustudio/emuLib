@@ -41,8 +41,12 @@ public interface SettingsManager {
     String readSetting (long pluginID, String settingName);
 
     /**
-     * Write specified setting to a configuration file. Setting can be arbitrary. It
-     * uses configuration file that user has chosen after start of the emulator.
+     * Write specified setting to a configuration file. Setting can be arbitrary, except:
+     *
+     * - nogui
+     * - auto
+     *
+     * It uses configuration file that user has chosen after start of the emulator.
      * @param pluginID  plug-in ID
      * @param settingName  name of wanted setting (without spaces) to be written
      * @param val          value of the setting (has to be <code>String</code> type)
@@ -52,8 +56,12 @@ public interface SettingsManager {
 
     /**
      * Remove specified setting to from a configuration file. Be careful, setting can
-     * be arbitrary. It uses configuration file that user chosen after start of the
-     * emulator.
+     * be arbitrary, except:
+     *
+     * - nogui
+     * - auto
+     *
+     * It uses configuration file that user chosen after start of the emulator.
      * @param pluginID  plug-in ID
      * @param settingName  name of wanted setting (without spaces) to be removed
      * @return true if the setting was successfully removed; false otherwise
