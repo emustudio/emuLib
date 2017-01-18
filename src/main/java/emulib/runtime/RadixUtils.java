@@ -373,7 +373,7 @@ public class RadixUtils {
      * @param byteNumber a number, assumed size is a byte
      * @return formatted string as a hexadecimal number, with string length=2
      */
-    public static String getByteHexString(int byteNumber) {
+    public static String formatByteHexString(int byteNumber) {
         return String.format("%02X", byteNumber);
     }
 
@@ -385,7 +385,7 @@ public class RadixUtils {
      * @param wordNumber a number, assumed size is a word (2 bytes)
      * @return formatted string as a hexadecimal number, with string length=4
      */
-    public static String getWordHexString(int wordNumber) {
+    public static String formatWordHexString(int wordNumber) {
         return String.format("%04X", wordNumber);
     }
 
@@ -398,7 +398,7 @@ public class RadixUtils {
      * @param lower low order byte (low 8bits)
      * @return formatted string as a hexadecimal number, with string length=4
      */
-    public static String getWordHexString(short upper, short lower) {
+    public static String formatWordHexString(short upper, short lower) {
         return String.format("%04X", ((upper << 8) | lower) & 0xFFFF);
     }
 
@@ -410,8 +410,50 @@ public class RadixUtils {
      * @param number a number, assumed size is a double word (4 bytes)
      * @return formatted string as a hexadecimal number, with string length=8
      */
-    public static String getDwordHexString(int number) {
+    public static String formatDwordHexString(int number) {
         return String.format("%08X", number);
     }
+
+    /**
+     * Get formatted binary string of given number.
+     *
+     * The formatted string is possibly prepended with zeroes to ensure that the string has given length.
+     *
+     * Also, groups of some bits can be separated by single space. The number of space-separated bits is specified
+     * by the `spacesPerBits` parameter.
+     *
+     * @param number number to format
+     * @param length resulting string length (number of bits)
+     * @param spacePerBits number of space-separated bits. If <= 0 then bits are never separated with space.
+     * @param spacesFromLeft whether the group of bits to be space-separated should be counted from left or from right side
+     *
+     * @return formatted string as a binary number, with given string length
+     */
+    public static String formatBinaryString(int number, int length, int spacePerBits, boolean spacesFromLeft) {
+        String binNumber = Integer.toBinaryString(number);
+        binNumber = String.format("%" + length + "s", binNumber).replace(" ", "0");
+
+        char[] resultBits = binNumber.toCharArray();
+
+        StringBuilder builder = new StringBuilder();
+        int bitsCounter = spacePerBits - 1;
+
+        for (int k = 0; k < resultBits.length; k++) {
+            char c = spacesFromLeft ? resultBits[k] : resultBits[resultBits.length - k - 1];
+            builder.append(c);
+
+            if (spacePerBits > 0) {
+                if (bitsCounter == 0) {
+                    builder.append(' ');
+                    bitsCounter = spacePerBits - 1;
+                } else {
+                    bitsCounter--;
+                }
+            }
+        }
+
+        return (spacesFromLeft ? builder.toString() : builder.reverse().toString()).trim();
+    }
+
 
 }

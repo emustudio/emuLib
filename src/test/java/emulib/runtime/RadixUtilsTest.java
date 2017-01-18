@@ -131,25 +131,25 @@ public class RadixUtilsTest {
     @Test
     public void testGetDwordHexString() {
         int number = 1;
-        assertEquals("00000001", RadixUtils.getDwordHexString(number));
+        assertEquals("00000001", RadixUtils.formatDwordHexString(number));
         
         number = 0x0E5A231F;
-        assertEquals("0E5A231F", RadixUtils.getDwordHexString(number));
+        assertEquals("0E5A231F", RadixUtils.formatDwordHexString(number));
 
         number = 0xFE5A231F;
-        assertEquals("FE5A231F", RadixUtils.getDwordHexString(number));
+        assertEquals("FE5A231F", RadixUtils.formatDwordHexString(number));
     }
 
     @Test
     public void testGetWordHexString() {
         int number = 1;
-        assertEquals("0001", RadixUtils.getWordHexString(number));
+        assertEquals("0001", RadixUtils.formatWordHexString(number));
         
         number = 0x031F;
-        assertEquals("031F", RadixUtils.getWordHexString(number));
+        assertEquals("031F", RadixUtils.formatWordHexString(number));
 
         number = 0x231F;
-        assertEquals("231F", RadixUtils.getWordHexString(number));
+        assertEquals("231F", RadixUtils.formatWordHexString(number));
     }
 
     @Test
@@ -157,16 +157,16 @@ public class RadixUtilsTest {
         short upper = 1;
         short lower = 2;
 
-        assertEquals("0102", RadixUtils.getWordHexString(upper, lower));
+        assertEquals("0102", RadixUtils.formatWordHexString(upper, lower));
     }
 
     @Test
     public void testGetByteHexString() {
         int number = 1;
-        assertEquals("01", RadixUtils.getByteHexString(number));
+        assertEquals("01", RadixUtils.formatByteHexString(number));
         
         number = 0x1F;
-        assertEquals("1F", RadixUtils.getByteHexString(number));
+        assertEquals("1F", RadixUtils.formatByteHexString(number));
     }
 
     @Test(expected = NumberFormatException.class)
@@ -202,6 +202,17 @@ public class RadixUtilsTest {
     @Test(expected = NumberFormatException.class)
     public void testParseNonexistantRadixThrows() throws Exception {
         RadixUtils.getInstance().parseRadix("15h", 18);
+    }
+
+    @Test
+    public void testFormatBinaryString() throws Exception {
+        assertEquals("0010 0000", RadixUtils.formatBinaryString(32,8, 4, true));
+        assertEquals("0000 0000", RadixUtils.formatBinaryString(0,8, 4, true));
+        assertEquals("0000 1011 11", RadixUtils.formatBinaryString(0x2F,10, 4, true));
+
+        assertEquals("00 0010 1111", RadixUtils.formatBinaryString(0x2F,10, 4, false));
+        assertEquals("000 010 111 1", RadixUtils.formatBinaryString(0x2F,10, 3, true));
+        assertEquals("0 000 101 111", RadixUtils.formatBinaryString(0x2F,10, 3, false));
     }
 }
 
