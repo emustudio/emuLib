@@ -424,7 +424,7 @@ public class RadixUtils {
      *
      * @param number number to format
      * @param length resulting string length (number of bits)
-     * @param spacePerBits number of space-separated bits. If <= 0 then bits are never separated with space.
+     * @param spacePerBits number of space-separated bits. If &lt;= 0 then bits are never separated with space.
      * @param spacesFromLeft whether the group of bits to be space-separated should be counted from left or from right side
      *
      * @return formatted string as a binary number, with given string length
