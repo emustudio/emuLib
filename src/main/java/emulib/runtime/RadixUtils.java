@@ -455,5 +455,21 @@ public class RadixUtils {
         return (spacesFromLeft ? builder.toString() : builder.reverse().toString()).trim();
     }
 
+    /**
+     * Get formatted binary string of given number.
+     *
+     * The formatted string is possibly prepended with zeroes to ensure that the string has given length.
+     *
+     * Bits are not separated by spaces.
+     *
+     * @param number number to format
+     * @param length resulting string length (number of bits)
+     *
+     * @return formatted string as a binary number, with given string length
+     */
+    public static String formatBinaryString(int number, int length) {
+        return formatBinaryString(number, length, 0, false);
+    }
+
 
 }

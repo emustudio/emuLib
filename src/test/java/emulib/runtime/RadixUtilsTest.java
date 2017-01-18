@@ -213,6 +213,16 @@ public class RadixUtilsTest {
         assertEquals("00 0010 1111", RadixUtils.formatBinaryString(0x2F,10, 4, false));
         assertEquals("000 010 111 1", RadixUtils.formatBinaryString(0x2F,10, 3, true));
         assertEquals("0 000 101 111", RadixUtils.formatBinaryString(0x2F,10, 3, false));
+
+        assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F,10, 0, false));
+        assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F,10, 0, true));
+    }
+
+    @Test
+    public void testFormatBinaryStringWithoutSpaces() throws Exception {
+        assertEquals("00100000", RadixUtils.formatBinaryString(32,8));
+        assertEquals("00000000", RadixUtils.formatBinaryString(0,8));
+        assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F,10));
     }
 }
 
