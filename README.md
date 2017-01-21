@@ -1,7 +1,9 @@
 emuLib - emuStudio library
 --------------------------
 [![Build Status](https://travis-ci.org/vbmacher/emuLib.svg)](https://travis-ci.org/vbmacher/emuLib)
-[![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.svg?branch=branch-9_0)](https://coveralls.io/r/vbmacher/emuLib?branch=branch-9_0)
+[![Coverage Status](https://coveralls.io/repos/vbmacher/emuLib/badge.svg?branch=development)](https://coveralls.io/r/vbmacher/emuLib?branch=development)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib)
+
 
 emuLib is the run-time library used by [emuStudio](http://github.com/vbmacher/emuStudio) platform and its plug-ins.
 The features include:
@@ -34,30 +36,14 @@ but hopefully it will improve in the future versions.
 Usage
 -----
 
-In order to use emuLib in your Maven project, it is necessary to declare in the `pom.xml` the emuStudio repository:
-
-```
-<repositories>
-    ...
-    <repository>
-        <id>emustudio-repository</id>
-        <name>emuStudio Repository</name>
-        <url>http://emustudio.sf.net/repository/</url>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-```
-
-And then the dependency itself:
+In order to use emuLib in your Maven project, it is necessary to declare the following dependency:
 
 ```
 <dependencies>
     <dependency>
         <groupId>net.sf.emustudio</groupId>
         <artifactId>emuLib</artifactId>
-        <version>9.0.0-SNAPSHOT</version>
+        <version>9.0.0</version>
     </dependency>
 </dependencies>
 ```
