@@ -9,6 +9,16 @@
 
   <name>emuLib</name>
   <url>https://github.com/vbmacher/emuLib/</url>
+  <description>emuLib is the run-time library used by emuStudio platform and its plug-ins.</description>
+
+  <scm>
+    <url>https://github.com/vbmacher/emuLib/</url>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/vbmacher/emuLib/issues</url>
+  </issueManagement>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
