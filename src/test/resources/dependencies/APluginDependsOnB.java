@@ -1,12 +1,12 @@
 package dependencies;
 
-import emulib.annotations.EMULIB_VERSION;
-import emulib.annotations.PLUGIN_TYPE;
-import emulib.annotations.PluginType;
-import emulib.emustudio.SettingsManager;
-import emulib.plugins.Plugin;
-import emulib.runtime.exceptions.PluginInitializationException;
-import emulib.runtime.ContextPool;
+import net.emustudio.emulib.annotations.EMULIB_VERSION;
+import net.emustudio.emulib.annotations.PLUGIN_TYPE;
+import net.emustudio.emulib.annotations.PluginType;
+import net.emustudio.emulib.emustudio.SettingsManager;
+import net.emustudio.emulib.plugins.Plugin;
+import net.emustudio.emulib.runtime.exceptions.PluginInitializationException;
+import net.emustudio.emulib.runtime.ContextPool;
 import dependencies.hidden.BdependsOnC;
 
 @PluginType(
