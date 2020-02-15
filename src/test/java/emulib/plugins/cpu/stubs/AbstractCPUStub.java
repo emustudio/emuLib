@@ -22,13 +22,13 @@ package emulib.plugins.cpu.stubs;
 import emulib.annotations.PLUGIN_TYPE;
 import emulib.annotations.PluginType;
 import emulib.emustudio.SettingsManager;
-import emulib.runtime.exceptions.PluginInitializationException;
 import emulib.plugins.cpu.AbstractCPU;
 import emulib.plugins.cpu.Disassembler;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 
 @PluginType(
         type = PLUGIN_TYPE.CPU,
@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class AbstractCPUStub extends AbstractCPU {
     private volatile boolean runCalled = false;
     private final CountDownLatch latch = new CountDownLatch(1);
+    private volatile boolean shouldStop = false;
 
     private RunState runStateToReturn = RunState.STATE_STOPPED_NORMAL;
     private RuntimeException exceptionToThrow;
@@ -92,7 +93,7 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    public void initialize(SettingsManager settingsManager) throws PluginInitializationException {
+    public void initialize(SettingsManager settingsManager) {
     }
 
     @Override
@@ -106,11 +107,12 @@ public class AbstractCPUStub extends AbstractCPU {
     @Override
     public RunState call() {
         runCalled = true;
+        shouldStop = false;
         latch.countDown();
         throwIfSet();
 
-        while (!Thread.currentThread().isInterrupted()) {
-
+        while (!Thread.currentThread().isInterrupted() && !shouldStop) {
+            LockSupport.parkNanos(10000);
         }
 
         return runStateToReturn;
@@ -121,4 +123,7 @@ public class AbstractCPUStub extends AbstractCPU {
         return runCalled;
     }
 
+    public void stopSpontaneously() {
+        this.shouldStop = true;
+    }
 }

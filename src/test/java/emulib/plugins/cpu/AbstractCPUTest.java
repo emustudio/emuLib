@@ -22,7 +22,6 @@ package emulib.plugins.cpu;
 import emulib.plugins.cpu.CPU.CPUListener;
 import emulib.plugins.cpu.CPU.RunState;
 import emulib.plugins.cpu.stubs.AbstractCPUStub;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.LockSupport;
 
 import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -66,7 +66,7 @@ public class AbstractCPUTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void testCreateInstanceWithNullPluginIDThrows() throws Exception {
+    public void testCreateInstanceWithNullPluginIDThrows() {
         new AbstractCPUStub(null);
     }
 
@@ -100,8 +100,8 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testNotifyInternalStateChangeDoesNotThrow() throws Exception {
-        CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
+    public void testNotifyInternalStateChangeDoesNotThrow() {
+        CPUListener listener = createNiceMock(CPUListener.class);
         listener.internalStateChanged();
         expectLastCall().andThrow(new RuntimeException()).once();
         listener.runStateChanged(RunState.STATE_RUNNING);
@@ -116,8 +116,8 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testNotifyRunStateChangeDoesNotThrow() throws Exception {
-        CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
+    public void testNotifyRunStateChangeDoesNotThrow() {
+        CPUListener listener = createNiceMock(CPUListener.class);
         listener.internalStateChanged();
         expectLastCall().anyTimes();
         listener.runStateChanged(RunState.STATE_RUNNING);
@@ -133,7 +133,7 @@ public class AbstractCPUTest {
 
     @Test
     public void testNotifyChangeDoesNotCallObserverAfterItsRemoval() {
-        CPUListener listener = EasyMock.createNiceMock(CPUListener.class);
+        CPUListener listener = createNiceMock(CPUListener.class);
         replay(listener);
 
         cpu.reset();
@@ -180,13 +180,13 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testPauseAfterExecuteSetsBreakpointState() throws Exception {
+    public void testPauseAfterExecuteSetsBreakpointState() {
         CPUListener listener = createMock(CPUListener.class);
         listener.internalStateChanged();
+        expectLastCall().times(2);
+        listener.runStateChanged(RunState.STATE_RUNNING);
         expectLastCall().once();
-        listener.runStateChanged(eq(RunState.STATE_RUNNING));
-        expectLastCall().once();
-        listener.runStateChanged(eq(RunState.STATE_STOPPED_BREAK));
+        listener.runStateChanged(RunState.STATE_STOPPED_BREAK);
         expectLastCall().once();
         replay(listener);
 
@@ -195,11 +195,13 @@ public class AbstractCPUTest {
         cpu.execute();
         cpu.pause();
 
+        LockSupport.parkNanos(100000000);
+
         verify(listener);
     }
 
     @Test
-    public void testPauseOnBreakpointStateHasNoEffect() throws Exception {
+    public void testPauseOnBreakpointStateHasNoEffect() {
         CPUListener listener = createMock(CPUListener.class);
         replay(listener);
 
@@ -211,7 +213,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testPauseOnNormalStopHasNoEffect() throws Exception {
+    public void testPauseOnNormalStopHasNoEffect() {
         CPUListener listener = createMock(CPUListener.class);
         replay(listener);
 
@@ -222,7 +224,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testCallingStepWhileRunningHasNoEffect() throws Exception {
+    public void testCallingStepWhileRunningHasNoEffect() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
 
         cpu.reset();
@@ -234,7 +236,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithRunningStateSetBreakpointState() throws Exception {
+    public void testStepWithRunningStateSetBreakpointState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BREAK);
 
         cpu.setRunStateToReturn(RunState.STATE_RUNNING);
@@ -246,7 +248,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithNormalStopStateKeepsNormalStopState() throws Exception {
+    public void testStepWithNormalStopStateKeepsNormalStopState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_NORMAL);
 
         cpu.setRunStateToReturn(RunState.STATE_STOPPED_NORMAL);
@@ -258,7 +260,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithBreakpointStateKeepsBreakpointState() throws Exception {
+    public void testStepWithBreakpointStateKeepsBreakpointState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BREAK);
 
         cpu.setRunStateToReturn(RunState.STATE_STOPPED_BREAK);
@@ -270,7 +272,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+    public void testStepWithIndexOutOfBoundsExceptionSetsAddressFalloutState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_ADDR_FALLOUT);
 
         cpu.setExceptionToThrow(new IndexOutOfBoundsException());
@@ -282,7 +284,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithArrayIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+    public void testStepWithArrayIndexOutOfBoundsExceptionSetsAddressFalloutState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_ADDR_FALLOUT);
 
         cpu.setExceptionToThrow(new ArrayIndexOutOfBoundsException());
@@ -294,7 +296,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithRuntimeExceptionWithCauseIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+    public void testStepWithRuntimeExceptionWithCauseIndexOutOfBoundsExceptionSetsAddressFalloutState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_ADDR_FALLOUT);
 
         cpu.setExceptionToThrow(new RuntimeException(new ArrayIndexOutOfBoundsException()));
@@ -306,7 +308,7 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testStepWithOtherExceptionSetsInstructionFalloutState() throws Exception {
+    public void testStepWithOtherExceptionSetsInstructionFalloutState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_STOPPED_BAD_INSTR);
 
         cpu.setExceptionToThrow(new RuntimeException());
@@ -318,21 +320,14 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testExecuteWithRunningStateHasNoEffect() throws Exception {
+    public void testExecuteWithNormalStopSetsStoppedState() throws InterruptedException {
         CPUListener listener = createMock(CPUListener.class);
-        replay(listener);
-
-        cpu.setRunStateToReturn(RunState.STATE_RUNNING);
-        cpu.reset();
-        cpu.addCPUListener(listener);
-        cpu.execute();
-
-        verify(listener);
-    }
-
-    @Test
-    public void testExecuteWithNormalStopHasNoEffect() throws Exception {
-        CPUListener listener = createMock(CPUListener.class);
+        listener.internalStateChanged();
+        expectLastCall().times(2);
+        listener.runStateChanged(RunState.STATE_RUNNING);
+        expectLastCall().once();
+        listener.runStateChanged(RunState.STATE_STOPPED_NORMAL);
+        expectLastCall().once();
         replay(listener);
 
         cpu.setRunStateToReturn(RunState.STATE_STOPPED_NORMAL);
@@ -340,11 +335,16 @@ public class AbstractCPUTest {
         cpu.addCPUListener(listener);
         cpu.execute();
 
+        if (cpu.wasRunCalled()) {
+            cpu.stopSpontaneously();
+            LockSupport.parkNanos(100000000);
+        }
+
         verify(listener);
     }
 
     @Test
-    public void testExecuteWithBreakpointStateChangeToRunningState() throws Exception {
+    public void testExecuteWithBreakpointStateChangeToRunningState() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
 
         cpu.setRunStateToReturn(RunState.STATE_STOPPED_BREAK);
@@ -356,10 +356,10 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testExecuteWithIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+    public void testExecuteWithIndexOutOfBoundsExceptionSetsAddressFalloutState() {
         CPUListener listener = createMock(CPUListener.class);
         listener.internalStateChanged();
-        expectLastCall().once();
+        expectLastCall().times(2);
         listener.runStateChanged(eq(RunState.STATE_RUNNING));
         expectLastCall().once();
         listener.runStateChanged(eq(RunState.STATE_STOPPED_ADDR_FALLOUT));
@@ -377,10 +377,10 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testExecuteWithRuntimeExceptionWithCauseIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+    public void testExecuteWithRuntimeExceptionWithCauseIndexOutOfBoundsExceptionSetsAddressFalloutState() {
         CPUListener listener = createMock(CPUListener.class);
         listener.internalStateChanged();
-        expectLastCall().once();
+        expectLastCall().times(2);
         listener.runStateChanged(eq(RunState.STATE_RUNNING));
         expectLastCall().once();
         listener.runStateChanged(eq(RunState.STATE_STOPPED_ADDR_FALLOUT));
@@ -398,10 +398,10 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testExecuteWithArrayIndexOutOfBoundsExceptionSetsAddressFalloutState() throws Exception {
+    public void testExecuteWithArrayIndexOutOfBoundsExceptionSetsAddressFalloutState() {
         CPUListener listener = createMock(CPUListener.class);
         listener.internalStateChanged();
-        expectLastCall().once();
+        expectLastCall().times(2);
         listener.runStateChanged(eq(RunState.STATE_RUNNING));
         expectLastCall().once();
         listener.runStateChanged(eq(RunState.STATE_STOPPED_ADDR_FALLOUT));
@@ -419,10 +419,10 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testExecuteWithOtherExceptionSetsInstructionFalloutState() throws Exception {
+    public void testExecuteWithOtherExceptionSetsInstructionFalloutState() {
         CPUListener listener = createMock(CPUListener.class);
         listener.internalStateChanged();
-        expectLastCall().once();
+        expectLastCall().times(2);
         listener.runStateChanged(eq(RunState.STATE_RUNNING));
         expectLastCall().once();
         listener.runStateChanged(eq(RunState.STATE_STOPPED_BAD_INSTR));
@@ -440,13 +440,13 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testShowSettingsDoesNothing() throws Exception {
+    public void testShowSettingsDoesNothing() {
         assertFalse(cpu.isShowSettingsSupported());
         cpu.showSettings();
     }
 
     @Test
-    public void testGetPluginIDReturnsCorrectValue() throws Exception {
+    public void testGetPluginIDReturnsCorrectValue() {
         assertEquals(PLUGIN_ID, cpu.getPluginID());
     }
 }

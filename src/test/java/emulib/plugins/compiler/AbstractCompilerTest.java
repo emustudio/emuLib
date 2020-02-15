@@ -89,7 +89,7 @@ public class AbstractCompilerTest {
     }
 
     @Test
-    public void testNotifyCompilerStartDoesNotThrow() throws Exception {
+    public void testNotifyCompilerStartDoesNotThrow() {
         CompilerListener listener = createMock(CompilerListener.class);
         listener.onStart();
         expectLastCall().andThrow(new RuntimeException()).once();
@@ -116,7 +116,7 @@ public class AbstractCompilerTest {
     }
 
     @Test
-    public void testNotifyCompilerFinishDoesNotThrow() throws Exception {
+    public void testNotifyCompilerFinishDoesNotThrow() {
         CompilerListener listener = createMock(CompilerListener.class);
         listener.onFinish(anyInt());
         expectLastCall().andThrow(new RuntimeException()).once();
@@ -142,7 +142,7 @@ public class AbstractCompilerTest {
     }
 
     @Test
-    public void testNotifyOnMessageDoesNotThrow() throws Exception {
+    public void testNotifyOnMessageDoesNotThrow() {
         CompilerListener listener = createMock(CompilerListener.class);
         listener.onMessage(anyObject(Message.class));
         expectLastCall().andThrow(new RuntimeException()).once();
@@ -157,7 +157,7 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyInfo() {
         CompilerListener listener = createMock(CompilerListener.class);
-        Capture<Message> captured = new Capture<>();
+        Capture<Message> captured = Capture.newInstance();
         listener.onMessage(and(
                 isA(Message.class),
                 capture(captured))
@@ -175,7 +175,7 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyError() {
         CompilerListener listener = createMock(CompilerListener.class);
-        Capture<Message> captured = new Capture<>();
+        Capture<Message> captured = Capture.newInstance();
         listener.onMessage(and(
                 isA(Message.class),
                 capture(captured))
@@ -193,7 +193,7 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyWarning() {
         CompilerListener listener = createMock(CompilerListener.class);
-        Capture<Message> captured = new Capture<>();
+        Capture<Message> captured = Capture.newInstance();
         listener.onMessage(and(
                 isA(Message.class),
                 capture(captured))

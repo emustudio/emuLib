@@ -38,13 +38,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -543,7 +537,7 @@ public class ContextPool {
      */
     public static String computeHash(Class<? extends Context> contextInterface) {
         List<Method> contextMethods = Arrays.asList(contextInterface.getMethods());
-        Collections.sort(contextMethods, (m1, m2) -> m1.getName().compareTo(m2.getName()));
+        contextMethods.sort(Comparator.comparing(Method::getName));
 
         String hash = "";
         for (Method method : contextMethods.toArray(new Method[0])) {

@@ -76,24 +76,29 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
         @Override
         public void run() {
+            RunState originalRunState = runState;
+            RunState tmpRunState = originalRunState;
             try {
-                runState = cpuFuture.get();
+                tmpRunState = cpuFuture.get();
             } catch (ExecutionException e) {
                 if (e.getCause() instanceof IndexOutOfBoundsException) {
-                    runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                    tmpRunState = RunState.STATE_STOPPED_ADDR_FALLOUT;
                 } else {
                     Throwable cause = e.getCause().getCause();
-                    if (cause != null && (cause instanceof IndexOutOfBoundsException)) {
-                        runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
+                    if (cause instanceof IndexOutOfBoundsException) {
+                        tmpRunState = RunState.STATE_STOPPED_ADDR_FALLOUT;
                     } else {
-                        runState = RunState.STATE_STOPPED_BAD_INSTR;
+                        tmpRunState = RunState.STATE_STOPPED_BAD_INSTR;
                     }
                 }
                 LOGGER.error("Unexpected error during emulation", e);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
-                notifyStateChanged();
+                runState = tmpRunState;
+                if (originalRunState != tmpRunState) {
+                    notifyStateChanged(tmpRunState);
+                }
             }
         }
 
@@ -225,7 +230,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
      */
     protected abstract void destroyInternal();
 
-    private void waitForFuture(Future future) {
+    private void waitForFuture(Future<?> future) {
         Objects.requireNonNull(future);
         try {
             future.get();
@@ -236,8 +241,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
         }
     }
 
-    private void notifyStateChanged() {
-        final RunState tmpRunState = runState;
+    private void notifyStateChanged(RunState tmpRunState) {
         stateObservers.forEach(observer -> {
             try {
                 observer.runStateChanged(tmpRunState);
@@ -263,22 +267,24 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void reset(int addr) {
-        Future future = eventReceiver.submit(() -> {
+        Future<?> future = eventReceiver.submit(() -> {
             requestStop();
             ensureCpuIsStopped();
             resetInternal(addr);
-            runState = RunState.STATE_STOPPED_BREAK;
-            notifyStateChanged();
+            RunState tmpRunState = RunState.STATE_STOPPED_BREAK;
+            runState = tmpRunState;
+            notifyStateChanged(tmpRunState);
         });
         waitForFuture(future);
     }
 
     @Override
     public void execute() {
-        Future future = eventReceiver.submit(() -> {
+        Future<?> future = eventReceiver.submit(() -> {
             if (runState == RunState.STATE_STOPPED_BREAK) {
-                runState = RunState.STATE_RUNNING;
-                notifyStateChanged();
+                RunState tmpRunState = RunState.STATE_RUNNING;
+                runState = tmpRunState;
+                notifyStateChanged(tmpRunState);
 
                 Future<RunState> cpuFuture = cpuExecutor.submit(AbstractCPU.this);
                 cpuWatchTask = new CPUWatchTask(cpuFuture);
@@ -290,14 +296,18 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void pause() {
-        Future future = eventReceiver.submit(() -> {
+        Future<?> future = eventReceiver.submit(() -> {
             if (runState == RunState.STATE_RUNNING) {
                 requestStop();
                 ensureCpuIsStopped();
-                if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_NORMAL) {
-                    runState = RunState.STATE_STOPPED_BREAK;
+                RunState tmpRunState = runState;
+
+                if (tmpRunState == RunState.STATE_RUNNING || tmpRunState == RunState.STATE_STOPPED_NORMAL) {
+                    tmpRunState = RunState.STATE_STOPPED_BREAK;
                 }
-                notifyStateChanged();
+
+                runState = tmpRunState;
+                notifyStateChanged(tmpRunState);
             }
         });
         waitForFuture(future);
@@ -305,14 +315,18 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void stop() {
-        Future future = eventReceiver.submit(() -> {
-            if (runState == RunState.STATE_STOPPED_BREAK || runState == RunState.STATE_RUNNING) {
+        Future<?> future = eventReceiver.submit(() -> {
+            RunState tmpRunState = runState;
+
+            if (tmpRunState == RunState.STATE_STOPPED_BREAK || tmpRunState == RunState.STATE_RUNNING) {
                 requestStop();
                 ensureCpuIsStopped();
-                if (runState == RunState.STATE_RUNNING || runState == RunState.STATE_STOPPED_BREAK) {
-                    runState = RunState.STATE_STOPPED_NORMAL;
+                tmpRunState = runState;
+                if (tmpRunState == RunState.STATE_RUNNING || tmpRunState == RunState.STATE_STOPPED_BREAK) {
+                    tmpRunState = RunState.STATE_STOPPED_NORMAL;
                 }
-                notifyStateChanged();
+                runState = tmpRunState;
+                notifyStateChanged(tmpRunState);
             }
 
         });
@@ -321,25 +335,25 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void step() {
-        Future future = eventReceiver.submit(() -> {
+        Future<?> future = eventReceiver.submit(() -> {
             if (runState == RunState.STATE_STOPPED_BREAK) {
+                RunState tmpRunState = RunState.STATE_STOPPED_ADDR_FALLOUT;
                 try {
-                    runState = stepInternal();
-                    if (runState == RunState.STATE_RUNNING) {
-                        runState = RunState.STATE_STOPPED_BREAK;
+                    tmpRunState = stepInternal();
+                    if (tmpRunState == RunState.STATE_RUNNING) {
+                        tmpRunState = RunState.STATE_STOPPED_BREAK;
                     }
                 } catch (IndexOutOfBoundsException e) {
-                    runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
                     LOGGER.error("Unexpected error during emulation", e);
                 } catch (Exception e) {
-                    if (e.getCause() != null && e.getCause() instanceof IndexOutOfBoundsException) {
-                        runState = RunState.STATE_STOPPED_ADDR_FALLOUT;
-                    } else {
-                        runState = RunState.STATE_STOPPED_BAD_INSTR;
+                    if (!(e.getCause() instanceof IndexOutOfBoundsException)) {
+                        tmpRunState = RunState.STATE_STOPPED_BAD_INSTR;
                     }
                     LOGGER.error("Unexpected error during emulation", e);
+                } finally {
+                    runState = tmpRunState;
+                    notifyStateChanged(tmpRunState);
                 }
-                notifyStateChanged();
             }
         });
         waitForFuture(future);

@@ -121,7 +121,7 @@ public class PluginLoaderTest {
 
     @Test(expected = NullPointerException.class)
     public void testLoadPluginNullFileNameThrows() throws Exception {
-        pluginLoader.loadPlugins(APITest.getEmuStudioPassword(), null);
+        pluginLoader.loadPlugins(APITest.getEmuStudioPassword(), (File) null);
     }
 
     @Test(expected = Throwable.class)
