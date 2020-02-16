@@ -1,5 +1,5 @@
 # emuLib
-![emuLib](https://github.com/emustudio/emuLib/workflows/emuLib/badge.svg)
+![emuLib Build](https://github.com/emustudio/emuLib/workflows/emuLib%20Build/badge.svg)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib)
 
 emuLib is a run-time library used by [emuStudio](https://github.com/emustudio/emuStudio), universal emulation platform,
