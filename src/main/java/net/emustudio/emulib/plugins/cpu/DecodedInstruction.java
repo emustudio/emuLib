@@ -21,15 +21,15 @@ package net.emustudio.emulib.plugins.cpu;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
+import java.util.HashMap;
 
 /**
  * A decoded, but not yet disassembled instruction.
  */
 public class DecodedInstruction {
-    private final Map<Integer, Integer> constants = new TreeMap<>();
-    private final Map<Integer, String> strings = new TreeMap<>();
-    private final Map<Integer, byte[]> bits = new TreeMap<>();
+    private final Map<Integer, Integer> constants = new HashMap<>();
+    private final Map<Integer, String> strings = new HashMap<>();
+    private final Map<Integer, byte[]> bits = new HashMap<>();
     private byte[] image;
 
     /**
