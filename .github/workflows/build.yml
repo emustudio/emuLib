@@ -1,4 +1,4 @@
-name: emuLib
+name: emuLib Build
 
 on: [push]
 
