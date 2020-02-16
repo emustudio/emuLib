@@ -51,6 +51,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Context pool is not thread safe.
  *
  */
+@SuppressWarnings("unused")
 public class ContextPool {
     private final static Logger LOGGER = LoggerFactory.getLogger(ContextPool.class);
 
