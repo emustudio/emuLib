@@ -3,7 +3,7 @@ name: emuLib Deployment
 on:
   deployment:
     branches:
-      - development
+      - master
 
 jobs:
   build:
