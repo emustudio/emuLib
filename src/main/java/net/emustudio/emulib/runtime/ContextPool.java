@@ -287,6 +287,27 @@ public class ContextPool {
      *
      * This method call is equivalent to the call of <code>getCPUContext(pluginID, contextInterface, -1);</code>
      *
+     * @param pluginID plug-in requesting the CPU context
+     * @return CPUContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
+     * @throws ContextNotFoundException
+     *   if the context does not exist or the plug-in is not allowed to get it
+     */
+    public CPUContext getCPUContext(long pluginID) throws InvalidContextException, ContextNotFoundException {
+        return getContext(pluginID, CPUContext.class, -1);
+    }
+
+    /**
+     * Get registered CPU context.
+     *
+     * If plug-in doesn't have the permission to access it, return null. The permission is approved, when the
+     * plug-in is connected to the CPU in the abstract schema.
+     *
+     * If the CPU has more than one context implementing required context interface, the first one is returned. To
+     * access other ones, use extended version of the method.
+     *
+     * This method call is equivalent to the call of <code>getCPUContext(pluginID, contextInterface, -1);</code>
+     *
      * @param <T> Specific CPU context
      * @param pluginID plug-in requesting the CPU context
      * @param contextInterface Interface of the context
@@ -324,6 +345,27 @@ public class ContextPool {
         throws InvalidContextException, ContextNotFoundException {
 
         return getContext(pluginID, contextInterface, index);
+    }
+
+    /**
+     * Get registered compiler context.
+     *
+     * If plug-in doesn't have the permission to access it, return null. The permission is approved, when the
+     * plug-in is connected to the compiler in the abstract schema.
+     *
+     * If the compiler has more than one context implementing required context interface, the first one is returned. To
+     * access other ones, use extended version of the method.
+     *
+     * This method call is equivalent to the call of <code>getCompilerContext(pluginID, contextInterface, -1);</code>
+     *
+     * @param pluginID plug-in requesting the compiler context
+     * @return CompilerContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
+     * @throws ContextNotFoundException
+     *   if the context does not exist or the plug-in is not allowed to get it
+     */
+    public CompilerContext getCompilerContext(long pluginID) throws InvalidContextException, ContextNotFoundException {
+        return getContext(pluginID, CompilerContext.class, -1);
     }
 
     /**
@@ -387,6 +429,28 @@ public class ContextPool {
      *
      * This method call is equivalent to the call of <code>getMemoryContext(pluginID, contextInterface, -1);</code>
      *
+     * @param pluginID plug-in requesting the memory context
+     * @return MemoryContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
+     * @throws ContextNotFoundException
+     *   if the context does not exist or the plug-in is not allowed to get it
+     */
+    public MemoryContext<?> getMemoryContext(long pluginID) throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, MemoryContext.class, -1);
+    }
+
+    /**
+     * Get registered memory context.
+     *
+     * If plug-in doesn't have the permission to access it, return null. The permission is approved, when the
+     * plug-in is connected to the memory in the abstract schema.
+     *
+     * If the memory has more than one context implementing required context interface, the first one is returned. To
+     * access other ones, use extended version of the method.
+     *
+     * This method call is equivalent to the call of <code>getMemoryContext(pluginID, contextInterface, -1);</code>
+     *
      * @param <T> Specific memory context
      * @param pluginID plug-in requesting the memory context
      * @param contextInterface Interface of the context
@@ -424,6 +488,28 @@ public class ContextPool {
         throws InvalidContextException, ContextNotFoundException {
 
         return getContext(pluginID, contextInterface, index);
+    }
+
+    /**
+     * Get registered device context.
+     *
+     * If plug-in doesn't have the permission to access it, return null. The permission is approved, when the
+     * plug-in is connected to the device in the abstract schema.
+     *
+     * If the device has more than one context implementing required context interface, the first one is returned. To
+     * access other ones, use extended version of the method.
+     *
+     * This method call is equivalent to the call of <code>getDeviceContext(pluginID, contextInterface, -1);</code>
+     *
+     * @param pluginID plug-in requesting the device context
+     * @return DeviceContext object if it is found and the plug-in has the permission to access it; null otherwise
+     * @throws InvalidContextException if the context interface does not fulfil context requirements
+     * @throws ContextNotFoundException
+     *   if the context does not exist or the plug-in is not allowed to get it
+     */
+    public DeviceContext<?> getDeviceContext(long pluginID) throws InvalidContextException, ContextNotFoundException {
+
+        return getContext(pluginID, DeviceContext.class, -1);
     }
 
     /**
