@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -24,7 +24,7 @@ import javax.swing.JPanel;
 /**
  * Interface that covers CPU common operations.
  *
- * This is the main interface that CPU plug-in has to implement.
+ * This is the main interface that CPU plugin has to implement.
  */
 @SuppressWarnings("unused")
 public interface CPU extends Plugin {
@@ -34,8 +34,7 @@ public interface CPU extends Plugin {
      */
     enum RunState {
         /**
-         * CPU is stopped (naturally or by user) and should not be run until its
-         * reset.
+         * CPU is stopped (naturally or by user) and should not be run until it is reset.
          */
         STATE_STOPPED_NORMAL("stopped"),
         /**
@@ -43,13 +42,12 @@ public interface CPU extends Plugin {
          */
         STATE_STOPPED_BREAK("breakpoint"),
         /**
-         * CPU is stopped because of address fallout error. It should not be
-         * run until its reset.
+         * CPU is stopped because of address fallout error. It should not be run until it is reset.
          */
         STATE_STOPPED_ADDR_FALLOUT("stopped (address fallout)"),
         /**
-         * CPU is stopped because of instruction fallout (unknown instruction)
-         * error. It should not be run until its reset.
+         * CPU is stopped because of instruction fallout (unknown instruction) error. It should not be run until it
+         * is reset.
          */
         STATE_STOPPED_BAD_INSTR("stopped (instruction fallout)"),
         /**
@@ -71,10 +69,8 @@ public interface CPU extends Plugin {
     }
 
     /**
-     * The listener interface for receiving CPU events. The class that is
-     * interested in processing a CPU event implements this interface, and the
-     * object created with that class is registered with a CPU, using the CPU's
-     * addCPUListener method.
+     * Interface for receiving CPU events. The class which is interested in processing CPU events implements this
+     * interface, and the object created with that class is registered with a CPU, using the CPU's addCPUListener method.
      * When the CPU event occurs, that:
      * <ul>
      *     <li>if the event is CPU's state change, then object's <code>internalStateChanged()</code>
@@ -197,6 +193,7 @@ public interface CPU extends Plugin {
      * Does nothing if breakpoints are not supported.
      * @param memLocation  memory location where the breakpoint will be set
      * @see CPU#isBreakpointSupported
+     * @throws IndexOutOfBoundsException if the memLocation is out of bounds
      */
     void setBreakpoint (int memLocation);
 
@@ -206,6 +203,7 @@ public interface CPU extends Plugin {
      * Does nothing if breakpoints are not supported.
      * @param memLocation  memory location from where the breakpoint will be unset
      * @see CPU#isBreakpointSupported
+     * @throws IndexOutOfBoundsException if the memLocation is out of bounds
      */
     void unsetBreakpoint (int memLocation);
 
@@ -214,6 +212,7 @@ public interface CPU extends Plugin {
      *
      * @param memLocation  memory location, from where the breakpoint will be determined
      * @return true if breakpoint is set in the location, false otherwise or if breakpoints are not supported.
+     * @throws IndexOutOfBoundsException if the memLocation is out of bounds
      * @see CPU#isBreakpointSupported
      */
     boolean isBreakpointSet (int memLocation);

@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -17,8 +17,6 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 package net.emustudio.emulib.plugins.cpu;
-
-import net.emustudio.emulib.runtime.exceptions.InvalidInstructionException;
 
 /**
  * An instruction decoder interface.

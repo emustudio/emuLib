@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,9 +19,9 @@
 
 package net.emustudio.emulib.plugins.device;
 
-import net.emustudio.emulib.annotations.PluginType;
-import net.emustudio.emulib.emustudio.SettingsManager;
-import net.emustudio.emulib.runtime.exceptions.PluginInitializationException;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.PluginSettings;
+import net.emustudio.emulib.runtime.PluginInitializationException;
 import java.util.Objects;
 
 /**
@@ -30,15 +30,15 @@ import java.util.Objects;
  */
 public abstract class AbstractDevice implements Device {
     /**
-     * Plug-in identification number
+     * plugin identification number
      */
     protected final long pluginID;
 
     /**
-     * Initializes this AbstractDevice. Only assigns the plug-in ID into
+     * Initializes this AbstractDevice. Only assigns the plugin ID into
      * the class field.
      *
-     * @param pluginID plug-in id
+     * @param pluginID plugin id
      * @throws NullPointerException if pluginID is null
      */
     public AbstractDevice(Long pluginID) {
@@ -52,13 +52,13 @@ public abstract class AbstractDevice implements Device {
      * @throws PluginInitializationException never in the default implementation
      */
     @Override
-    public void initialize(SettingsManager settings) throws PluginInitializationException {
+    public void initialize(PluginSettings settings) throws PluginInitializationException {
 
     }
 
     @Override
     public String getTitle() {
-        return getClass().getAnnotation(PluginType.class).title();
+        return getClass().getAnnotation(PluginRoot.class).title();
     }
 
     /**

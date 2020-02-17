@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,8 +19,6 @@
 
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.runtime.exceptions.InvalidInstructionException;
-
 /**
  * An instruction disassembler interface.
  */
@@ -34,8 +32,9 @@ public interface Disassembler {
      *   Memory address where to begin disassembling.
      * @return Object that represents the disassembled instruction.
      * @throws InvalidInstructionException when instruction coul not be disassembled
+     * @throws IndexOutOfBoundsException when memory location exceeds the bounds
      */
-    DisassembledInstruction disassemble(int memoryPosition) throws InvalidInstructionException;
+    DisassembledInstruction disassemble(int memoryPosition) throws InvalidInstructionException, IndexOutOfBoundsException;
 
     /**
      * Returns an address in the memory of the next instruction, that is

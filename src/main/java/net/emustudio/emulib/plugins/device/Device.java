@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -21,7 +21,7 @@ package net.emustudio.emulib.plugins.device;
 import net.emustudio.emulib.plugins.Plugin;
 
 /**
- * Main interface that has to be implemented by device plug-in.
+ * Main interface that has to be implemented by device plugin.
  *
  * Design of the interface supports hierarchical connection of devices. Each
  * device can implement one or more device contexts. The contexts can be

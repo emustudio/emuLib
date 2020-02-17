@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -21,7 +21,7 @@ package net.emustudio.emulib.plugins.memory;
 import net.emustudio.emulib.plugins.Plugin;
 
 /**
- * Main interface for memory plug-ins.
+ * Main interface for memory plugins.
  */
 public interface Memory extends Plugin {
 

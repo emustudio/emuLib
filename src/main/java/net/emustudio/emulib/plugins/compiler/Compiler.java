@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -22,7 +22,7 @@ import net.emustudio.emulib.plugins.Plugin;
 import java.io.Reader;
 
 /**
- * This interface is the core for compiler plug-in types. These plug-ins
+ * This interface is the core for compiler plugin types. These plugins
  * should implement this interface once and only once.
  */
 @SuppressWarnings("unused")
@@ -48,7 +48,7 @@ public interface Compiler extends Plugin {
 
     /**
      * This is an interface that should be implemented by the emuStudio,
-     * and/or other plug-ins that want to process the output of the compiler.
+     * and/or other plugins that want to process the output of the compiler.
      */
     interface CompilerListener {
         /**

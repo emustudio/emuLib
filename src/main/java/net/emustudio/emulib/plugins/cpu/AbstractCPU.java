@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,7 +19,7 @@
 
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.annotations.PluginType;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class implements some fundamental functionality that can be used by your own plug-ins. Such as:
+ * This class implements some fundamental functionality that can be used by your own plugins. Such as:
  *
  * - support of breakpoints
  * - thread safe controlling of run states
@@ -109,7 +109,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     /**
      * Creates new instance of CPU.
      *
-     * @param pluginID plug-in identification number
+     * @param pluginID plugin identification number
      * @throws NullPointerException if pluginID is null
      */
     public AbstractCPU(Long pluginID) {
@@ -117,9 +117,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     /**
-     * Get plug-in ID assigned by emuStudio.
+     * Get plugin ID assigned by emuStudio.
      *
-     * @return plug-in ID
+     * @return plugin ID
      */
     protected long getPluginID() {
         return pluginID;
@@ -127,7 +127,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public String getTitle() {
-        return getClass().getAnnotation(PluginType.class).title();
+        return getClass().getAnnotation(PluginRoot.class).title();
     }
 
     /**

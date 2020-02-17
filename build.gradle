@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.emustudio'
-version '9.1.0-SNAPSHOT'
+version '10.0.0-SNAPSHOT'
 
 repositories {
     mavenCentral()
@@ -31,7 +31,7 @@ publishing {
             from components.java
             pom {
                 name = 'emuLib'
-                description = 'Run-time library used by emuStudio and plug-ins'
+                description = 'Run-time library used by emuStudio and plugins'
                 url = 'https://github.com/emustudio/emuLib'
                 licenses {
                     license {

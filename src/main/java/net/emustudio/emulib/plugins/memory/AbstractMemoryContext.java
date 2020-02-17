@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -78,7 +78,7 @@ public abstract class AbstractMemoryContext<Type> implements MemoryContext<Type>
     /**
      * Notify all listeners that memory has changed.
      *
-     * This method should be called whenever a some plug-in writes to the
+     * This method should be called whenever a some plugin writes to the
      * memory.
      *
      * @param position memory position (address) on which the value has changed

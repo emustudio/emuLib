@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,10 +19,9 @@
 
 package net.emustudio.emulib.plugins.compiler;
 
-import net.emustudio.emulib.annotations.PluginType;
-import net.emustudio.emulib.emustudio.SettingsManager;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.PluginSettings;
 import net.emustudio.emulib.plugins.compiler.Message.MessageType;
-import net.emustudio.emulib.runtime.exceptions.PluginInitializationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,8 +30,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class implements some fundamental functionality that can be
- * useful within the implementation of own compiler plug-ins.
+ * useful within the implementation of own compiler plugins.
  */
+@SuppressWarnings("unused")
 public abstract class AbstractCompiler implements Compiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompiler.class);
 
@@ -42,7 +42,7 @@ public abstract class AbstractCompiler implements Compiler {
     protected int programStart = 0; // actualize after compile
 
     /**
-     * Identification number of this plug-in assigned by emuStudio
+     * Identification number of this plugin assigned by emuStudio
      */
     protected final long pluginID;
 
@@ -58,7 +58,7 @@ public abstract class AbstractCompiler implements Compiler {
      * Public constructor initializes compilerListeners list and event object for
      * event passing.
      *
-     * @param pluginID ID of the plug-in assigned by emuStudio
+     * @param pluginID ID of the plugin assigned by emuStudio
      */
     public AbstractCompiler(Long pluginID) {
         this.pluginID = pluginID;
@@ -71,16 +71,15 @@ public abstract class AbstractCompiler implements Compiler {
      * It should be overridden.
      *
      * @param settings settings manipulation object
-     * @throws PluginInitializationException never in the default implementation
      */
     @Override
-    public void initialize(SettingsManager settings) throws PluginInitializationException {
+    public void initialize(PluginSettings settings) {
 
     }
 
     @Override
     public String getTitle() {
-        return getClass().getAnnotation(PluginType.class).title();
+        return getClass().getAnnotation(PluginRoot.class).title();
     }
 
     /**
