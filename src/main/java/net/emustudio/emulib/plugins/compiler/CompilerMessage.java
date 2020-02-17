@@ -19,15 +19,16 @@
 
 package net.emustudio.emulib.plugins.compiler;
 
+import java.util.Objects;
+import java.util.Optional;
+
 /**
- * This class provides the message object that will be passed when the compiler
- * wishes to print a message. Compilers that generate messages should use this
- * object.
+ * Messages are passed to compiler listeners when the compiler wishes to say something.
  */
-public class Message {
-    public static final String INFO_FORMAT =    "[Info    (%03d)] ";
-    public static final String ERROR_FORMAT =   "[Error   (%03d)] ";
-    public static final String WARNING_FORMAT = "[Warning (%03d)] ";
+public class CompilerMessage {
+    public static final String MSG_INFO =    "[Info   ] ";
+    public static final String MSG_ERROR =   "[Error  ] ";
+    public static final String MSG_WARNING = "[Warning] ";
 
     public static final String POSITION_FORMAT = "(%3d,%3d) ";
     public static final String SOURCE_FILE_FORMAT = "<%s> ";
@@ -59,7 +60,6 @@ public class Message {
     private final String sourceFile;
     private final int line;
     private final int column;
-    private final int errorCode;
 
     /**
      * This constructor creates the Message object. Messages are created by
@@ -74,16 +74,13 @@ public class Message {
      *   Column in the source code
      * @param sourceFile
      *   Name of the file that the message belongs to
-     * @param error_code Error code of the message (compiler-specific)
      */
-    public Message(MessageType message_type, String message, int line, int column,
-            String sourceFile, int error_code) {
+    public CompilerMessage(MessageType message_type, String message, int line, int column, String sourceFile) {
         this.messageType = message_type;
-        this.message = message;
+        this.message = Objects.requireNonNull(message);
         this.sourceFile = sourceFile;
         this.line = line;
         this.column = column;
-        this.errorCode = error_code;
     }
 
     /**
@@ -92,8 +89,8 @@ public class Message {
      * @param message
      *   Text of the message
      */
-    public Message(String message) {
-        this(MessageType.TYPE_UNKNOWN,message,-1,-1,null, 0);
+    public CompilerMessage(String message) {
+        this(MessageType.TYPE_UNKNOWN, message,-1,-1,null);
     }
 
     /**
@@ -104,22 +101,8 @@ public class Message {
      * @param message
      *   Text of the message
      */
-    public Message(MessageType type, String message) {
-        this(type,message,-1,-1,null, 0);
-    }
-
-    /**
-     * This constructor creates the Message object. Messages are created by
-     * compiler.
-     * @param message_type
-     *   Type of the message.
-     * @param message
-     *   Text of the message
-     * @param error_code
-     *   Error-specific code
-     */
-    public Message(MessageType message_type, String message, int error_code) {
-        this(message_type,message,-1,-1,null,error_code);
+    public CompilerMessage(MessageType type, String message) {
+        this(type,message,-1,-1,null);
     }
 
     /**
@@ -131,20 +114,13 @@ public class Message {
      *   Text of the message
      * @param sourceFile
      *   Name of the file that the message belongs to
-     * @param errorCode
-     *   Error-specific code
      */
-    public Message(MessageType message_type, String message, String sourceFile,
-            int errorCode) {
-        this(message_type,message,-1,-1,sourceFile, errorCode);
+    public CompilerMessage(MessageType message_type, String message, String sourceFile) {
+        this(message_type,message,-1,-1,sourceFile);
     }
 
-    public int getErrorCode() {
-        return errorCode;
-    }
-
-    public String getSourceFile() {
-        return sourceFile;
+    public Optional<String> getSourceFile() {
+        return Optional.ofNullable(sourceFile);
     }
 
     /**
@@ -156,18 +132,17 @@ public class Message {
         StringBuilder mes = new StringBuilder();
         switch (messageType) {
             case TYPE_WARNING:
-                mes.append(String.format(WARNING_FORMAT, errorCode));
+                mes.append(MSG_WARNING);
                 break;
             case TYPE_ERROR:
-                mes.append(String.format(ERROR_FORMAT, errorCode));
+                mes.append(MSG_ERROR);
                 break;
             case TYPE_INFO:
-                mes.append(String.format(INFO_FORMAT, errorCode));
+                mes.append(MSG_INFO);
                 break;
         }
-        if (sourceFile != null) {
-            mes.append(String.format(SOURCE_FILE_FORMAT, sourceFile));
-        }
+        Optional.ofNullable(sourceFile).map(file -> mes.append(String.format(SOURCE_FILE_FORMAT, file)));
+
         if ((line >= 0) || (column >= 0)) {
             mes.append(String.format(POSITION_FORMAT, line, column));
         }

@@ -19,11 +19,18 @@
 package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.Plugin;
+
 import java.io.Reader;
 
 /**
- * This interface is the core for compiler plugin types. These plugins
- * should implement this interface once and only once.
+ * Compiler plugin root interface.
+ *
+ * Should be implemented by a plugin. There should exist just one implementation.
+ *
+ * Compiler can define a "compiler context", which can specify e.g. a format of compiled file, or other additional
+ * meta-information for runtime, which can be used by other plugins.
+ *
+ * @see CompilerContext
  */
 @SuppressWarnings("unused")
 public interface Compiler extends Plugin {
@@ -59,9 +66,9 @@ public interface Compiler extends Plugin {
         /**
          * Method will be invoked when compiler would like to print info message.
          *
-         * @param message Message from the compiler
+         * @param compilerMessage Message from the compiler
          */
-        void onMessage (Message message);
+        void onMessage (CompilerMessage compilerMessage);
 
         /**
          * This method is called whenever the compiler finishes the compilation.

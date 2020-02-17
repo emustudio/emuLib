@@ -23,15 +23,12 @@ import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.memory.Memory.MemoryListener;
 
 /**
- * Interface provides a context for operating memory. It supports basic methods,
- * but if memory wants to support more functionality, this interface should be
- * extended by plugin programmer and he should then make it public, in order to
- * plugins have access to it.
+ * This memory context supports basic methods for accessing the memory, like reading and writing memory cells.
+ * If the memory wants to support additional functionality, it should extend this interface.
  *
- * The context is given to plugins (compiler, CPU, devices), that are connected
- * to the memory and they communicate by invoking following methods.
- * 
- * @param <CellType> The type of the memory cell. It can be any object.
+ * Plugins which need the specific memory contexts, should declare a dependency on the memory plugin.
+ *
+ * @param <CellType> type of the memory cell
  */
 @SuppressWarnings("unused")
 @PluginContext

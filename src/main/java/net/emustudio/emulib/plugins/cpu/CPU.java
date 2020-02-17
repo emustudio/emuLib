@@ -19,12 +19,19 @@
 package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.Plugin;
+import net.emustudio.emulib.plugins.compiler.CompilerContext;
+
 import javax.swing.JPanel;
 
 /**
- * Interface that covers CPU common operations.
+ * CPU plugin root interface.
  *
- * This is the main interface that CPU plugin has to implement.
+ * Should be implemented by a plugin. There should exist just one implementation.
+ *
+ * CPU can define one or more "CPU contexts" (usually just one), which can extend the runtime functionality accessible
+ * to plugins.
+ *
+ * @see CPUContext
  */
 @SuppressWarnings("unused")
 public interface CPU extends Plugin {

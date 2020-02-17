@@ -22,7 +22,9 @@ import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 
 /**
- * This interface defines compiler context.
+ * Compiler context can be used to provide additional meta-information for runtime, which can be used by other plugins.
+ *
+ * Plugins which need the specific compiler contexts, should declare a dependency on the compiler plugin.
  */
 @PluginContext
 public interface CompilerContext extends Context {

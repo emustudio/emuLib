@@ -21,19 +21,21 @@ package net.emustudio.emulib.plugins.device;
 import net.emustudio.emulib.plugins.Plugin;
 
 /**
- * Main interface that has to be implemented by device plugin.
+ * Device plugin root interface.
  *
- * Design of the interface supports hierarchical connection of devices. Each
- * device can implement one or more device contexts. The contexts can be
- * identified by implemented interface, and/or the identification number (ID).
+ * Should be implemented by a plugin. There should exist just one implementation.
+ * When a device has more physical interfaces which can accept connections, each of them should be implemented by
+ * own {@link DeviceContext}.
  *
+ * @see DeviceContext
  */
 @SuppressWarnings("unused")
 public interface Device extends Plugin {
 
     /**
-     * Shows GUI of a device. Device don't have to have a GUI, but instead it
-     * should display information message.
+     * Shows GUI of the device.
+     *
+     * In case GUI is not supported, it should do nothing.
      */
     void showGUI ();
 

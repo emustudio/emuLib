@@ -21,12 +21,11 @@ package net.emustudio.emulib.plugins.device;
 
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.PluginSettings;
-import net.emustudio.emulib.runtime.PluginInitializationException;
+
 import java.util.Objects;
 
 /**
- * Abstract device class. Implements some fundamental methods.
- *
+ * Implements fundamental functionality useful for most of the device plugins.
  */
 public abstract class AbstractDevice implements Device {
     /**
@@ -49,10 +48,9 @@ public abstract class AbstractDevice implements Device {
      * No-operation. Should be overridden if needed.
      *
      * @param settings settings manipulation object
-     * @throws PluginInitializationException never in the default implementation
      */
     @Override
-    public void initialize(PluginSettings settings) throws PluginInitializationException {
+    public void initialize(PluginSettings settings) {
 
     }
 
@@ -68,5 +66,4 @@ public abstract class AbstractDevice implements Device {
     public void reset() {
 
     }
-
 }

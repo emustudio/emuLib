@@ -37,18 +37,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class implements some fundamental functionality that can be used by your own plugins. Such as:
- *
+ * Implements fundamental functionality useful for most of the CPU plugins. Features include:
+ * <p>
  * - support of breakpoints
  * - thread safe controlling of run states
- * - managing CPU state listeners
- *
+ * - managing CPU listeners
  */
 @ThreadSafe
 @SuppressWarnings("unused")
 public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractCPU.class);
-    private final static Runnable EMPTY_TASK = () -> {};
+    private final static Runnable EMPTY_TASK = () -> {
+    };
 
     private final AtomicBoolean isDestroyed = new AtomicBoolean();
     private final ExecutorService eventReceiver = Executors.newSingleThreadExecutor();
@@ -262,7 +262,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     @Override
-    public void reset() { reset(0); }
+    public void reset() {
+        reset(0);
+    }
 
     @Override
     public void reset(int addr) {
@@ -379,7 +381,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     /**
      * Performs specific CPU reset.
-     *
+     * <p>
      * CONTRACT: If this method throws an exception, the behavior is undefined.
      *
      * @param startPos starting position (similar to calling <code>reset(pos)</code>)

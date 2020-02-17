@@ -21,7 +21,7 @@ package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.PluginSettings;
-import net.emustudio.emulib.plugins.compiler.Message.MessageType;
+import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +29,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * This class implements some fundamental functionality that can be
- * useful within the implementation of own compiler plugins.
+ * Implements fundamental functionality useful for most of the compiler plugins.
  */
 @SuppressWarnings("unused")
 public abstract class AbstractCompiler implements Compiler {
@@ -67,7 +66,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * This method semi-initializes the simple compiler. It only
      * set-up data members - pluginID and SettingsManager object.
-     *
+     * <p>
      * It should be overridden.
      *
      * @param settings settings manipulation object
@@ -118,7 +117,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * This method notifies all compilerListeners that the compiler is starting
      * the compile process.
-     *
+     * <p>
      * This method should be called whenever the compiler begins to run.
      */
     protected void notifyCompileStart() {
@@ -134,7 +133,7 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * This method notifies all compilerListeners that the compiler finished
      * the compile process right now.
-     *
+     * <p>
      * This method should be called whenever the compiler ends the execution.
      *
      * @param errorCode compiler-specific error code
@@ -152,17 +151,17 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * This method notifies all compilerListeners that the compiler wants to print
      * something out (a message).
-     *
+     * <p>
      * This method should be called when the compiler wants to notify the user
      * about some warning or error during compilation; or wants to inform the
      * user of something else (e.g. copyright information).
      *
-     * @param message The message
+     * @param compilerMessage The message
      */
-    public void notifyOnMessage(Message message) {
+    public void notifyOnMessage(CompilerMessage compilerMessage) {
         compilerListeners.forEach(listener -> {
             try {
-                listener.onMessage(message);
+                listener.onMessage(compilerMessage);
             } catch (Exception e) {
                 LOGGER.error("Compiler listener error", e);
             }
@@ -175,7 +174,7 @@ public abstract class AbstractCompiler implements Compiler {
      * @param mes text of the message
      */
     public void notifyError(String mes) {
-        notifyOnMessage(new Message(MessageType.TYPE_ERROR, mes));
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, mes));
     }
 
     /**
@@ -184,7 +183,7 @@ public abstract class AbstractCompiler implements Compiler {
      * @param mes text of the message
      */
     public void notifyInfo(String mes) {
-        notifyOnMessage(new Message(MessageType.TYPE_INFO, mes));
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, mes));
     }
 
     /**
@@ -193,7 +192,7 @@ public abstract class AbstractCompiler implements Compiler {
      * @param mes text of the message
      */
     public void notifyWarning(String mes) {
-        notifyOnMessage(new Message(MessageType.TYPE_WARNING, mes));
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, mes));
     }
 
     /**
