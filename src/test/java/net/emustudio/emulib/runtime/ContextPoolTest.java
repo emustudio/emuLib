@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -18,18 +18,12 @@
  */
 package net.emustudio.emulib.runtime;
 
-import net.emustudio.emulib.annotations.ContextType;
-import net.emustudio.emulib.emustudio.APITest;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.compiler.CompilerContext;
 import net.emustudio.emulib.plugins.cpu.CPUContext;
 import net.emustudio.emulib.plugins.device.DeviceContext;
 import net.emustudio.emulib.plugins.memory.MemoryContext;
-import net.emustudio.emulib.runtime.exceptions.AlreadyRegisteredException;
-import net.emustudio.emulib.runtime.exceptions.ContextNotFoundException;
-import net.emustudio.emulib.runtime.exceptions.InvalidContextException;
-import net.emustudio.emulib.runtime.exceptions.InvalidPasswordException;
-import net.emustudio.emulib.runtime.interfaces.PluginConnections;
 import net.emustudio.emulib.runtime.stubs.CPUContextStub;
 import net.emustudio.emulib.runtime.stubs.CompilerContextStub;
 import net.emustudio.emulib.runtime.stubs.DeviceContextStub;
@@ -44,7 +38,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class ContextPoolTest {
@@ -55,7 +48,7 @@ public class ContextPoolTest {
     private ContextPool contextPool;
     private final PluginConnections defaultComputer = new ComputerStub(true);
 
-    private class ComputerStub implements PluginConnections {
+    private static class ComputerStub implements PluginConnections {
         private final boolean connected;
 
         ComputerStub(boolean connected) {
@@ -68,52 +61,50 @@ public class ContextPoolTest {
         }
     }
 
-    @ContextType
+    @PluginContext
     private interface DifferentCPUContextStubWithEqualHash extends CPUContextStub {
 
     }
 
-    @ContextType
+    @PluginContext
     private interface DifferentCompilerContextStubWithEqualHash extends CompilerContextStub {
 
     }
 
-    @ContextType
+    @PluginContext
     private interface DifferentMemoryContextStubWithEqualHash extends MemoryContextStub {
 
     }
 
-    @ContextType
+    @PluginContext
     private interface DifferentDeviceContextStubWithEqualHash extends DeviceContextStub {
 
     }
 
-    @ContextType
+    @PluginContext
     private interface FirstEmptyContextStub extends Context {
 
     }
 
-    @ContextType
+    @PluginContext
     private interface SecondEmptyContextStub extends Context {
 
     }
 
     @Before
-    public void setUp() throws InvalidPasswordException {
+    public void setUp() throws InvalidTokenException {
         cpuContextMock = EasyMock.createNiceMock(CPUContextStub.class);
         memContextMock = EasyMock.createNiceMock(MemoryContextStub.class);
         compilerContextMock = EasyMock.createNiceMock(CompilerContextStub.class);
         devContextMock = EasyMock.createNiceMock(DeviceContextStub.class);
         replay(cpuContextMock, memContextMock, compilerContextMock, devContextMock);
 
-        contextPool = new ContextPool();
-        APITest.assignEmuStudioPassword();
-        assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), defaultComputer));
+        contextPool = new ContextPool(emustudioToken -> {});
+        assertTrue(contextPool.setComputer("", defaultComputer));
     }
 
     @After
-    public void tearDown() throws InvalidPasswordException {
-        contextPool.clearAll(APITest.getEmuStudioPassword());
+    public void tearDown() {
         verify(cpuContextMock, memContextMock, compilerContextMock, devContextMock);
         contextPool = null;
     }
@@ -279,49 +270,49 @@ public class ContextPoolTest {
         contextPool.register(0, unannotatedContext, UnannotatedContextStub.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testCPUContextAlreadyRegisteredDifferentOwner() throws Exception {
         contextPool.register(0, cpuContextMock, CPUContext.class);
         contextPool.register(1, cpuContextMock, CPUContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testCPUContextAlreadyRegisteredSameOwner() throws Exception {
         contextPool.register(0, cpuContextMock, CPUContext.class);
         contextPool.register(0, cpuContextMock, CPUContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testMemoryContextAlreadyRegisteredDifferentOwner() throws Exception {
         contextPool.register(2, memContextMock, MemoryContext.class);
         contextPool.register(3, memContextMock, MemoryContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testMemoryContextAlreadyRegisteredSameOwner() throws Exception {
         contextPool.register(2, memContextMock, MemoryContext.class);
         contextPool.register(2, memContextMock, MemoryContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testCompilerContextAlreadyRegisteredDifferentOwner() throws Exception {
         contextPool.register(1, compilerContextMock, CompilerContext.class);
         contextPool.register(2, compilerContextMock, CompilerContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testCompilerContextAlreadyRegisteredSameOwner() throws Exception {
         contextPool.register(1, compilerContextMock, CompilerContext.class);
         contextPool.register(1, compilerContextMock, CompilerContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testDeviceContextAlreadyRegisteredDifferentOwner() throws Exception {
         contextPool.register(3, devContextMock, DeviceContext.class);
         contextPool.register(2, devContextMock, DeviceContext.class);
     }
 
-    @Test(expected = AlreadyRegisteredException.class)
+    @Test(expected = ContextAlreadyRegisteredException.class)
     public void testDeviceContextAlreadyRegisteredSameOwner() throws Exception {
         contextPool.register(3, devContextMock, DeviceContext.class);
         contextPool.register(3, devContextMock, DeviceContext.class);
@@ -334,7 +325,7 @@ public class ContextPoolTest {
 
     @Test(expected = ContextNotFoundException.class)
     public void testGetContextWhenNoComputerIsSet() throws Exception {
-        assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), null));
+        assertTrue(contextPool.setComputer("", null));
 
         contextPool.getCPUContext(0, CPUContextStub.class);
     }
@@ -381,7 +372,7 @@ public class ContextPoolTest {
 
     @Test(expected = ContextNotFoundException.class)
     public void testComputerIsNotSetGetCPU() throws Exception {
-        assertTrue(contextPool.setComputer(APITest.getEmuStudioPassword(), null));
+        assertTrue(contextPool.setComputer("", null));
         contextPool.register(0, cpuContextMock, CPUContext.class);
 
         contextPool.getCPUContext(0, CPUContext.class);
@@ -397,22 +388,4 @@ public class ContextPoolTest {
             assertTrue(contextPool.unregister(0, CPUContext.class));
         }
     }
-
-    @Test
-    public void testGetContextWithEmustudioPassword() throws Exception {
-        assertTrue(
-                contextPool.setComputer(
-                        APITest.getEmuStudioPassword(),
-                        new ComputerStub(false)
-                )
-        );
-        contextPool.register(0, cpuContextMock, CPUContext.class);
-        assertNotNull(
-                contextPool.getCPUContext(
-                        APITest.getEmuStudioPassword().hashCode(),
-                        CPUContext.class
-                )
-        );
-    }
-
 }

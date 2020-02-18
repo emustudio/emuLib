@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -18,22 +18,18 @@
  */
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.annotations.ContextType;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.device.DeviceContext;
 
 /**
- * Basic interface for CPU context. The context is used by plug-ins, that are
- * connected to CPU.
+ * CPU context can be used by plugins which are connected to CPU.
  *
- * CPU plug-ins can extend this interface to their own (with some new methods)
- * and then the programmer should make it to be public in order to other plug-ins
- * could have access to it.
- *
- * Extended context may have methods for e.g. connecting devices to CPU, etc.
+ * Custom CPU contexts can extend the runtime functionality accessible to plugins. Plugins which need the specific
+ * CPU contexts, should declare a dependency on the CPU plugin.
  */
 @SuppressWarnings("unused")
-@ContextType
+@PluginContext
 public interface CPUContext extends Context {
 
     /**

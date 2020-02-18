@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -18,10 +18,10 @@
  */
 package net.emustudio.emulib.runtime.stubs;
 
-import net.emustudio.emulib.annotations.ContextType;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.memory.MemoryContext;
 
-@ContextType
+@PluginContext
 public interface MemoryContextStub extends MemoryContext {
     void testMemoryMethod();
 }

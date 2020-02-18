@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,7 +19,7 @@
 package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.compiler.Compiler.CompilerListener;
-import net.emustudio.emulib.plugins.compiler.Message.MessageType;
+import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Before;
@@ -130,12 +130,12 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyOnMessage() {
         CompilerListener listener = createMock(CompilerListener.class);
-        listener.onMessage(anyObject(Message.class));
+        listener.onMessage(anyObject(CompilerMessage.class));
         expectLastCall().once();
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.notifyOnMessage(createMock(Message.class));
+        compiler.notifyOnMessage(createMock(CompilerMessage.class));
 
         verify(listener);
     }
@@ -143,12 +143,12 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyOnMessageDoesNotThrow() {
         CompilerListener listener = createMock(CompilerListener.class);
-        listener.onMessage(anyObject(Message.class));
+        listener.onMessage(anyObject(CompilerMessage.class));
         expectLastCall().andThrow(new RuntimeException()).once();
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.notifyOnMessage(createMock(Message.class));
+        compiler.notifyOnMessage(createMock(CompilerMessage.class));
 
         verify(listener);
     }
@@ -156,9 +156,9 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyInfo() {
         CompilerListener listener = createMock(CompilerListener.class);
-        Capture<Message> captured = Capture.newInstance();
+        Capture<CompilerMessage> captured = Capture.newInstance();
         listener.onMessage(and(
-                isA(Message.class),
+                isA(CompilerMessage.class),
                 capture(captured))
         );
         expectLastCall().once();
@@ -174,9 +174,9 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyError() {
         CompilerListener listener = createMock(CompilerListener.class);
-        Capture<Message> captured = Capture.newInstance();
+        Capture<CompilerMessage> captured = Capture.newInstance();
         listener.onMessage(and(
-                isA(Message.class),
+                isA(CompilerMessage.class),
                 capture(captured))
         );
         expectLastCall().once();
@@ -192,9 +192,9 @@ public class AbstractCompilerTest {
     @Test
     public void testNotifyWarning() {
         CompilerListener listener = createMock(CompilerListener.class);
-        Capture<Message> captured = Capture.newInstance();
+        Capture<CompilerMessage> captured = Capture.newInstance();
         listener.onMessage(and(
-                isA(Message.class),
+                isA(CompilerMessage.class),
                 capture(captured))
         );
         expectLastCall().once();

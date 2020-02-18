@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -81,70 +81,70 @@ public interface Token {
 
     /**
      * Get token ID.
-     *
+     * <p>
      * The token ID is compiler-specific value. Each token must have unique ID.
      *
      * @return ID of the token
      */
-    int getID ();
+    int getID();
 
     /**
      * Get token type.
-     *
+     * <p>
      * The token type mus be one of the pre-defined constants located inside this interface (e.g. <code>RESERVED</code>,
      * <code>PREPROCESSOR</code>, etc.).
      *
      * @return type of the token
      */
-    int getType ();
+    int getType();
 
     /**
      * Get 0-based starting line (row) of token position.
      *
      * @return start line number of the token
      */
-    int getLine ();
+    int getLine();
 
     /**
      * Get 0-based starting column of token position.
      *
      * @return start column number of the token
      */
-    int getColumn ();
+    int getColumn();
 
     /**
      * Get 0-based starting offset of token position.
      *
      * @return starting offset of the token in the source code
      */
-    int getOffset ();
+    int getOffset();
 
     /**
      * Get length of the token.
      *
      * @return length of the token
      */
-    int getLength ();
+    int getLength();
 
     /**
      * Get error string for this token.
-     *
+     * <p>
      * If the token is not errorneous, return empty string ("").
      *
      * @return error string message for this token
      */
-    String getErrorString ();
+    String getErrorString();
 
     /**
      * Get token value.
      *
      * @return token value
      */
-    String getText ();
+    String getText();
 
     /**
      * Check if the token is in initial lexical state.
-     *
+     * <p>
      * Initial lexical state represents a position in the source code, from what the lexical analyzer can safely start
      * parsing the source code - as it would parse it from the start of the document. They are useful especially for
      * syntax highlighting.

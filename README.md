@@ -3,14 +3,14 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib)
 
 emuLib is a run-time library used by [emuStudio](https://github.com/emustudio/emuStudio), universal emulation platform,
-and its plug-ins.
+and its plugins.
 
 ### Content
  
-- Core plug-in API in the form of Java interfaces
+- Core plugin API in the form of Java interfaces
 - Some abstract implementations of the API which partially implement the common stuff
-- Context pool or register which holds all registered plug-ins, which can be then obtained easily by other plug-ins 
-- emuStudio main-module API which can be used by plug-ins
+- Context pool or register which holds all registered plugins, which can be then obtained easily by other plugins 
+- emuStudio main-module API which can be used by plugins
 - Helper classes and methods, like:
 
     * Java Swing dialogs for showing errors and other messages
@@ -18,7 +18,7 @@ and its plug-ins.
     * Intel HEX file encoder
     * Universal file filter, usable in "Open file" Swing dialogs
 
-emuLib also contains information about emulated computer (the context pool contains plug-in objects and their connection
+emuLib also contains information about emulated computer (the context pool contains plugin objects and their connection
 information), which is then used by emuStudio.
 
 ## License

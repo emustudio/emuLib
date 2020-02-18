@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -18,13 +18,15 @@
  */
 package net.emustudio.emulib.plugins.compiler;
 
-import net.emustudio.emulib.annotations.ContextType;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 
 /**
- * This interface defines compiler context.
+ * Compiler context can be used to provide additional meta-information for runtime, which can be used by other plugins.
+ *
+ * Plugins which need the specific compiler contexts, should declare a dependency on the compiler plugin.
  */
-@ContextType
+@PluginContext
 public interface CompilerContext extends Context {
 
 }

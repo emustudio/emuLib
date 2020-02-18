@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -20,7 +20,6 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.cpu.CPU.CPUListener;
 import net.emustudio.emulib.plugins.cpu.CPU.RunState;
-import net.emustudio.emulib.plugins.cpu.stubs.AbstractCPUStub;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

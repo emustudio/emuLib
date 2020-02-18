@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,7 +19,7 @@
 
 package net.emustudio.emulib.plugins.memory;
 
-import net.emustudio.emulib.emustudio.SettingsManager;
+import net.emustudio.emulib.runtime.PluginSettings;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,7 +36,7 @@ public class AbstractMemoryTest {
 
     @Test
     public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
-        memory.initialize(createMock(SettingsManager.class));
+        memory.initialize(createMock(PluginSettings.class));
     }
 
     @Test(expected = NullPointerException.class)

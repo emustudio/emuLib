@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,7 +19,7 @@
 
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.annotations.PluginType;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,18 +37,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * This class implements some fundamental functionality that can be used by your own plug-ins. Such as:
- *
+ * Implements fundamental functionality useful for most of the CPU plugins. Features include:
+ * <p>
  * - support of breakpoints
  * - thread safe controlling of run states
- * - managing CPU state listeners
- *
+ * - managing CPU listeners
  */
 @ThreadSafe
 @SuppressWarnings("unused")
 public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractCPU.class);
-    private final static Runnable EMPTY_TASK = () -> {};
+    private final static Runnable EMPTY_TASK = () -> {
+    };
 
     private final AtomicBoolean isDestroyed = new AtomicBoolean();
     private final ExecutorService eventReceiver = Executors.newSingleThreadExecutor();
@@ -109,7 +109,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     /**
      * Creates new instance of CPU.
      *
-     * @param pluginID plug-in identification number
+     * @param pluginID plugin identification number
      * @throws NullPointerException if pluginID is null
      */
     public AbstractCPU(Long pluginID) {
@@ -117,9 +117,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     /**
-     * Get plug-in ID assigned by emuStudio.
+     * Get plugin ID assigned by emuStudio.
      *
-     * @return plug-in ID
+     * @return plugin ID
      */
     protected long getPluginID() {
         return pluginID;
@@ -127,7 +127,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public String getTitle() {
-        return getClass().getAnnotation(PluginType.class).title();
+        return getClass().getAnnotation(PluginRoot.class).title();
     }
 
     /**
@@ -262,7 +262,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     @Override
-    public void reset() { reset(0); }
+    public void reset() {
+        reset(0);
+    }
 
     @Override
     public void reset(int addr) {
@@ -379,7 +381,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     /**
      * Performs specific CPU reset.
-     *
+     * <p>
      * CONTRACT: If this method throws an exception, the behavior is undefined.
      *
      * @param startPos starting position (similar to calling <code>reset(pos)</code>)

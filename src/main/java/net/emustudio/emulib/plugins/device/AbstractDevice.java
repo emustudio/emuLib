@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,26 +19,25 @@
 
 package net.emustudio.emulib.plugins.device;
 
-import net.emustudio.emulib.annotations.PluginType;
-import net.emustudio.emulib.emustudio.SettingsManager;
-import net.emustudio.emulib.runtime.exceptions.PluginInitializationException;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.PluginSettings;
+
 import java.util.Objects;
 
 /**
- * Abstract device class. Implements some fundamental methods.
- *
+ * Implements fundamental functionality useful for most of the device plugins.
  */
 public abstract class AbstractDevice implements Device {
     /**
-     * Plug-in identification number
+     * plugin identification number
      */
     protected final long pluginID;
 
     /**
-     * Initializes this AbstractDevice. Only assigns the plug-in ID into
+     * Initializes this AbstractDevice. Only assigns the plugin ID into
      * the class field.
      *
-     * @param pluginID plug-in id
+     * @param pluginID plugin id
      * @throws NullPointerException if pluginID is null
      */
     public AbstractDevice(Long pluginID) {
@@ -49,16 +48,15 @@ public abstract class AbstractDevice implements Device {
      * No-operation. Should be overridden if needed.
      *
      * @param settings settings manipulation object
-     * @throws PluginInitializationException never in the default implementation
      */
     @Override
-    public void initialize(SettingsManager settings) throws PluginInitializationException {
+    public void initialize(PluginSettings settings) {
 
     }
 
     @Override
     public String getTitle() {
-        return getClass().getAnnotation(PluginType.class).title();
+        return getClass().getAnnotation(PluginRoot.class).title();
     }
 
     /**
@@ -68,5 +66,4 @@ public abstract class AbstractDevice implements Device {
     public void reset() {
 
     }
-
 }

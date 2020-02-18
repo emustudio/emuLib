@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -19,10 +19,10 @@
 
 package net.emustudio.emulib.plugins.memory;
 
-import net.emustudio.emulib.annotations.PLUGIN_TYPE;
-import net.emustudio.emulib.annotations.PluginType;
+import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
 
-@PluginType(
+@PluginRoot(
         type = PLUGIN_TYPE.MEMORY,
         title = "title",
         copyright = "copyright",

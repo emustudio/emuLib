@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -18,7 +18,7 @@
  */
 package net.emustudio.emulib.plugins.device;
 
-import net.emustudio.emulib.emustudio.SettingsManager;
+import net.emustudio.emulib.runtime.PluginSettings;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,7 +40,7 @@ public class AbstractDeviceTest {
 
     @Test
     public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
-        device.initialize(createMock(SettingsManager.class));
+        device.initialize(createMock(PluginSettings.class));
     }
 
     @Test

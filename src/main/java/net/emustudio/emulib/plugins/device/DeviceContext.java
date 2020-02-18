@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -18,24 +18,25 @@
  */
 package net.emustudio.emulib.plugins.device;
 
-import net.emustudio.emulib.annotations.ContextType;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
+
 import java.io.IOException;
 
 /**
- * Interface for basic context of the device. If device support more
- * functionality than input or output, it should be extended (or implemented
- * by an abstract class), and then made public.
- * 
- * @param <T> Type of data which can be transferred to/from this device
+ * Device context of the device plugin. If the device supports more functionality, it can be extended. Device plugins
+ * can have multiple device contexts. Plugins which need the specific device contexts should declare a dependency
+ * on the device plugin.
+ *
+ * @param <T> Type of data which can be transferred from/to this device
  */
 @SuppressWarnings("unused")
-@ContextType
+@PluginContext
 public interface DeviceContext<T> extends Context {
 
     /**
      * Read data from the device.
-     *
+     * <p>
      * From the CPU point of view, this should be an implementation of
      * the "IN" operation. The device should return one elementary unit
      * (e.g. byte) of its input data. I/O operations
@@ -44,29 +45,25 @@ public interface DeviceContext<T> extends Context {
      * @return elementary data read from device
      * @throws IOException if something goes wrong
      */
-    T read () throws IOException;
+    T readData() throws IOException;
 
     /**
      * Writes/sends data to the device.
+     * <p>
+     * From the CPU point of view, this is what the "OUT" instruction should use. The device should accept one
+     * elementary unit (e.g. a byte) of the output data. I/O operations are considered as events that occurred
+     * within this device.
      *
-     * From the CPU point of view, this should be an implementation of the
-     * "OUT" operation. The device should accept one elementary unit
-     * (e.g. byte) of the output data. I/O operations are
-     * considered as events that occurred onto this device.
-     *
-     * @param val  data to be written to the device
+     * @param value data to be written to the device
      * @throws IOException if something goes wrong
      */
-    void write (T val) throws IOException;
+    void writeData(T value) throws IOException;
 
     /**
-     * Get the type of transferred data. As you can see, methods
-     * <code>read</code> and <code>write</code> use <code>Object</code> as
-     * the transferred data type. This method specifies the data type.
+     * Get the type of transferred data.
      *
      * @return type of transferred data
      */
     Class<T> getDataType();
-
 }
 

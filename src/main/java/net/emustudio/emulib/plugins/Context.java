@@ -19,23 +19,26 @@
 
 package net.emustudio.emulib.plugins;
 
-import net.emustudio.emulib.annotations.ContextType;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * Context is a functional structure of a plug-in that can be used by the other plug-ins.
+ * A plugin context is a runtime structure implemented and used by plugins in order to communicate between each other.
  *
- * Plug-ins obtain needed contexts of another plug-ins by querying ContextPool directly. Plug-ins must be interconnected
- * and compatible to get the contexts.
+ * At first, plugins should register their contexts in the plugin root class constructor. Then, within plugin
+ * initialization, it can requests contexts of other plugins.
  *
- * Each plug-in can implement none, one or more contexts, implementing the same interface is allowed. Plug-in can
- * declare new context interface, which would be derived (directly or indirectly) from this interface.
+ * Whether they get the requested context is given by several factors, like the plugins must be interconnected in
+ * the abstract schema, and the contexts must be compatible.
+ *
+ * Each plugin can implement none, one or more contexts. Implementing the same interface multiple times is allowed.
+ * A plugin can also extend this context interface (directly or indirectly).
  * 
- * Another requirement is to annotate context interfaces with @ContextType annotation.
+ * Another requirement is to annotate custom context interfaces with {@link PluginContext} annotation.
  * 
- * Contexts are required to be thread-safe, since there's no guarantee in which threads plug-ins communicate.
+ * Contexts should be thread-safe, since there's no guarantee in which threads plugins communicate.
  */
-@ContextType
+@PluginContext
 @ThreadSafe
 public interface Context {
 
