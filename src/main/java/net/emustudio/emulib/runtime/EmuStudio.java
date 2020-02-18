@@ -44,9 +44,8 @@ public final class EmuStudio {
 
         @Override
         public void verifyToken(String token) throws InvalidTokenException {
-            if ((token == null) || (EmuStudio.this.token == null)) {
-                throw new InvalidTokenException();
-            }
+            Objects.requireNonNull(token);
+
             if (!token.equals(EmuStudio.this.token)) {
                 throw new InvalidTokenException();
             }

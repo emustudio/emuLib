@@ -64,7 +64,7 @@ public class CompilerMessage {
     /**
      * This constructor creates the Message object. Messages are created by
      * compiler.
-     * @param message_type
+     * @param messageType
      *   Type of the message.
      * @param message
      *   Text of the message
@@ -75,10 +75,10 @@ public class CompilerMessage {
      * @param sourceFile
      *   Name of the file that the message belongs to
      */
-    public CompilerMessage(MessageType message_type, String message, int line, int column, String sourceFile) {
-        this.messageType = message_type;
+    public CompilerMessage(MessageType messageType, String message, int line, int column, String sourceFile) {
+        this.messageType = Objects.requireNonNull(messageType);
         this.message = Objects.requireNonNull(message);
-        this.sourceFile = sourceFile;
+        this.sourceFile = sourceFile; // internally can be null
         this.line = line;
         this.column = column;
     }

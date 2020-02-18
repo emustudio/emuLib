@@ -28,8 +28,9 @@ public interface TokenVerifier {
      *
      * If tokens do not match, an exception is thrown.
      *
-     * @param emustudioToken emuStudio token (only emuStudio has it)
-     * @throws InvalidTokenException if provided token was wrong, or if no emustudio token was assigned.
+     * @param token emuStudio token (only emuStudio has it)
+     * @throws InvalidTokenException if provided token was wrong.
+     * @throws NullPointerException if token is null
      */
-    void verifyToken(String emustudioToken) throws InvalidTokenException;
+    void verifyToken(String token) throws InvalidTokenException;
 }

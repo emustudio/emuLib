@@ -98,7 +98,7 @@ public class ContextPool {
      */
     public void register(long pluginID, Context context, Class<? extends Context> contextInterface)
             throws ContextAlreadyRegisteredException, InvalidContextException {
-        verifyTrustedContext(contextInterface);
+        verifyPluginContext(contextInterface);
         String contextHash = computeHash(contextInterface);
 
         // check if the contextInterface is implemented by the context
@@ -132,14 +132,13 @@ public class ContextPool {
     }
 
     /**
-     * Check if the provided class is a context.
+     * Check if the provided class is a valid plugin context.
      *
      * @param contextInterface the context interface
      */
-    private void verifyTrustedContext(Class<? extends Context> contextInterface) throws InvalidContextException {
-        if (contextInterface == null) {
-            throw new InvalidContextException("Interface is null");
-        }
+    private void verifyPluginContext(Class<? extends Context> contextInterface) throws InvalidContextException {
+        Objects.requireNonNull(contextInterface);
+
         if (!contextInterface.isInterface()) {
             throw new InvalidContextException("Given class is not interface");
         }
@@ -162,7 +161,7 @@ public class ContextPool {
      *
      */
     public boolean unregister(long pluginID, Class<? extends Context> contextInterface) throws InvalidContextException {
-        verifyTrustedContext(contextInterface);
+        verifyPluginContext(contextInterface);
         String contextHash = computeHash(contextInterface);
 
         registeringLock.writeLock().lock();
@@ -214,7 +213,7 @@ public class ContextPool {
     public <T extends Context> T getContext(long pluginID, Class<T> contextInterface, int index)
         throws InvalidContextException, ContextNotFoundException {
 
-        verifyTrustedContext(contextInterface);
+        verifyPluginContext(contextInterface);
         registeringLock.readLock().lock();
         try {
             // find the requested context
@@ -227,15 +226,15 @@ public class ContextPool {
             LOGGER.debug("Matching context " + contextInterface + " from " + contextsByHash.size() + " options...");
 
             // find context based on contextID
-            int j = 0;
+            int currentIndex = 0;
             for (Context context : contextsByHash) {
-                if (checkPermission(pluginID, context)) {
-                    if ((index == -1) || (j == index)) {
-                        LOGGER.debug("Found context with index " + j);
+                if (hasPermission(pluginID, context)) {
+                    if ((index == -1) || (currentIndex == index)) {
+                        LOGGER.debug("Found context with index " + currentIndex);
                         return (T)context;
                     }
                 }
-                j++;
+                currentIndex++;
             }
             throw new ContextNotFoundException("The plugin with ID "
                     + pluginID
@@ -533,19 +532,6 @@ public class ContextPool {
         return getContext(pluginID, contextInterface, index);
     }
 
-    private Long findContextOwner(Context context) {
-        Long contextOwner = null;
-        for (Map.Entry<Long, List<Context>> owner : contextOwners.entrySet()) {
-            List<Context> contextsByOwner = owner.getValue();
-            assert (contextsByOwner != null);
-            if (contextsByOwner.contains(context)) {
-                contextOwner = owner.getKey();
-                break;
-            }
-        }
-        return contextOwner;
-    }
-
     /**
      * Set a computer, represented as plugin connections, loaded by emuStudio.
      *
@@ -555,51 +541,52 @@ public class ContextPool {
      * @param computer virtual computer, loaded by emuStudio
      * @return true if computer was set successfully; false otherwise.
      * @throws InvalidTokenException if the emustudioToken was incorrect
+     * @throws NullPointerException if computer is null
      */
     public boolean setComputer(String emustudioToken, PluginConnections computer) throws InvalidTokenException {
         tokenVerifier.verifyToken(emustudioToken);
-        this.computer.set(computer);
+        this.computer.set(Objects.requireNonNull(computer));
         return true;
     }
 
     /**
-     * This method check if the plugin has the permission to access specified context.
+     * Checks if a plugin has permission to access a context.
      *
      * The permission is granted if and only if the context is connected to the plugin inside virtual computer.
      *
      * Note: it can be called only when registeringLock is held.
      *
      * @param pluginID plugin to check
-     * @param context requested context
-     * @return true if the plugin is approved to access the context; false otherwise
+     * @param context requested context (of another plugin)
+     * @return true if the plugin is permitted to access the context; false otherwise
      */
-    private boolean checkPermission(long pluginID, Context context) {
-        // check if it is possible to check the plugin for the permission
-        PluginConnections tmpComputer = computer.get();
-        if (tmpComputer == null) {
-            LOGGER.debug("Plugin with ID=" + pluginID + " cannot have access to context " + context + ": Computer is not set.");
-            return false;
-        }
-        // first it must be found the contextsByOwner of the ContextPool.
-        Long contextOwner = findContextOwner(context);
+    private boolean hasPermission(long pluginID, Context context) {
+        PluginConnections tmpComputer = Objects.requireNonNull(computer.get(), "Computer is not set");
 
-        // THIS is the permission check
-        LOGGER.debug("Checking permission of plugin with ID=" + pluginID + " to context owner with ID=" + contextOwner
-                + " (" + context + ")");
-        return tmpComputer.isConnected(pluginID, contextOwner);
+        Optional<Long> contextOwner = findContextOwner(context);
+        return contextOwner.filter(co -> tmpComputer.isConnected(pluginID, co)).isPresent();
+    }
+
+    private Optional<Long> findContextOwner(Context context) {
+        Long contextOwner = null;
+        for (Map.Entry<Long, List<Context>> owner : contextOwners.entrySet()) {
+            List<Context> contextsByOwner = owner.getValue();
+            if (contextsByOwner.contains(context)) {
+                contextOwner = owner.getKey();
+                break;
+            }
+        }
+        return Optional.ofNullable(contextOwner);
     }
 
     /**
      * Compute emuStudio-specific hash of the context interface.
-     * The name of the interface is not important, only method names and their
-     * signatures.
-     *
-     * The final processing uses SHA-1 method.
+     * The name of the interface is not important, only method names and their signatures.
      *
      * @param contextInterface interface to compute hash of
-     * @return SHA-1 hash string of the interface
+     * @return hash representing the interface
      */
-    public static String computeHash(Class<? extends Context> contextInterface) {
+    private static String computeHash(Class<? extends Context> contextInterface) throws InvalidContextException {
         List<Method> contextMethods = Arrays.asList(contextInterface.getMethods());
         contextMethods.sort(Comparator.comparing(Method::getName));
 
@@ -614,8 +601,7 @@ public class ContextPool {
         try {
             return SHA1(hash.toString());
         } catch(NoSuchAlgorithmException e) {
-            LOGGER.error("Could not compute hash for interface " + contextInterface, e);
-            return null;
+            throw new InvalidContextException("Could not compute hash for interface " + contextInterface, e);
         }
     }
 }

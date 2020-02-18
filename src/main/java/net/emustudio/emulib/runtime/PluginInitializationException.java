@@ -26,6 +26,7 @@ import java.util.Optional;
 /**
  * Exception representing general plugin initialization error.
  */
+@SuppressWarnings("unused")
 public class PluginInitializationException extends Exception {
     private final Plugin plugin;
 

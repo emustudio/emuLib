@@ -23,8 +23,11 @@ package net.emustudio.emulib.runtime;
  */
 public class InvalidContextException extends PluginInitializationException {
 
-    public InvalidContextException(String cause) {
-        super(cause);
+    public InvalidContextException(String message) {
+        super(message);
     }
 
+    public InvalidContextException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

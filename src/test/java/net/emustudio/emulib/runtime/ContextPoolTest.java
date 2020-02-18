@@ -325,27 +325,25 @@ public class ContextPoolTest {
 
     @Test(expected = ContextNotFoundException.class)
     public void testGetContextWhenNoComputerIsSet() throws Exception {
-        assertTrue(contextPool.setComputer("", null));
-
         contextPool.getCPUContext(0, CPUContextStub.class);
     }
 
-    @Test(expected = InvalidContextException.class)
+    @Test(expected = NullPointerException.class)
     public void testGetNullCPUContext() throws Exception {
         contextPool.getCPUContext(0, null);
     }
 
-    @Test(expected = InvalidContextException.class)
+    @Test(expected = NullPointerException.class)
     public void testGetNullCompilerContext() throws Exception {
         contextPool.getCompilerContext(1, null);
     }
 
-    @Test(expected = InvalidContextException.class)
+    @Test(expected = NullPointerException.class)
     public void testGetNullMemoryContext() throws Exception {
         contextPool.getMemoryContext(2, null);
     }
 
-    @Test(expected = InvalidContextException.class)
+    @Test(expected = NullPointerException.class)
     public void testGetNullDeviceContext() throws Exception {
         contextPool.getDeviceContext(3, null);
     }
@@ -372,10 +370,13 @@ public class ContextPoolTest {
 
     @Test(expected = ContextNotFoundException.class)
     public void testComputerIsNotSetGetCPU() throws Exception {
-        assertTrue(contextPool.setComputer("", null));
         contextPool.register(0, cpuContextMock, CPUContext.class);
-
         contextPool.getCPUContext(0, CPUContext.class);
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testCannotSetNullComputer() throws InvalidTokenException {
+        contextPool.setComputer("", null);
     }
 
     @Test
