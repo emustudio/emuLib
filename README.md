@@ -33,14 +33,14 @@ For Maven, use:
     <dependency>
         <groupId>net.emustudio</groupId>
         <artifactId>emulib</artifactId>
-        <version>9.1.0-SNAPSHOT</version>
+        <version>10.0.0</version>
     </dependency>
 ```
 
 For Gradle, use:
 
 ```
-    implementation 'net.emustudio:emulib:9.1.0-SNAPSHOT'
+    implementation 'net.emustudio:emulib:10.0.0'
 ```
 
 ## Deployment
