@@ -1,6 +1,6 @@
 # emuLib
 ![emuLib Build](https://github.com/emustudio/emuLib/workflows/emuLib%20Build/badge.svg)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.sf.emustudio/emuLib)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.emustudio/emulib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.emustudio/emulib)
 
 emuLib is a run-time library used by [emuStudio](https://github.com/emustudio/emuStudio), universal emulation platform,
 and its plugins.
@@ -26,6 +26,10 @@ For Gradle, use:
 ```
     implementation 'net.emustudio:emulib:10.0.0'
 ```
+
+### Important changes
+
+Previous releases used different group (`net.sf.emustudio`) and artifactId (`emuLib`).
 
 ## Deployment
 
