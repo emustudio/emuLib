@@ -16,9 +16,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.internal;
+package net.emustudio.emulib.runtime.helpers;
 
-import net.emustudio.emulib.runtime.helpers.RadixUtils;
 import org.junit.Before;
 import org.junit.Test;
 

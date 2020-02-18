@@ -5,22 +5,6 @@
 emuLib is a run-time library used by [emuStudio](https://github.com/emustudio/emuStudio), universal emulation platform,
 and its plugins.
 
-### Content
- 
-- Core plugin API in the form of Java interfaces
-- Some abstract implementations of the API which partially implement the common stuff
-- Context pool or register which holds all registered plugins, which can be then obtained easily by other plugins 
-- emuStudio main-module API which can be used by plugins
-- Helper classes and methods, like:
-
-    * Java Swing dialogs for showing errors and other messages
-    * Radix conversion utils
-    * Intel HEX file encoder
-    * Universal file filter, usable in "Open file" Swing dialogs
-
-emuLib also contains information about emulated computer (the context pool contains plugin objects and their connection
-information), which is then used by emuStudio.
-
 ## License
 
 This project is released under [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html) license.
@@ -47,3 +31,21 @@ For Gradle, use:
 
 The library should be placed in `lib/` directory where emuStudio is installed.
 For example: `emuStudio/lib/emulib.jar`.
+
+
+## Getting started
+
+**TLDR;** Click [here](https://www.emustudio.net/devel/) for more robust documentation of plugin development. 
+
+The library defines API for emuStudio plugins. A plugin is represented by single object which implements
+`net.emustudio.emulib.plugins.Plugin` interface (or it's derivative). Plugins can also implement so-called "contexts",
+which are used for inter-plugin communication.
+
+Plugins can also communicate with emuStudio, using emuStudio API - object `net.emustudio.emulib.runtime.EmuStudio`
+obtained during plugin object construction.
+ 
+Generally, package `net.emustudio.emulib.plugins` is the API which plugins need to implement.
+Then, in package `net.emustudio.emulib.runtime.helpers` are utility classes which might be useful for the runtime, like: 
+
+- Number utilities which can do various radix conversions or other number manipulations (`NumberUtils`, `RadixUtils`)
+- Intel HEX file generator/loader (`IntelHEX`)

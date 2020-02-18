@@ -16,9 +16,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.internal;
+package net.emustudio.emulib.runtime.helpers;
 
-import net.emustudio.emulib.runtime.helpers.IntelHEX;
 import net.emustudio.emulib.plugins.memory.Memory;
 import net.emustudio.emulib.plugins.memory.MemoryContext;
 import org.junit.Before;
@@ -33,9 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class IntelHEXTest {
     private static final String VALID_HEX_FILE = "valid.hex";

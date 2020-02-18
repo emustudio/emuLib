@@ -32,7 +32,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This class generates and loads 16 bit Intel hex files.
+ * Generator and loader of 16-bit Intel Hex files (I8HEX).
+ *
+ * File format is described here: https://en.wikipedia.org/wiki/Intel_HEX
  */
 public class IntelHEX {
     private final Map<Integer, String> program;
