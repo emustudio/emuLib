@@ -109,5 +109,4 @@ public abstract class AbstractMemoryContext<Type> implements MemoryContext<Type>
             });
         }
     }
-
 }

@@ -20,9 +20,8 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
-import net.emustudio.emulib.plugins.cpu.AbstractCPU;
-import net.emustudio.emulib.plugins.cpu.Disassembler;
 
 import javax.swing.*;
 import java.util.concurrent.CountDownLatch;
@@ -31,9 +30,7 @@ import java.util.concurrent.locks.LockSupport;
 
 @PluginRoot(
         type = PLUGIN_TYPE.CPU,
-        title = "title",
-        copyright = "copyright",
-        description = "description"
+        title = "title"
 )
 public class AbstractCPUStub extends AbstractCPU {
     private volatile boolean runCalled = false;
@@ -43,8 +40,8 @@ public class AbstractCPUStub extends AbstractCPU {
     private RunState runStateToReturn = RunState.STATE_STOPPED_NORMAL;
     private RuntimeException exceptionToThrow;
 
-    public AbstractCPUStub(Long id) {
-        super(id);
+    public AbstractCPUStub(long id, ApplicationApi emustudio, PluginSettings settngs) {
+        super(id, emustudio, settngs);
     }
 
     @Override
@@ -77,12 +74,12 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    public int getInstructionPosition() {
+    public int getInstructionLocation() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean setInstructionPosition(int pos) {
+    public boolean setInstructionLocation(int location) {
         throw new UnsupportedOperationException();
     }
 
@@ -92,7 +89,8 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
-    public void initialize(PluginSettings pluginSettings) {
+    public void initialize() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -100,6 +98,16 @@ public class AbstractCPUStub extends AbstractCPU {
 
     @Override
     public String getVersion() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getCopyright() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getDescription() {
         throw new UnsupportedOperationException();
     }
 

@@ -21,17 +21,18 @@ package net.emustudio.emulib.plugins.memory;
 
 import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.PluginSettings;
+import static org.easymock.EasyMock.createNiceMock;
 
 @PluginRoot(
         type = PLUGIN_TYPE.MEMORY,
-        title = "title",
-        copyright = "copyright",
-        description = "description"
+        title = "title"
 )
 public class AbstractMemoryStub extends AbstractMemory {
 
-    public AbstractMemoryStub(Long id) {
-        super(id);
+    public AbstractMemoryStub(long id) {
+        super(id, createNiceMock(ApplicationApi.class), createNiceMock(PluginSettings.class));
     }
 
     @Override
@@ -56,6 +57,16 @@ public class AbstractMemoryStub extends AbstractMemory {
 
     @Override
     public String getVersion() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getCopyright() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getDescription() {
         throw new UnsupportedOperationException();
     }
 

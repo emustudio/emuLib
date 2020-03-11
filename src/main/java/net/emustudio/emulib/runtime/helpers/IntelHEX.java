@@ -19,6 +19,7 @@
 package net.emustudio.emulib.runtime.helpers;
 
 import net.emustudio.emulib.plugins.memory.MemoryContext;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -33,7 +34,7 @@ import java.util.Map;
 
 /**
  * Generator and loader of 16-bit Intel Hex files (I8HEX).
- *
+ * <p>
  * File format is described here: https://en.wikipedia.org/wiki/Intel_HEX
  */
 public class IntelHEX {
@@ -47,17 +48,17 @@ public class IntelHEX {
 
     /**
      * Put a series of bytes to the code table.
-     *
+     * <p>
      * The bytes must be given as a hexadecimal string of any length.
      * Each byte must have a form of two characters. For example:
      *
      * <code>0A0B10</code>
-     *
+     * <p>
      * represents 3 bytes: <code>0x0A</code>, <code>0x0B</code> and <code>0x10</code>.
-     *
+     * <p>
      * The code table is modified so that all addresses starting from the current
      * one up to the code length will contain corresponding byte.
-     *
+     * <p>
      * The current address is then increased by the code length.
      * If a byte exists on an address already, it is overwritten.
      *
@@ -69,7 +70,7 @@ public class IntelHEX {
             return nextAddress;
         }
         int addr = nextAddress;
-        for (int i = 0; i < code.length()-1; i += 2) {
+        for (int i = 0; i < code.length() - 1; i += 2) {
             String tmp = code.substring(i, i + 2);
             program.put(addr, tmp);
             addr++;
@@ -156,7 +157,7 @@ public class IntelHEX {
             // address or line is full
             if ((address != adr) || (bytesCount >= 16)) {
                 String lin = String.format("%1$02X", bytesCount) + lineAddress
-                        + "00" + line;
+                    + "00" + line;
                 lines += ":" + lin + checksum(lin) + "\n";
                 bytesCount = 0;
                 line = "";
@@ -172,7 +173,7 @@ public class IntelHEX {
         }
         if (!line.isEmpty()) {
             String lin = String.format("%1$02X", bytesCount) + lineAddress
-                    + "00" + line;
+                + "00" + line;
             lines += ":" + lin + checksum(lin) + "\n";
         }
         lines += ":00000001FF\n";
@@ -185,9 +186,8 @@ public class IntelHEX {
      * to the operating memory.
      *
      * @param mem context of operating memory
-     * @return true if the hex file was successfully loaded, false otherwise
      */
-    public boolean loadIntoMemory(MemoryContext<Short> mem) {
+    public void loadIntoMemory(MemoryContext<Short> mem) {
         List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
         adrs.forEach(adr -> {
@@ -198,7 +198,6 @@ public class IntelHEX {
                 mem.write(adr + j, num);
             }
         });
-        return true;
     }
 
     /**
@@ -215,12 +214,13 @@ public class IntelHEX {
     }
 
     /**
-     * Get the program starting address (the first address that has occured in
-     * the program HashMap).
+     * Get program location in memory.
+     * <p>
+     * It is actually the the first address which has occurred in the program HashMap.
      *
-     * @return program starting memory location
+     * @return program memory location
      */
-    public int getProgramStart() {
+    public int getProgramLocation() {
         List<Integer> adrs = new ArrayList<>(program.keySet());
         Collections.sort(adrs);
         if (!adrs.isEmpty()) {
@@ -238,12 +238,11 @@ public class IntelHEX {
         return (char) input;
     }
 
-    private static char ignoreLine(Reader reader) throws IOException {
+    private static void ignoreLine(Reader reader) throws IOException {
         int input = reader.read();
         while (input != -1 && input != '\n') {
             input = reader.read();
         }
-        return (char) input;
     }
 
     private static int readWord(Reader reader) throws Exception {
@@ -331,7 +330,7 @@ public class IntelHEX {
                     char[] cbuf = new char[2];
                     reader.read(cbuf);
                     if (cbuf[0] == '\n' || cbuf[1] == '\n') {
-                      throw new IOException("Unexpected EOL");
+                        throw new IOException("Unexpected EOL");
                     }
                     hexFile.putCode(new String(cbuf));
                 }
@@ -345,6 +344,6 @@ public class IntelHEX {
     public static int loadIntoMemory(File file, MemoryContext<Short> memory) throws Exception {
         IntelHEX hexFile = IntelHEX.parseFromFile(file);
         hexFile.loadIntoMemory(memory);
-        return hexFile.getProgramStart();
+        return hexFile.getProgramLocation();
     }
 }

@@ -19,7 +19,9 @@
 
 package net.emustudio.emulib.plugins.device;
 
+import net.emustudio.emulib.plugins.PluginInitializationException;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
 
 import java.util.Objects;
@@ -27,30 +29,41 @@ import java.util.Objects;
 /**
  * Implements fundamental functionality useful for most of the device plugins.
  */
+@SuppressWarnings("unused")
 public abstract class AbstractDevice implements Device {
     /**
-     * plugin identification number
+     * Plugin ID assigned by emuStudio
      */
     protected final long pluginID;
 
     /**
-     * Initializes this AbstractDevice. Only assigns the plugin ID into
-     * the class field.
+     * emuStudio API.
+     */
+    protected final ApplicationApi applicationApi;
+
+    /**
+     * Device custom settings.
+     */
+    protected final PluginSettings settings;
+
+    /**
+     * Creates new instance.
      *
      * @param pluginID plugin id
-     * @throws NullPointerException if pluginID is null
+     * @param applicationApi emuStudio API
+     * @param settings plugin custom settings
      */
-    public AbstractDevice(Long pluginID) {
-        this.pluginID = Objects.requireNonNull(pluginID);
+    public AbstractDevice(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
+        this.pluginID = pluginID;
+        this.applicationApi = Objects.requireNonNull(applicationApi);
+        this.settings = Objects.requireNonNull(settings);
     }
 
     /**
      * No-operation. Should be overridden if needed.
-     *
-     * @param settings settings manipulation object
      */
     @Override
-    public void initialize(PluginSettings settings) {
+    public void initialize() throws PluginInitializationException {
 
     }
 

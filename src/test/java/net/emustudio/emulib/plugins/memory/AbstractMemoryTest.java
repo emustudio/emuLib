@@ -19,11 +19,9 @@
 
 package net.emustudio.emulib.plugins.memory;
 
-import net.emustudio.emulib.runtime.PluginSettings;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 
 public class AbstractMemoryTest {
@@ -35,33 +33,13 @@ public class AbstractMemoryTest {
     }
 
     @Test
-    public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
-        memory.initialize(createMock(PluginSettings.class));
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testNewInstanceWithNullIdThrows() throws Exception {
-        new AbstractMemoryStub(null);
-    }
-
-    @Test
-    public void testGetTitle() {
-        assertEquals("title", memory.getTitle());
-    }
-
-    @Test
     public void testProgramStartIsZeroAfterStart() {
-        assertEquals(0, memory.getProgramStart());
+        assertEquals(0, memory.getProgramLocation());
     }
 
     @Test
     public void testSetAndGetProgramStart() {
-        memory.setProgramStart(555);
-        assertEquals(555, memory.getProgramStart());
-    }
-
-    @Test
-    public void testResetCallForIncreasingCoverage() throws Exception {
-        memory.reset();
+        memory.setProgramLocation(555);
+        assertEquals(555, memory.getProgramLocation());
     }
 }

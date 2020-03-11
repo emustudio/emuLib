@@ -18,11 +18,9 @@
  */
 package net.emustudio.emulib.plugins.device;
 
-import net.emustudio.emulib.runtime.PluginSettings;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 
 public class AbstractDeviceTest {
@@ -33,23 +31,8 @@ public class AbstractDeviceTest {
         device = new AbstractDeviceStub(0L);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testCreateInstanceWithNullPluginIDThrows() throws Exception {
-        new AbstractDeviceStub(null);
-    }
-
-    @Test
-    public void testInitializeWithCorrectParameterDoesNotThrow() throws Exception {
-        device.initialize(createMock(PluginSettings.class));
-    }
-
     @Test
     public void testGetTitle() {
         assertEquals("title", device.getTitle());
-    }
-
-    @Test
-    public void testResetForIncreasingCoverage() throws Exception {
-        device.reset();
     }
 }

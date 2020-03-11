@@ -35,8 +35,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface PluginRoot {
     String title();
-    String copyright();
-    String description() default "";
     PLUGIN_TYPE type();
-    EMULIB_VERSION emuLibVersion() default EMULIB_VERSION.VERSION_10;
 }

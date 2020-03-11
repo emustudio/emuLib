@@ -18,25 +18,13 @@
  */
 package net.emustudio.emulib.plugins.compiler;
 
-import net.emustudio.emulib.plugins.compiler.Compiler.CompilerListener;
 import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.and;
-import static org.easymock.EasyMock.anyInt;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.easymock.EasyMock.*;
+import static org.junit.Assert.*;
 
 public class AbstractCompilerTest {
     private AbstractCompilerStub compiler;
@@ -47,32 +35,8 @@ public class AbstractCompilerTest {
     }
 
     @Test
-    public void testInitializeDoesNotThrow() throws Exception {
-        compiler.initialize(null);
-    }
-
-    @Test
     public void testGetTitle() {
         assertEquals("title", compiler.getTitle());
-    }
-
-    @Test
-    public void testGetProgramStartOnUnusedCompiler() {
-        assertEquals(0, compiler.getProgramStartAddress());
-    }
-
-    @Test
-    public void testAddAndRemoveCompilerListener() {
-        CompilerListener r = createMock(CompilerListener.class);
-        assertTrue(compiler.addCompilerListener(r));
-        assertTrue(compiler.removeCompilerListener(r));
-    }
-
-    @Test
-    public void testAddCompilerListenerTwice() {
-        CompilerListener r = createMock(CompilerListener.class);
-        compiler.addCompilerListener(r);
-        assertFalse(compiler.addCompilerListener(r));
     }
 
     @Test
@@ -88,63 +52,22 @@ public class AbstractCompilerTest {
     }
 
     @Test
-    public void testNotifyCompilerStartDoesNotThrow() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        listener.onStart();
-        expectLastCall().andThrow(new RuntimeException()).once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.notifyCompileStart();
-        verify(listener);
-    }
-
-
-    @Test
     public void testNotifyCompilerFinish() {
-        int errorCode = 5;
-
         CompilerListener listener = createMock(CompilerListener.class);
-        listener.onFinish(EasyMock.eq(errorCode));
+        listener.onFinish();
         expectLastCall().once();
         replay(listener);
 
         compiler.addCompilerListener(listener);
-        compiler.notifyCompileFinish(errorCode);
+        compiler.notifyCompileFinish();
         verify(listener);
     }
-
-    @Test
-    public void testNotifyCompilerFinishDoesNotThrow() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        listener.onFinish(anyInt());
-        expectLastCall().andThrow(new RuntimeException()).once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.notifyCompileFinish(5);
-        verify(listener);
-    }
-
 
     @Test
     public void testNotifyOnMessage() {
         CompilerListener listener = createMock(CompilerListener.class);
         listener.onMessage(anyObject(CompilerMessage.class));
         expectLastCall().once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.notifyOnMessage(createMock(CompilerMessage.class));
-
-        verify(listener);
-    }
-
-    @Test
-    public void testNotifyOnMessageDoesNotThrow() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        listener.onMessage(anyObject(CompilerMessage.class));
-        expectLastCall().andThrow(new RuntimeException()).once();
         replay(listener);
 
         compiler.addCompilerListener(listener);

@@ -20,7 +20,6 @@
 package net.emustudio.emulib.plugins.compiler;
 
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Messages are passed to compiler listeners when the compiler wishes to say something.
@@ -31,7 +30,6 @@ public class CompilerMessage {
     public static final String MSG_WARNING = "[Warning] ";
 
     public static final String POSITION_FORMAT = "(%3d,%3d) ";
-    public static final String SOURCE_FILE_FORMAT = "<%s> ";
 
     /**
      * Message type.
@@ -57,7 +55,6 @@ public class CompilerMessage {
 
     private final MessageType messageType;
     private final String message;
-    private final String sourceFile;
     private final int line;
     private final int column;
 
@@ -72,13 +69,10 @@ public class CompilerMessage {
      *   Line in the source code
      * @param column
      *   Column in the source code
-     * @param sourceFile
-     *   Name of the file that the message belongs to
      */
-    public CompilerMessage(MessageType messageType, String message, int line, int column, String sourceFile) {
+    public CompilerMessage(MessageType messageType, String message, int line, int column) {
         this.messageType = Objects.requireNonNull(messageType);
         this.message = Objects.requireNonNull(message);
-        this.sourceFile = sourceFile; // internally can be null
         this.line = line;
         this.column = column;
     }
@@ -90,7 +84,7 @@ public class CompilerMessage {
      *   Text of the message
      */
     public CompilerMessage(String message) {
-        this(MessageType.TYPE_UNKNOWN, message,-1,-1,null);
+        this(MessageType.TYPE_UNKNOWN, message,-1,-1);
     }
 
     /**
@@ -102,25 +96,7 @@ public class CompilerMessage {
      *   Text of the message
      */
     public CompilerMessage(MessageType type, String message) {
-        this(type,message,-1,-1,null);
-    }
-
-    /**
-     * This constructor creates the Message object. Messages are created by
-     * compiler.
-     * @param message_type
-     *   Type of the message.
-     * @param message
-     *   Text of the message
-     * @param sourceFile
-     *   Name of the file that the message belongs to
-     */
-    public CompilerMessage(MessageType message_type, String message, String sourceFile) {
-        this(message_type,message,-1,-1,sourceFile);
-    }
-
-    public Optional<String> getSourceFile() {
-        return Optional.ofNullable(sourceFile);
+        this(type,message,-1,-1);
     }
 
     /**
@@ -141,7 +117,6 @@ public class CompilerMessage {
                 mes.append(MSG_INFO);
                 break;
         }
-        Optional.ofNullable(sourceFile).map(file -> mes.append(String.format(SOURCE_FILE_FORMAT, file)));
 
         if ((line >= 0) || (column >= 0)) {
             mes.append(String.format(POSITION_FORMAT, line, column));

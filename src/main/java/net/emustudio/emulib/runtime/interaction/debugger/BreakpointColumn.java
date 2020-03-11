@@ -47,7 +47,7 @@ public class BreakpointColumn implements DebuggerColumn<Boolean> {
     /**
      * Determine if a breakpoint is set at specific location.
      *
-     * @param location  memory address (not row in debug table)
+     * @param location memory address (not row in debug table)
      * @return boolean value (true/false) if breakpoint is set/unset at the location
      */
     @Override
@@ -66,11 +66,13 @@ public class BreakpointColumn implements DebuggerColumn<Boolean> {
     /**
      * Set or unset breakpoint to specific location.
      *
-     * @param location memory address (not row in debug table)
-     * @param shouldSet  boolean value (set/unset breakpoint)
+     * @param location        memory address (not row in debug table)
+     * @param shouldSetObject boolean value (set/unset breakpoint)
      */
     @Override
-    public void setValue(int location, Boolean shouldSet) throws DebuggerException {
+    public void setValue(int location, Object shouldSetObject) throws CannotSetDebuggerValueException {
+        Boolean shouldSet = (Boolean) shouldSetObject;
+
         if (isEditable()) {
             try {
                 if (shouldSet) {
@@ -79,8 +81,8 @@ public class BreakpointColumn implements DebuggerColumn<Boolean> {
                     cpu.unsetBreakpoint(location);
                 }
             } catch (IndexOutOfBoundsException e) {
-                String msg = "Could not " + (shouldSet ? "set" : "unset")  + " breakpoint to location " + String.format("%04xh", location);
-                throw new DebuggerException(msg, e);
+                String msg = "Could not " + (shouldSet ? "set" : "unset") + " breakpoint to location " + String.format("%04xh", location);
+                throw new CannotSetDebuggerValueException(msg, e);
             }
         }
     }

@@ -57,7 +57,7 @@ public class OpcodeColumn implements DebuggerColumn<String> {
      * @param value  new value of the cell
      */
     @Override
-    public void setValue(int location, String value) {
+    public void setValue(int location, Object value) {
 
     }
 

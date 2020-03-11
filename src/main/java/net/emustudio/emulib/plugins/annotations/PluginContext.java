@@ -29,6 +29,7 @@ import java.lang.annotation.Target;
  *
  * This annotation should be used only on classes.
  */
+@SuppressWarnings("unused")
 @Inherited
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)

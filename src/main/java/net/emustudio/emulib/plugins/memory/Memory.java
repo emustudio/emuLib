@@ -65,7 +65,7 @@ public interface Memory extends Plugin {
      *
      * @param location starting memory position (address) of a program
      */
-    void setProgramStart(int location);
+    void setProgramLocation(int location);
 
     /**
      * Gets size of memory.
@@ -87,6 +87,6 @@ public interface Memory extends Plugin {
      *
      * @return program's start address in memory
      */
-    int getProgramStart();
+    int getProgramLocation();
 }
 

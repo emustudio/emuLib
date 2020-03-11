@@ -20,18 +20,21 @@ package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.PluginSettings;
+import static org.easymock.EasyMock.createNiceMock;
+
 import java.io.Reader;
+import java.util.List;
 
 @PluginRoot(
         type = PLUGIN_TYPE.COMPILER,
-        title = "title",
-        copyright = "copyright",
-        description = "description"
+        title = "title"
 )
 class AbstractCompilerStub extends AbstractCompiler {
 
     AbstractCompilerStub() {
-        super(0L);
+        super(0L, createNiceMock(ApplicationApi.class), createNiceMock(PluginSettings.class));
     }
 
     @Override
@@ -50,16 +53,23 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public SourceFileExtension[] getSourceSuffixList() {
+    public int getProgramLocation() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<SourceFileExtension> getSourceFileExtensions() {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void destroy() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void showSettings() {
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -71,7 +81,17 @@ class AbstractCompilerStub extends AbstractCompiler {
     public String getVersion() {
         throw new UnsupportedOperationException();
     }
-        
+
+    @Override
+    public String getCopyright() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getDescription() {
+        throw new UnsupportedOperationException();
+    }
+
     public void testError() {
         notifyError("Some error");
     }

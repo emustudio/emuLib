@@ -19,12 +19,14 @@
 
 package net.emustudio.emulib.plugins.compiler;
 
+import net.emustudio.emulib.plugins.PluginInitializationException;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
-import net.emustudio.emulib.runtime.PluginSettings;
 import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.PluginSettings;
+import net.jcip.annotations.NotThreadSafe;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -32,18 +34,22 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * Implements fundamental functionality useful for most of the compiler plugins.
  */
 @SuppressWarnings("unused")
+@NotThreadSafe
 public abstract class AbstractCompiler implements Compiler {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractCompiler.class);
-
     /**
-     * Program start address (memory location)
-     */
-    protected int programStart = 0; // actualize after compile
-
-    /**
-     * Identification number of this plugin assigned by emuStudio
+     * Plugin ID assigned by emuStudio
      */
     protected final long pluginID;
+
+    /**
+     * emuStudio API.
+     */
+    protected final ApplicationApi applicationApi;
+
+    /**
+     * Compiler custom settings.
+     */
+    protected final PluginSettings settings;
 
     /**
      * List of all compiler compilerListeners. The compilerListeners are objects implementing
@@ -54,64 +60,78 @@ public abstract class AbstractCompiler implements Compiler {
     private final Set<CompilerListener> compilerListeners = new CopyOnWriteArraySet<>();
 
     /**
-     * Public constructor initializes compilerListeners list and event object for
-     * event passing.
+     * Creates new instance.
      *
-     * @param pluginID ID of the plugin assigned by emuStudio
+     * @param pluginID       plugin ID
+     * @param applicationApi emuStudio API
+     * @param settings       plugin custom settings
      */
-    public AbstractCompiler(Long pluginID) {
+    public AbstractCompiler(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
         this.pluginID = pluginID;
+        this.applicationApi = Objects.requireNonNull(applicationApi);
+        this.settings = Objects.requireNonNull(settings);
     }
 
     /**
-     * This method semi-initializes the simple compiler. It only
-     * set-up data members - pluginID and SettingsManager object.
-     * <p>
-     * It should be overridden.
-     *
-     * @param settings settings manipulation object
+     * Does nothing. Should be overriden.
      */
     @Override
-    public void initialize(PluginSettings settings) {
+    public void initialize() throws PluginInitializationException {
 
     }
 
+    /**
+     * Does nothing. Should be overriden.
+     */
+    @Override
+    public void destroy() {
+
+    }
+
+    /**
+     * Get plugin title
+     * @return title from the {@link PluginRoot} annotation
+     */
     @Override
     public String getTitle() {
         return getClass().getAnnotation(PluginRoot.class).title();
     }
 
     /**
-     * Returns program start address (memory location) after the compilation
-     * process. If the compile process was not ran, it will return 0.
-     *
-     * @return program start address (memory location)
+     * Does nothing. Should be overriden.
      */
     @Override
-    public int getProgramStartAddress() {
-        return programStart;
+    public void showSettings() {
+
+    }
+
+    /**
+     * Return false. Should be overriden.
+     * @return false
+     */
+    @Override
+    public boolean isShowSettingsSupported() {
+        return false;
     }
 
     /**
      * Adds a listener onto compilerListeners list
      *
      * @param listener listener object
-     * @return true if the listener was added, false otherwise
      */
     @Override
-    public boolean addCompilerListener(CompilerListener listener) {
-        return compilerListeners.add(listener);
+    public void addCompilerListener(CompilerListener listener) {
+        compilerListeners.add(listener);
     }
 
     /**
      * Removes the listener from compilerListeners list
      *
      * @param listener listener object
-     * @return true if the listener was removed, false otherwise
      */
     @Override
-    public boolean removeCompilerListener(CompilerListener listener) {
-        return compilerListeners.remove(listener);
+    public void removeCompilerListener(CompilerListener listener) {
+        compilerListeners.remove(listener);
     }
 
     /**
@@ -121,13 +141,7 @@ public abstract class AbstractCompiler implements Compiler {
      * This method should be called whenever the compiler begins to run.
      */
     protected void notifyCompileStart() {
-        compilerListeners.forEach(listener -> {
-            try {
-                listener.onStart();
-            } catch (Exception e) {
-                LOGGER.error("Compiler listener error", e);
-            }
-        });
+        compilerListeners.forEach(CompilerListener::onStart);
     }
 
     /**
@@ -135,17 +149,9 @@ public abstract class AbstractCompiler implements Compiler {
      * the compile process right now.
      * <p>
      * This method should be called whenever the compiler ends the execution.
-     *
-     * @param errorCode compiler-specific error code
      */
-    protected void notifyCompileFinish(int errorCode) {
-        compilerListeners.forEach(listener -> {
-            try {
-                listener.onFinish(errorCode);
-            } catch (Exception e) {
-                LOGGER.error("Compiler listener error", e);
-            }
-        });
+    protected void notifyCompileFinish() {
+        compilerListeners.forEach(CompilerListener::onFinish);
     }
 
     /**
@@ -159,40 +165,34 @@ public abstract class AbstractCompiler implements Compiler {
      * @param compilerMessage The message
      */
     public void notifyOnMessage(CompilerMessage compilerMessage) {
-        compilerListeners.forEach(listener -> {
-            try {
-                listener.onMessage(compilerMessage);
-            } catch (Exception e) {
-                LOGGER.error("Compiler listener error", e);
-            }
-        });
+        compilerListeners.forEach(listener -> listener.onMessage(compilerMessage));
     }
 
     /**
      * Notifies the error message.
      *
-     * @param mes text of the message
+     * @param msg text of the message
      */
-    public void notifyError(String mes) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, mes));
+    public void notifyError(String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, msg));
     }
 
     /**
      * Notifies information message
      *
-     * @param mes text of the message
+     * @param msg text of the message
      */
-    public void notifyInfo(String mes) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, mes));
+    public void notifyInfo(String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, msg));
     }
 
     /**
      * Fires warning message
      *
-     * @param mes text of the message
+     * @param msg text of the message
      */
-    public void notifyWarning(String mes) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, mes));
+    public void notifyWarning(String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg));
     }
 
     /**

@@ -74,7 +74,7 @@ public class IntelHEXTest {
         // verify data length
         int dataLength = Integer.decode("0x" + line.substring(1, 3));
         assertEquals(dataLength * 2, line.length() - 11);
-    }    
+    }
     
     @Test
     public void testPutBigCode() {
@@ -99,14 +99,14 @@ public class IntelHEXTest {
     
     @Test
     public void testProgramStartOnEmptyCode() {
-        assertEquals(0, hexFile.getProgramStart());
+        assertEquals(0, hexFile.getProgramLocation());
     }
     
     @Test
     public void testCorrectProgramStart() {
         hexFile.setNextAddress(5);
         hexFile.putCode("010203");
-        assertEquals(5, hexFile.getProgramStart());
+        assertEquals(5, hexFile.getProgramLocation());
     }
 
     @Test
@@ -188,7 +188,7 @@ public class IntelHEXTest {
         codeTable.put(1, "010203");
         hexFile.addTable(codeTable);
         
-        assertEquals(1, hexFile.getProgramStart());
+        assertEquals(1, hexFile.getProgramLocation());
         codeTable = hexFile.getTable();
         
         assertEquals("01", codeTable.get(1));
@@ -220,7 +220,7 @@ public class IntelHEXTest {
         }
 
         @Override
-        public Class<?> getDataType() {
+        public Class<Short> getDataType() {
             return Short.class;
         }
 
@@ -270,7 +270,7 @@ public class IntelHEXTest {
 
         MemoryContext<Short> mc = new MemoryContextStub();
         int programStart = IntelHEX.loadIntoMemory(toFile(VALID_HEX_FILE), mc);
-        assertEquals(hexFile.getProgramStart(), programStart);
+        assertEquals(hexFile.getProgramLocation(), programStart);
         
         Map<Integer, String> codeTable = hexFile.getTable();
         assertEquals(Integer.decode("0x" + codeTable.get(programStart)).intValue(),

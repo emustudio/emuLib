@@ -62,9 +62,9 @@ public interface DebuggerColumn<T> {
      *
      * @param location Cell index (usually memory address). It is not a "row number" in the debugger table.
      * @param value new value assigned to the cell
-     * @throws DebuggerException if the value cannot be assigned, for any reason
+     * @throws CannotSetDebuggerValueException if the value cannot be assigned, for any reason
      */
-    void setValue(int location, T value) throws DebuggerException;
+    void setValue(int location, Object value) throws CannotSetDebuggerValueException;
 
     /**
      * Gets a value from the column cell.

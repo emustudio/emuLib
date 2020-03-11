@@ -20,6 +20,8 @@
 package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.PluginSettings;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +58,6 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final ExecutorService cpuExecutor = Executors.newSingleThreadExecutor();
     private final ExecutorService cpuStoppedWatcher = Executors.newSingleThreadExecutor();
 
-    private final long pluginID;
     private final Set<CPUListener> stateObservers = new CopyOnWriteArraySet<>();
     private final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
 
@@ -65,6 +66,22 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     // set only in "execute" event
     private volatile CPUWatchTask cpuWatchTask;
     // ** END OF CONTRACT **
+
+    /**
+     * Plugin ID assigned by emuStudio
+     */
+    protected final long pluginID;
+
+    /**
+     * emuStudio API.
+     */
+    protected final ApplicationApi applicationApi;
+
+    /**
+     * CPU custom settings.
+     */
+    protected final PluginSettings settings;
+
 
     private class CPUWatchTask implements Runnable {
         private final Future<RunState> cpuFuture;
@@ -109,21 +126,16 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     /**
      * Creates new instance of CPU.
      *
-     * @param pluginID plugin identification number
-     * @throws NullPointerException if pluginID is null
+     * @param pluginID plugin ID
+     * @param applicationApi emuStudio API
+     * @param settings plugin custom settings
      */
-    public AbstractCPU(Long pluginID) {
-        this.pluginID = Objects.requireNonNull(pluginID);
+    public AbstractCPU(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
+        this.pluginID = pluginID;
+        this.applicationApi = Objects.requireNonNull(applicationApi);
+        this.settings = Objects.requireNonNull(settings);
     }
 
-    /**
-     * Get plugin ID assigned by emuStudio.
-     *
-     * @return plugin ID
-     */
-    protected long getPluginID() {
-        return pluginID;
-    }
 
     @Override
     public String getTitle() {
@@ -159,18 +171,18 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     @Override
-    public void setBreakpoint(int memLocation) {
-        breakpoints.add(memLocation);
+    public void setBreakpoint(int location) {
+        breakpoints.add(location);
     }
 
     @Override
-    public void unsetBreakpoint(int memLocation) {
-        breakpoints.remove(memLocation);
+    public void unsetBreakpoint(int location) {
+        breakpoints.remove(location);
     }
 
     @Override
-    public boolean isBreakpointSet(int memLocation) {
-        return breakpoints.contains(memLocation);
+    public boolean isBreakpointSet(int location) {
+        return breakpoints.contains(location);
     }
 
     /**
@@ -179,11 +191,10 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
      * called when some events are occured on CPU.
      *
      * @param listener CPUListener object
-     * @return true if the listener was added, false otherwise
      */
     @Override
-    public boolean addCPUListener(CPUListener listener) {
-        return stateObservers.add(listener);
+    public void addCPUListener(CPUListener listener) {
+        stateObservers.add(listener);
     }
 
     /**
@@ -191,11 +202,10 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
      * is not included in the list, nothing will be done.
      *
      * @param listener CPUListener object
-     * @return true if the listener was return, false otherwise
      */
     @Override
-    public boolean removeCPUListener(CPUListener listener) {
-        return stateObservers.remove(listener);
+    public void removeCPUListener(CPUListener listener) {
+        stateObservers.remove(listener);
     }
 
     private void stopExecutor(ExecutorService executor) {
@@ -267,11 +277,11 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     @Override
-    public void reset(int addr) {
+    public void reset(int location) {
         Future<?> future = eventReceiver.submit(() -> {
             requestStop();
             ensureCpuIsStopped();
-            resetInternal(addr);
+            resetInternal(location);
             RunState tmpRunState = RunState.STATE_STOPPED_BREAK;
             runState = tmpRunState;
             notifyStateChanged(tmpRunState);

@@ -19,9 +19,10 @@
 
 package net.emustudio.emulib.plugins.memory;
 
+import net.emustudio.emulib.plugins.PluginInitializationException;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
-import net.emustudio.emulib.runtime.PluginInitializationException;
 
 import java.util.Objects;
 
@@ -30,57 +31,67 @@ import java.util.Objects;
  */
 public abstract class AbstractMemory implements Memory {
     /**
-     * Start location of loaded program. This variable is changed by compiler (mostly).
+     * Loaded program location in memory. This variable is changed by compiler (mostly).
      */
-    private int programStart;
+    private int programLocation;
 
     /**
-     * ID of the plugin assigned by emuStudio
+     * Plugin ID assigned by emuStudio
      */
     protected final long pluginID;
 
     /**
-     * Sets up plugin id.
-     *
-     * @param pluginID plugin identification number
-     * @throws NullPointerException if pluginID is null
+     * emuStudio API.
      */
-    public AbstractMemory(Long pluginID) {
-        this.pluginID = Objects.requireNonNull(pluginID);
+    protected final ApplicationApi applicationApi;
+
+    /**
+     * Memory custom settings.
+     */
+    protected final PluginSettings settings;
+
+    /**
+     * Creates new instance.
+     *
+     * @param pluginID plugin ID
+     * @param applicationApi emuStudio API
+     * @param settings plugin custom settings
+     */
+    public AbstractMemory(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
+        this.pluginID = pluginID;
+        this.applicationApi = Objects.requireNonNull(applicationApi);
+        this.settings = Objects.requireNonNull(settings);
     }
 
     /**
      * No-operation. Should be overridden if needed.
-     *
-     * @param settings settings manipulation object
      */
     @Override
-    public void initialize(PluginSettings settings) {
+    public void initialize() throws PluginInitializationException {
 
     }
 
     /**
-     * Get program starting address (memory location), as it was loaded by
-     * the method setProgramStart().
+     * Get program location in memory.
      *
-     * @return program starting address (memory location)
+     * @return program memory location
      */
     @Override
-    public int getProgramStart() {
-        return programStart;
+    public int getProgramLocation() {
+        return programLocation;
     }
 
     /**
-     * Set program starting address (memory location). Mostly it is called
-     * by the emuStudio after the compiler returns. When the compiler
-     * compiles the source, the emuStudio gets compiled program starting
-     * address (if unknown, it will be 0) and pass it here.
+     * Set program location in memory.
      *
-     * @param address program starting address (memory location)
+     * It should be called after successful compilation, if the compiler has loaded the program in the memory.
+     * Program location will be then used by CPU and emuStudio to know where it can start emulating the program.
+     *
+     * @param programLocation program location in memory
      */
     @Override
-    public void setProgramStart(int address) {
-        programStart = address;
+    public void setProgramLocation(int programLocation) {
+        this.programLocation = programLocation;
     }
 
     @Override

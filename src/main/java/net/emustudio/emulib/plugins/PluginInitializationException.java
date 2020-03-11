@@ -16,9 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime;
-
-import net.emustudio.emulib.plugins.Plugin;
+package net.emustudio.emulib.plugins;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -71,5 +69,4 @@ public class PluginInitializationException extends Exception {
     public Optional<Plugin> getPlugin() {
         return Optional.ofNullable(plugin);
     }
-
 }

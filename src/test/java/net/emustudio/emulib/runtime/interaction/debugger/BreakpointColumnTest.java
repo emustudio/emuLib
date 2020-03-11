@@ -167,7 +167,7 @@ public class BreakpointColumnTest {
         assertNotEquals(-1, new BreakpointColumn(createMock(CPU.class)).getDefaultWidth());
     }
 
-    @Test(expected = DebuggerException.class)
+    @Test(expected = CannotSetDebuggerValueException.class)
     public void testSetValueOnInvalidLocationThrows() throws Exception {
         CPU cpu = createMock(CPU.class);
         expect(cpu.isBreakpointSupported()).andReturn(true);

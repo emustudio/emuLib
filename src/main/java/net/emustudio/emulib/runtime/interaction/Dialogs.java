@@ -18,6 +18,7 @@
  */
 package net.emustudio.emulib.runtime.interaction;
 
+import java.util.Optional;
 
 /**
  * This class provides dialogs used by emuStudio and plugins.
@@ -72,13 +73,25 @@ public interface Dialogs {
      * The supported format is the same as when calling {@link Integer#decode(String)}.
      *
      * @param message message to show
-     * @return integer number entered by user, or 0 by default
+     * @return integer number entered by user, or Optional.empty() if user cancelled the input dialog
      * @throws NumberFormatException if the number format is wrong
      */
-    int readInteger(String message);
+    Optional<Integer> readInteger(String message);
 
     /**
-     * Asks user for integer input.
+     * Ask user for integer input.
+     *
+     * The supported format is the same as when calling {@link Integer#decode(String)}.
+     *
+     * @param message message to show
+     * @param title title of the input message
+     * @return integer number entered by user, or Optional.empty() if user cancelled the input dialog
+     * @throws NumberFormatException if the number format is wrong
+     */
+    Optional<Integer> readInteger(String message, String title);
+
+    /**
+     * Ask user for integer input.
      *
      * The supported format is the same as when calling {@link Integer#decode(String)}.
      *
@@ -88,15 +101,24 @@ public interface Dialogs {
      * @return integer number entered by user, or the initial value by default
      * @throws NumberFormatException if the number format is wrong
      */
-    int readInteger(String message, String title, int initial);
+    Optional<Integer> readInteger(String message, String title, int initial);
 
     /**
      * Ask user for String input.
      *
      * @param message message to show
-     * @return a String entered by user, or empty string by default
+     * @return a String entered by user, or Optional.empty() if user cancelled the input dialog
      */
-    String readString(String message);
+    Optional<String> readString(String message);
+
+    /**
+     * Ask user for String input.
+     *
+     * @param message message to show
+     * @param title title of the input message
+     * @return a String entered by user, or Optional.empty() if user cancelled the input dialog
+     */
+    Optional<String> readString(String message, String title);
 
     /**
      * Ask user for String input.
@@ -106,7 +128,7 @@ public interface Dialogs {
      * @param initial initial value
      * @return a String entered by user, or the initial value by default
      */
-    String readString(String message, String title, String initial);
+    Optional<String> readString(String message, String title, String initial);
 
     /**
      * Ask user for Double input.
@@ -114,13 +136,25 @@ public interface Dialogs {
      * The supported format is the same as when calling {@link Double#parseDouble(String)}.
      *
      * @param message message to show
-     * @return double number entered by user, or 0.0 by default
+     * @return double number entered by user, or Optional.empty() if user cancelled the input dialog
      * @throws NumberFormatException if the number format is wrong
      */
-    double readDouble(String message);
+    Optional<Double> readDouble(String message);
 
     /**
-     * Asks user for Double input.
+     * Ask user for Double input.
+     *
+     * The supported format is the same as when calling {@link Double#parseDouble(String)}.
+     *
+     * @param message message to show
+     * @param title title of the input message
+     * @return double number entered by user, or Optional.empty() if user cancelled the input dialog
+     * @throws NumberFormatException if the number format is wrong
+     */
+    Optional<Double> readDouble(String message, String title);
+
+    /**
+     * Ask user for Double input.
      *
      * The supported format is the same as when calling {@link Double#parseDouble(String)}.
      *
@@ -130,7 +164,7 @@ public interface Dialogs {
      * @return double number entered by user, or the initial value by default
      * @throws NumberFormatException if the number format is wrong
      */
-    double readDouble(String message, String title, double initial);
+    Optional<Double> readDouble(String message, String title, double initial);
 
     /**
      * Ask user for a confirmation.

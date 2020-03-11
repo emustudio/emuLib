@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plug-ins.
+ * Run-time library for emuStudio and plugins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -17,20 +17,18 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package net.emustudio.emulib.internal;
+package net.emustudio.emulib.runtime.interaction.debugger;
 
-import net.emustudio.emulib.runtime.InvalidTokenException;
+/**
+ * Thrown if a value cannot be set to the cell in the debugger table.
+ */
+@SuppressWarnings("unused")
+public class CannotSetDebuggerValueException extends Exception {
+    CannotSetDebuggerValueException(String message) {
+        super(message);
+    }
 
-public interface TokenVerifier {
-
-    /**
-     * Verifies that given token matches with the token assigned by emuStudio.
-     *
-     * If tokens do not match, an exception is thrown.
-     *
-     * @param token emuStudio token (only emuStudio has it)
-     * @throws InvalidTokenException if provided token was wrong.
-     * @throws NullPointerException if token is null
-     */
-    void verifyToken(String token) throws InvalidTokenException;
+    CannotSetDebuggerValueException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

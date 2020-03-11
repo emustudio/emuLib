@@ -2,7 +2,7 @@
 ![emuLib Build](https://github.com/emustudio/emuLib/workflows/emuLib%20Build/badge.svg)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.emustudio/emulib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.emustudio/emulib)
 
-emuLib is a run-time library used by [emuStudio](https://github.com/emustudio/emuStudio), universal emulation platform,
+emuLib is a run-time library used by [emuStudioAPI](https://github.com/emustudio/emuStudioAPI), universal emulation platform,
 and its plugins.
 
 ## License
@@ -33,19 +33,19 @@ Previous releases used different group (`net.sf.emustudio`) and artifactId (`emu
 
 ## Deployment
 
-The library should be placed in `lib/` directory where emuStudio is installed.
-For example: `emuStudio/lib/emulib.jar`.
+The library should be placed in `lib/` directory where emuStudioAPI is installed.
+For example: `emuStudioAPI/lib/emulib.jar`.
 
 
 ## Getting started
 
 **TLDR;** Click [here](https://www.emustudio.net/devel/) for more robust documentation of plugin development. 
 
-The library defines API for emuStudio plugins. A plugin is represented by single object which implements
+The library defines API for emuStudioAPI plugins. A plugin is represented by single object which implements
 `net.emustudio.emulib.plugins.Plugin` interface (or it's derivative). Plugins can also implement so-called "contexts",
 which are used for inter-plugin communication.
 
-Plugins can also communicate with emuStudio, using emuStudio API - object `net.emustudio.emulib.runtime.EmuStudio`
+Plugins can also communicate with emuStudioAPI, using emuStudioAPI API - object `net.emustudio.emulib.runtime.ApplicationApi`
 obtained during plugin object construction.
  
 Generally, package `net.emustudio.emulib.plugins` is the API which plugins need to implement.

@@ -28,11 +28,11 @@ import java.io.IOException;
  * can have multiple device contexts. Plugins which need the specific device contexts should declare a dependency
  * on the device plugin.
  *
- * @param <T> Type of data which can be transferred from/to this device
+ * @param <DataType> Type of data which can be transferred from/to this device
  */
 @SuppressWarnings("unused")
 @PluginContext
-public interface DeviceContext<T> extends Context {
+public interface DeviceContext<DataType> extends Context {
 
     /**
      * Read data from the device.
@@ -45,7 +45,7 @@ public interface DeviceContext<T> extends Context {
      * @return elementary data read from device
      * @throws IOException if something goes wrong
      */
-    T readData() throws IOException;
+    DataType readData() throws IOException;
 
     /**
      * Writes/sends data to the device.
@@ -57,13 +57,13 @@ public interface DeviceContext<T> extends Context {
      * @param value data to be written to the device
      * @throws IOException if something goes wrong
      */
-    void writeData(T value) throws IOException;
+    void writeData(DataType value) throws IOException;
 
     /**
      * Get the type of transferred data.
      *
      * @return type of transferred data
      */
-    Class<T> getDataType();
+    Class<DataType> getDataType();
 }
 

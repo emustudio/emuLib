@@ -20,6 +20,8 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.cpu.CPU.CPUListener;
 import net.emustudio.emulib.plugins.cpu.CPU.RunState;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.PluginSettings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +47,7 @@ public class AbstractCPUTest {
 
     @Before
     public void setUp() {
-        cpu = new AbstractCPUStub(PLUGIN_ID);
+        cpu = new AbstractCPUStub(PLUGIN_ID, createNiceMock(ApplicationApi.class), createNiceMock(PluginSettings.class));
     }
 
     @After
@@ -61,11 +63,6 @@ public class AbstractCPUTest {
         expectLastCall().once();
         replay(listener);
         return listener;
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void testCreateInstanceWithNullPluginIDThrows() {
-        new AbstractCPUStub(null);
     }
 
     @Test
@@ -445,6 +442,6 @@ public class AbstractCPUTest {
 
     @Test
     public void testGetPluginIDReturnsCorrectValue() {
-        assertEquals(PLUGIN_ID, cpu.getPluginID());
+        assertEquals(PLUGIN_ID, cpu.pluginID);
     }
 }

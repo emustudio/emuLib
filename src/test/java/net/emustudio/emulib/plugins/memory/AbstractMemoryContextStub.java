@@ -42,7 +42,7 @@ public class AbstractMemoryContextStub extends AbstractMemoryContext {
     }
 
     @Override
-    public Class getDataType() {
+    public Class<?> getDataType() {
         throw new UnsupportedOperationException();
     }
 

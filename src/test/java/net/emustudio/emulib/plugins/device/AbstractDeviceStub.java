@@ -20,17 +20,19 @@ package net.emustudio.emulib.plugins.device;
 
 import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.PluginSettings;
+
+import static org.easymock.EasyMock.createNiceMock;
 
 @PluginRoot(
         type = PLUGIN_TYPE.DEVICE,
-        title = "title",
-        copyright = "copyright",
-        description = "description"
+        title = "title"
 )
 public class AbstractDeviceStub extends AbstractDevice {
 
-    public AbstractDeviceStub(Long id) {
-        super(id);
+    public AbstractDeviceStub(long id) {
+        super(id, createNiceMock(ApplicationApi.class), createNiceMock(PluginSettings.class));
     }
 
     @Override
@@ -58,4 +60,13 @@ public class AbstractDeviceStub extends AbstractDevice {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public String getCopyright() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public String getDescription() {
+        throw new UnsupportedOperationException();
+    }
 }

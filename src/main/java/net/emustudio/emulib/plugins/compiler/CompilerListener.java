@@ -1,5 +1,5 @@
 /*
- * Run-time library for emuStudio and plugins.
+ * Run-time library for emuStudio and plug-ins.
  *
  *     Copyright (C) 2006-2020  Peter Jakubčo
  *
@@ -16,12 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.stubs;
 
-import net.emustudio.emulib.plugins.annotations.PluginContext;
-import net.emustudio.emulib.plugins.memory.MemoryContext;
+package net.emustudio.emulib.plugins.compiler;
 
-@PluginContext
-public interface MemoryContextStub extends MemoryContext {
-    void testMemoryMethod();
+/**
+ * This is an interface that should be implemented by the emuStudio,
+ * and/or other plugins that want to process the output of the compiler.
+ */
+public interface CompilerListener {
+    /**
+     * This method is called whenever a compiler begins to work.
+     */
+    void onStart();
+
+    /**
+     * Method will be invoked when compiler would like to print info message.
+     *
+     * @param compilerMessage Message from the compiler
+     */
+    void onMessage(CompilerMessage compilerMessage);
+
+    /**
+     * This method is called whenever the compiler finishes the compilation.
+     */
+    void onFinish();
 }

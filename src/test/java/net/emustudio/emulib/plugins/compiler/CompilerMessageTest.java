@@ -21,14 +21,11 @@ package net.emustudio.emulib.plugins.compiler;
 import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
 import org.junit.Test;
 
-import java.util.Optional;
-
 import static org.junit.Assert.*;
 
 public class CompilerMessageTest {
     private static final String MESSAGE = "Sample message";
     private static final MessageType MESSAGE_TYPE = MessageType.TYPE_INFO;
-    private static final String SRC_FILE = "source.asm";
     private static final int LINE = 34;
     private static final int COLUMN = 24;
 
@@ -40,18 +37,16 @@ public class CompilerMessageTest {
         assertEquals(MESSAGE, compilerMessage.getMessage());
         assertEquals(-1, compilerMessage.getLine());
         assertEquals(-1, compilerMessage.getColumn());
-        assertTrue(compilerMessage.getSourceFile().isEmpty());
     }
     
     @Test
     public void testGetAllValues() {
-        CompilerMessage compilerMessage = new CompilerMessage(MESSAGE_TYPE, MESSAGE, LINE, COLUMN, SRC_FILE);
+        CompilerMessage compilerMessage = new CompilerMessage(MESSAGE_TYPE, MESSAGE, LINE, COLUMN);
         
         assertEquals(MESSAGE_TYPE, compilerMessage.getMessageType());
         assertEquals(MESSAGE, compilerMessage.getMessage());
         assertEquals(LINE, compilerMessage.getLine());
         assertEquals(COLUMN, compilerMessage.getColumn());
-        assertEquals(Optional.of(SRC_FILE), compilerMessage.getSourceFile());
     }
     
     @Test
@@ -72,11 +67,10 @@ public class CompilerMessageTest {
 
     @Test
     public void testMessageTypeSourceFileAndErrorCode() {
-        CompilerMessage compilerMessage = new CompilerMessage(MESSAGE_TYPE, MESSAGE, SRC_FILE);
+        CompilerMessage compilerMessage = new CompilerMessage(MESSAGE_TYPE, MESSAGE);
         
         assertEquals(MESSAGE_TYPE, compilerMessage.getMessageType());
         assertEquals(MESSAGE, compilerMessage.getMessage());
-        assertEquals(Optional.of(SRC_FILE), compilerMessage.getSourceFile());
     }
     
     @Test
@@ -112,11 +106,10 @@ public class CompilerMessageTest {
     @Test
     public void testFormattingForEverything() {
         CompilerMessage compilerMessage = new CompilerMessage(
-            MessageType.TYPE_INFO, MESSAGE, LINE, COLUMN, SRC_FILE
+            MessageType.TYPE_INFO, MESSAGE, LINE, COLUMN
         );
         
         String expected = CompilerMessage.MSG_INFO
-                + String.format(CompilerMessage.SOURCE_FILE_FORMAT, SRC_FILE)
                 + String.format(CompilerMessage.POSITION_FORMAT, LINE, COLUMN)
                 + MESSAGE;
     
