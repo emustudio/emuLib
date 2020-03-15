@@ -18,6 +18,8 @@
  */
 package net.emustudio.emulib.runtime.interaction.debugger;
 
+import net.emustudio.emulib.plugins.Plugin;
+
 import java.util.List;
 
 /**
@@ -33,6 +35,8 @@ public interface DebuggerTable {
      *
      * The call has immediate effect. Subsequent calls are allowed; plugins can change the columns at any time. However,
      * it is not recommended to change it once the columns are set.
+     *
+     * NOTE: Should be called in {@link Plugin#initialize()} method, not sooner.
      *
      * @param columns non-null debug columns
      * @see AddressColumn
