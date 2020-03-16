@@ -30,5 +30,4 @@ public class SourceFileExtensionTest {
         assertEquals("descr", instance.getDescription());
         assertEquals("descr (*.bmp)", instance.getFormattedDescription());
     }
-
 }
