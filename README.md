@@ -3,7 +3,7 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.emustudio/emulib/badge.svg)](https://maven-badges.herokuapp.com/maven-central/net.emustudio/emulib)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-emuLib is a run-time library used by [emuStudioAPI](https://github.com/emustudio/emuStudioAPI), universal emulation platform,
+emuLib is a run-time library used by [emuStudio](https://github.com/emustudio/emuStudio), universal emulation platform,
 and its plugins.
 
 ## Usage
@@ -14,31 +14,32 @@ For Maven, use:
     <dependency>
         <groupId>net.emustudio</groupId>
         <artifactId>emulib</artifactId>
-        <version>11.0.0</version>
+        <version>11.1.0</version>
     </dependency>
 ```
 
 For Gradle, use:
 
 ```
-    implementation 'net.emustudio:emulib:11.0.0'
+    implementation 'net.emustudio:emulib:11.1.0'
 ```
 
 ### Important changes
 
-Previous releases used different group (`net.sf.emustudio`) and artifactId (`emuLib`).
+Up to version 9.0.0 emuLib used different group (`net.sf.emustudio`) and artifactId (`emuLib`). From version 10.0.0
+onwards it uses group `net.emustudio` and artifactId `emulib` (all lowercase).
 
 ## Deployment
 
-The library should be placed in `lib/` directory where emuStudioAPI is installed.
-For example: `emuStudioAPI/lib/emulib.jar`.
+The library should be placed in `lib/` directory where emuStudio is installed.
+For example: `emuStudio/lib/emulib.jar`.
 
 
 ## Getting started
 
 **TLDR;** Click [here](https://www.emustudio.net/devel/) for more robust documentation of plugin development. 
 
-The library defines API for emuStudioAPI plugins. A plugin is represented by single object which implements
+The library defines API for emuStudio plugins. A plugin is represented by single object which implements
 `net.emustudio.emulib.plugins.Plugin` interface (or it's derivative). Plugins can also implement so-called "contexts",
 which are used for inter-plugin communication.
 
