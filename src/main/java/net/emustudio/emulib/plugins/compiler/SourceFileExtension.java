@@ -63,20 +63,4 @@ public class SourceFileExtension {
     public String getDescription() {
         return description;
     }
-
-    /**
-     * This method returns the formatted file-extension description.
-     * <p>
-     * The formatting represents combining the raw description with the
-     * file extension, enclosed in brackets.
-     * <p>
-     * For example, if the raw description was "Assembler source" and the
-     * extension "asm", then the formatted description will be:
-     * "Assembler source (*.asm)"
-     *
-     * @return formatted file-extension description
-     */
-    public String getFormattedDescription() {
-        return description + " (*." + extension + ")";
-    }
 }

@@ -204,6 +204,18 @@ public interface Dialogs {
     /**
      * Ask user to choose a file.
      *
+     * Base directory of the dialog will be set to {@code System.getProperty("user.dir")}.
+     *
+     * @param title dialog title
+     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
+     * @param filters supported file filters
+     * @return Selected file if provided, or Optional.empty() if user cancelled the dialog
+     */
+    Optional<Path> chooseFile(String title, String approveButtonText, List<FileExtensionsFilter> filters);
+
+    /**
+     * Ask user to choose a file.
+     *
      * @param title dialog title
      * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
      * @param baseDirectory Base directory of the dialog (where will the dialog point to)
@@ -213,39 +225,13 @@ public interface Dialogs {
     Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, FileExtensionsFilter... filters);
 
     /**
-     * Definition of supported file extensions of one "filter" when choosing files. A filter might be understood
-     * as container for extensions of one file format.
+     * Ask user to choose a file.
+     *
+     * @param title dialog title
+     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
+     * @param baseDirectory Base directory of the dialog (where will the dialog point to)
+     * @param filters supported file filters
+     * @return Selected file if provided, or Optional.empty() if user cancelled the dialog
      */
-    interface FileExtensionsFilter {
-        /**
-         * Get description of the filter.
-         * <p>
-         * The description should not include extensions. For example, the following description is a good one:
-         * <p>
-         * {@code "Image files"}
-         * <p>
-         * While the following one is a bad one:
-         * <p>
-         * {@code "Image files (*.jpg, *.png)}
-         *
-         * @return description of the filter
-         */
-        String getDescription();
-
-        /**
-         * Get list of supported file extensions of the filter.
-         *
-         * The extensions are case-insensitive. In addition, an extension should not start with {@code "*."} prefix.
-         * For example, the following extension is a good one:
-         * <p>
-         * {@code "png"}
-         * <p>
-         * While the following one is a bad one:
-         * <p>
-         * {@code "*.png"}
-         *
-         * @return list of supported file extensions
-         */
-        List<String> getExtensions();
-    }
+    Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, List<FileExtensionsFilter> filters);
 }
