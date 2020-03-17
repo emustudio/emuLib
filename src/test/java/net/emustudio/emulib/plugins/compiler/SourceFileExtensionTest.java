@@ -28,6 +28,5 @@ public class SourceFileExtensionTest {
         SourceFileExtension instance = new SourceFileExtension("bmp", "descr");
         assertEquals("bmp", instance.getExtension());
         assertEquals("descr", instance.getDescription());
-        assertEquals("descr (*.bmp)", instance.getFormattedDescription());
     }
 }
