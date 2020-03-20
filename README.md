@@ -14,14 +14,14 @@ For Maven, use:
     <dependency>
         <groupId>net.emustudio</groupId>
         <artifactId>emulib</artifactId>
-        <version>11.2.0</version>
+        <version>11.3.0</version>
     </dependency>
 ```
 
 For Gradle, use:
 
 ```
-    implementation 'net.emustudio:emulib:11.2.0'
+    implementation 'net.emustudio:emulib:11.3.0'
 ```
 
 ### Important changes
@@ -49,5 +49,6 @@ obtained during plugin construction.
 Generally, package `net.emustudio.emulib.plugins` is the API which plugins need to implement.
 Then, in package `net.emustudio.emulib.runtime.helpers` are utility classes which might be useful for the runtime, like: 
 
-- Number utilities which can do various radix conversions or other number manipulations (`NumberUtils`, `RadixUtils`)
+- Number utilities which can do various radix conversions or other number manipulations (`NumberUtils`, `RadixUtils`,
+ `DecodingStrategies`)
 - Intel HEX file generator/loader (`IntelHEX`)
