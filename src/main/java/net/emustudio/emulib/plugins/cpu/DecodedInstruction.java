@@ -101,7 +101,7 @@ public class DecodedInstruction {
         byte[] data = bits.get(key);
 
         if (reverseBytes && data != null) {
-            return reverseBytes(data);
+            return DecodingStrategy.reverseBytes(data);
         } else {
             return data;
         }
@@ -139,20 +139,5 @@ public class DecodedInstruction {
         Set<Integer> keys = new HashSet<>(constants.keySet());
         keys.addAll(bits.keySet());
         return keys;
-    }
-
-    /**
-     * Returns bytes in the reversed order.
-     * @param data the data
-     * @return the bytes in the reversed order
-     */
-    private byte[] reverseBytes(byte[] data) {
-        byte[] result = new byte[data.length];
-
-        for (int i = 0; i < result.length; i++) {
-            result[i] = data[data.length - i - 1];
-        }
-
-        return result;
     }
 }
