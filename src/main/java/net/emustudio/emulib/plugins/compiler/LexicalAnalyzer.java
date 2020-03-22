@@ -21,44 +21,43 @@ package net.emustudio.emulib.plugins.compiler;
 import java.io.IOException;
 import java.io.Reader;
 
-
 /**
- * Interface that implements lexical analyzer
+ * Lexical analyzer.
  */
 @SuppressWarnings("unused")
 public interface LexicalAnalyzer {
 
     /**
-     * Performs reset of the analyzer.
-     * <p>
-     * Internal counters (actual position, actual column, row, etc.) should be cleared. Lexical analyzer should prepare
-     * itself to start parsing from the beginning of the document.
-     */
-    void reset();
-
-    /**
-     * Performs reset of the analyzer.
+     * Resets lexer.
      * <p>
      * Internal counters (actual position, actual column, row, etc.) should be cleared. Lexical analyzer should prepare
      * itself to start parsing from the beginning of the document.
      *
-     * @param sourceCode  <code>Reader</code> of the source code.
-     * @param startLine   from this line should lexical analyzer start, usually 0
-     * @param startChar   from this char should lexical analyzer start, usually 0
-     * @param startColumn from this column should lexical analyzer start, usually 0
+     * @param reader Source code reader
+     * @param line   from this line should lexical analyzer start, usually 0
+     * @param offset from this char should lexical analyzer start, usually 0
+     * @param column from this column should lexical analyzer start, usually 0
      */
-    void reset(Reader sourceCode, int startLine, int startChar, int startColumn);
+    void reset(Reader reader, int line, int offset, int column);
 
     /**
-     * Gets next lexical symbol from source code, from actual position. This is
-     * real implementation of lexical analyzer. After this call it should
-     * increase internal counters to next unread text (actual position, actual
-     * row, column, etc.)
+     * Resets lexer.
      *
-     * @return next found token
+     * @param reader     Source code reader
+     * @param line       from this line should lexical analyzer start, usually 0
+     * @param offset     from this char should lexical analyzer start, usually 0
+     * @param column     from this column should lexical analyzer start, usually 0
+     * @param lexerState lexer state
+     */
+    void reset(Reader reader, int line, int offset, int column, int lexerState);
+
+    /**
+     * Get next token.
+     * <p>
+     * Tokens are retrieved as in "iterator" style - the actual position is a mutable state stored in the lexer.
+     *
+     * @return next token
      * @throws java.io.IOException is thrown when the token could not be read
      */
-    Token getSymbol() throws IOException;
-
+    Token getToken() throws IOException;
 }
-
