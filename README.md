@@ -14,14 +14,14 @@ For Maven, use:
     <dependency>
         <groupId>net.emustudio</groupId>
         <artifactId>emulib</artifactId>
-        <version>11.3.0</version>
+        <version>11.4.0</version>
     </dependency>
 ```
 
 For Gradle, use:
 
 ```
-    implementation 'net.emustudio:emulib:11.3.0'
+    implementation 'net.emustudio:emulib:11.4.0'
 ```
 
 ### Important changes

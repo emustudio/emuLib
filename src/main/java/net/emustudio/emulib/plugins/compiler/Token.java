@@ -143,15 +143,9 @@ public interface Token {
     String getText();
 
     /**
-     * Check if the token is in initial lexical state.
-     * <p>
-     * Initial lexical state represents a position in the source code, from what the lexical analyzer can safely start
-     * parsing the source code - as it would parse it from the start of the document. They are useful especially for
-     * syntax highlighting.
-     *
-     * @return true if token is in initial lexical state; false otherwise.
+     * Get lexer state
+     * @return lexer state of this token
      */
-    boolean isInitialLexicalState();
-
+    int getLexerState();
 }
 

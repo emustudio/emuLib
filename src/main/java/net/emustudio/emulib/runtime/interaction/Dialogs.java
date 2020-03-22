@@ -191,47 +191,59 @@ public interface Dialogs {
 
     /**
      * Ask user to choose a file.
-     *
+     * <p>
      * Base directory of the dialog will be set to {@code System.getProperty("user.dir")}.
      *
-     * @param title dialog title
-     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
-     * @param filters supported file filters
+     * @param title                  dialog title
+     * @param approveButtonText      approve button text (e.g. "Open", "Save", ...)
+     * @param appendMissingExtension Whether extension from selected filter should be appended to selected file if it
+     *                               has no extension
+     * @param filters                supported file filters
      * @return Selected file if provided, or Optional.empty() if user cancelled the dialog
      */
-    Optional<Path> chooseFile(String title, String approveButtonText, FileExtensionsFilter... filters);
+    Optional<Path> chooseFile(String title, String approveButtonText, boolean appendMissingExtension,
+                              FileExtensionsFilter... filters);
 
     /**
      * Ask user to choose a file.
-     *
+     * <p>
      * Base directory of the dialog will be set to {@code System.getProperty("user.dir")}.
      *
-     * @param title dialog title
-     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
-     * @param filters supported file filters
+     * @param title                  dialog title
+     * @param approveButtonText      approve button text (e.g. "Open", "Save", ...)
+     * @param appendMissingExtension Whether extension from selected filter should be appended to selected file if it
+     *                               has no extension
+     * @param filters                supported file filters
      * @return Selected file if provided, or Optional.empty() if user cancelled the dialog
      */
-    Optional<Path> chooseFile(String title, String approveButtonText, List<FileExtensionsFilter> filters);
+    Optional<Path> chooseFile(String title, String approveButtonText, boolean appendMissingExtension,
+                              List<FileExtensionsFilter> filters);
 
     /**
      * Ask user to choose a file.
      *
-     * @param title dialog title
-     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
-     * @param baseDirectory Base directory of the dialog (where will the dialog point to)
-     * @param filters supported file filters
+     * @param title                  dialog title
+     * @param approveButtonText      approve button text (e.g. "Open", "Save", ...)
+     * @param baseDirectory          Base directory of the dialog (where will the dialog point to)
+     * @param appendMissingExtension Whether extension from selected filter should be appended to selected file if it
+     *                               has no extension
+     * @param filters                supported file filters
      * @return Selected file if provided, or Optional.empty() if user cancelled the dialog
      */
-    Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, FileExtensionsFilter... filters);
+    Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, boolean appendMissingExtension,
+                              FileExtensionsFilter... filters);
 
     /**
      * Ask user to choose a file.
      *
-     * @param title dialog title
-     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
-     * @param baseDirectory Base directory of the dialog (where will the dialog point to)
-     * @param filters supported file filters
+     * @param title                  dialog title
+     * @param approveButtonText      approve button text (e.g. "Open", "Save", ...)
+     * @param baseDirectory          Base directory of the dialog (where will the dialog point to)
+     * @param appendMissingExtension Whether extension from selected filter should be appended to selected file if it
+     *                               has no extension
+     * @param filters                supported file filters
      * @return Selected file if provided, or Optional.empty() if user cancelled the dialog
      */
-    Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, List<FileExtensionsFilter> filters);
+    Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, boolean appendMissingExtension,
+                              List<FileExtensionsFilter> filters);
 }
