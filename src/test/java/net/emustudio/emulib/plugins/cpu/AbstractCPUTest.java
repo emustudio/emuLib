@@ -435,12 +435,6 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testShowSettingsDoesNothing() {
-        assertFalse(cpu.isShowSettingsSupported());
-        cpu.showSettings();
-    }
-
-    @Test
     public void testGetPluginIDReturnsCorrectValue() {
         assertEquals(PLUGIN_ID, cpu.pluginID);
     }

@@ -23,6 +23,8 @@ import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
 
+import javax.swing.*;
+
 import static org.easymock.EasyMock.createNiceMock;
 
 @PluginRoot(
@@ -36,7 +38,7 @@ public class AbstractDeviceStub extends AbstractDevice {
     }
 
     @Override
-    public void showGUI() {
+    public void showGUI(JFrame parent) {
         throw new UnsupportedOperationException();
     }
 
@@ -46,7 +48,7 @@ public class AbstractDeviceStub extends AbstractDevice {
     }
 
     @Override
-    public void showSettings() {
+    public void showSettings(JFrame parent) {
         throw new UnsupportedOperationException();
     }
 

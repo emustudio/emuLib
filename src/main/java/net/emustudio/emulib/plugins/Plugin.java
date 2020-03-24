@@ -20,6 +20,8 @@ package net.emustudio.emulib.plugins;
 
 import net.emustudio.emulib.runtime.ApplicationApi;
 
+import javax.swing.*;
+
 /**
  * Plugin main interface. This interface is available only to emuStudio, not to other plugins. Plugins communicate
  * with each other using special entities called "contexts".
@@ -84,7 +86,11 @@ public interface Plugin {
      * <p>
      * Inside the method, the plugin should:
      * - unregister all registered contexts for this plugin
-     * - execute clean-up/destroy code for used resources (GUIs, timers, threads, sockets, memory, etc).
+     * - execute clean-up/destroy code for used resources (timers, threads, sockets, memory, etc).
+     * - dispose all GUIs
+     * <p>
+     * NOTE: If not all resources are properly cleared, emuStudio will forcibly exit anyway, which may cause unexpected
+     * damage.
      */
     void destroy();
 
@@ -92,10 +98,13 @@ public interface Plugin {
      * Show GUI of plugin settings, if it is provided.
      * <p>
      * Each plugin can have a nice GUI for settings manipulation. plugins should display the GUI, if they support it.
+     * Note that each window should be properly disposed when method {@link Plugin#destroy()} is called.
      * <p>
      * In the case of memory plugin, show GUI of a memory. Each memory plugin should have a GUI, but it is not a must.
+     *
+     * @param parent emuStudio main window (if plugin wants to show a dialog which has a parent)
      */
-    void showSettings();
+    void showSettings(JFrame parent);
 
     /**
      * Check if showSettings() is supported by this plugin.
