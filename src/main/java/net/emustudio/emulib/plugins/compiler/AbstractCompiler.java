@@ -25,6 +25,7 @@ import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
 import net.jcip.annotations.NotThreadSafe;
 
+import javax.swing.*;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -72,7 +73,7 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     /**
-     * Does nothing. Should be overriden.
+     * Does nothing. Should be overridden.
      */
     @Override
     public void initialize() throws PluginInitializationException {
@@ -80,7 +81,7 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     /**
-     * Does nothing. Should be overriden.
+     * Does nothing. Should be overridden.
      */
     @Override
     public void destroy() {
@@ -97,15 +98,15 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     /**
-     * Does nothing. Should be overriden.
+     * Does nothing. Should be overridden.
      */
     @Override
-    public void showSettings() {
+    public void showSettings(JFrame parent) {
 
     }
 
     /**
-     * Return false. Should be overriden.
+     * Return false. Should be overridden.
      * @return false
      */
     @Override

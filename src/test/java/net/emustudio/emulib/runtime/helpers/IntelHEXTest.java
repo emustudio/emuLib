@@ -59,7 +59,7 @@ public class IntelHEXTest {
     
     private List<String> generateReadAndDeleteHexFile() throws Exception {
         String tmpName = "tmp" + System.currentTimeMillis();
-        hexFile.generateFile(tmpName);
+        hexFile.generate(tmpName);
         try {
             return readFileContent(new File(tmpName));
         } finally {

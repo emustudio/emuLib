@@ -22,6 +22,9 @@ import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
+
+import javax.swing.*;
+
 import static org.easymock.EasyMock.createNiceMock;
 
 import java.io.Reader;
@@ -68,7 +71,7 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public void showSettings() {
+    public void showSettings(JFrame parent) {
         throw new UnsupportedOperationException();
     }
 

@@ -78,10 +78,10 @@ public interface Compiler extends Plugin {
      * syntax highlighting. In the compilation process the compiler should
      * use own, independent lexical analyzer.
      *
-     * @param in <code>Reader</code> object of the document - source code.
+     * @param reader Reader of the source code
      * @return lexical analyzer object
      */
-    LexicalAnalyzer getLexer(Reader in);
+    LexicalAnalyzer getLexer(Reader reader);
 
     /**
      * Gets location of compiled program in memory.

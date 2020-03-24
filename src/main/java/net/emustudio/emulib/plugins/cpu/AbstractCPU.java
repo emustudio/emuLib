@@ -25,6 +25,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -142,10 +143,10 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     /**
-     * Does nothing.
+     * Does nothing. Should be overridden.
      */
     @Override
-    public void showSettings() {
+    public void showSettings(JFrame parent) {
 
     }
 

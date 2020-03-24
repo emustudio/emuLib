@@ -20,12 +20,7 @@ package net.emustudio.emulib.runtime.helpers;
 
 import net.emustudio.emulib.plugins.memory.MemoryContext;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -88,22 +83,6 @@ public class IntelHEX {
         nextAddress = address;
     }
 
-    private String checksum(String lin) {
-        int sum = 0, chsum;
-        for (int i = 0; i < lin.length() - 1; i += 2) {
-            sum += Integer.parseInt(lin.substring(i, i + 2), 16);
-        }
-        sum %= 0x100;
-        // :
-        // 10 00 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-        // 16 0  8  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
-        // 16+8 = 24
-        // 0x100 -24 +1 = 256 - 24 +1 = 232 +1 = 0xe8 + 1 = 0xe9
-        // 0xe9 je zevraj zle, ma byt 0xe8
-        chsum = 0x100 - sum; //+1;
-        return String.format("%1$02X", chsum);
-    }
-
     /**
      * Keys of the HashMap have to represent adresses and values have to
      * represent compiled code. Method copies all elements from param HashMap to
@@ -132,6 +111,124 @@ public class IntelHEX {
      */
     public Map<Integer, String> getTable() {
         return this.program;
+    }
+
+    /**
+     * Method is similar to generateHex() method in that way, that compiled
+     * program is also transformed into chunk of bytes, but not to hex file but
+     * to the operating memory.
+     *
+     * @param mem context of operating memory
+     */
+    public void loadIntoMemory(MemoryContext<Short> mem) {
+        List<Integer> adrs = new ArrayList<>(program.keySet());
+        Collections.sort(adrs);
+        adrs.forEach(adr -> {
+            String code = program.get(adr);
+            for (int i = 0, j = 0; i < code.length() - 1; i += 2, j++) {
+                String hexCode = code.substring(i, i + 2);
+                short num = (short) ((Short.decode("0x" + hexCode)) & 0xFF);
+                mem.write(adr + j, num);
+            }
+        });
+    }
+
+    /**
+     * Generates a Intel Hex file based on the cached program map.
+     *
+     * @param outputFileName file name where to store the hex file
+     * @throws java.io.IOException if the HEX file could not be written
+     */
+    public void generate(String outputFileName) throws java.io.IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
+            generate(writer);
+        }
+    }
+
+    /**
+     * Generates a Intel Hex file based on the cached program map.
+     *
+     * @param writer Writer used to store the Intel HEX content
+     * @throws java.io.IOException if the HEX file could not be written
+     */
+    public void generate(Writer writer) throws java.io.IOException {
+        String fileData = generateHEX();
+        writer.write(fileData);
+    }
+
+    /**
+     * Get program location in memory.
+     * <p>
+     * It is actually the the first address which has occurred in the program HashMap.
+     *
+     * @return program memory location
+     */
+    public int getProgramLocation() {
+        List<Integer> adrs = new ArrayList<>(program.keySet());
+        Collections.sort(adrs);
+        if (!adrs.isEmpty()) {
+            return adrs.get(0);
+        } else {
+            return 0;
+        }
+    }
+
+    // line beginning with ; is ignored
+    public static IntelHEX parseFromFile(File file) throws Exception {
+        IntelHEX hexFile = new IntelHEX();
+
+        try (FileReader reader = new FileReader(file)) {
+            int input;
+            while ((input = reader.read()) != -1) {
+                if (input == ' ') {
+                    input = ignoreSpaces(reader);
+                }
+                if (input == ';') {
+                    ignoreLine(reader);
+                    continue;
+                }
+                if (input != ':') {
+                    reader.close();
+                    throw new IOException("Unexpected character: " + input);
+                }
+                // data bytes count
+                int bytesCount = readWord(reader);
+                if (bytesCount == 0) {
+                    // ignore line
+                    ignoreLine(reader);
+                    continue;
+                }
+                // address
+                int address = readDword(reader);
+
+                // data type
+                int dataType = readWord(reader);
+                if (dataType != 0) {
+                    reader.close();
+                    throw new IOException("Unexpected data type: " + dataType);
+                } // doesnt support other data types
+
+                // data...
+                hexFile.setNextAddress(address);
+                for (int y = 0; y < bytesCount; y++) {
+                    char[] cbuf = new char[2];
+                    reader.read(cbuf);
+                    if (cbuf[0] == '\n' || cbuf[1] == '\n') {
+                        throw new IOException("Unexpected EOL");
+                    }
+                    hexFile.putCode(new String(cbuf));
+                }
+                // checksum - dont care..
+                ignoreLine(reader);
+            }
+        }
+        return hexFile;
+    }
+
+    public static int loadIntoMemory(File file, MemoryContext<Short> memory) throws Exception {
+        IntelHEX hexFile = IntelHEX.parseFromFile(file);
+        hexFile.loadIntoMemory(memory);
+        return hexFile.getProgramLocation();
     }
 
     // generate hex file
@@ -178,56 +275,6 @@ public class IntelHEX {
         }
         lines += ":00000001FF\n";
         return lines;
-    }
-
-    /**
-     * Method is similar to generateHex() method in that way, that compiled
-     * program is also transformed into chunk of bytes, but not to hex file but
-     * to the operating memory.
-     *
-     * @param mem context of operating memory
-     */
-    public void loadIntoMemory(MemoryContext<Short> mem) {
-        List<Integer> adrs = new ArrayList<>(program.keySet());
-        Collections.sort(adrs);
-        adrs.forEach(adr -> {
-            String code = program.get(adr);
-            for (int i = 0, j = 0; i < code.length() - 1; i += 2, j++) {
-                String hexCode = code.substring(i, i + 2);
-                short num = (short) ((Short.decode("0x" + hexCode)) & 0xFF);
-                mem.write(adr + j, num);
-            }
-        });
-    }
-
-    /**
-     * Generates a Intel Hex file based on the cached program map.
-     *
-     * @param filename file name where to store the hex file
-     * @throws java.io.IOException if the HEX file could not be written
-     */
-    public void generateFile(String filename) throws java.io.IOException {
-        String fileData = generateHEX();
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(filename))) {
-            out.write(fileData);
-        }
-    }
-
-    /**
-     * Get program location in memory.
-     * <p>
-     * It is actually the the first address which has occurred in the program HashMap.
-     *
-     * @return program memory location
-     */
-    public int getProgramLocation() {
-        List<Integer> adrs = new ArrayList<>(program.keySet());
-        Collections.sort(adrs);
-        if (!adrs.isEmpty()) {
-            return adrs.get(0);
-        } else {
-            return 0;
-        }
     }
 
     private static char ignoreSpaces(Reader reader) throws IOException {
@@ -289,61 +336,19 @@ public class IntelHEX {
         return Integer.decode(String.format("0x%c%c%c%c", dwordHigh, dwordLow, wordHigh, wordLow));
     }
 
-    // line beginning with ; is ignored
-    public static IntelHEX parseFromFile(File file) throws Exception {
-        IntelHEX hexFile = new IntelHEX();
-
-        try (FileReader reader = new FileReader(file)) {
-            int input;
-            while ((input = reader.read()) != -1) {
-                if (input == ' ') {
-                    input = ignoreSpaces(reader);
-                }
-                if (input == ';') {
-                    ignoreLine(reader);
-                    continue;
-                }
-                if (input != ':') {
-                    reader.close();
-                    throw new IOException("Unexpected character: " + input);
-                }
-                // data bytes count
-                int bytesCount = readWord(reader);
-                if (bytesCount == 0) {
-                    // ignore line
-                    ignoreLine(reader);
-                    continue;
-                }
-                // address
-                int address = readDword(reader);
-
-                // data type
-                int dataType = readWord(reader);
-                if (dataType != 0) {
-                    reader.close();
-                    throw new IOException("Unexpected data type: " + dataType);
-                } // doesnt support other data types
-
-                // data...
-                hexFile.setNextAddress(address);
-                for (int y = 0; y < bytesCount; y++) {
-                    char[] cbuf = new char[2];
-                    reader.read(cbuf);
-                    if (cbuf[0] == '\n' || cbuf[1] == '\n') {
-                        throw new IOException("Unexpected EOL");
-                    }
-                    hexFile.putCode(new String(cbuf));
-                }
-                // checksum - dont care..
-                ignoreLine(reader);
-            }
+    private String checksum(String lin) {
+        int sum = 0, chsum;
+        for (int i = 0; i < lin.length() - 1; i += 2) {
+            sum += Integer.parseInt(lin.substring(i, i + 2), 16);
         }
-        return hexFile;
-    }
-
-    public static int loadIntoMemory(File file, MemoryContext<Short> memory) throws Exception {
-        IntelHEX hexFile = IntelHEX.parseFromFile(file);
-        hexFile.loadIntoMemory(memory);
-        return hexFile.getProgramLocation();
+        sum %= 0x100;
+        // :
+        // 10 00 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+        // 16 0  8  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
+        // 16+8 = 24
+        // 0x100 -24 +1 = 256 - 24 +1 = 232 +1 = 0xe8 + 1 = 0xe9
+        // 0xe9 je zevraj zle, ma byt 0xe8
+        chsum = 0x100 - sum; //+1;
+        return String.format("%1$02X", chsum);
     }
 }
