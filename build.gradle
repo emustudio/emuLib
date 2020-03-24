@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'net.emustudio'
-version '11.5.0'
+version '11.6.0-SNAPSHOT3'
 
 repositories {
     mavenCentral()
