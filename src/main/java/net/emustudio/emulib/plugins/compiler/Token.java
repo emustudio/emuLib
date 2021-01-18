@@ -86,6 +86,7 @@ public interface Token {
      *
      * @return ID of the token
      */
+    @Deprecated
     int getID();
 
     /**

@@ -1,7 +1,7 @@
 plugins {
     id 'java-library'
     id 'maven-publish'
-    id 'signing'
+//    id 'signing'
 }
 
 group 'net.emustudio'
@@ -71,16 +71,15 @@ publishing {
     }
 }
 
-signing {
-    def signingKey = findProperty("GPG_KEY") ?: System.getenv("GPG_KEY")
-    def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
-    useInMemoryPgpKeys(signingKey, signingPassword)
-    sign publishing.publications.mavenJava
-}
+//signing {
+//    def signingKey = findProperty("GPG_KEY") ?: System.getenv("GPG_KEY")
+//    def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
+//    useInMemoryPgpKeys(signingKey, signingPassword)
+//    sign publishing.publications.mavenJava
+//}
 
 javadoc {
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
-    options.addBooleanOption "-no-module-directories", true
 }
