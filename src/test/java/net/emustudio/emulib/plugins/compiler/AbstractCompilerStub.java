@@ -24,15 +24,13 @@ import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.PluginSettings;
 
 import javax.swing.*;
+import java.util.List;
 
 import static org.easymock.EasyMock.createNiceMock;
 
-import java.io.Reader;
-import java.util.List;
-
 @PluginRoot(
-        type = PLUGIN_TYPE.COMPILER,
-        title = "title"
+    type = PLUGIN_TYPE.COMPILER,
+    title = "title"
 )
 class AbstractCompilerStub extends AbstractCompiler {
 
@@ -49,9 +47,9 @@ class AbstractCompilerStub extends AbstractCompiler {
     public boolean compile(String inputFileName) {
         throw new UnsupportedOperationException();
     }
-    
+
     @Override
-    public LexicalAnalyzer getLexer(Reader in) {
+    public LexicalAnalyzer createLexer(String input) {
         throw new UnsupportedOperationException();
     }
 
@@ -98,13 +96,13 @@ class AbstractCompilerStub extends AbstractCompiler {
     public void testError() {
         notifyError("Some error");
     }
-    
+
     public void testInfo() {
         notifyInfo("Some info");
     }
-    
+
     public void testWarning() {
         notifyWarning("Some warning");
     }
-    
+
 }

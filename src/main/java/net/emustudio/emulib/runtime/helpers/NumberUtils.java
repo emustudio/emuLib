@@ -58,15 +58,6 @@ public class NumberUtils {
         return result;
     }
 
-    public static Byte[] toObjectArray(byte[] array) {
-        Byte[] objArray = new Byte[array.length];
-        for (int i = 0; i < array.length; i++) {
-            objArray[i] = array[i];
-        }
-        return objArray;
-    }
-
-
     /**
      * Reads an integer from the array of numbers.
      * 
@@ -203,4 +194,127 @@ public class NumberUtils {
         }
     }
 
+    /**
+     * Converts Number[] array to Byte[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return boxed Byte[] array
+     */
+    public static Byte[] numbersToBytes(Number[] numbers) {
+        Byte[] result = new Byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = numbers[i].byteValue();
+        }
+        return result;
+    }
+
+    /**
+     * Converts Number[] array to native byte[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return native byte[] array
+     */
+    public static byte[] numbersToNativeBytes(Number[] numbers) {
+        byte[] result = new byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = numbers[i].byteValue();
+        }
+        return result;
+    }
+
+    /**
+     * Converts Short[] array to Byte[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return boxed Byte[] array
+     */
+    public static Byte[] shortsToBytes(Short[] numbers) {
+        Byte[] result = new Byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = numbers[i].byteValue();
+        }
+        return result;
+    }
+
+    /**
+     * Converts Short[] array to native byte[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return native byte[] array
+     */
+    public static byte[] shortsToNativeBytes(Short[] numbers) {
+        byte[] result = new byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = numbers[i].byteValue();
+        }
+        return result;
+    }
+
+    /**
+     * Converts Short[] array to native short[] array.
+     * @param numbers numbers array
+     * @return native short[] array
+     */
+    public static short[] shortsToNativeShorts(Short[] numbers) {
+        short[] result = new short[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = numbers[i];
+        }
+        return result;
+    }
+
+    /**
+     * Converts native short[] array to native byte[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return native byte[] array
+     */
+    public static byte[] nativeShortsToNativeBytes(short[] numbers) {
+        byte[] result = new byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = (byte)(numbers[i] & 0xFF);
+        }
+        return result;
+    }
+
+    /**
+     * Converts native short[] array to Byte[] array.
+     * Every number is converted to byte using number &amp; 0xFF
+     * @param numbers numbers array
+     * @return boxed Byte[] array
+     */
+    public static Byte[] nativeShortsToBytes(short[] numbers) {
+        Byte[] result = new Byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = (byte)(numbers[i] & 0xFF);
+        }
+        return result;
+    }
+
+    /**
+     * Converts native short[] array to Short[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return boxed Short[] array
+     */
+    public static Short[] nativeShortsToShorts(short[] numbers) {
+        Short[] result = new Short[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = numbers[i];
+        }
+        return result;
+    }
+
+    /**
+     * Converts native byte[] array to boxed Byte[] array.
+     * @param array native byte[] array
+     * @return boxed Byte[] array
+     */
+    public static Byte[] nativeBytesToBytes(byte[] array) {
+        Byte[] result = new Byte[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = array[i];
+        }
+        return result;
+    }
 }
