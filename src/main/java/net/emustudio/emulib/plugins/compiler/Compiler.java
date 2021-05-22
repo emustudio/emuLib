@@ -20,7 +20,6 @@ package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.Plugin;
 
-import java.io.Reader;
 import java.util.List;
 
 /**
@@ -74,14 +73,12 @@ public interface Compiler extends Plugin {
     boolean compile(String inputFileName);
 
     /**
-     * Get a lexical analyzer of the compiler. It is used by main module for
-     * syntax highlighting. In the compilation process the compiler should
-     * use own, independent lexical analyzer.
+     * Creates a lexical analyzer.
      *
-     * @param reader Reader of the source code
-     * @return lexical analyzer object
+     * @param input source code
+     * @return new lexer object
      */
-    LexicalAnalyzer getLexer(Reader reader);
+    LexicalAnalyzer createLexer(String input);
 
     /**
      * Gets location of compiled program in memory.

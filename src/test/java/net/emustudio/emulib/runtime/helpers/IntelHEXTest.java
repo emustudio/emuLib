@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -197,25 +198,27 @@ public class IntelHEXTest {
     }
     
     private static class MemoryContextStub implements MemoryContext<Short> {
-        final Map<Integer, Short> code = new HashMap<>();
-    
+        final ByteBuffer code = ByteBuffer.allocate(32);
+
         @Override
         public Short read(int memoryPosition) {
-            return code.get(memoryPosition);
+            code.position(memoryPosition);
+            return (short)code.get();
         }
 
         @Override
-        public Short[] readWord(int memoryPosition) {
-            throw new UnsupportedOperationException();
+        public Short[] read(int memoryPosition, int count) {
+            return new Short[0];
         }
 
         @Override
         public void write(int memoryPosition, Short value) {
-            code.put(memoryPosition, value);
+            code.position(memoryPosition);
+            code.put(value.byteValue());
         }
 
         @Override
-        public void writeWord(int memoryPosition, Short[] value) {
+        public void write(int memoryPosition, Short[] values, int count) {
             throw new UnsupportedOperationException();
         }
 

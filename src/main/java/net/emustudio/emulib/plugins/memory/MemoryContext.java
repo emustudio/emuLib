@@ -18,8 +18,8 @@
  */
 package net.emustudio.emulib.plugins.memory;
 
-import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.memory.Memory.MemoryListener;
 
 /**
@@ -43,7 +43,7 @@ public interface MemoryContext<CellType> extends Context {
     CellType read (int memoryPosition);
 
     /**
-     * Reads two adjacent cells from a memory at once.
+     * Reads one or more adjacent cells from a memory at once.
      *
      * Implementation of return value is up to plugin programmer (e.g. ordering of cells).
      * If cells in memory are pure bytes (java type is e.g. <code>short</code>), concatenation
@@ -51,7 +51,7 @@ public interface MemoryContext<CellType> extends Context {
      *
      * <pre>
      * {@code
-     * result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF);
+     * result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF) | ...;
      * }
      * </pre>
      *
@@ -59,14 +59,16 @@ public interface MemoryContext<CellType> extends Context {
      *
      * <pre>
      * {@code
-     * result = ((mem[from]<<8)&0xFF) | (mem[from+1]&0xFF);
+     * result = ((mem[from]<<(count *8 ))&0xFF) | (mem[from+1]<<((count-1)*8)&0xFF) | ...;
      * }
      * </pre>
      *
      * @param memoryPosition  memory position (address) of the read cells
-     * @return two read cells, accessible at indexes 0 and 1, respectively.
+     * @param count how many cells should be read
+     * @return one or more read cells, accessible at indexes 0 and 1, respectively.
+     * @throws RuntimeException if memory size is smaller than (memoryPosition+count)
      */
-    CellType[] readWord(int memoryPosition);
+    CellType[] read(int memoryPosition, int count);
 
     /**
      * Write one cell-size (e.g. byte) data to a cell to a memory at specified location.
@@ -77,12 +79,27 @@ public interface MemoryContext<CellType> extends Context {
     void write (int memoryPosition, CellType value);
 
     /**
-     * Write two cell-size (e.g. word - usually two bytes) data to a cell to a memory at specified location.
+     * Write an array of data to a memory at specified location.
+     * Data will be written in small endian order.
      *
      * @param memoryPosition   memory position (address) of the cell with index 0
-     * @param value  two cells at indexes 0 and 1, respectively.
+     * @param values  data to be written
+     * @param count how many values should be taken
+     * @throws RuntimeException if memory size is smaller than (memoryPosition+values.length)
      */
-    void writeWord (int memoryPosition, CellType[] value);
+    void write(int memoryPosition, CellType[] values, int count);
+
+    /**
+     * Write an array of data to a memory at specified location.
+     * Data will be written in small endian order.
+     *
+     * @param memoryPosition   memory position (address) of the cell with index 0
+     * @param values  data to be written
+     * @throws RuntimeException if memory size is smaller than (memoryPosition+values.length)
+     */
+    default void write(int memoryPosition, CellType[] values) {
+        write(memoryPosition, values, values.length);
+    }
 
     /**
      * Get the type of memory cells.

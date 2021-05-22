@@ -70,6 +70,11 @@ public interface Token {
     int LABEL = 0x900;
 
     /**
+     * Token is a whitespace
+     */
+    int WHITESPACE = 0x1000;
+
+    /**
      * Token is of unknown type.
      */
     int ERROR = 1;
@@ -77,17 +82,7 @@ public interface Token {
     /**
      * Token represents end-of-file. This token should be the last found token.
      */
-    int TEOF = 0;
-
-    /**
-     * Get token ID.
-     * <p>
-     * The token ID is compiler-specific value. Each token must have unique ID.
-     *
-     * @return ID of the token
-     */
-    @Deprecated
-    int getID();
+    int EOF = 0;
 
     /**
      * Get token type.
@@ -100,20 +95,6 @@ public interface Token {
     int getType();
 
     /**
-     * Get 0-based starting line (row) of token position.
-     *
-     * @return start line number of the token
-     */
-    int getLine();
-
-    /**
-     * Get 0-based starting column of token position.
-     *
-     * @return start column number of the token
-     */
-    int getColumn();
-
-    /**
      * Get 0-based starting offset of token position.
      *
      * @return starting offset of the token in the source code
@@ -121,32 +102,10 @@ public interface Token {
     int getOffset();
 
     /**
-     * Get length of the token.
-     *
-     * @return length of the token
-     */
-    int getLength();
-
-    /**
-     * Get error string for this token.
-     * <p>
-     * If the token is not errorneous, return empty string ("").
-     *
-     * @return error string message for this token
-     */
-    String getErrorString();
-
-    /**
      * Get token value.
      *
      * @return token value
      */
     String getText();
-
-    /**
-     * Get lexer state
-     * @return lexer state of this token
-     */
-    int getLexerState();
 }
 
