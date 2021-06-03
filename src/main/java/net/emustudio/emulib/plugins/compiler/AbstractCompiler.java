@@ -178,6 +178,17 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     /**
+     * Notifies the error message.
+     *
+     * @param line line in the source code
+     * @param column column in the source code
+     * @param msg text of the message
+     */
+    public void notifyError(int line, int column, String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, msg, line, column));
+    }
+
+    /**
      * Notifies information message
      *
      * @param msg text of the message
@@ -187,12 +198,34 @@ public abstract class AbstractCompiler implements Compiler {
     }
 
     /**
+     * Notifies information message
+     *
+     * @param line line in the source code
+     * @param column column in the source code
+     * @param msg text of the message
+     */
+    public void notifyInfo(int line, int column, String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, msg, line, column));
+    }
+
+    /**
      * Fires warning message
      *
      * @param msg text of the message
      */
     public void notifyWarning(String msg) {
         notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg));
+    }
+
+    /**
+     * Fires warning message
+     *
+     * @param line line in the source code
+     * @param column column in the source code
+     * @param msg text of the message
+     */
+    public void notifyWarning(int line, int column, String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg, line, column));
     }
 
     /**
