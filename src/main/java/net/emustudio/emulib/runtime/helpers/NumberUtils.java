@@ -59,6 +59,21 @@ public class NumberUtils {
     }
 
     /**
+     * Reverse bits in long (max 64-bit) value.
+     *
+     * @param value value which bits will be reversed
+     * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be ignored.
+     * @return value with reversed bits
+     */
+    public static long reverseBits(long value, int numberOfBits) {
+        long result = 0;
+        for (int i = 0; i < numberOfBits; i++) {
+            result |= ((value >>> i) & 0x1) << (numberOfBits - i - 1);
+        }
+        return result;
+    }
+
+    /**
      * Reads an integer from the array of numbers.
      * 
      * Uses binary arithmetic. The array must have 4 items, each one must represent a byte. If the value in the

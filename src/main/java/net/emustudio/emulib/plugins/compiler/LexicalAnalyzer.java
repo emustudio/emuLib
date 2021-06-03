@@ -1,5 +1,7 @@
 package net.emustudio.emulib.plugins.compiler;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.List;
 /**
  * Lexical analyzer.
  */
+@SuppressWarnings("unused")
 public interface LexicalAnalyzer extends Iterable<Token> {
 
     /**
@@ -23,6 +26,14 @@ public interface LexicalAnalyzer extends Iterable<Token> {
      * @return true if the EOF was hit
      */
     boolean isAtEOF();
+
+    /**
+     * Reset this lexical analyzer with new input.
+     * All state should be reset.
+     * @param input new program source code
+     * @throws IOException when input cannot be read
+     */
+    void reset(InputStream input) throws IOException;
 
     @Override
     default Iterator<Token> iterator() {

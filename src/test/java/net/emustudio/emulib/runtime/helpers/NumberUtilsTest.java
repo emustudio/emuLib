@@ -35,6 +35,14 @@ public class NumberUtilsTest {
     }
 
     @Test
+    public void testReverseBitsLong() {
+        assertEquals(3L, NumberUtils.reverseBits(6L, 3));
+        assertEquals(0xD96DL, NumberUtils.reverseBits(0xB69BL, 16));
+        assertEquals(0xD9L, NumberUtils.reverseBits(0xB69BL, 8));
+        assertEquals(0xD96DD96DL, NumberUtils.reverseBits(0xB69BB69BL, 32));
+    }
+
+    @Test
     public void testReadInt() {
         Integer[] word = new Integer[]{0xAB, 0xCD, 0xEF, 0x12};
         assertEquals(0x12EFCDAB, NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN));
