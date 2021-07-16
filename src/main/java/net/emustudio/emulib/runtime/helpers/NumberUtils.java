@@ -18,6 +18,9 @@
  */
 package net.emustudio.emulib.runtime.helpers;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 public class NumberUtils {
     
     /**
@@ -76,7 +79,7 @@ public class NumberUtils {
     /**
      * Reads an integer from the array of numbers.
      * 
-     * Uses binary arithmetic. The array must have 4 items, each one must represent a byte. If the value in the
+     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      * 
      * @param word the array of 4 bytes
@@ -84,34 +87,37 @@ public class NumberUtils {
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(Byte[] word, int strategy) {
-        int result;
-        int b0,b1,b2,b3;
-        
+        return readInt(numbersToNativeBytes(word), strategy);
+    }
+
+    /**
+     * Reads an integer from the array of numbers.
+     *
+     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
+     * array is larger than a byte, the higher-order bits are cut.
+     *
+     * @param word the array of 4 bytes
+     * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
+     * @return Single integer number which combines the array of bytes into one 32-bit value
+     */
+    public static int readInt(byte[] word, int strategy) {
+        ByteBuffer wrapped = ByteBuffer.wrap(word,0, 4);
+
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            wrapped.order(ByteOrder.LITTLE_ENDIAN);
+        }
+        int result = wrapped.getInt();
+
         if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            b0 = (byte)reverseBits(word[0].intValue(), 8);
-            b1 = (byte)reverseBits(word[1].intValue(), 8);
-            b2 = (byte)reverseBits(word[2].intValue(), 8);
-            b3 = (byte)reverseBits(word[3].intValue(), 8);
-        } else {
-            b0 = word[0].intValue();
-            b1 = word[1].intValue();
-            b2 = word[2].intValue();
-            b3 = word[3].intValue();
+            return reverseBits(result, 32);
         }
-  
-        if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
-            result = (b3 & 0xFF) | ((b2 & 0xFF) << 8) | ((b1 & 0xFF) << 16) | ((b0 & 0xFF) << 24);
-        } else {
-            result = (b0 & 0xFF) | ((b1 & 0xFF) << 8) | ((b2 & 0xFF) << 16) | ((b3 & 0xFF) << 24);
-        }
-        
         return result;
     }
     
     /**
      * Reads an integer from the array of numbers.
      * 
-     * Uses binary arithmetic. The array must have 4 items, each one must represent a byte. If the value in the
+     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      * 
      * @param word the array of 4 bytes
@@ -119,78 +125,115 @@ public class NumberUtils {
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(Integer[] word, int strategy) {
-        int result;
-        int b0,b1,b2,b3;
-        
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            b0 = reverseBits(word[0], 8);
-            b1 = reverseBits(word[1], 8);
-            b2 = reverseBits(word[2], 8);
-            b3 = reverseBits(word[3], 8);
-        } else {
-            b0 = word[0];
-            b1 = word[1];
-            b2 = word[2];
-            b3 = word[3];
-        }
-  
-        if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
-            result = (b3 & 0xFF) | ((b2 & 0xFF) << 8) | ((b1 & 0xFF) << 16) | ((b0 & 0xFF) << 24);
-        } else {
-            result = (b0 & 0xFF) | ((b1 & 0xFF) << 8) | ((b2 & 0xFF) << 16) | ((b3 & 0xFF) << 24);
-        }
+        return readInt(numbersToNativeBytes(word), strategy);
+    }
 
-        return result;
+    /**
+     * Reads an integer from the array of numbers.
+     *
+     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
+     * array is larger than a byte, the higher-order bits are cut.
+     *
+     * @param word the array of 4 bytes
+     * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
+     * @return Single integer number which combines the array of bytes into one 32-bit value
+     */
+    public static int readInt(int[] word, int strategy) {
+        return readInt(nativeIntsToNativeBytes(word), strategy);
     }
     
     /**
      * Split the value into 4 bytes.
      * 
-     * Uses binary arithmetic. 
+     * Uses ByteBuffer.
      * 
      * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Integer[] output, int strategy) {
-        if ((strategy & Strategy.BIG_ENDIAN) == Strategy.BIG_ENDIAN) {
-            output[3] = value & 0xFF;
-            output[2] = (value >>> 8) & 0xFF;
-            output[1] = (value >>> 16) & 0xFF;
-            output[0] = (value >>> 24) & 0xFF;
-        } else {
-            output[0] = value & 0xFF;
-            output[1] = (value >>> 8) & 0xFF;
-            output[2] = (value >>> 16) & 0xFF;
-            output[3] = (value >>> 24) & 0xFF;
+        int toSave = value;
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            toSave = reverseBits(value, 32);
         }
 
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            output[0] = reverseBits(output[0], 8);
-            output[1] = reverseBits(output[1], 8);
-            output[2] = reverseBits(output[2], 8);
-            output[3] = reverseBits(output[3], 8);
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         }
+        byteBuffer.putInt(toSave);
+        System.arraycopy(nativeBytesToIntegers(byteBuffer.array()), 0, output, 0, 4);
+    }
+
+    /**
+     * Split the value into 4 bytes.
+     *
+     * Uses ByteBuffer.
+     *
+     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
+     */
+    public static void writeInt(int value, int[] output, int strategy) {
+        int toSave = value;
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            toSave = reverseBits(value, 32);
+        }
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        }
+        byteBuffer.putInt(toSave);
+        System.arraycopy(nativeBytesToInts(byteBuffer.array()), 0, output, 0, 4);
     }
 
     /**
      * Split the value into 4 bytes.
      * 
-     * Uses binary arithmetic. 
+     * Uses ByteBuffer.
      * 
      * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Byte[] output, int strategy) {
-        Integer[] tmp = new Integer[4];
-        writeInt(value, tmp, strategy);
-        
-        for (int i = 0; i < tmp.length; i++) {
-            output[i] = (byte)(tmp[i] & 0xFF);
+        int toSave = value;
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            toSave = reverseBits(value, 32);
         }
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        }
+        byteBuffer.putInt(toSave);
+        System.arraycopy(nativeBytesToBytes(byteBuffer.array()), 0, output, 0, 4);
     }
-   
+
+    /**
+     * Split the value into 4 bytes.
+     *
+     * Uses ByteBuffer.
+     *
+     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
+     */
+    public static void writeInt(int value, byte[] output, int strategy) {
+        int toSave = value;
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            toSave = reverseBits(value, 32);
+        }
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        }
+        byteBuffer.putInt(toSave);
+        System.arraycopy(byteBuffer.array(), 0, output, 0, 4);
+    }
+
     /**
      * Split the value into 4 bytes.
      * 
@@ -201,12 +244,17 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Short[] output, int strategy) {
-        Integer[] tmp = new Integer[output.length];
-        writeInt(value, tmp, strategy);
-        
-        for (int i = 0; i < tmp.length; i++) {
-            output[i] = (short)(tmp[i] & 0xFFFF);
+        int toSave = value;
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            toSave = reverseBits(value, 32);
         }
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        }
+        byteBuffer.putInt(toSave);
+        System.arraycopy(nativeBytesToShorts(byteBuffer.array()), 0, output, 0, 4);
     }
 
     /**
@@ -293,6 +341,20 @@ public class NumberUtils {
     }
 
     /**
+     * Converts native short[] array to native byte[] array.
+     * Every number is converted to byte using number.byteValue() call.
+     * @param numbers numbers array
+     * @return native byte[] array
+     */
+    public static byte[] nativeIntsToNativeBytes(int[] numbers) {
+        byte[] result = new byte[numbers.length];
+        for (int i = 0; i < numbers.length; i++) {
+            result[i] = (byte)(numbers[i] & 0xFF);
+        }
+        return result;
+    }
+
+    /**
      * Converts native short[] array to Byte[] array.
      * Every number is converted to byte using number &amp; 0xFF
      * @param numbers numbers array
@@ -329,6 +391,45 @@ public class NumberUtils {
         Byte[] result = new Byte[array.length];
         for (int i = 0; i < array.length; i++) {
             result[i] = array[i];
+        }
+        return result;
+    }
+
+    /**
+     * Converts native byte[] array to boxed Integer[] array.
+     * @param array native byte[] array
+     * @return boxed Integer[] array
+     */
+    public static Integer[] nativeBytesToIntegers(byte[] array) {
+        Integer[] result = new Integer[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = array[i] & 0xFF;
+        }
+        return result;
+    }
+
+    /**
+     * Converts native byte[] array to boxed Short[] array.
+     * @param array native byte[] array
+     * @return boxed Short[] array
+     */
+    public static Short[] nativeBytesToShorts(byte[] array) {
+        Short[] result = new Short[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = (short) (array[i] & 0xFF);
+        }
+        return result;
+    }
+
+    /**
+     * Converts native byte[] array to boxed Integer[] array.
+     * @param array native byte[] array
+     * @return boxed Integer[] array
+     */
+    public static int[] nativeBytesToInts(byte[] array) {
+        int[] result = new int[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = array[i] & 0xFF;
         }
         return result;
     }

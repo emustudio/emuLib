@@ -21,11 +21,7 @@ package net.emustudio.emulib.plugins.cpu;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class DecodedInstructionTest {
     private DecodedInstruction instruction;
@@ -43,7 +39,7 @@ public class DecodedInstructionTest {
 
     @Test
     public void testHasKeyForBits() {
-        instruction.add(0, new byte[] {});
+        instruction.add(0, 0);
         assertTrue(instruction.hasKey(0));
     }
 
@@ -73,16 +69,14 @@ public class DecodedInstructionTest {
 
     @Test
     public void testGetBits() {
-        byte[] bits = new byte[] {5,6};
-        instruction.add(0, bits);
-        assertArrayEquals(bits, instruction.getBits(0));
+        instruction.add(0, 0x0605);
+        assertEquals(0x0605, (int) instruction.getBits(0));
     }
 
     @Test
-    public void testGetReversedBits() {
-        byte[] bits = new byte[] {5,6};
-        instruction.add(0, bits);
-        assertArrayEquals(new byte[] {6,5}, instruction.getBits(0, true));
+    public void testGetBitsWithReversedBytes() {
+        instruction.add(0, 0x0605);
+        assertEquals(0x0506, (int) instruction.getBits(0, true));
     }
 
     @Test
@@ -103,9 +97,8 @@ public class DecodedInstructionTest {
 
     @Test
     public void testSetImage() {
-        byte[] image = new byte[] { 6 };
-        instruction.setImage(image);
-        assertSame(image, instruction.getImage());
+        instruction.setImage(6);
+        assertEquals(6, instruction.getImage());
         assertEquals(1, instruction.getLength());
     }
 
