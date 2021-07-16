@@ -30,8 +30,8 @@ import java.util.HashMap;
 public class DecodedInstruction {
     private final Map<Integer, Integer> constants = new HashMap<>();
     private final Map<Integer, String> strings = new HashMap<>();
-    private final Map<Integer, byte[]> bits = new HashMap<>();
-    private byte[] image;
+    private final Map<Integer, Integer> bits = new HashMap<>();
+    private int image;
 
     /**
      * Adds the recognized string-returning variant to the instruction.
@@ -49,7 +49,7 @@ public class DecodedInstruction {
      * @param key the rule code
      * @param bits the bit sequence, padded to whole bytes
      */
-    public void add(int key, byte[] bits) {
+    public void add(int key, int bits) {
         this.bits.put(key, bits);
     }
 
@@ -86,7 +86,7 @@ public class DecodedInstruction {
      * @param key the key
      * @return the bit sequence; or null if the key is not mapped to bits
      */
-    public byte[] getBits(int key) {
+    public Integer getBits(int key) {
         return bits.get(key);
     }
 
@@ -97,8 +97,8 @@ public class DecodedInstruction {
      *        the data from Little to Big Endian (Java uses Big Endian)
      * @return the bit sequence; or null if the key is not mapped to bits
      */
-    public byte[] getBits(int key, boolean reverseBytes) {
-        byte[] data = bits.get(key);
+    public Integer getBits(int key, boolean reverseBytes) {
+        Integer data = bits.get(key);
 
         if (reverseBytes && data != null) {
             return DecodingStrategy.reverseBytes(data);
@@ -111,7 +111,7 @@ public class DecodedInstruction {
      * Returns the binary image of the whole instruction.
      * @return the binary image
      */
-    public byte[] getImage() {
+    public int getImage() {
         return image;
     }
 
@@ -119,7 +119,7 @@ public class DecodedInstruction {
      * Sets the binary image of the whole instruction.
      * @param image the binary image
      */
-    public void setImage(byte[] image) {
+    public void setImage(int image) {
         this.image = image;
     }
 
@@ -128,7 +128,7 @@ public class DecodedInstruction {
      * @return the length, in bytes
      */
     public int getLength() {
-        return image.length;
+        return 0; //image.length;
     }
 
     /**
