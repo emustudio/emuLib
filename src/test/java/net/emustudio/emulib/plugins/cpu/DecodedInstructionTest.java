@@ -39,7 +39,7 @@ public class DecodedInstructionTest {
 
     @Test
     public void testHasKeyForBits() {
-        instruction.add(0, 0);
+        instruction.add(0, 0, 8);
         assertTrue(instruction.hasKey(0));
     }
 
@@ -51,8 +51,6 @@ public class DecodedInstructionTest {
     @Test
     public void testNullBitsForInvalidKey() {
         assertNull(instruction.getBits(0));
-        assertNull(instruction.getBits(0, true));
-        assertNull(instruction.getBits(0, false));
     }
 
     @Test
@@ -69,14 +67,8 @@ public class DecodedInstructionTest {
 
     @Test
     public void testGetBits() {
-        instruction.add(0, 0x0605);
-        assertEquals(0x0605, (int) instruction.getBits(0));
-    }
-
-    @Test
-    public void testGetBitsWithReversedBytes() {
-        instruction.add(0, 0x0605);
-        assertEquals(0x0506, (int) instruction.getBits(0, true));
+        instruction.add(0, 0x0605, 16);
+        assertEquals(0x0605, instruction.getBits(0).bits);
     }
 
     @Test
@@ -97,8 +89,8 @@ public class DecodedInstructionTest {
 
     @Test
     public void testSetImage() {
-        instruction.setImage(6);
-        assertEquals(6, instruction.getImage());
+        instruction.setImage(new byte[] {6});
+        assertArrayEquals(new byte[] {6}, instruction.getImage());
         assertEquals(1, instruction.getLength());
     }
 

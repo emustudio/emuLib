@@ -19,19 +19,24 @@
  */
 package net.emustudio.emulib.plugins.cpu;
 
+import net.emustudio.emulib.runtime.helpers.Bits;
+
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashMap;
 
 /**
  * A decoded, but not yet disassembled instruction.
+ *
+ * Basic unit is a byte. Instruction image is an int stored in big-endian.
  */
 public class DecodedInstruction {
     private final Map<Integer, Integer> constants = new HashMap<>();
     private final Map<Integer, String> strings = new HashMap<>();
-    private final Map<Integer, Integer> bits = new HashMap<>();
-    private int image;
+    private final Map<Integer, Bits> bits = new HashMap<>();
+
+    private byte[] image;
 
     /**
      * Adds the recognized string-returning variant to the instruction.
@@ -47,10 +52,11 @@ public class DecodedInstruction {
     /**
      * Adds the recognized subrule-returning variant to the instruction.
      * @param key the rule code
-     * @param bits the bit sequence, padded to whole bytes
+     * @param bits the bit sequence in little-endian, padded to whole bytes
+     * @param length bit length (in bits)
      */
-    public void add(int key, int bits) {
-        this.bits.put(key, bits);
+    public void add(int key, int bits, int length) {
+        this.bits.put(key, new Bits(bits, length));
     }
 
     /**
@@ -86,32 +92,15 @@ public class DecodedInstruction {
      * @param key the key
      * @return the bit sequence; or null if the key is not mapped to bits
      */
-    public Integer getBits(int key) {
+    public Bits getBits(int key) {
         return bits.get(key);
-    }
-
-    /**
-     * Returns the bit sequence to which the given key is mapped.
-     * @param key the key
-     * @param reverseBytes reverse the byte order - this is useful to convert
-     *        the data from Little to Big Endian (Java uses Big Endian)
-     * @return the bit sequence; or null if the key is not mapped to bits
-     */
-    public Integer getBits(int key, boolean reverseBytes) {
-        Integer data = bits.get(key);
-
-        if (reverseBytes && data != null) {
-            return DecodingStrategy.reverseBytes(data);
-        } else {
-            return data;
-        }
     }
 
     /**
      * Returns the binary image of the whole instruction.
      * @return the binary image
      */
-    public int getImage() {
+    public byte[] getImage() {
         return image;
     }
 
@@ -119,7 +108,7 @@ public class DecodedInstruction {
      * Sets the binary image of the whole instruction.
      * @param image the binary image
      */
-    public void setImage(int image) {
+    public void setImage(byte[] image) {
         this.image = image;
     }
 
@@ -128,7 +117,7 @@ public class DecodedInstruction {
      * @return the length, in bytes
      */
     public int getLength() {
-        return 0; //image.length;
+        return image.length;
     }
 
     /**

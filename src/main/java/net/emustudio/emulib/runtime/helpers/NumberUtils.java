@@ -50,11 +50,11 @@ public class NumberUtils {
      * Reverse bits in integer (max 32-bit) value.
      * 
      * @param value value which bits will be reversed
-     * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be ignored.
+     * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be preserved.
      * @return value with reversed bits
      */
     public static int reverseBits(int value, int numberOfBits) {
-        int result = 0;
+        int result = value & ((numberOfBits == 32) ? 0 :(0xFFFFFFFF << numberOfBits));
         for (int i = 0; i < numberOfBits; i++) {
             result |= ((value >>> i) & 0x1) << (numberOfBits - i - 1);
         }
@@ -79,8 +79,7 @@ public class NumberUtils {
     /**
      * Reads an integer from the array of numbers.
      * 
-     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
-     * array is larger than a byte, the higher-order bits are cut.
+     * Uses ByteBuffer.wrap. The array must have 4 items - because integer has 4 bytes.
      * 
      * @param word the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
@@ -93,23 +92,50 @@ public class NumberUtils {
     /**
      * Reads an integer from the array of numbers.
      *
-     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
-     * array is larger than a byte, the higher-order bits are cut.
+     * Uses ByteBuffer.wrap. The array must have exactly 4 items - because integer has 4 bytes. If the array
+     * has more bytes, they are ignored. Which ones are ignored depends on the byte ordering (=strategy).
      *
      * @param word the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(byte[] word, int strategy) {
-        ByteBuffer wrapped = ByteBuffer.wrap(word,0, 4);
+        return readInt(word, 0, Math.min(4, word.length), strategy);
+    }
 
-        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+    /**
+     * Reads an integer from the array of numbers.
+     *
+     * Uses ByteBuffer.wrap. The array should have up to 4 items, each one represents a byte. If the length is
+     * less than 4, the array for reading is padded with zeroes from the left (in case of big endian) or from the
+     * right (in case of little endian), so that the array size is 4.
+     *
+     * @param word the array of 4 bytes
+     * @param startOffset starting offset in the array
+     * @param length length in the array
+     * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
+     * @return Single integer number which combines the array of bytes into one 32-bit value
+     */
+    public static int readInt(byte[] word, int startOffset, int length, int strategy) {
+        assert(length >= 0 && length <= 4 && word.length >= (startOffset + length) && startOffset >= 0);
+
+        byte[] newarray = new byte[4];
+        boolean littleEndian = ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN);
+
+        System.arraycopy(word, startOffset, newarray, littleEndian ? 0 : (4 - length), length);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            for (int i = 0; i < 4; i++) {
+                newarray[i] = (byte)(reverseBits(newarray[i], 8) & 0xFF);
+            }
+        }
+
+        ByteBuffer wrapped = ByteBuffer.wrap(newarray);
+        if (littleEndian) {
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
         }
         int result = wrapped.getInt();
-
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            return reverseBits(result, 32);
+        if (!littleEndian) {
+            return result >>> (32 - startOffset * 8);
         }
         return result;
     }
@@ -198,16 +224,17 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Byte[] output, int strategy) {
-        int toSave = value;
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            toSave = reverseBits(value, 32);
-        }
-
         ByteBuffer byteBuffer = ByteBuffer.allocate(4);
         if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
             byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
         }
-        byteBuffer.putInt(toSave);
+        byteBuffer.putInt(value);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            for (int i = 0; i < 4; i++) {
+                byteBuffer.array()[i] = (byte)(reverseBits(byteBuffer.array()[i], 8) & 0xFF);
+            }
+        }
+
         System.arraycopy(nativeBytesToBytes(byteBuffer.array()), 0, output, 0, 4);
     }
 

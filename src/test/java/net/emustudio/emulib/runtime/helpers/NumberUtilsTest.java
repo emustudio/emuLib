@@ -19,7 +19,6 @@
 package net.emustudio.emulib.runtime.helpers;
 
 import net.emustudio.emulib.runtime.helpers.NumberUtils.Strategy;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -28,10 +27,22 @@ import static org.junit.Assert.assertEquals;
 public class NumberUtilsTest {
 
     @Test
-    public void testReverseBits() {
+    public void testReverseBitsSmallerThanByte() {
         assertEquals(3, NumberUtils.reverseBits(6, 3));
+    }
+
+    @Test
+    public void testReverseBitsTwoBytes() {
         assertEquals(0xD96D, NumberUtils.reverseBits(0xB69B, 16));
-        assertEquals(0xD9, NumberUtils.reverseBits(0xB69B, 8));
+    }
+
+    @Test
+    public void testReverseBitsOneByteOfTwoBytes() {
+        assertEquals(0xB6D9, NumberUtils.reverseBits(0xB69B, 8));
+    }
+
+    @Test
+    public void testReverseBitsFullInteger() {
         assertEquals(0xD96DD96D, NumberUtils.reverseBits(0xB69BB69B, 32));
     }
 
@@ -44,26 +55,42 @@ public class NumberUtilsTest {
     }
 
     @Test
-    @Ignore
-    public void testReadInt() {
+    public void testReadIntFourBytesLittleEndian() {
         Integer[] word = new Integer[]{0xAB, 0xCD, 0xEF, 0x12};
         assertEquals(0x12EFCDAB, NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN));
-
-        Byte[] word2 = new Byte[]{0xB, 6, 9, 0xB};
-        assertEquals(0x0B06090B, NumberUtils.readInt(word2, Strategy.BIG_ENDIAN));
-
-        assertEquals(String.format("Was: 0x%X", NumberUtils.readInt(word2, Strategy.REVERSE_BITS)),
-            0xD09060D0, NumberUtils.readInt(word2, Strategy.REVERSE_BITS));
-        assertEquals(0xD06090D0, NumberUtils.readInt(word2, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
-
-        int [] word3 = new int[]{0xAB, 0xCD, 0xEF, 0x12};
-        assertEquals(0x12EFCDAB, NumberUtils.readInt(word3, Strategy.LITTLE_ENDIAN));
     }
 
-    @Test(expected = IndexOutOfBoundsException.class)
-    public void testReadIntFewBytes() {
+    @Test
+    public void testReadIntFourBytesBigEndian() {
+        Byte[] word = new Byte[]{0xB, 6, 9, 0xB};
+        assertEquals(0x0B06090B, NumberUtils.readInt(word, Strategy.BIG_ENDIAN));
+    }
+
+    @Test
+    public void testReadIntFourBytesReverseBitsLittleEndian() {
+        Byte[] word2 = new Byte[]{0xB, 6, 9, 0xB};
+        int result = NumberUtils.readInt(word2, Strategy.REVERSE_BITS);
+        assertEquals(String.format("Was: 0x%X", result), 0xD09060D0, result);
+    }
+
+    @Test
+    public void testReadIntFourBytesReverseBitsBigEndian() {
+        Byte[] word2 = new Byte[]{0xB, 6, 9, 0xB};
+        int result = NumberUtils.readInt(word2, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
+        assertEquals(String.format("Was: 0x%X", result),0xD06090D0, result);
+    }
+
+    @Test
+    public void testReadIntTwoBytesLittleEndian() {
         Integer[] word = new Integer[]{0xAB, 0xCD};
-        NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN);
+        assertEquals(0xCDAB, NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN));
+    }
+
+    @Test
+    public void testReadIntTwoBytesBigEndian() {
+        Integer[] word = new Integer[]{0xAB, 0xCD};
+        int result = NumberUtils.readInt(word, Strategy.BIG_ENDIAN);
+        assertEquals(String.format("Was: 0x%X", result), 0xABCD, result);
     }
 
     @Test
@@ -73,29 +100,49 @@ public class NumberUtilsTest {
     }
 
     @Test
-    public void testWriteInt() {
+    public void testWriteIntLittleEndian() {
         Integer[] word = new Integer[4];
         NumberUtils.writeInt(0x12EFCDAB, word, Strategy.LITTLE_ENDIAN);
         assertArrayEquals(new Integer[]{0xAB, 0xCD, 0xEF, 0x12}, word);
+    }
 
-        Byte[] word2 = new Byte[4];
-        NumberUtils.writeInt(0x0B06090B, word2, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, word2);
+    @Test
+    public void testWriteIntBigEndian() {
+        Byte[] word = new Byte[4];
+        NumberUtils.writeInt(0x0B06090B, word, Strategy.BIG_ENDIAN);
+        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, word);
+    }
 
-        Short[] word3 = new Short[4];
-        NumberUtils.writeInt(0x0B06090B, word3, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Short[]{0xB, 6, 9, 0xB}, word3);
+    @Test
+    public void testWriteIntBigEndianShort() {
+        Short[] word = new Short[4];
+        NumberUtils.writeInt(0x0B06090B, word, Strategy.BIG_ENDIAN);
+        assertArrayEquals(new Short[]{0xB, 6, 9, 0xB}, word);
+    }
 
-        NumberUtils.writeInt(0xD06090D0, word2, Strategy.REVERSE_BITS);
-        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, word2);
+    @Test
+    public void testWriteIntReverseBitsLittleEndian() {
+        Byte[] word = new Byte[4];
+        NumberUtils.writeInt(0xD06090D0, word, Strategy.REVERSE_BITS);
+        assertArrayEquals(new Byte[]{0xB, 9, 6, 0xB}, word);
+    }
 
-        NumberUtils.writeInt(0xD06090D0, word2, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Byte[]{0xB, 9, 6, 0xB}, word2);
+    @Test
+    public void testWriteIntReverseBitsBigEndian() {
+        Byte[] word = new Byte[4];
+        NumberUtils.writeInt(0xD06090D0, word, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
+        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, word);
+    }
 
+    @Test
+    public void testWriteIntReverseBitsBigEndianNativeBytes() {
         byte[] word4 = new byte[4];
         NumberUtils.writeInt(0xD06090D0, word4, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
         assertArrayEquals(new byte[]{0xB, 9, 6, 0xB}, word4);
+    }
 
+    @Test
+    public void testWriteIntReverseBitsBigEndianNativeInts() {
         int[] word5 = new int[4];
         NumberUtils.writeInt(0xD06090D0, word5, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
         assertArrayEquals(new int[]{0xB, 9, 6, 0xB}, word5);

@@ -63,6 +63,9 @@ public interface MemoryContext<CellType> extends Context {
      * }
      * </pre>
      *
+     * If memory size is smaller than (memoryPosition+count), then only available cells are returned - returned
+     * array size can be less than <code>count</code>.
+     *
      * @param memoryPosition  memory position (address) of the read cells
      * @param count how many cells should be read
      * @return one or more read cells, accessible at indexes 0 and 1, respectively.
