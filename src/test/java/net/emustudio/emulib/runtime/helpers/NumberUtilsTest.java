@@ -55,6 +55,28 @@ public class NumberUtilsTest {
     }
 
     @Test
+    public void testReadBitsLittleEndian() {
+        // 0x12EFCDAB == 0b10010111011111100110110101011
+        byte[] word = new byte[]{(byte) 0xAB, (byte)0xCD, (byte)0xEF, 0x12};
+        int bits = NumberUtils.readBits(word, 12, 12, Strategy.LITTLE_ENDIAN);
+
+        // 0b.....111011111100............
+        // 0b111011111100 == 0xEFC
+        assertEquals(0xEFC, bits);
+    }
+
+    @Test
+    public void testReadBitsBigEndian() {
+        // 0xABCDEF12 == 0b10101011110011011110111100010010
+        byte[] word = new byte[]{(byte) 0xAB, (byte)0xCD, (byte)0xEF, 0x12};
+        int bits = NumberUtils.readBits(word, 12, 12, Strategy.BIG_ENDIAN);
+
+        // 0b........110011011110............
+        // 0b110011011110 == 0xCDE
+        assertEquals(0xCDE, bits);
+    }
+
+    @Test
     public void testReadIntFourBytesLittleEndian() {
         Integer[] word = new Integer[]{0xAB, 0xCD, 0xEF, 0x12};
         assertEquals(0x12EFCDAB, NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN));
@@ -63,6 +85,18 @@ public class NumberUtilsTest {
     @Test
     public void testReadIntFourBytesBigEndian() {
         Byte[] word = new Byte[]{0xB, 6, 9, 0xB};
+        assertEquals(0x0B06090B, NumberUtils.readInt(word, Strategy.BIG_ENDIAN));
+    }
+
+    @Test
+    public void testReadNativeIntFourBytesLittleEndian() {
+        int[] word = new int[]{0xAB, 0xCD, 0xEF, 0x12};
+        assertEquals(0x12EFCDAB, NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN));
+    }
+
+    @Test
+    public void testReadNativeIntFourBytesBigEndian() {
+        int[] word = new int[]{0xB, 6, 9, 0xB};
         assertEquals(0x0B06090B, NumberUtils.readInt(word, Strategy.BIG_ENDIAN));
     }
 

@@ -77,6 +77,27 @@ public class NumberUtils {
     }
 
     /**
+     * Reads an arbitrary number of bits from bytes .
+     * Bits are read in little endian
+     *
+     * @param bytes bytes
+     * @param start the number of bits from the start of the current instruction
+     * @param length the number of bits to read
+     * @param bytesStrategy strategy for how to read bytes
+     * @return the bytes read
+     */
+    public static int readBits(byte[] bytes, int start, int length, int bytesStrategy) {
+        int startByte =  start / 8;
+        int endByte = (start + length - 1) / 8;
+
+        int value = readInt(bytes, startByte, endByte - startByte + 1, bytesStrategy);
+
+        int clear = (1 << length) - 1;
+        int shift = start % 8;
+        return (value >>> shift) & clear;
+    }
+
+    /**
      * Reads an integer from the array of numbers.
      * 
      * Uses ByteBuffer.wrap. The array must have 4 items - because integer has 4 bytes.
@@ -133,11 +154,7 @@ public class NumberUtils {
         if (littleEndian) {
             wrapped.order(ByteOrder.LITTLE_ENDIAN);
         }
-        int result = wrapped.getInt();
-        if (!littleEndian) {
-            return result >>> (32 - startOffset * 8);
-        }
-        return result;
+        return wrapped.getInt();
     }
     
     /**

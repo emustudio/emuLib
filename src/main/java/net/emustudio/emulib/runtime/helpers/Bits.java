@@ -7,10 +7,16 @@ public class Bits {
     public final int length;
     private final int mask;
 
+    /**
+     * Constructs new Bits object.
+     *
+     * @param bits integer number in little endian
+     * @param length significant bits count
+     */
     public Bits(int bits, int length) {
         this.bits = bits;
         this.length = length;
-        this.mask = (0xFFFFFFFF >>> (32 - length));
+        this.mask = (1 << length) - 1;
     }
 
     @SuppressWarnings("unused")
