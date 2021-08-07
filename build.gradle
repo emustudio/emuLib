@@ -1,85 +1,85 @@
 plugins {
-    id 'java-library'
-    id 'maven-publish'
-//    id 'signing'
+  id 'java-library'
+  id 'maven-publish'
+  id 'signing'
 }
 
 group 'net.emustudio'
 version '11.6.0-SNAPSHOT'
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    implementation 'org.slf4j:slf4j-api:1.7.30'
-    implementation 'net.jcip:jcip-annotations:1.0'
+  implementation 'org.slf4j:slf4j-api:1.7.32'
+  implementation 'net.jcip:jcip-annotations:1.0'
 
-    testImplementation 'junit:junit:4.13'
-    testImplementation 'org.easymock:easymock:4.2'
+  testImplementation 'junit:junit:4.13.2'
+  testImplementation 'org.easymock:easymock:4.3'
 }
 
 java {
-    withJavadocJar()
-    withSourcesJar()
+  withJavadocJar()
+  withSourcesJar()
 }
 
 publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'emulib'
-            from components.java
-            pom {
-                name = 'emuLib'
-                description = 'Run-time library used by emuStudio and plugins'
-                url = 'https://github.com/emustudio/emuLib'
-                licenses {
-                    license {
-                        name = 'GNU General Public License, Version 3.0'
-                        url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'vbmacher'
-                        name = 'Peter Jakubčo'
-                        email = 'pjakubco@gmail.com'
-                    }
-                    developer {
-                        id = 'sulir'
-                        name = 'Matúš Sulír'
-                        email = 'matus.sulir@gmail.com'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:git@github.com:emustudio/emuLib.git'
-                    developerConnection = 'scm:git:git@github.com:emustudio/emuLib.git'
-                    url = 'https://github.com/emustudio/emuLib'
-                }
-            }
+  publications {
+    mavenJava(MavenPublication) {
+      artifactId = 'emulib'
+      from components.java
+      pom {
+        name = 'emuLib'
+        description = 'Run-time library used by emuStudio and plugins'
+        url = 'https://github.com/emustudio/emuLib'
+        licenses {
+          license {
+            name = 'GNU General Public License, Version 3.0'
+            url = 'https://www.gnu.org/licenses/gpl-3.0.txt'
+          }
         }
+        developers {
+          developer {
+            id = 'vbmacher'
+            name = 'Peter Jakubčo'
+            email = 'pjakubco@gmail.com'
+          }
+          developer {
+            id = 'sulir'
+            name = 'Matúš Sulír'
+            email = 'matus.sulir@gmail.com'
+          }
+        }
+        scm {
+          connection = 'scm:git:git@github.com:emustudio/emuLib.git'
+          developerConnection = 'scm:git:git@github.com:emustudio/emuLib.git'
+          url = 'https://github.com/emustudio/emuLib'
+        }
+      }
     }
+  }
 
-    repositories {
-        maven {
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            credentials {
-                username findProperty("SONATYPE_USERNAME") ?: System.getenv("SONATYPE_USERNAME")
-                password findProperty("SONATYPE_PASSWORD") ?: System.getenv("SONATYPE_PASSWORD")
-            }
-        }
+  repositories {
+    maven {
+      url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+      credentials {
+        username findProperty("SONATYPE_USERNAME") ?: System.getenv("SONATYPE_USERNAME")
+        password findProperty("SONATYPE_PASSWORD") ?: System.getenv("SONATYPE_PASSWORD")
+      }
     }
+  }
 }
 
-//signing {
-//    def signingKey = findProperty("GPG_KEY") ?: System.getenv("GPG_KEY")
-//    def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
-//    useInMemoryPgpKeys(signingKey, signingPassword)
-//    sign publishing.publications.mavenJava
-//}
+signing {
+  def signingKey = findProperty("GPG_KEY") ?: System.getenv("GPG_KEY")
+  def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
+  useInMemoryPgpKeys(signingKey, signingPassword)
+  sign publishing.publications.mavenJava
+}
 
 javadoc {
-    if(JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
+  if (JavaVersion.current().isJava9Compatible()) {
+    options.addBooleanOption('html5', true)
+  }
 }
