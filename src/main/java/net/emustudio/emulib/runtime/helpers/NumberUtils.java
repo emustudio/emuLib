@@ -92,7 +92,7 @@ public class NumberUtils {
 
         int value = readInt(bytes, startByte, endByte - startByte + 1, bytesStrategy);
 
-        int clear = (1 << length) - 1;
+        int clear = (int)((1L << length) - 1);
         int shift = start % 8;
         return (value >>> shift) & clear;
     }

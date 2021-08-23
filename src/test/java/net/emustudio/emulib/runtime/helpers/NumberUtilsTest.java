@@ -77,6 +77,14 @@ public class NumberUtilsTest {
     }
 
     @Test
+    public void testReadBitsMaxInteger() {
+        int number = NumberUtils.readBits(new byte [] {
+            0x20, (byte)0x82, 0x25, 0x60
+        }, 0, 32, Strategy.LITTLE_ENDIAN);
+        assertEquals(0x60258220, number);
+    }
+
+    @Test
     public void testReadIntFourBytesLittleEndian() {
         Integer[] word = new Integer[]{0xAB, 0xCD, 0xEF, 0x12};
         assertEquals(0x12EFCDAB, NumberUtils.readInt(word, Strategy.LITTLE_ENDIAN));
