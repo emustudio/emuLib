@@ -21,10 +21,7 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.runtime.helpers.Bits;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A decoded, but not yet disassembled instruction.
@@ -128,5 +125,10 @@ public class DecodedInstruction {
         Set<Integer> keys = new HashSet<>(constants.keySet());
         keys.addAll(bits.keySet());
         return keys;
+    }
+
+    @Override
+    public String toString() {
+        return Arrays.toString(image);
     }
 }

@@ -6,6 +6,7 @@ plugins {
 
 group 'net.emustudio'
 version '11.7.0-SNAPSHOT'
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 repositories {
   mavenCentral()
@@ -72,6 +73,10 @@ publishing {
 }
 
 signing {
+  required {
+    isReleaseVersion
+  }
+
   def signingKey = findProperty("GPG_KEY") ?: System.getenv("GPG_KEY")
   def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
   useInMemoryPgpKeys(signingKey, signingPassword)

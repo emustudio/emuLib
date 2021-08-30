@@ -5,6 +5,7 @@ import net.emustudio.emulib.runtime.helpers.Bits;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+@SuppressWarnings("unused")
 public interface Formatter {
     Formatter DEFAULT = new Formatter() {
     };
@@ -34,7 +35,7 @@ public interface Formatter {
                         return "NaN";
                 }
             case 's':
-                return new String(bits.toBytes());
+                return new String(bits.toBytes()).replace("\0", "");
             case 'x':
                 return Integer.toHexString(bits.bits);
             case 'X':
