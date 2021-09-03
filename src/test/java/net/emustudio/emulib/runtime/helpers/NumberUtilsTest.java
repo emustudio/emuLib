@@ -57,23 +57,39 @@ public class NumberUtilsTest {
     @Test
     public void testReadBitsLittleEndian() {
         // 0x12EFCDAB == 0b10010111011111100110110101011
+        // 111011111100 == 0xEFC
+        // 111111001101
         byte[] word = new byte[]{(byte) 0xAB, (byte)0xCD, (byte)0xEF, 0x12};
         int bits = NumberUtils.readBits(word, 12, 12, Strategy.LITTLE_ENDIAN);
 
-        // 0b.....111011111100............
-        // 0b111011111100 == 0xEFC
         assertEquals(0xEFC, bits);
+    }
+
+    @Test
+    public void testReadBitsLittleEndianShifted() {
+        //  0xAFFA == 0b1010111111111010
+        //  01111111 = 0x7F
+        byte[] word = new byte[]{(byte) 0xFA, (byte)0xAF, 0, 0};
+        int bits = NumberUtils.readBits(word, 5, 8, Strategy.LITTLE_ENDIAN);
+        assertEquals(0x7F, bits);
     }
 
     @Test
     public void testReadBitsBigEndian() {
         // 0xABCDEF12 == 0b10101011110011011110111100010010
+        // 110111101111 = 0xDEF
         byte[] word = new byte[]{(byte) 0xAB, (byte)0xCD, (byte)0xEF, 0x12};
         int bits = NumberUtils.readBits(word, 12, 12, Strategy.BIG_ENDIAN);
+        assertEquals(0xDEF, bits);
+    }
 
-        // 0b........110011011110............
-        // 0b110011011110 == 0xCDE
-        assertEquals(0xCDE, bits);
+    @Test
+    public void testReadBitsBigEndianShifted() {
+        //  0xFAAF == 0b1111101010101111
+        //  01010101
+        byte[] word = new byte[]{(byte) 0xFA, (byte)0xAF, 0, 0};
+        int bits = NumberUtils.readBits(word, 5, 8, Strategy.BIG_ENDIAN);
+        assertEquals(0x55, bits);
     }
 
     @Test

@@ -77,8 +77,9 @@ public class NumberUtils {
     }
 
     /**
-     * Reads an arbitrary number of bits from bytes .
-     * Bits are read in little endian
+     * Reads an arbitrary number of bits from bytes.
+     * If bytesStrategy is LITTLE_ENDIAN, bits are read from LSB to MSB. If the strategy is BIG_ENDIAN, bits are read
+     * from MSB to LSB.
      *
      * @param bytes bytes
      * @param start the number of bits from the start of the current instruction
@@ -87,13 +88,38 @@ public class NumberUtils {
      * @return the bytes read
      */
     public static int readBits(byte[] bytes, int start, int length, int bytesStrategy) {
-        int startByte =  start / 8;
+        // if start >= n * 8, we can skip reading whole bytes, because they will be lost by shifting anyway
+        int startByte = start / 8;
         int endByte = (start + length - 1) / 8;
+
+        int div = start / 8; // force java to store integer (drop decimal part)
+        int realStart = start - 8*div; // we just "shifted" bits which were not read
 
         int value = readInt(bytes, startByte, endByte - startByte + 1, bytesStrategy);
 
         int clear = (int)((1L << length) - 1);
-        int shift = start % 8;
+        int shift;
+
+        boolean littleEndian = ((bytesStrategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN);
+        if (littleEndian) {
+            // from LSB to MSB
+            shift = realStart % 8;
+        } else {
+            // from MSB to LSB
+            //
+            // 1. (8-length) tells us how much we should shift to the right, if realStart=0
+            //
+            // 2. if realStart>0, it means we meed more bits from the right, exactly (8-length-realStart) bits
+            //
+            // 3. we need ((realStart + length) % 8), because we shift at max 7 bits
+            //    (we "dropped" whole bytes if start>8)
+            //
+            // 4. and finally, we need the last %8 because if ((realStart + length) % 8)=0 we end up with shift=8.
+            //    That would be the same as dropping the byte, but we dropped it already (thus we can shift only
+            //    max 7 times (0-7), not 8)
+            shift = (8 - ((realStart + length) % 8)) % 8;
+        }
+
         return (value >>> shift) & clear;
     }
 
