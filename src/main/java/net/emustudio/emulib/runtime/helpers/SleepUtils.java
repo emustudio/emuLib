@@ -57,7 +57,7 @@ public class SleepUtils {
     }
 
     @FunctionalInterface
-    interface Sleep {
+    public interface Sleep {
 
         /**
          * Accurate sleep. Works on all platforms.
