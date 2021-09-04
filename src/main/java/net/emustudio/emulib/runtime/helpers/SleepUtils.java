@@ -37,6 +37,7 @@ public class SleepUtils {
      *  - https://andy-malakov.blogspot.com/2010/06/alternative-to-threadsleep.html
      * @param nanoDuration nanoseconds
      */
+    @SuppressWarnings("BusyWait")
     public static void preciseSleepNanos(long nanoDuration) {
         final long end = System.nanoTime() + nanoDuration;
         long timeLeft = nanoDuration;
@@ -52,7 +53,7 @@ public class SleepUtils {
                 Thread.yield();
             }
             timeLeft = end - System.nanoTime();
-        } while (timeLeft > 0);
+        } while (!Thread.currentThread().isInterrupted() && timeLeft > 0);
     }
 
     @FunctionalInterface
