@@ -5,8 +5,6 @@ public class SleepUtils {
     public final static long SLEEP_PRECISION;
     public final static long SPIN_YIELD_PRECISION;
 
-    public final static Sleep sleep;
-
     static {
         // determine sleep precision
         int count = 100;
@@ -22,15 +20,14 @@ public class SleepUtils {
         }
         SLEEP_PRECISION = time / count;
         SPIN_YIELD_PRECISION = SLEEP_PRECISION / 2;
-
-        // even better than LockSupport::parkNanos
-        sleep = SleepUtils::preciseSleepNanos;
     }
 
 
     /**
      * Accurately sleeps on all platforms (Linux, Win, Mac).
-     * Sleep precision: SLEEP_PRECISION
+     * Sleep precision: SLEEP_PRECISION (determined automatically)
+     *
+     * It is more precise than LockSupport::sleepNanos
      *
      * See:
      *  - https://stackoverflow.com/questions/824110/accurate-sleep-for-java-on-windows
@@ -54,15 +51,5 @@ public class SleepUtils {
             }
             timeLeft = end - System.nanoTime();
         } while (!Thread.currentThread().isInterrupted() && timeLeft > 0);
-    }
-
-    @FunctionalInterface
-    public interface Sleep {
-
-        /**
-         * Accurate sleep. Works on all platforms.
-         * @param nanoDuration nanoseconds
-         */
-        void sleep(long nanoDuration);
     }
 }

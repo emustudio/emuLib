@@ -13,10 +13,8 @@ public class SleepUtilsTest {
         long sleepTime = TimeUnit.MILLISECONDS.toNanos(3);
         long maxAllowedTime = sleepTime + SleepUtils.SLEEP_PRECISION;
 
-        SleepUtils.Sleep sleep = SleepUtils.sleep;
-
         long start = System.nanoTime();
-        sleep.sleep(sleepTime);
+        SleepUtils.preciseSleepNanos(sleepTime);
         long length = System.nanoTime() - start;
 
         System.out.printf("Should sleep for %d nanos; slept for %d (max allowed: %d)\n", sleepTime, length, maxAllowedTime);
