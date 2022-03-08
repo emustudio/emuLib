@@ -1,19 +1,19 @@
 plugins {
-  id 'java-library'
-  id 'maven-publish'
+  id "java-library"
+  id "maven-publish"
   id 'signing'
+  id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
 group 'net.emustudio'
 version '11.7.0-SNAPSHOT'
-ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
 
 repositories {
   mavenCentral()
 }
 
 dependencies {
-  implementation 'org.slf4j:slf4j-api:1.7.32'
+  implementation 'org.slf4j:slf4j-api:1.7.36'
   implementation 'net.jcip:jcip-annotations:1.0'
 
   testImplementation 'junit:junit:4.13.2'
@@ -23,6 +23,17 @@ dependencies {
 java {
   withJavadocJar()
   withSourcesJar()
+}
+
+nexusPublishing {
+  repositories {
+    sonatype()
+  }
+
+  // these are not strictly required. The default timeouts are set to 1 minute. But Sonatype can be really slow.
+  // If you get the error "java.net.SocketTimeoutException: timeout", these lines will help.
+  connectTimeout = Duration.ofMinutes(3)
+  clientTimeout = Duration.ofMinutes(3)
 }
 
 publishing {
@@ -63,18 +74,18 @@ publishing {
 
   repositories {
     maven {
-      url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-      credentials {
-        username findProperty("SONATYPE_USERNAME") ?: System.getenv("SONATYPE_USERNAME")
-        password findProperty("SONATYPE_PASSWORD") ?: System.getenv("SONATYPE_PASSWORD")
-      }
+      // configure publishing to a local directory for testing
+      name = "local"
+      def releasesRepoUrl = "$buildDir/repos/releases"
+      def snapshotsRepoUrl = "$buildDir/repos/snapshots"
+      url = version.endsWith("SNAPSHOT") ? snapshotsRepoUrl : releasesRepoUrl
     }
   }
 }
 
 signing {
   required {
-    isReleaseVersion
+    project.gradle.taskGraph.hasTask("publish")
   }
 
   def signingKey = findProperty("GPG_KEY") ?: System.getenv("GPG_KEY")
