@@ -18,10 +18,8 @@
  */
 package net.emustudio.emulib.plugins.device;
 
-import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
-
-import java.io.IOException;
+import net.emustudio.emulib.plugins.annotations.PluginContext;
 
 /**
  * Device context of the device plugin. If the device supports more functionality, it can be extended. Device plugins
@@ -43,9 +41,9 @@ public interface DeviceContext<DataType> extends Context {
      * are considered as events that occurred onto this device.
      *
      * @return elementary data read from device
-     * @throws IOException if something goes wrong
+     * @throws RuntimeException if something goes wrong
      */
-    DataType readData() throws IOException;
+    DataType readData();
 
     /**
      * Writes/sends data to the device.
@@ -55,9 +53,9 @@ public interface DeviceContext<DataType> extends Context {
      * within this device.
      *
      * @param value data to be written to the device
-     * @throws IOException if something goes wrong
+     * @throws RuntimeException if something goes wrong
      */
-    void writeData(DataType value) throws IOException;
+    void writeData(DataType value);
 
     /**
      * Get the type of transferred data.

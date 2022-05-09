@@ -37,7 +37,7 @@ public class SourceFileExtension {
     /**
      * Creates an instance of the class.
      *
-     * @param extension   Case insensitive file extension of the file, without the starting dot
+     * @param extension   Case-insensitive file extension of the file, without the starting dot
      *                    (example: "asm", but not ".asm").
      * @param description The description of the file extension.
      */
