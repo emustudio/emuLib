@@ -21,6 +21,8 @@ package net.emustudio.emulib.runtime.helpers;
 import net.emustudio.emulib.runtime.helpers.NumberUtils.Strategy;
 import org.junit.Test;
 
+import static net.emustudio.emulib.runtime.helpers.NumberUtils.bcd2bin;
+import static net.emustudio.emulib.runtime.helpers.NumberUtils.bin2bcd;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -299,5 +301,22 @@ public class NumberUtilsTest {
         Short[] expected = new Short[]{1, 2, 3, 4, 5, 6};
 
         assertArrayEquals(expected, NumberUtils.nativeShortsToShorts(numbers));
+    }
+
+    @Test
+    public void testBcd2Bin() {
+        assertEquals(44, bcd2bin(0x44));
+        assertEquals(99, bcd2bin(0x99));
+        assertEquals(0, bcd2bin(0x00));
+        assertEquals(1, bcd2bin(0x01));
+        assertEquals(10, bcd2bin(0x10));
+    }
+
+    @Test
+    public void testBin2Bcd() {
+        assertEquals(0x22, bin2bcd(22));
+        assertEquals(0x99, bin2bcd(99));
+        assertEquals(0x62, bin2bcd(62));
+        assertEquals(0x81, bin2bcd(81));
     }
 }

@@ -503,4 +503,24 @@ public class NumberUtils {
         }
         return result;
     }
+
+    /**
+     * Converts packed BCD code (1 byte, 2 BCD digits) to binary
+     * It is assumed the BCD has little endian.
+     *
+     * @param bcd packed BCD code
+     * @return binary number
+     */
+    public static int bcd2bin(int bcd) {
+        return ((bcd >> 4) & 0xF) * 10 + (bcd & 0xF);
+    }
+
+    /**
+     * Converts a binary number into packed BCD (1 byte, 2 BCD digits)
+     * @param bin binary number
+     * @return number in packed BCD code, little endian
+     */
+    public static int bin2bcd(int bin) {
+        return ((((bin / 10) & 0xF) << 4) + ((bin % 10) & 0xF));
+    }
 }
