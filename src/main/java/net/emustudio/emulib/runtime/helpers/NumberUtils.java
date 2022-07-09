@@ -20,6 +20,7 @@ package net.emustudio.emulib.runtime.helpers;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 public class NumberUtils {
     
@@ -500,6 +501,20 @@ public class NumberUtils {
         int[] result = new int[array.length];
         for (int i = 0; i < array.length; i++) {
             result[i] = array[i] & 0xFF;
+        }
+        return result;
+    }
+
+    /**
+     * Converts list of Integers into array of native ints.
+     *
+     * @param list list of integers
+     * @return native int[] array
+     */
+    public static int[] listToNativeInts(List<Integer> list) {
+        int[] result = new int[list.size()];
+        for(int i = 0; i < result.length; i++) {
+            result[i] = list.get(i);
         }
         return result;
     }
