@@ -16,10 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime;
+package net.emustudio.emulib.runtime.settings;
 
 @SuppressWarnings("unused")
-public class CannotUpdateSettingException extends Exception {
+public class CannotUpdateSettingException extends RuntimeException {
     public CannotUpdateSettingException(String message) {
         super(message);
     }

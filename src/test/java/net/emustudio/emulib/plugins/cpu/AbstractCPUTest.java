@@ -21,7 +21,7 @@ package net.emustudio.emulib.plugins.cpu;
 import net.emustudio.emulib.plugins.cpu.CPU.CPUListener;
 import net.emustudio.emulib.plugins.cpu.CPU.RunState;
 import net.emustudio.emulib.runtime.ApplicationApi;
-import net.emustudio.emulib.runtime.PluginSettings;
+import net.emustudio.emulib.runtime.settings.PluginSettings;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

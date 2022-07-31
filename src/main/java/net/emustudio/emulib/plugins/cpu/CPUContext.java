@@ -20,7 +20,6 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
-import net.emustudio.emulib.plugins.device.DeviceContext;
 
 /**
  * CPU context can be used by plugins which are connected to CPU.
@@ -44,10 +43,9 @@ public interface CPUContext extends Context {
     /**
      * Send interrupt signal to the CPU.
      *
-     * @param device Device that interrupts the CPU
-     * @param data   data bus
+     * @param data data bus
      */
-    default void signalInterrupt(DeviceContext<?> device, byte[] data) {
+    default void signalInterrupt(byte[] data) {
 
     }
 
