@@ -51,8 +51,6 @@ public interface PluginSettings extends BasicSettings {
      */
     String EMUSTUDIO_AUTO = EMUSTUDIO_PREFIX + "auto";
 
-
-
     /**
      * "Unavailable" instance of PluginSettings.
      * <p>
