@@ -43,5 +43,11 @@ public interface Device extends Plugin {
      */
     void showGUI(JFrame parent);
 
+    /**
+     * Returns true if this device has GUI.
+     *
+     * @return true if GUI is supported; false otherwise
+     */
+    boolean isGuiSupported();
 }
 

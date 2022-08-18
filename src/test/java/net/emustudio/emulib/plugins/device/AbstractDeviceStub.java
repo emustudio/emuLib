@@ -43,6 +43,11 @@ public class AbstractDeviceStub extends AbstractDevice {
     }
 
     @Override
+    public boolean isGuiSupported() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void destroy() {
         throw new UnsupportedOperationException();
     }

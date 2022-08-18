@@ -18,6 +18,7 @@
  */
 package net.emustudio.emulib.plugins.device;
 
+import net.emustudio.emulib.plugins.PluginInitializationException;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
@@ -27,7 +28,7 @@ import java.util.Objects;
 /**
  * Implements fundamental functionality useful for most of the device plugins.
  */
-@SuppressWarnings("unused")
+@SuppressWarnings("all")
 public abstract class AbstractDevice implements Device {
     /**
      * Plugin ID assigned by emuStudio
@@ -61,7 +62,7 @@ public abstract class AbstractDevice implements Device {
      * No-operation. Should be overridden if needed.
      */
     @Override
-    public void initialize() {
+    public void initialize() throws PluginInitializationException {
 
     }
 
