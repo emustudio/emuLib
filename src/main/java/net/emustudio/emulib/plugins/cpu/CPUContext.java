@@ -57,5 +57,35 @@ public interface CPUContext extends Context {
     default int getCPUFrequency() {
         return 0;
     }
+
+    /**
+     * Determines if run callbacks are supported.
+     *
+     * @return true if run callbacks are supported; false otherwise.
+     */
+    default boolean isRunCallbackSupported() {
+        return false;
+    }
+
+    /**
+     * Allows to register a run callback to CPU, which will be triggered after each instruction execution.
+     * It is up to a CPU if this is actually implemented.
+     * <p>
+     * The callbacks are triggered on the same thread as instruction execution.
+     *
+     * @param runnable runnable
+     */
+    default void registerRunCallback(Runnable runnable) {
+
+    }
+
+    /**
+     * Unregisters a run callback from this CPU.
+     *
+     * @param runnable runnable
+     */
+    default void unregisterRunCallback(Runnable runnable) {
+
+    }
 }
 
