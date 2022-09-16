@@ -21,6 +21,8 @@ package net.emustudio.emulib.plugins.cpu;
 import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 
+import java.util.Optional;
+
 /**
  * CPU context can be used by plugins which are connected to CPU.
  * <p>
@@ -59,33 +61,14 @@ public interface CPUContext extends Context {
     }
 
     /**
-     * Determines if run callbacks are supported.
-     *
-     * @return true if run callbacks are supported; false otherwise.
-     */
-    default boolean isRunCallbackSupported() {
-        return false;
-    }
-
-    /**
-     * Allows to register a run callback to CPU, which will be triggered after each instruction execution.
-     * It is up to a CPU if this is actually implemented.
+     * Get timed events processor, a soft real-time system based on a logical clock.
      * <p>
-     * The callbacks are triggered on the same thread as instruction execution.
+     * See {@link TimedEventsProcessor} for more details.
      *
-     * @param runnable runnable
+     * @return timed events processor if available
      */
-    default void registerRunCallback(Runnable runnable) {
-
-    }
-
-    /**
-     * Unregisters a run callback from this CPU.
-     *
-     * @param runnable runnable
-     */
-    default void unregisterRunCallback(Runnable runnable) {
-
+    default Optional<TimedEventsProcessor> getTimedEventsProcessor() {
+        return Optional.empty();
     }
 }
 
