@@ -56,7 +56,7 @@ public class TimedEventsProcessor {
      * <p>
      * This function is thread-safe.
      *
-     * @param cycles the number of cycles (must be > 0)
+     * @param cycles the number of cycles (must be &gt; 0)
      * @param event  event to be triggered every given cycles
      */
     public void schedule(int cycles, Runnable event) {
