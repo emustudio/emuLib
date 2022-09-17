@@ -68,4 +68,9 @@ public class TimedEventsProcessorTest {
         tep.advanceClock(5);
         assertEquals(0, count.get());
     }
+
+    @Test
+    public void testAdvanceWithoutScheduleDoesNotThrow() {
+        tep.advanceClock(5);
+    }
 }

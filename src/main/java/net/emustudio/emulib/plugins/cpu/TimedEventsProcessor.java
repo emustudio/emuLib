@@ -107,7 +107,7 @@ public class TimedEventsProcessor {
         lastProcessedCycles = clock + 1;
         int currentCycleMaximum = cycleMaximum.get();
         if (clock > currentCycleMaximum) {
-            clock = (clock % currentCycleMaximum);
+            clock = (clock % (currentCycleMaximum + 1));
             lastProcessedCycles = 0;
         }
     }
