@@ -32,11 +32,11 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.slf4j:slf4j-api:1.7.36'
+  implementation 'org.slf4j:slf4j-api:2.0.5'
   implementation 'net.jcip:jcip-annotations:1.0'
 
   testImplementation 'junit:junit:4.13.2'
-  testImplementation 'org.easymock:easymock:4.3'
+  testImplementation 'org.easymock:easymock:5.0.1'
 }
 
 java {
