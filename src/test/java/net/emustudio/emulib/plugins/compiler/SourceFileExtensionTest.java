@@ -1,7 +1,7 @@
 /*
  * This file is part of emuLib.
  *
- * Copyright (C) 2006-2020  Peter Jakubčo
+ * Copyright (C) 2006-2023  Peter Jakubčo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 public class SourceFileExtensionTest {
-    
+
     @Test
     public void testSetGetExtensionAndDescription() {
         SourceFileExtension instance = new SourceFileExtension("bmp", "descr");

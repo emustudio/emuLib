@@ -1,7 +1,7 @@
 /*
  * This file is part of emuLib.
  *
- * Copyright (C) 2006-2020  Peter Jakubčo
+ * Copyright (C) 2006-2023  Peter Jakubčo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -120,18 +120,18 @@ public class RadixUtilsTest {
         RadixUtils instance = RadixUtils.getInstance();
         int result = instance.parseRadix(number);
         assertEquals(expResult, result);
-        
+
         number = "20h";
         expResult = 32;
         result = instance.parseRadix(number);
         assertEquals(expResult, result);
     }
-    
+
     @Test
     public void testGetDwordHexString() {
         int number = 1;
         assertEquals("00000001", RadixUtils.formatDwordHexString(number));
-        
+
         number = 0x0E5A231F;
         assertEquals("0E5A231F", RadixUtils.formatDwordHexString(number));
 
@@ -143,7 +143,7 @@ public class RadixUtilsTest {
     public void testGetWordHexString() {
         int number = 1;
         assertEquals("0001", RadixUtils.formatWordHexString(number));
-        
+
         number = 0x031F;
         assertEquals("031F", RadixUtils.formatWordHexString(number));
 
@@ -163,7 +163,7 @@ public class RadixUtilsTest {
     public void testGetByteHexString() {
         int number = 1;
         assertEquals("01", RadixUtils.formatByteHexString(number));
-        
+
         number = 0x1F;
         assertEquals("1F", RadixUtils.formatByteHexString(number));
     }

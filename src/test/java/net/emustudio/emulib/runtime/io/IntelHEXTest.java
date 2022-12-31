@@ -1,7 +1,7 @@
 /*
  * This file is part of emuLib.
  *
- * Copyright (C) 2006-2020  Peter Jakubčo
+ * Copyright (C) 2006-2023  Peter Jakubčo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ public class IntelHEXTest {
     private static final String INVALID5_HEX_FILE = "invalid5.hex";
     private static final String INVALID6_HEX_FILE = "invalid6.hex";
     private IntelHEX hexFile;
-    
+
     @Before
     public void setUp() {
         hexFile = new IntelHEX();
@@ -54,7 +54,7 @@ public class IntelHEXTest {
     private List<String> readFileContent(File fileName) throws Exception {
         return Files.readAllLines(Paths.get(fileName.toURI()));
     }
-    
+
     private List<String> generateReadAndDeleteHexFile() throws Exception {
         String tmpName = "tmp" + System.currentTimeMillis();
         hexFile.generate(tmpName);
@@ -68,12 +68,12 @@ public class IntelHEXTest {
     private void assertHexLineIsValid(String line) {
         // verify starting char
         assertTrue(line.startsWith(":"));
-        
+
         // verify data length
         int dataLength = Integer.decode("0x" + line.substring(1, 3));
         assertEquals(dataLength * 2, line.length() - 11);
     }
-    
+
     @Test
     public void testPutBigCode() {
         String code = "010203";
@@ -84,22 +84,22 @@ public class IntelHEXTest {
         assertEquals(2, (byte)codeTable.get(1));
         assertEquals(3, (byte)codeTable.get(2));
     }
-    
+
     @Test
     public void testOverwriteCode() {
         hexFile.add("01");
         hexFile.setNextAddress(0);
         hexFile.add("02");
-        
+
         Map<Integer, Byte> codeTable = hexFile.getCode();
         assertEquals(2, (byte)codeTable.get(0));
     }
-    
+
     @Test
     public void testProgramStartOnEmptyCode() {
         assertEquals(0, hexFile.findProgramLocation());
     }
-    
+
     @Test
     public void testCorrectProgramStart() {
         hexFile.setNextAddress(5);
@@ -113,7 +113,7 @@ public class IntelHEXTest {
         assertEquals(1, content.size());
         assertEquals(":00000001FF", content.get(0));
     }
-   
+
     @Test
     public void testValidHex() throws Exception {
         hexFile.add("0102030405060708090A0B0C0D0E0F101112131415161718191A");
@@ -121,7 +121,7 @@ public class IntelHEXTest {
         assertEquals(3, content.size());
         content.forEach(this::assertHexLineIsValid);
     }
-    
+
     @Test
     public void testPutEmptyCode() throws Exception {
         hexFile.add("");
@@ -129,7 +129,7 @@ public class IntelHEXTest {
         assertEquals(1, content.size());
         assertEquals(":00000001FF", content.get(0));
     }
-        
+
     private List<String> preprocessContent(List<String> hexContent) {
         List<String> content = new ArrayList<>();
         for (String line : hexContent) {
@@ -140,7 +140,7 @@ public class IntelHEXTest {
         }
         return content;
     }
-    
+
     @Test
     public void testParsingValidHexFile() throws Exception {
         List<String> expected = preprocessContent(readFileContent(toFile(VALID_HEX_FILE)));
@@ -154,7 +154,7 @@ public class IntelHEXTest {
     public void testParsingInvalidHexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID_HEX_FILE));
     }
-    
+
     @Test(expected = Exception.class)
     public void testParsingInvalid2HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID2_HEX_FILE));
@@ -174,7 +174,7 @@ public class IntelHEXTest {
     public void testParsingInvalid5HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID5_HEX_FILE));
     }
-    
+
     @Test(expected = Exception.class)
     public void testParsingInvalid6HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID6_HEX_FILE));
@@ -188,12 +188,12 @@ public class IntelHEXTest {
 
         assertEquals(1, hexFile.findProgramLocation());
         Map<Integer, Byte> hexCodeTable = hexFile.getCode();
-        
+
         assertEquals(1, (byte)hexCodeTable.get(1));
         assertEquals(2, (byte)hexCodeTable.get(2));
         assertEquals(3, (byte)hexCodeTable.get(3));
     }
-    
+
     private static class MemoryContextStub implements MemoryContext<Short> {
         final ByteBuffer code = ByteBuffer.allocate(32);
 
@@ -254,7 +254,7 @@ public class IntelHEXTest {
 
         }
     }
-    
+
     @Test
     public void testLoadIntoMemory() {
         MemoryContext<Short> mc = new MemoryContextStub();
@@ -263,7 +263,7 @@ public class IntelHEXTest {
         hexFile.loadIntoMemory(mc, Short::valueOf);
         assertEquals(3, (int)mc.read(6));
     }
-    
+
     @Test
     public void testStaticLoadIntoMemory() throws Exception {
         hexFile = IntelHEX.parse(toFile(VALID_HEX_FILE));
@@ -271,7 +271,7 @@ public class IntelHEXTest {
         MemoryContext<Short> mc = new MemoryContextStub();
         int programStart = IntelHEX.loadIntoMemory(toFile(VALID_HEX_FILE), mc, Short::valueOf);
         assertEquals(hexFile.findProgramLocation(), programStart);
-        
+
         Map<Integer, Byte> codeTable = hexFile.getCode();
         assertEquals((byte)codeTable.get(programStart), mc.read(programStart).byteValue());
     }

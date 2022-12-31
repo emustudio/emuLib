@@ -1,7 +1,7 @@
 /*
  * This file is part of emuLib.
  *
- * Copyright (C) 2006-2020  Peter Jakubčo
+ * Copyright (C) 2006-2023  Peter Jakubčo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,9 +32,9 @@ import net.jcip.annotations.ThreadSafe;
  *
  * Each plugin can implement none, one or more contexts. Implementing the same interface multiple times is allowed.
  * A plugin can also extend this context interface (directly or indirectly).
- * 
+ *
  * Another requirement is to annotate custom context interfaces with {@link PluginContext} annotation.
- * 
+ *
  * Contexts should be thread-safe, since there's no guarantee in which threads plugins communicate.
  */
 @PluginContext

@@ -1,7 +1,7 @@
 /*
  * This file is part of emuLib.
  *
- * Copyright (C) 2006-2020  Peter Jakubčo
+ * Copyright (C) 2006-2023  Peter Jakubčo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ package net.emustudio.emulib.plugins.cpu;
 /**
  * This class represents disassembled instruction. It is used by
  * disassembler.
- *
+ * <p>
  * It is implemented as read/write container that stores address, mnemo
  * and opcode of the instruction.
  *

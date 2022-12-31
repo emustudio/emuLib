@@ -1,7 +1,7 @@
 /*
  * This file is part of emuLib.
  *
- * Copyright (C) 2006-2020  Peter Jakubčo
+ * Copyright (C) 2006-2023  Peter Jakubčo
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,24 +23,24 @@ import java.nio.ByteOrder;
 import java.util.List;
 
 public class NumberUtils {
-    
+
     /**
-     * Strategy defining how to manipulate with bytes. 
-     * 
+     * Strategy defining how to manipulate with bytes.
+     *
      * Strategies can be combined with | (or) operator.
      */
     public static final class Strategy {
-        
+
         /**
          * Bytes are read/written in the little endian
          */
         public final static int LITTLE_ENDIAN = 1;
-        
+
         /**
          * Bytes are read/written in the big endian
          */
         public final static int BIG_ENDIAN = 2;
-        
+
         /**
          * Bits in particular bytes are reversed
          */
@@ -49,7 +49,7 @@ public class NumberUtils {
 
     /**
      * Reverse bits in integer (max 32-bit) value.
-     * 
+     *
      * @param value value which bits will be reversed
      * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be preserved.
      * @return value with reversed bits
@@ -126,9 +126,9 @@ public class NumberUtils {
 
     /**
      * Reads an integer from the array of numbers.
-     * 
+     *
      * Uses ByteBuffer.wrap. The array must have 4 items - because integer has 4 bytes.
-     * 
+     *
      * @param word the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
@@ -183,13 +183,13 @@ public class NumberUtils {
         }
         return wrapped.getInt();
     }
-    
+
     /**
      * Reads an integer from the array of numbers.
-     * 
+     *
      * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
-     * 
+     *
      * @param word the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
@@ -211,12 +211,12 @@ public class NumberUtils {
     public static int readInt(int[] word, int strategy) {
         return readInt(nativeIntsToNativeBytes(word), strategy);
     }
-    
+
     /**
      * Split the value into 4 bytes.
-     * 
+     *
      * Uses ByteBuffer.
-     * 
+     *
      * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
@@ -260,9 +260,9 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     * 
+     *
      * Uses ByteBuffer.
-     * 
+     *
      * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
@@ -307,9 +307,9 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     * 
-     * Uses binary arithmetic. 
-     * 
+     *
+     * Uses binary arithmetic.
+     *
      * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
