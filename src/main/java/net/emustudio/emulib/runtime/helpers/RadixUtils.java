@@ -27,11 +27,10 @@ import java.util.regex.Pattern;
 /**
  * The class contains several methods used for work with numbers in various
  * radixes.
- *
+ * <p>
  * Numbers represented in various radixes are used widely in system programming
  * in all times. This class tries to make parsing, converting and working with
  * various number radixes easier.
- *
  */
 @NotThreadSafe
 public class RadixUtils {
@@ -52,14 +51,12 @@ public class RadixUtils {
         /**
          * Create instance of the NumberPattern
          *
-         * @param regex Regular expression for the number parser
-         * @param radix The radix that the pattern represents
-         * @param cutFromStart
-         *   Count of characters that will be cut from the beginning of a number
-         *   by calling <code>prepareNumber</code> method.
-         * @param cutFromEnd
-         *   Count of characters that will be cut from the end of a number by
-         *   calling <code>prepareNumber</code> method.
+         * @param regex        Regular expression for the number parser
+         * @param radix        The radix that the pattern represents
+         * @param cutFromStart Count of characters that will be cut from the beginning of a number
+         *                     by calling <code>prepareNumber</code> method.
+         * @param cutFromEnd   Count of characters that will be cut from the end of a number by
+         *                     calling <code>prepareNumber</code> method.
          */
         public NumberPattern(String regex, int radix, int cutFromStart, int cutFromEnd) {
             pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
@@ -90,14 +87,14 @@ public class RadixUtils {
 
         /**
          * Prepares the number for radix conversion.
-         *
+         * <p>
          * It formats given number into a form that does not contain any
          * additional characters for radix recognition.
-         *
+         * <p>
          * For example, pattern <pre>0x[0-9a-fA-F]+</pre>, representing
          * hexadecimal number, contains some characters needed for pattern
          * recognition, they are the first two (<pre>0x</pre>).
-         *
+         * <p>
          * The numbers of left and right cut are defined in the constructor.
          *
          * @param number the number String representation
@@ -134,7 +131,7 @@ public class RadixUtils {
     }
 
     /**
-     * Add NumberPattern for further automatic radix recognition
+     * Add NumberPattern for new automatic radix recognition
      *
      * @param pattern NumberPattern instance
      */
@@ -145,11 +142,10 @@ public class RadixUtils {
     /**
      * Converts number in any length to a number with specified radix.
      *
-     * @param number any-length number. Array of number components stored in
-     *               little endian.
-     * @param toRadix the radix of converted number
+     * @param number       any-length number. Array of number components stored in
+     *                     little endian.
+     * @param toRadix      the radix of converted number
      * @param littleEndian If the number is in little endian (true), or big endian (false)
-     *
      * @return String of a number in specified radix
      */
     public static String convertToRadix(byte[] number, int toRadix, boolean littleEndian) {
@@ -163,8 +159,8 @@ public class RadixUtils {
 
         int digitsCount = number.length;
 
-        bytes = (int)Math.ceil((double) digitsCount
-                * 8.0 *  LOG102 / Math.log10(toRadix)) + 2;
+        bytes = (int) Math.ceil((double) digitsCount
+                * 8.0 * LOG102 / Math.log10(toRadix)) + 2;
 
         if (!littleEndian) {
             for (i = 0; i < digitsCount / 2; i++) {
@@ -174,8 +170,8 @@ public class RadixUtils {
             }
         }
 
-        int[] str = new int[bytes+1];
-        int[] ts = new int[bytes+1];
+        int[] str = new int[bytes + 1];
+        int[] ts = new int[bytes + 1];
 
         ts[0] = 1;
         for (k = 0; k < digitsCount; k++) {
@@ -223,9 +219,9 @@ public class RadixUtils {
                 continue;
             }
             if (str[i] < 10) {
-                result += (char)(str[i] + (int)'0');
+                result += (char) (str[i] + (int) '0');
             } else {
-                result += (char)(str[i] + (int)'A' - 10);
+                result += (char) (str[i] + (int) 'A' - 10);
             }
         }
         if (!first) {
@@ -236,11 +232,11 @@ public class RadixUtils {
 
     /**
      * Converts number in any length to a number with specified radix.
-     *
+     * <p>
      * This method will automatically detect the number original radix. It
      * can detect several hexadecimal, decimal, and octal formats.
      *
-     * @param number String representing number in hexa, octal or decadic radix
+     * @param number  String representing number in hexa, octal or decadic radix
      * @param toRadix target radix of the number
      * @return String of a number in specified radix
      * @throws NumberFormatException if the number is not in known format
@@ -262,9 +258,9 @@ public class RadixUtils {
     /**
      * Converts number in any length to a number with specified radix.
      *
-     * @param number String representing number in any radix
+     * @param number    String representing number in any radix
      * @param fromRadix source radix of the number
-     * @param toRadix target radix of the number
+     * @param toRadix   target radix of the number
      * @return String of a number in target radix
      */
     public static String convertToRadix(String number, int fromRadix, int toRadix) {
@@ -276,12 +272,12 @@ public class RadixUtils {
     }
 
     /**
-     * Convert a integer number in some radix (stored in String) to binary
-     * components in little endian.
-     *
+     * Convert an integer number in any radix (stored in String) to binary
+     * components (bytes) in little endian.
+     * <p>
      * Complexity: O(n)
      *
-     * @param number number stored as String
+     * @param number    number stored as String
      * @param fromRadix the radix of the number
      * @return Array of binary components of that number
      */
@@ -293,7 +289,7 @@ public class RadixUtils {
             throw new NumberFormatException("Too big number to parse");
         }
         while (parsed != 0) {
-            bytes.add((byte)(parsed & 0xFF));
+            bytes.add((byte) (parsed & 0xFF));
             parsed >>>= 8;
         }
 
@@ -302,20 +298,20 @@ public class RadixUtils {
             result[i] = bytes.get(i);
         }
         if (result.length == 0) {
-            result = new byte[] { 0 };
+            result = new byte[]{0};
         }
 
         return result;
     }
 
     /**
-     * Convert a integer number in some radix (stored in String) to binary
-     * components in little endian.
-     *
+     * Convert an integer number in any radix (stored in String) to binary
+     * components (bytes) in little endian.
+     * <p>
      * Complexity: O(n)
      *
-     * @param number number stored as String
-     * @param fromRadix the radix of the number
+     * @param number     number stored as String
+     * @param fromRadix  the radix of the number
      * @param bytesCount number of bytes. If the results has fewer bytes, they will be appended from the left. If
      *                   it contains more bytes, they will be cut from the left (from MSB).
      * @return Array of binary components of that number
@@ -325,7 +321,7 @@ public class RadixUtils {
         if (result.length != bytesCount) {
             byte[] newResult = new byte[bytesCount];
 
-            System.arraycopy(result,0, newResult, 0, Math.min(result.length, bytesCount));
+            System.arraycopy(result, 0, newResult, 0, Math.min(result.length, bytesCount));
             return newResult;
         }
         return result;
@@ -351,7 +347,7 @@ public class RadixUtils {
      * Parses a number in known radix into integer.
      *
      * @param number number in some known radix
-     * @param radix radix of the number (known pattern must exist for parsing)
+     * @param radix  radix of the number (known pattern must exist for parsing)
      * @return parsed integer
      * @throws NumberFormatException if there is no pattern available for given radix or the number is unparseable
      */
@@ -366,7 +362,7 @@ public class RadixUtils {
 
     /**
      * Get formatted string of a byte.
-     *
+     * <p>
      * Formatting is using pattern "%02X".
      *
      * @param byteNumber a number, assumed size is a byte
@@ -378,7 +374,7 @@ public class RadixUtils {
 
     /**
      * Get formatted string of a word.
-     *
+     * <p>
      * Formatting is using pattern "%04X".
      *
      * @param wordNumber a number, assumed size is a word (2 bytes)
@@ -390,7 +386,7 @@ public class RadixUtils {
 
     /**
      * Get formatted string of a word.
-     *
+     * <p>
      * Formatting is using pattern "%04X".
      *
      * @param upper high order byte (high 8 bits)
@@ -403,7 +399,7 @@ public class RadixUtils {
 
     /**
      * Get formatted string of a dword.
-     *
+     * <p>
      * Formatting is using pattern "%08X".
      *
      * @param number a number, assumed size is a double word (4 bytes)
@@ -415,17 +411,16 @@ public class RadixUtils {
 
     /**
      * Get formatted binary string of given number.
-     *
+     * <p>
      * The formatted string is possibly prepended with zeroes to ensure that the string has given length.
-     *
+     * <p>
      * Also, groups of some bits can be separated by single space. The number of space-separated bits is specified
      * by the `spacesPerBits` parameter.
      *
-     * @param number number to format
-     * @param length resulting string length (number of bits)
-     * @param spacePerBits number of space-separated bits. If &lt;= 0 then bits are never separated with space.
+     * @param number         number to format
+     * @param length         resulting string length (number of bits)
+     * @param spacePerBits   number of space-separated bits. If &lt;= 0 then bits are never separated with space.
      * @param spacesFromLeft whether the group of bits to be space-separated should be counted from left or from right side
-     *
      * @return formatted string as a binary number, with given string length
      */
     public static String formatBinaryString(int number, int length, int spacePerBits, boolean spacesFromLeft) {
@@ -456,19 +451,16 @@ public class RadixUtils {
 
     /**
      * Get formatted binary string of given number.
-     *
+     * <p>
      * The formatted string is possibly prepended with zeroes to ensure that the string has given length.
-     *
+     * <p>
      * Bits are not separated by spaces.
      *
      * @param number number to format
      * @param length resulting string length (number of bits)
-     *
      * @return formatted string as a binary number, with given string length
      */
     public static String formatBinaryString(int number, int length) {
         return formatBinaryString(number, length, 0, false);
     }
-
-
 }
