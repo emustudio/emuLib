@@ -14,14 +14,14 @@ For Maven, use:
     <dependency>
         <groupId>net.emustudio</groupId>
         <artifactId>emulib</artifactId>
-        <version>11.5.0</version>
+        <version>11.7.0</version>
     </dependency>
 ```
 
 For Gradle, use:
 
 ```
-    implementation 'net.emustudio:emulib:11.5.0'
+    implementation 'net.emustudio:emulib:11.7.0'
 ```
 
 ### Important changes
@@ -37,7 +37,8 @@ For example: `emuStudio/lib/emulib.jar`.
 
 ## Getting started
 
-**TLDR;** Click [here](https://www.emustudio.net/devel/) for more robust documentation of plugin development. 
+**TLDR;** Click [here](https://www.emustudio.net/documentation/developer/introduction/) for more robust documentation of
+plugin development. 
 
 The library defines API for emuStudio plugins. A plugin is represented by single object which implements
 `net.emustudio.emulib.plugins.Plugin` interface (or it's derivative). Plugins can also implement so-called "contexts",
