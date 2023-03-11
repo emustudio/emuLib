@@ -25,7 +25,7 @@ public class AddressColumn implements DebuggerColumn<String> {
 
     /**
      * Create new instance of the address column.
-     *
+     * <p>
      * Address format is <code>"%04X"</code>.
      */
     public AddressColumn() {
@@ -60,7 +60,7 @@ public class AddressColumn implements DebuggerColumn<String> {
      * Has no effect.
      *
      * @param location memory address (not row in debug table)
-     * @param value  new value of the cell
+     * @param value    new value of the cell
      */
     @Override
     public void setValue(int location, Object value) {
@@ -69,7 +69,7 @@ public class AddressColumn implements DebuggerColumn<String> {
     /**
      * Return formatted address into hexadecimal digit, aligned to 4 digits.
      *
-     * @param location  memory address (not row in debug table)
+     * @param location memory address (not row in debug table)
      * @return String value with formatted address
      */
     @Override

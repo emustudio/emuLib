@@ -47,11 +47,18 @@ public interface LexicalAnalyzer extends Iterable<Token> {
 
     /**
      * Reset this lexical analyzer with new input.
-     * All state should be reset.
+     * All state are reset.
      * @param input new program source code
      * @throws IOException when input cannot be read
      */
     void reset(InputStream input) throws IOException;
+
+    /**
+     * Reset this lexical analyzer with new input.
+     * All state are reset.
+     * @param input new program source code
+     */
+    void reset(String input);
 
     @Override
     default Iterator<Token> iterator() {

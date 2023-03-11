@@ -20,6 +20,7 @@ package net.emustudio.emulib.runtime.interaction;
 
 import net.emustudio.emulib.plugins.compiler.SourceFileExtension;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -65,7 +66,7 @@ public class FileExtensionsFilter {
 
     /**
      * Get list of supported file extensions of the filter.
-     *
+     * <p>
      * The extensions are case-insensitive. In addition, an extension should not start with {@code "*."} prefix.
      * For example, the following extension is a good one:
      * <p>

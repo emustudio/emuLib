@@ -75,10 +75,9 @@ public interface Compiler extends Plugin {
     /**
      * Creates a lexical analyzer.
      *
-     * @param input source code
      * @return new lexer object
      */
-    LexicalAnalyzer createLexer(String input);
+    LexicalAnalyzer createLexer();
 
     /**
      * Gets location of compiled program in memory.

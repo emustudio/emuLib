@@ -49,7 +49,7 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public LexicalAnalyzer createLexer(String input) {
+    public LexicalAnalyzer createLexer() {
         throw new UnsupportedOperationException();
     }
 
