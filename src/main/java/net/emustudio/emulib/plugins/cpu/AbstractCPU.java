@@ -275,7 +275,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void reset() {
-        reset(0);
+        reset(applicationApi.getProgramLocation());
     }
 
     @Override
