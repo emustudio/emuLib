@@ -2,6 +2,12 @@ package net.emustudio.emulib.runtime.interaction;
 
 import java.awt.*;
 import java.awt.event.KeyListener;
+import java.awt.font.TextAttribute;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class GuiUtils {
@@ -37,6 +43,27 @@ public class GuiUtils {
             for (Component child : children) {
                 removeKeyListener(child, listener);
             }
+        }
+    }
+
+    /**
+     * Loads a true-type font from a resource
+     *
+     * @param path Resource path
+     * @return loaded font, Optional.empty() if the font could not be loaded
+     */
+    public static Optional<Font> loadFontResource(String path) {
+        Map<TextAttribute, Object> attrs = new HashMap<>();
+        attrs.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
+
+        try (InputStream fin = GuiUtils.class.getResourceAsStream(path)) {
+            Font font = Font
+                    .createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(fin))
+                    .deriveFont(attrs);
+            GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
+            return Optional.of(font);
+        } catch (Exception e) {
+            return Optional.empty();
         }
     }
 }
