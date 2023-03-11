@@ -16,29 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.plugins.memory;
+package net.emustudio.emulib.plugins.compiler;
 
-import org.junit.Before;
 import org.junit.Test;
+import static org.junit.Assert.*;
 
-import static org.junit.Assert.assertEquals;
-
-public class AbstractMemoryTest {
-    private AbstractMemoryStub memory;
-
-    @Before
-    public void setUp() {
-        memory = new AbstractMemoryStub(0L);
-    }
+public class FileExtensionTest {
 
     @Test
-    public void testProgramStartIsZeroAfterStart() {
-        assertEquals(0, memory.getProgramLocation());
-    }
-
-    @Test
-    public void testSetAndGetProgramStart() {
-        memory.setProgramLocation(555);
-        assertEquals(555, memory.getProgramLocation());
+    public void testSetGetExtensionAndDescription() {
+        FileExtension instance = new FileExtension("bmp", "descr");
+        assertEquals("bmp", instance.getExtension());
+        assertEquals("descr", instance.getDescription());
     }
 }

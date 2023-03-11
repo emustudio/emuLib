@@ -29,7 +29,7 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 public class AbstractMemoryContextTest {
-    private AbstractMemoryContext memory;
+    private AbstractMemoryContext<?> memory;
 
     @Before
     public void setUp() {
@@ -64,7 +64,7 @@ public class AbstractMemoryContextTest {
     }
 
     @Test
-    public void testNotifyMemChangedDoesNotThrow() throws Exception {
+    public void testNotifyMemChangedDoesNotThrow() {
         Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
         listener.memoryChanged(anyInt());
         expectLastCall().andThrow(new RuntimeException()).once();
@@ -77,7 +77,7 @@ public class AbstractMemoryContextTest {
     }
 
     @Test
-    public void testNotifyMemSizeChangedDoesNotThrow() throws Exception {
+    public void testNotifyMemSizeChangedDoesNotThrow() {
         Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
         listener.memorySizeChanged();
         expectLastCall().andThrow(new RuntimeException()).once();

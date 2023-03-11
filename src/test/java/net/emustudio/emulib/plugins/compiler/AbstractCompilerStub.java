@@ -59,7 +59,7 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public List<SourceFileExtension> getSourceFileExtensions() {
+    public List<FileExtension> getSourceFileExtensions() {
         throw new UnsupportedOperationException();
     }
 

@@ -18,7 +18,7 @@
  */
 package net.emustudio.emulib.runtime.interaction;
 
-import net.emustudio.emulib.plugins.compiler.SourceFileExtension;
+import net.emustudio.emulib.plugins.compiler.FileExtension;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,12 +38,12 @@ public class FileExtensionsFilter {
         this.extensions = List.of(extensions);
     }
 
-    public FileExtensionsFilter(String description, List<String> extensions) {
+    public FileExtensionsFilter(String description, Collection<String> extensions) {
         this.description = Objects.requireNonNull(description);
         this.extensions = List.copyOf(extensions);
     }
 
-    public FileExtensionsFilter(SourceFileExtension extension) {
+    public FileExtensionsFilter(FileExtension extension) {
         this(extension.getDescription(), extension.getExtension());
     }
 

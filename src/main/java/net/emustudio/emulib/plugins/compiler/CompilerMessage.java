@@ -24,9 +24,9 @@ import java.util.Objects;
  * Messages are passed to compiler listeners when the compiler wishes to say something.
  */
 public class CompilerMessage {
-    public static final String MSG_INFO =    "[Info   ] ";
-    public static final String MSG_ERROR =   "[Error  ] ";
-    public static final String MSG_WARNING = "[Warning] ";
+    public static final String MSG_INFO =    "[INFO   ] ";
+    public static final String MSG_ERROR =   "[ERROR  ] ";
+    public static final String MSG_WARNING = "[WARNING] ";
 
     public static final String POSITION_FORMAT = "(%3d,%3d) ";
 

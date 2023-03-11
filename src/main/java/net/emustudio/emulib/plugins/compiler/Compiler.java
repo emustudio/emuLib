@@ -94,6 +94,6 @@ public interface Compiler extends Plugin {
      *
      * @return list of supported source file extensions
      */
-    List<SourceFileExtension> getSourceFileExtensions();
+    List<FileExtension> getSourceFileExtensions();
 }
 
