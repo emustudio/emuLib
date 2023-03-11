@@ -95,5 +95,10 @@ public interface Compiler extends Plugin {
      * @return list of supported source file extensions
      */
     List<FileExtension> getSourceFileExtensions();
+
+    @Override
+    default boolean isAutomationSupported() {
+        return true;
+    }
 }
 
