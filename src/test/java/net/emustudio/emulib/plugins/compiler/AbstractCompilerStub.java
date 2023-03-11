@@ -93,6 +93,11 @@ class AbstractCompilerStub extends AbstractCompiler {
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public boolean isAutomationSupported() {
+        return false;
+    }
+
     public void testError() {
         notifyError("Some error");
     }

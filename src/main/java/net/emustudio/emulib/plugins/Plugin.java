@@ -36,7 +36,7 @@ import javax.swing.*;
  * - the root class has to have single constructor with 3 parameters (see below).
  * <p>
  * The constructor signature has to look like this:
- *
+ * <p>
  * <code>
  * \@PluginRoot(...)
  * SamplePlugin(long pluginId, ApplicationApi emustudio, PluginSettings settings) {
@@ -116,9 +116,8 @@ public interface Plugin {
     /**
      * Get run-time title of this plugin.
      * <p>
-     * The title is a matter of change during runtime - for example there
-     * might be a device which might be used many times but it is called
-     * differently for each instance.
+     * The title is a matter of change during runtime - for example there might exist a device instantiated more than
+     * once, and each instance can have different title assigned at runtime.
      *
      * @return run-time title of the plugin
      */
@@ -144,5 +143,12 @@ public interface Plugin {
      * @return plugin description
      */
     String getDescription();
+
+    /**
+     * Determines if this plugin supports emulation automation
+     *
+     * @return true if the plugin supports emulation automation; false otherwise
+     */
+    boolean isAutomationSupported();
 }
 

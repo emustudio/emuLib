@@ -28,7 +28,7 @@ import net.emustudio.emulib.plugins.memory.MemoryContext;
 /**
  * Context pool manages contexts of all plugins.
  * <p>
- * Plugin context must be first registered by a plugin during it's construction. Obtaining plugin contexts is reliable
+ * Plugin context must be first registered by a plugin during its construction. Obtaining plugin contexts is reliable
  * only during plugin initialization, performed after the construction.
  * <p>
  * Context pool does not have to be thread safe.
@@ -51,7 +51,7 @@ public interface ContextPool {
      * @param pluginID         owner plugin ID
      * @param context          The context object that the plugin want to register
      * @param contextInterface plugin context interface
-     * @throws ContextAlreadyRegisteredException Raised when when given plugin context is already registered.
+     * @throws ContextAlreadyRegisteredException Raised when given plugin context is already registered.
      * @throws InvalidContextException           Raised when given plugin context and its interface does not fulfill
      *                                           the requirements.
      */
