@@ -54,11 +54,6 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public int getProgramLocation() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public List<FileExtension> getSourceFileExtensions() {
         throw new UnsupportedOperationException();
     }

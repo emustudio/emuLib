@@ -80,16 +80,6 @@ public interface Compiler extends Plugin {
     LexicalAnalyzer createLexer();
 
     /**
-     * Gets location of compiled program in memory.
-     * <p>
-     * Program location should be valid only after successful compilation.
-     * The location should point to the starting position of the program in memory, where the CPU can start emulating.
-     *
-     * @return location of compiled program in memory
-     */
-    int getProgramLocation();
-
-    /**
      * Get the list of source file extensions supported by the compiler.
      *
      * @return list of supported source file extensions
