@@ -19,6 +19,7 @@
 package net.emustudio.emulib.runtime.interaction;
 
 import net.emustudio.emulib.plugins.compiler.FileExtension;
+import net.jcip.annotations.Immutable;
 
 import java.util.Collection;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.Objects;
  * Definition of supported file extensions of one "filter" when choosing files. A filter might be understood
  * as container of file extensions for one file format.
  */
+@Immutable
 @SuppressWarnings("unused")
 public class FileExtensionsFilter {
     private final String description;
