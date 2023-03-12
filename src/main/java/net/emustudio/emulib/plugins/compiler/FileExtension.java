@@ -81,4 +81,24 @@ public class FileExtension {
     public int hashCode() {
         return Objects.hash(extension);
     }
+
+    /**
+     * Strip file name extension if the extension belongs to known extensions.
+     * <p>
+     * The idea is that compilers should generate file with some "output" extension, so the source extension is replaced
+     * with it. However, if the source extension is unknown, it should be preserved.
+     *
+     * @param fileName        a file name
+     * @param knownExtensions known extensions
+     * @return given file name stripped from extension if it belongs to known ones
+     */
+    public static String stripKnownExtension(String fileName, Iterable<FileExtension> knownExtensions) {
+        for (FileExtension extension : knownExtensions) {
+            int i = fileName.lastIndexOf("." + extension.getExtension());
+            if (i >= 0) {
+                return fileName.substring(0, i);
+            }
+        }
+        return fileName;
+    }
 }
