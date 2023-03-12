@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @SuppressWarnings("unused")
 public class GuiUtils {
@@ -49,21 +48,24 @@ public class GuiUtils {
     /**
      * Loads a true-type font from a resource
      *
-     * @param path Resource path
-     * @return loaded font, Optional.empty() if the font could not be loaded
+     * @param path          Resource path
+     * @param size          Default font size
+     * @param resourceClass class where to look for resources
+     * @return loaded font, or Font.MONOSPACED if the font could not be loaded
      */
-    public static Optional<Font> loadFontResource(String path) {
+    public static Font loadFontResource(String path, Class<?> resourceClass, int size) {
         Map<TextAttribute, Object> attrs = new HashMap<>();
         attrs.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
 
-        try (InputStream fin = GuiUtils.class.getResourceAsStream(path)) {
+        try (InputStream fin = resourceClass.getResourceAsStream(path)) {
             Font font = Font
                     .createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(fin))
+                    .deriveFont(Font.PLAIN, size)
                     .deriveFont(attrs);
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
-            return Optional.of(font);
+            return font;
         } catch (Exception e) {
-            return Optional.empty();
+            return new Font(Font.MONOSPACED, Font.PLAIN, size);
         }
     }
 }
