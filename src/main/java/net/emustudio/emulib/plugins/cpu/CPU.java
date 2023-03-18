@@ -261,4 +261,9 @@ public interface CPU extends Plugin {
      * @return disassembler of CPU instructions
      */
     Disassembler getDisassembler();
+
+    @Override
+    default boolean isAutomationSupported() {
+        return true;
+    }
 }

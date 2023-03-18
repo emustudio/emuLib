@@ -54,20 +54,6 @@ public interface Memory extends Plugin {
     }
 
     /**
-     * Sets program start address.
-     * <p>
-     * This method is called by main module when
-     * compiler finishes compilation process and return known start address of
-     * compiled program. This start address is then used by CPU, in reset
-     * operation - PC (program counter, or something similar) should be set
-     * to this address, accessible via <code>IMemoryContext.getProgramStart()</code>
-     * method.
-     *
-     * @param location starting memory position (address) of a program
-     */
-    void setProgramLocation(int location);
-
-    /**
      * Gets size of memory.
      * <p>
      * If memory uses some techniques as banking, real
@@ -78,15 +64,9 @@ public interface Memory extends Plugin {
      */
     int getSize();
 
-    /**
-     * Gets program's start address.
-     * <p>
-     * The start address is set invoking memory's method <code>Memory.setProgramStart()</code> by main module
-     * when compiler finishes compilation process of a program and if the compiler know the starting address.
-     * This address is used by main module for CPU reset process.
-     *
-     * @return program's start address in memory
-     */
-    int getProgramLocation();
+    @Override
+    default boolean isAutomationSupported() {
+        return true;
+    }
 }
 

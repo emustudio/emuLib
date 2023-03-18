@@ -25,7 +25,7 @@ import net.emustudio.emulib.plugins.memory.Memory.MemoryListener;
 /**
  * This memory context supports basic methods for accessing the memory, like reading and writing memory cells.
  * If the memory wants to support additional functionality, it should extend this interface.
- *
+ * <p>
  * Plugins which need the specific memory contexts, should declare a dependency on the memory plugin.
  *
  * @param <CellType> type of the memory cell
@@ -37,14 +37,14 @@ public interface MemoryContext<CellType> extends Context {
     /**
      * Reads one cell from a memory.
      *
-     * @param memoryPosition  memory position (address) of the read cell
+     * @param memoryPosition memory position (address) of the read cell
      * @return read cell
      */
-    CellType read (int memoryPosition);
+    CellType read(int memoryPosition);
 
     /**
      * Reads one or more adjacent cells from a memory at once.
-     *
+     * <p>
      * Implementation of return value is up to plugin programmer (e.g. ordering of cells).
      * If cells in memory are pure bytes (java type is e.g. <code>short</code>), concatenation
      * can be realized as (in small endian):
@@ -54,7 +54,7 @@ public interface MemoryContext<CellType> extends Context {
      * result = (mem[from]&0xFF) | ((mem[from+1]<<8)&0xFF) | ...;
      * }
      * </pre>
-     *
+     * <p>
      * and in big endian as:
      *
      * <pre>
@@ -62,12 +62,12 @@ public interface MemoryContext<CellType> extends Context {
      * result = ((mem[from]<<(count *8 ))&0xFF) | (mem[from+1]<<((count-1)*8)&0xFF) | ...;
      * }
      * </pre>
-     *
+     * <p>
      * If memory size is smaller than (memoryPosition+count), then only available cells are returned - returned
      * array size can be less than <code>count</code>.
      *
-     * @param memoryPosition  memory position (address) of the read cells
-     * @param count how many cells should be read
+     * @param memoryPosition memory position (address) of the read cells
+     * @param count          how many cells should be read
      * @return one or more read cells, accessible at indexes 0 and 1, respectively.
      * @throws RuntimeException if memory size is smaller than (memoryPosition+count)
      */
@@ -76,18 +76,18 @@ public interface MemoryContext<CellType> extends Context {
     /**
      * Write one cell-size (e.g. byte) data to a cell to a memory at specified location.
      *
-     * @param memoryPosition   memory position (address) of the cell where data will be written
-     * @param value  data to be written
+     * @param memoryPosition memory position (address) of the cell where data will be written
+     * @param value          data to be written
      */
-    void write (int memoryPosition, CellType value);
+    void write(int memoryPosition, CellType value);
 
     /**
      * Write an array of data to a memory at specified location.
      * Data will be written in small endian order.
      *
-     * @param memoryPosition   memory position (address) of the cell with index 0
-     * @param values  data to be written
-     * @param count how many values should be taken
+     * @param memoryPosition memory position (address) of the cell with index 0
+     * @param values         data to be written
+     * @param count          how many values should be taken
      * @throws RuntimeException if memory size is smaller than (memoryPosition+values.length)
      */
     void write(int memoryPosition, CellType[] values, int count);
@@ -96,8 +96,8 @@ public interface MemoryContext<CellType> extends Context {
      * Write an array of data to a memory at specified location.
      * Data will be written in small endian order.
      *
-     * @param memoryPosition   memory position (address) of the cell with index 0
-     * @param values  data to be written
+     * @param memoryPosition memory position (address) of the cell with index 0
+     * @param values         data to be written
      * @throws RuntimeException if memory size is smaller than (memoryPosition+values.length)
      */
     default void write(int memoryPosition, CellType[] values) {
@@ -106,36 +106,39 @@ public interface MemoryContext<CellType> extends Context {
 
     /**
      * Get the type of memory cells.
+     *
      * @return Java data type of memory cells
      */
-    Class<CellType> getDataType ();
+    Class<CellType> getDataType();
 
     /**
      * Clears the memory.
      */
-    void clear ();
+    void clear();
 
     /**
      * Adds the specified memory listener to receive memory events from this memory.
      * Memory events occur even if single cell is changed in memory.
      * If listener is <code>null</code>, no exception is thrown and no action is
      * performed.
-     * @param listener  the memory listener
+     *
+     * @param listener the memory listener
      */
-    void addMemoryListener (MemoryListener listener);
+    void addMemoryListener(MemoryListener listener);
 
     /**
      * Removes the specified memory listener so that it no longer receives memory
      * events from this memory. Memory events occur even if single cell is
      * changed in memory. If listener is <code>null</code>, no exception is
      * thrown and no action is performed.
-     * @param listener  the memory listener to be removed
+     *
+     * @param listener the memory listener to be removed
      */
-    void removeMemoryListener (MemoryListener listener);
+    void removeMemoryListener(MemoryListener listener);
 
     /**
      * Get memory size.
-     *
+     * <p>
      * The size is a number of cells of the generic type T.
      *
      * @return memory size
@@ -144,7 +147,7 @@ public interface MemoryContext<CellType> extends Context {
 
     /**
      * Enable/disable notifications of memory changes globally.
-     *
+     * <p>
      * Enabled by default.
      *
      * @param enabled - true if enabled, false if disabled.

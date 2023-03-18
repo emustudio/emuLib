@@ -49,17 +49,12 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public LexicalAnalyzer createLexer(String input) {
+    public LexicalAnalyzer createLexer() {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public int getProgramLocation() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public List<SourceFileExtension> getSourceFileExtensions() {
+    public List<FileExtension> getSourceFileExtensions() {
         throw new UnsupportedOperationException();
     }
 
@@ -91,6 +86,11 @@ class AbstractCompilerStub extends AbstractCompiler {
     @Override
     public String getDescription() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isAutomationSupported() {
+        return false;
     }
 
     public void testError() {

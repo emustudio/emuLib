@@ -75,26 +75,20 @@ public interface Compiler extends Plugin {
     /**
      * Creates a lexical analyzer.
      *
-     * @param input source code
      * @return new lexer object
      */
-    LexicalAnalyzer createLexer(String input);
-
-    /**
-     * Gets location of compiled program in memory.
-     * <p>
-     * Program location should be valid only after successful compilation.
-     * The location should point to the starting position of the program in memory, where the CPU can start emulating.
-     *
-     * @return location of compiled program in memory
-     */
-    int getProgramLocation();
+    LexicalAnalyzer createLexer();
 
     /**
      * Get the list of source file extensions supported by the compiler.
      *
      * @return list of supported source file extensions
      */
-    List<SourceFileExtension> getSourceFileExtensions();
+    List<FileExtension> getSourceFileExtensions();
+
+    @Override
+    default boolean isAutomationSupported() {
+        return true;
+    }
 }
 

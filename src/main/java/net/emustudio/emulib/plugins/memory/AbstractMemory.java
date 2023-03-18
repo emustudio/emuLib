@@ -30,11 +30,6 @@ import java.util.Objects;
  */
 public abstract class AbstractMemory implements Memory {
     /**
-     * Loaded program location in memory. This variable is changed by compiler (mostly).
-     */
-    private int programLocation;
-
-    /**
      * Plugin ID assigned by emuStudio
      */
     protected final long pluginID;
@@ -68,29 +63,6 @@ public abstract class AbstractMemory implements Memory {
     @Override
     public void initialize() throws PluginInitializationException {
 
-    }
-
-    /**
-     * Get program location in memory.
-     *
-     * @return program memory location
-     */
-    @Override
-    public int getProgramLocation() {
-        return programLocation;
-    }
-
-    /**
-     * Set program location in memory.
-     *
-     * It should be called after successful compilation, if the compiler has loaded the program in the memory.
-     * Program location will be then used by CPU and emuStudio to know where it can start emulating the program.
-     *
-     * @param programLocation program location in memory
-     */
-    @Override
-    public void setProgramLocation(int programLocation) {
-        this.programLocation = programLocation;
     }
 
     @Override

@@ -18,15 +18,21 @@
  */
 package net.emustudio.emulib.runtime.helpers;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
+/**
+ * A number utility class with various useful operations on numbers and number arrays.
+ */
+@ThreadSafe
 public class NumberUtils {
 
     /**
      * Strategy defining how to manipulate with bytes.
-     *
+     * <p>
      * Strategies can be combined with | (or) operator.
      */
     public static final class Strategy {
@@ -50,12 +56,12 @@ public class NumberUtils {
     /**
      * Reverse bits in integer (max 32-bit) value.
      *
-     * @param value value which bits will be reversed
+     * @param value        value which bits will be reversed
      * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be preserved.
      * @return value with reversed bits
      */
     public static int reverseBits(int value, int numberOfBits) {
-        int result = value & ((numberOfBits == 32) ? 0 :(0xFFFFFFFF << numberOfBits));
+        int result = value & ((numberOfBits == 32) ? 0 : (0xFFFFFFFF << numberOfBits));
         for (int i = 0; i < numberOfBits; i++) {
             result |= ((value >>> i) & 0x1) << (numberOfBits - i - 1);
         }
@@ -65,7 +71,7 @@ public class NumberUtils {
     /**
      * Reverse bits in long (max 64-bit) value.
      *
-     * @param value value which bits will be reversed
+     * @param value        value which bits will be reversed
      * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be ignored.
      * @return value with reversed bits
      */
@@ -82,9 +88,9 @@ public class NumberUtils {
      * If bytesStrategy is LITTLE_ENDIAN, bits are read from LSB to MSB. If the strategy is BIG_ENDIAN, bits are read
      * from MSB to LSB.
      *
-     * @param bytes bytes
-     * @param start the number of bits from the start of the current instruction
-     * @param length the number of bits to read
+     * @param bytes         bytes
+     * @param start         the number of bits from the start of the current instruction
+     * @param length        the number of bits to read
      * @param bytesStrategy strategy for how to read bytes
      * @return the bytes read
      */
@@ -94,11 +100,11 @@ public class NumberUtils {
         int endByte = (start + length - 1) / 8;
 
         int div = start / 8; // force java to store integer (drop decimal part)
-        int realStart = start - 8*div; // we just "shifted" bits which were not read
+        int realStart = start - 8 * div; // we just "shifted" bits which were not read
 
         int value = readInt(bytes, startByte, endByte - startByte + 1, bytesStrategy);
 
-        int clear = (int)((1L << length) - 1);
+        int clear = (int) ((1L << length) - 1);
         int shift;
 
         boolean littleEndian = ((bytesStrategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN);
@@ -126,10 +132,10 @@ public class NumberUtils {
 
     /**
      * Reads an integer from the array of numbers.
-     *
+     * <p>
      * Uses ByteBuffer.wrap. The array must have 4 items - because integer has 4 bytes.
      *
-     * @param word the array of 4 bytes
+     * @param word     the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
@@ -139,11 +145,11 @@ public class NumberUtils {
 
     /**
      * Reads an integer from the array of numbers.
-     *
+     * <p>
      * Uses ByteBuffer.wrap. The array must have exactly 4 items - because integer has 4 bytes. If the array
      * has more bytes, they are ignored. Which ones are ignored depends on the byte ordering (=strategy).
      *
-     * @param word the array of 4 bytes
+     * @param word     the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
@@ -153,19 +159,19 @@ public class NumberUtils {
 
     /**
      * Reads an integer from the array of numbers.
-     *
+     * <p>
      * Uses ByteBuffer.wrap. The array should have up to 4 items, each one represents a byte. If the length is
      * less than 4, the array for reading is padded with zeroes from the left (in case of big endian) or from the
      * right (in case of little endian), so that the array size is 4.
      *
-     * @param word the array of 4 bytes
+     * @param word        the array of 4 bytes
      * @param startOffset starting offset in the array
-     * @param length length in the array
-     * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
+     * @param length      length in the array
+     * @param strategy    strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(byte[] word, int startOffset, int length, int strategy) {
-        assert(length >= 0 && length <= 4 && word.length >= (startOffset + length) && startOffset >= 0);
+        assert (length >= 0 && length <= 4 && word.length >= (startOffset + length) && startOffset >= 0);
 
         byte[] newarray = new byte[4];
         boolean littleEndian = ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN);
@@ -173,7 +179,7 @@ public class NumberUtils {
         System.arraycopy(word, startOffset, newarray, littleEndian ? 0 : (4 - length), length);
         if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
             for (int i = 0; i < 4; i++) {
-                newarray[i] = (byte)(reverseBits(newarray[i], 8) & 0xFF);
+                newarray[i] = (byte) (reverseBits(newarray[i], 8) & 0xFF);
             }
         }
 
@@ -186,11 +192,11 @@ public class NumberUtils {
 
     /**
      * Reads an integer from the array of numbers.
-     *
+     * <p>
      * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      *
-     * @param word the array of 4 bytes
+     * @param word     the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
@@ -200,11 +206,11 @@ public class NumberUtils {
 
     /**
      * Reads an integer from the array of numbers.
-     *
+     * <p>
      * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      *
-     * @param word the array of 4 bytes
+     * @param word     the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
@@ -214,11 +220,11 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     *
+     * <p>
      * Uses ByteBuffer.
      *
-     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
-     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Integer[] output, int strategy) {
@@ -237,11 +243,11 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     *
+     * <p>
      * Uses ByteBuffer.
      *
-     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
-     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, int[] output, int strategy) {
@@ -260,11 +266,11 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     *
+     * <p>
      * Uses ByteBuffer.
      *
-     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
-     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Byte[] output, int strategy) {
@@ -275,7 +281,7 @@ public class NumberUtils {
         byteBuffer.putInt(value);
         if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
             for (int i = 0; i < 4; i++) {
-                byteBuffer.array()[i] = (byte)(reverseBits(byteBuffer.array()[i], 8) & 0xFF);
+                byteBuffer.array()[i] = (byte) (reverseBits(byteBuffer.array()[i], 8) & 0xFF);
             }
         }
 
@@ -284,11 +290,11 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     *
+     * <p>
      * Uses ByteBuffer.
      *
-     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
-     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, byte[] output, int strategy) {
@@ -307,11 +313,11 @@ public class NumberUtils {
 
     /**
      * Split the value into 4 bytes.
-     *
+     * <p>
      * Uses binary arithmetic.
      *
-     * @param value The value which should be split into bytes. It is assumed that it is always in native little endian.
-     * @param output The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
+     * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
+     * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Short[] output, int strategy) {
@@ -331,6 +337,7 @@ public class NumberUtils {
     /**
      * Converts Number[] array to Byte[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return boxed Byte[] array
      */
@@ -345,6 +352,7 @@ public class NumberUtils {
     /**
      * Converts Number[] array to native byte[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return native byte[] array
      */
@@ -359,6 +367,7 @@ public class NumberUtils {
     /**
      * Converts Short[] array to Byte[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return boxed Byte[] array
      */
@@ -373,6 +382,7 @@ public class NumberUtils {
     /**
      * Converts Short[] array to native byte[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return native byte[] array
      */
@@ -386,6 +396,7 @@ public class NumberUtils {
 
     /**
      * Converts Short[] array to native short[] array.
+     *
      * @param numbers numbers array
      * @return native short[] array
      */
@@ -400,13 +411,14 @@ public class NumberUtils {
     /**
      * Converts native short[] array to native byte[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return native byte[] array
      */
     public static byte[] nativeShortsToNativeBytes(short[] numbers) {
         byte[] result = new byte[numbers.length];
         for (int i = 0; i < numbers.length; i++) {
-            result[i] = (byte)(numbers[i] & 0xFF);
+            result[i] = (byte) (numbers[i] & 0xFF);
         }
         return result;
     }
@@ -414,13 +426,14 @@ public class NumberUtils {
     /**
      * Converts native short[] array to native byte[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return native byte[] array
      */
     public static byte[] nativeIntsToNativeBytes(int[] numbers) {
         byte[] result = new byte[numbers.length];
         for (int i = 0; i < numbers.length; i++) {
-            result[i] = (byte)(numbers[i] & 0xFF);
+            result[i] = (byte) (numbers[i] & 0xFF);
         }
         return result;
     }
@@ -428,13 +441,14 @@ public class NumberUtils {
     /**
      * Converts native short[] array to Byte[] array.
      * Every number is converted to byte using number &amp; 0xFF
+     *
      * @param numbers numbers array
      * @return boxed Byte[] array
      */
     public static Byte[] nativeShortsToBytes(short[] numbers) {
         Byte[] result = new Byte[numbers.length];
         for (int i = 0; i < numbers.length; i++) {
-            result[i] = (byte)(numbers[i] & 0xFF);
+            result[i] = (byte) (numbers[i] & 0xFF);
         }
         return result;
     }
@@ -442,6 +456,7 @@ public class NumberUtils {
     /**
      * Converts native short[] array to Short[] array.
      * Every number is converted to byte using number.byteValue() call.
+     *
      * @param numbers numbers array
      * @return boxed Short[] array
      */
@@ -455,6 +470,7 @@ public class NumberUtils {
 
     /**
      * Converts native byte[] array to boxed Byte[] array.
+     *
      * @param array native byte[] array
      * @return boxed Byte[] array
      */
@@ -468,6 +484,7 @@ public class NumberUtils {
 
     /**
      * Converts native byte[] array to boxed Integer[] array.
+     *
      * @param array native byte[] array
      * @return boxed Integer[] array
      */
@@ -481,6 +498,7 @@ public class NumberUtils {
 
     /**
      * Converts native byte[] array to boxed Short[] array.
+     *
      * @param array native byte[] array
      * @return boxed Short[] array
      */
@@ -494,6 +512,7 @@ public class NumberUtils {
 
     /**
      * Converts native byte[] array to boxed Integer[] array.
+     *
      * @param array native byte[] array
      * @return boxed Integer[] array
      */
@@ -513,7 +532,7 @@ public class NumberUtils {
      */
     public static int[] listToNativeInts(List<Integer> list) {
         int[] result = new int[list.size()];
-        for(int i = 0; i < result.length; i++) {
+        for (int i = 0; i < result.length; i++) {
             result[i] = list.get(i);
         }
         return result;
@@ -532,6 +551,7 @@ public class NumberUtils {
 
     /**
      * Converts a binary number into packed BCD (1 byte, 2 BCD digits)
+     *
      * @param bin binary number
      * @return number in packed BCD code, little endian
      */

@@ -76,4 +76,9 @@ public class AbstractDeviceStub extends AbstractDevice {
     public String getDescription() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean isAutomationSupported() {
+        return false;
+    }
 }

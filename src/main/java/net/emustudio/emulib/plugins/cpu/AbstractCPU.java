@@ -126,9 +126,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     /**
      * Creates new instance of CPU.
      *
-     * @param pluginID plugin ID
+     * @param pluginID       plugin ID
      * @param applicationApi emuStudio API
-     * @param settings plugin custom settings
+     * @param settings       plugin custom settings
      */
     public AbstractCPU(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
         this.pluginID = pluginID;
@@ -212,7 +212,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
         Objects.requireNonNull(executor);
         executor.shutdown();
         try {
-            executor.awaitTermination(10, TimeUnit.SECONDS);
+            if (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                executor.shutdownNow();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -273,7 +275,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     @Override
     public void reset() {
-        reset(0);
+        reset(applicationApi.getProgramLocation());
     }
 
     @Override

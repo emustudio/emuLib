@@ -18,8 +18,14 @@
  */
 package net.emustudio.emulib.runtime.helpers;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import java.nio.ByteBuffer;
 
+/**
+ * Bits utility class. Supports various operations on bits.
+ */
+@NotThreadSafe
 public class Bits {
     public int bits;
     public final int length;
@@ -28,7 +34,7 @@ public class Bits {
     /**
      * Constructs new Bits object.
      *
-     * @param bits integer number in little endian
+     * @param bits   integer number in little endian
      * @param length significant bits count
      */
     public Bits(int bits, int length) {
@@ -58,7 +64,7 @@ public class Bits {
 
     /**
      * Reverses bits in each byte.
-     *
+     * <p>
      * However, order of bytes is kept.
      *
      * @return this Bits, reversed bits within each byte
@@ -70,7 +76,7 @@ public class Bits {
 
     /**
      * Make the absolute value from the number stored in two's complement.
-     *
+     * <p>
      * If the number is already positive, it is kept as-is.
      *
      * @return this Bits - the negative sign is removed

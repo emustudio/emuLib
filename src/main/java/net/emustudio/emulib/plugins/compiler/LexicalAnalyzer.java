@@ -18,6 +18,8 @@
  */
 package net.emustudio.emulib.plugins.compiler;
 
+import net.jcip.annotations.NotThreadSafe;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -26,38 +28,48 @@ import java.util.List;
 
 /**
  * Lexical analyzer.
+ * <p>
+ * It is not meant to be thread-safe.
+ * Before using, make sure the lexer is reset.
  */
 @SuppressWarnings("unused")
+@NotThreadSafe
 public interface LexicalAnalyzer extends Iterable<Token> {
 
     /**
-     * Get next token.
-     * <p>
-     * Tokens are retrieved as in "iterator" style - the actual position is a mutable state stored in the lexer.
+     * Parse next token.
      *
-     * @return next token
+     * @return next token, or Token.EOF if no token is available on the input
      */
-    Token nextToken();
+    Token next();
 
     /**
-     * Determines if this lexer is at EOF (at the end of parsing)
-     * @return true if the EOF was hit
+     * Determines if a next token is available on the input at the current lexer position.
+     *
+     * @return true if the lexer has a next token to be parsed
      */
-    boolean isAtEOF();
+    boolean hasNext();
 
     /**
      * Reset this lexical analyzer with new input.
-     * All state should be reset.
+     *
      * @param input new program source code
      * @throws IOException when input cannot be read
      */
     void reset(InputStream input) throws IOException;
 
+    /**
+     * Reset this lexical analyzer with new input.
+     *
+     * @param input new program source code
+     */
+    void reset(String input);
+
     @Override
     default Iterator<Token> iterator() {
         List<Token> tokens = new ArrayList<>();
-        while (!isAtEOF()) {
-            tokens.add(nextToken());
+        while (hasNext()) {
+            tokens.add(next());
         }
         return tokens.iterator();
     }

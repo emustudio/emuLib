@@ -18,6 +18,9 @@
  */
 package net.emustudio.emulib.runtime.helpers;
 
+/**
+ * Sleeping and time measurement utilities.
+ */
 public class SleepUtils {
     public final static long SLEEP_PRECISION;
     public final static long SPIN_YIELD_PRECISION;
@@ -47,8 +50,9 @@ public class SleepUtils {
      * It is more precise than LockSupport::sleepNanos
      * <p>
      * See:
-     *  - <a href="https://stackoverflow.com/questions/824110/accurate-sleep-for-java-on-windows">accurate sleep for java</a>
-     *  - <a href="https://andy-malakov.blogspot.com/2010/06/alternative-to-threadsleep.html">alternative to Thread.sleep</a>
+     * - <a href="https://stackoverflow.com/questions/824110/accurate-sleep-for-java-on-windows">accurate sleep for java</a>
+     * - <a href="https://andy-malakov.blogspot.com/2010/06/alternative-to-threadsleep.html">alternative to Thread.sleep</a>
+     *
      * @param nanoDuration nanoseconds
      */
     @SuppressWarnings("BusyWait")

@@ -112,6 +112,11 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
+    public boolean isAutomationSupported() {
+        return false;
+    }
+
+    @Override
     public RunState call() {
         runCalled = true;
         shouldStop = false;
