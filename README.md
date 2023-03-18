@@ -14,19 +14,19 @@ For Maven, use:
     <dependency>
         <groupId>net.emustudio</groupId>
         <artifactId>emulib</artifactId>
-        <version>11.7.0</version>
+        <version>12.0.0</version>
     </dependency>
 ```
 
 For Gradle, use:
 
 ```
-    implementation 'net.emustudio:emulib:11.7.0'
+    implementation 'net.emustudio:emulib:12.0.0'
 ```
 
 ### Important changes
 
-Up to version 9.0.0 emuLib used different group (`net.sf.emustudio`) and artifactId (`emuLib`). From version 10.0.0
+Until version 9.0.0 emuLib used different group (`net.sf.emustudio`) and artifactId (`emuLib`). From version 10.0.0
 onwards it uses group `net.emustudio` and artifactId `emulib` (all lowercase).
 
 ## Deployment
