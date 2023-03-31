@@ -246,4 +246,23 @@ public interface Dialogs {
      */
     Optional<Path> chooseFile(String title, String approveButtonText, Path baseDirectory, boolean appendMissingExtension,
                               List<FileExtensionsFilter> filters);
+
+    /**
+     * Ask user to choose a directory.
+     *
+     * @param title             dialog title
+     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
+     * @return Selected directory if provided, or Optional.empty() if user cancelled the dialog
+     */
+    Optional<Path> chooseDirectory(String title, String approveButtonText);
+
+    /**
+     * Ask user to choose a directory.
+     *
+     * @param title             dialog title
+     * @param approveButtonText approve button text (e.g. "Open", "Save", ...)
+     * @param baseDirectory     Base directory of the dialog (where will the dialog point to)
+     * @return Selected directory if provided, or Optional.empty() if user cancelled the dialog
+     */
+    Optional<Path> chooseDirectory(String title, String approveButtonText, Path baseDirectory);
 }

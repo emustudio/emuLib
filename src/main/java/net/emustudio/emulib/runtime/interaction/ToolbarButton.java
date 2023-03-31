@@ -24,6 +24,16 @@ import java.util.function.Consumer;
 
 import static javax.swing.Action.SHORT_DESCRIPTION;
 
+/**
+ * Toolbar button - a button ready to add to a toolbar.
+ * Properties:
+ * - button text is hidden
+ * - tooltip is set from Action.getValue(SHORT_DESCRIPTION) by default
+ * - is not focusable
+ * - icon is set from icon resource path
+ * - button action is external
+ */
+@SuppressWarnings("unused")
 public class ToolbarButton extends JButton {
 
     public ToolbarButton(Action action, String iconResource) {
