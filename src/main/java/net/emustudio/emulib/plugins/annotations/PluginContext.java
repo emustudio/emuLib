@@ -18,15 +18,11 @@
  */
 package net.emustudio.emulib.plugins.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * Indicates that the annotated interface represent plugin context.
- *
+ * <p>
  * This annotation should be used only on classes.
  */
 @SuppressWarnings("unused")
