@@ -19,7 +19,6 @@
 package net.emustudio.emulib.runtime.interaction;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -42,23 +41,12 @@ public class BrowseButton extends JButton {
      */
     public BrowseButton(Dialogs dialogs, String dialogTitle, String approveButtonText, Consumer<Path> onApprove) {
         super("Browse...");
-
-        setAction(new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Path currentDirectory = pathCache
-                        .first()
-                        .orElse(Path.of(System.getProperty("user.dir")));
-
-                dialogs.chooseDirectory(
-                        dialogTitle, approveButtonText, currentDirectory
-                ).ifPresent(path -> {
+        this.addActionListener(e -> dialogs
+                .chooseDirectory(dialogTitle, approveButtonText, getCurrentDirectory())
+                .ifPresent(path -> {
                     pathCache.put(path);
                     onApprove.accept(path);
-                });
-            }
-        });
+                }));
     }
 
     /**
@@ -75,23 +63,15 @@ public class BrowseButton extends JButton {
                         boolean appendMissingExtensions,
                         Consumer<Path> onApprove, FileExtensionsFilter... filters) {
         super("Browse...");
-
-        setAction(new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Path currentDirectory = pathCache
-                        .first()
-                        .orElse(Path.of(System.getProperty("user.dir")));
-
-                dialogs.chooseFile(
-                        dialogTitle, approveButtonText, currentDirectory, appendMissingExtensions,
-                        filters
-                ).ifPresent(path -> {
+        addActionListener(e -> dialogs
+                .chooseFile(dialogTitle, approveButtonText, getCurrentDirectory(), appendMissingExtensions, filters)
+                .ifPresent(path -> {
                     pathCache.put(path);
                     onApprove.accept(path);
-                });
-            }
-        });
+                }));
+    }
+
+    private Path getCurrentDirectory() {
+        return pathCache.first().orElse(Path.of(System.getProperty("user.dir")));
     }
 }

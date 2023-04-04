@@ -33,7 +33,7 @@ import java.util.function.Function;
 /**
  * Generator and loader of 16-bit Intel Hex files (I8HEX).
  * <p>
- * File format is described here: https://en.wikipedia.org/wiki/Intel_HEX
+ * File format is described here: <a href="https://en.wikipedia.org/wiki/Intel_HEX">Intel HEX</a>
  */
 @NotThreadSafe
 public class IntelHEX {
@@ -44,31 +44,36 @@ public class IntelHEX {
     private int nextAddress;
 
     /**
-     * Add a series of bytes, encoded as hex String, into the code table.
+     * Adds sequential bytes into the code table.
+     * The bytes are encoded as hex String, each byte consuming exactly 2 hex digits.
      * <p>
-     * The bytes must be given as a hexadecimal string of any length.
-     * Each byte must have a form of two characters. For example:
+     * For example, <code>0A0B10</code> represents 3 bytes: <code>0x0A</code>, <code>0x0B</code> and <code>0x10</code>.
      *
-     * <code>0A0B10</code>
-     * <p>
-     * represents 3 bytes: <code>0x0A</code>, <code>0x0B</code> and <code>0x10</code>.
-     * <p>
-     * The code table is modified so that all addresses starting from the current
-     * one up to the code length will contain corresponding byte.
-     * <p>
-     * The current address is then increased by the code length.
-     * If a byte exists on an address already, it is overwritten.
-     *
-     * @param hexString Hexadecimal representation of binary code
-     * @return updated current address
+     * @param hexData Hexadecimal representation of binary code
+     * @return next address
      */
-    public int add(String hexString) {
-        if (hexString.isEmpty()) {
+    public int add(String hexData) {
+        if (hexData.isEmpty()) {
             return nextAddress;
         }
-        for (int i = 0; i < hexString.length() - 1; i += 2) {
-            String tmp = hexString.substring(i, i + 2);
+        for (int i = 0; i < hexData.length() - 1; i += 2) {
+            String tmp = hexData.substring(i, i + 2);
             program.put(nextAddress++, Byte.parseByte(tmp, 16));
+        }
+        return nextAddress;
+    }
+
+    /**
+     * Adds sequential bytes into the code table.
+     * <p>
+     * The bytes are added in the same order as they appear (i.e. they are not converted to different endian).
+     *
+     * @param data sequential bytes to add
+     * @return next address
+     */
+    public int add(byte... data) {
+        for (byte d : data) {
+            program.put(nextAddress++, d);
         }
         return nextAddress;
     }
@@ -124,8 +129,8 @@ public class IntelHEX {
      * program is also transformed into chunk of bytes, but not to hex file but
      * to the operating memory.
      *
-     * @param <T> Specific memory type
-     * @param mem context of operating memory
+     * @param <T>     Specific memory type
+     * @param mem     context of operating memory
      * @param convert conversion of byte to T
      */
     public <T extends Number> void loadIntoMemory(MemoryContext<T> mem, Function<Byte, T> convert) {
@@ -153,7 +158,7 @@ public class IntelHEX {
      * @param writer Writer used to store the Intel HEX content
      * @throws java.io.IOException if the HEX file could not be written
      */
-    public void generate(Writer writer) throws java.io.IOException {
+    public void generate(Writer writer) throws IOException {
         String fileData = generateHEX();
         writer.write(fileData);
     }
@@ -161,7 +166,7 @@ public class IntelHEX {
     /**
      * Finds program location in memory.
      * <p>
-     * It is actually the the first address which has occurred in the program.
+     * It is actually the first address which has occurred in the program.
      *
      * @return program memory location
      */
@@ -176,12 +181,13 @@ public class IntelHEX {
      *
      * @param file file
      * @return new instance of IntelHEX
-     * @throws Exception if the file cannot be parsed
+     * @throws IOException if the file cannot be parsed
      */
-    public static IntelHEX parse(File file) throws Exception {
+    public static IntelHEX parse(File file) throws IOException {
         IntelHEX hexFile = new IntelHEX();
 
-        try (FileChannel channel = new FileInputStream(file).getChannel()) {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            FileChannel channel = fis.getChannel();
             ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
 
             while (buffer.hasRemaining()) {
@@ -235,14 +241,14 @@ public class IntelHEX {
     /**
      * Parse Intel HEX file and load it into memory.
      *
-     * @param <T> specific memory type
-     * @param file   file
-     * @param memory memory
+     * @param <T>     memory cell type
+     * @param file    file
+     * @param memory  target memory
      * @param convert conversion of byte to T
      * @return program start address
-     * @throws Exception if the file cannot be parsed
+     * @throws IOException if the file cannot be parsed
      */
-    public static <T extends Number> int loadIntoMemory(File file, MemoryContext<T> memory, Function<Byte, T> convert) throws Exception {
+    public static <T extends Number> int loadIntoMemory(File file, MemoryContext<T> memory, Function<Byte, T> convert) throws IOException {
         IntelHEX hexFile = IntelHEX.parse(file);
         hexFile.loadIntoMemory(memory, convert);
         return hexFile.findProgramLocation();
@@ -309,7 +315,7 @@ public class IntelHEX {
         while (buffer.hasRemaining() && c == ' ') {
             c = buffer.get();
         }
-        return (char)c;
+        return (char) c;
     }
 
     private static void ignoreLine(ByteBuffer buffer) {
