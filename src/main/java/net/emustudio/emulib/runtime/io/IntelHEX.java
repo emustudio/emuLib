@@ -24,6 +24,7 @@ import net.jcip.annotations.NotThreadSafe;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -143,11 +144,11 @@ public class IntelHEX {
     /**
      * Generates a Intel Hex file based on the cached program map.
      *
-     * @param outputFileName file name where to store the hex file
+     * @param outputPath output file
      * @throws java.io.IOException if the HEX file could not be written
      */
-    public void generate(String outputFileName) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFileName))) {
+    public void generate(Path outputPath) throws IOException {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath.toFile()))) {
             generate(writer);
         }
     }
