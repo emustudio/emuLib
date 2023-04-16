@@ -20,7 +20,9 @@ package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.Plugin;
 
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Compiler plugin root interface.
@@ -53,12 +55,13 @@ public interface Compiler extends Plugin {
 
     /**
      * Compile an input file into the output file.
+     * If output file exists, it will be overwritten.
+     * Resets program start address.
      *
-     * @param inputFileName  name of the input file (source code)
-     * @param outputFileName name of the output file (compiled code)
-     * @return true if compile was successful, false otherwise
+     * @param inputFile  input file path (source code)
+     * @param outputFile output file path (compiled code). Can be null.
      */
-    boolean compile(String inputFileName, String outputFileName);
+    void compile(Path inputFile, Path outputFile);
 
     /**
      * Compile an input file into the output file.
@@ -67,10 +70,11 @@ public interface Compiler extends Plugin {
      * extension of the input file is replaced by another one, denoting
      * compiled file. It is compiler-specific.
      *
-     * @param inputFileName name of the input file (source code)
-     * @return true if compile was successful, false otherwise
+     * @param inputFile input file path (source code)
      */
-    boolean compile(String inputFileName);
+    default void compile(Path inputFile) {
+        compile(inputFile, null);
+    }
 
     /**
      * Creates a lexical analyzer.
@@ -86,6 +90,11 @@ public interface Compiler extends Plugin {
      */
     List<FileExtension> getSourceFileExtensions();
 
+    /**
+     * Determine if automation is supported.
+     *
+     * @return true by default
+     */
     @Override
     default boolean isAutomationSupported() {
         return true;

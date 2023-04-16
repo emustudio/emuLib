@@ -16,36 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.plugins.memory;
+package net.emustudio.emulib.plugins.memory.annotations;
 
-import net.emustudio.emulib.plugins.Plugin;
+import net.jcip.annotations.Immutable;
 
 /**
- * Memory plugin root interface.
+ * Breakpoint annotation.
  * <p>
- * Memory can define a "memory context", which can enable additional non-standard functionality, which can be used
- * by other plugins.
- *
- * @see MemoryContext
+ * If CPU encounters this annotation it should break running.
  */
-@SuppressWarnings("unused")
-public interface Memory extends Plugin {
+@Immutable
+public class BreakpointAnnotation extends Annotation {
 
-    @Override
-    default boolean isAutomationSupported() {
-        return true;
+    public BreakpointAnnotation(long sourcePluginId) {
+        super(sourcePluginId);
     }
 
-    /**
-     * Removes all memory annotations of given annotation class
-     *
-     * @param annotationClass annotation class
-     */
-    void removeAnnotations(Class<?> annotationClass);
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
 
-    /**
-     * Clears all memory annotations
-     */
-    void clearAnnotations();
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
 }
-

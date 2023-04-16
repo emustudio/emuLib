@@ -18,9 +18,10 @@
  */
 package net.emustudio.emulib.plugins.memory;
 
-import net.emustudio.emulib.plugins.memory.Memory.MemoryListener;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
+
+import net.emustudio.emulib.plugins.memory.annotations.Annotations;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,13 +30,14 @@ import org.slf4j.LoggerFactory;
  * This class implements some fundamental functionality of MemoryContext
  * interface, that can be useful in the programming of the own memory context.
  *
- * @param <Type> the memory cell type
+ * @param <CellType> the memory cell type
  */
 @ThreadSafe
-public abstract class AbstractMemoryContext<Type> implements MemoryContext<Type> {
+public abstract class AbstractMemoryContext<CellType> implements MemoryContext<CellType> {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     private volatile boolean notificationsEnabled = true;
+    protected final Annotations annotations = new Annotations();
 
     @Override
     public boolean areMemoryNotificationsEnabled() {
@@ -75,23 +77,34 @@ public abstract class AbstractMemoryContext<Type> implements MemoryContext<Type>
     }
 
     /**
-     * Notify all listeners that memory has changed.
+     * Notify all listeners that memory content has changed at given positions.
+     * <p>
+     * This method should be called by a memory context, whenever a <code>write()</code> is invoked.
      *
-     * This method should be called whenever a some plugin writes to the
-     * memory.
-     *
-     * @param position memory position (address) on which the value has changed
+     * @param fromLocation from location
+     * @param toLocation   to location
      */
-    public void notifyMemoryChanged(int position) {
+    public void notifyMemoryContentChanged(int fromLocation, int toLocation) {
         if (notificationsEnabled) {
             listeners.forEach(listener -> {
                 try {
-                    listener.memoryChanged(position);
+                    listener.memoryContentChanged(fromLocation, toLocation);
                 } catch (Exception e) {
                     LOGGER.error("Memory listener error", e);
                 }
             });
         }
+    }
+
+    /**
+     * Notify all listeners that memory content has changed at given positions.
+     * <p>
+     * This method should be called by a memory context, whenever a <code>write()</code> is invoked.
+     *
+     * @param location memory location
+     */
+    public void notifyMemoryContentChanged(int location) {
+        notifyMemoryContentChanged(location, location);
     }
 
     /**
@@ -107,5 +120,10 @@ public abstract class AbstractMemoryContext<Type> implements MemoryContext<Type>
                 }
             });
         }
+    }
+
+    @Override
+    public Annotations annotations() {
+        return annotations;
     }
 }

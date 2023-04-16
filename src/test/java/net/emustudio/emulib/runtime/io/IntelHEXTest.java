@@ -18,8 +18,8 @@
  */
 package net.emustudio.emulib.runtime.io;
 
-import net.emustudio.emulib.plugins.memory.Memory;
 import net.emustudio.emulib.plugins.memory.MemoryContext;
+import net.emustudio.emulib.plugins.memory.annotations.Annotations;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -80,9 +80,9 @@ public class IntelHEXTest {
         hexFile.add(code);
         Map<Integer, Byte> codeTable = hexFile.getCode();
 
-        assertEquals(1, (byte)codeTable.get(0));
-        assertEquals(2, (byte)codeTable.get(1));
-        assertEquals(3, (byte)codeTable.get(2));
+        assertEquals(1, (byte) codeTable.get(0));
+        assertEquals(2, (byte) codeTable.get(1));
+        assertEquals(3, (byte) codeTable.get(2));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class IntelHEXTest {
         hexFile.add("02");
 
         Map<Integer, Byte> codeTable = hexFile.getCode();
-        assertEquals(2, (byte)codeTable.get(0));
+        assertEquals(2, (byte) codeTable.get(0));
     }
 
     @Test
@@ -189,38 +189,38 @@ public class IntelHEXTest {
         assertEquals(1, hexFile.findProgramLocation());
         Map<Integer, Byte> hexCodeTable = hexFile.getCode();
 
-        assertEquals(1, (byte)hexCodeTable.get(1));
-        assertEquals(2, (byte)hexCodeTable.get(2));
-        assertEquals(3, (byte)hexCodeTable.get(3));
+        assertEquals(1, (byte) hexCodeTable.get(1));
+        assertEquals(2, (byte) hexCodeTable.get(2));
+        assertEquals(3, (byte) hexCodeTable.get(3));
     }
 
     private static class MemoryContextStub implements MemoryContext<Short> {
         final ByteBuffer code = ByteBuffer.allocate(32);
 
         @Override
-        public Short read(int memoryPosition) {
-            code.position(memoryPosition);
-            return (short)code.get();
+        public Short read(int location) {
+            code.position(location);
+            return (short) code.get();
         }
 
         @Override
-        public Short[] read(int memoryPosition, int count) {
+        public Short[] read(int location, int count) {
             return new Short[0];
         }
 
         @Override
-        public void write(int memoryPosition, Short value) {
-            code.position(memoryPosition);
+        public void write(int location, Short value) {
+            code.position(location);
             code.put(value.byteValue());
         }
 
         @Override
-        public void write(int memoryPosition, Short[] values, int count) {
+        public void write(int location, Short[] values, int count) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public Class<Short> getDataType() {
+        public Class<Short> getCellTypeClass() {
             return Short.class;
         }
 
@@ -230,12 +230,12 @@ public class IntelHEXTest {
         }
 
         @Override
-        public void addMemoryListener(Memory.MemoryListener listener) {
+        public void addMemoryListener(MemoryListener listener) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void removeMemoryListener(Memory.MemoryListener listener) {
+        public void removeMemoryListener(MemoryListener listener) {
             throw new UnsupportedOperationException();
         }
 
@@ -250,6 +250,11 @@ public class IntelHEXTest {
         }
 
         @Override
+        public Annotations annotations() {
+            return null;
+        }
+
+        @Override
         public void setMemoryNotificationsEnabled(boolean enabled) {
 
         }
@@ -261,7 +266,7 @@ public class IntelHEXTest {
         hexFile.setNextAddress(4);
         hexFile.add("010203");
         hexFile.loadIntoMemory(mc, Short::valueOf);
-        assertEquals(3, (int)mc.read(6));
+        assertEquals(3, (int) mc.read(6));
     }
 
     @Test
@@ -273,6 +278,6 @@ public class IntelHEXTest {
         assertEquals(hexFile.findProgramLocation(), programStart);
 
         Map<Integer, Byte> codeTable = hexFile.getCode();
-        assertEquals((byte)codeTable.get(programStart), mc.read(programStart).byteValue());
+        assertEquals((byte) codeTable.get(programStart), mc.read(programStart).byteValue());
     }
 }

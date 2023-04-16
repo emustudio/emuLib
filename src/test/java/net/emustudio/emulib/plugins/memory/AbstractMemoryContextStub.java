@@ -21,27 +21,27 @@ package net.emustudio.emulib.plugins.memory;
 public class AbstractMemoryContextStub extends AbstractMemoryContext {
 
     @Override
-    public Object read(int memoryPosition) {
+    public Object read(int location) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Object[] read(int memoryPosition, int count) {
+    public Object[] read(int location, int count) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void write(int memoryPosition, Object value) {
+    public void write(int location, Object value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void write(int memoryPosition, Object[] values, int count) {
+    public void write(int location, Object[] values, int count) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Class<?> getDataType() {
+    public Class<?> getCellTypeClass() {
         throw new UnsupportedOperationException();
     }
 

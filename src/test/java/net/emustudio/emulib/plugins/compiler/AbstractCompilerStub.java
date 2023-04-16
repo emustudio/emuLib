@@ -24,6 +24,7 @@ import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
 
 import javax.swing.*;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.easymock.EasyMock.createNiceMock;
@@ -39,14 +40,10 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public boolean compile(String inputFileName, String outputFileName) {
+    public void compile(Path inputFileName, Path outputFileName) {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    public boolean compile(String inputFileName) {
-        throw new UnsupportedOperationException();
-    }
 
     @Override
     public LexicalAnalyzer createLexer() {

@@ -22,11 +22,7 @@ import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.anyInt;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 
 public class AbstractMemoryContextTest {
     private AbstractMemoryContext<?> memory;
@@ -40,45 +36,45 @@ public class AbstractMemoryContextTest {
     public void testListenerIsCalledAfterNotifyChange() {
         int memoryPosition = 199;
 
-        Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
-        listener.memoryChanged(eq(memoryPosition));
+        MemoryContext.MemoryListener listener = EasyMock.createNiceMock(MemoryContext.MemoryListener.class);
+        listener.memoryContentChanged(eq(memoryPosition), eq(memoryPosition));
         expectLastCall().once();
         replay(listener);
 
         memory.addMemoryListener(listener);
-        memory.notifyMemoryChanged(memoryPosition);
+        memory.notifyMemoryContentChanged(memoryPosition);
 
         verify(listener);
     }
 
     @Test
     public void testListenerIsNotCalledAfterItsRemoval() {
-        Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
+        MemoryContext.MemoryListener listener = EasyMock.createNiceMock(MemoryContext.MemoryListener.class);
         replay(listener);
 
         memory.addMemoryListener(listener);
         memory.removeMemoryListener(listener);
-        memory.notifyMemoryChanged(234);
+        memory.notifyMemoryContentChanged(234);
 
         verify(listener);
     }
 
     @Test
     public void testNotifyMemChangedDoesNotThrow() {
-        Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
-        listener.memoryChanged(anyInt());
+        MemoryContext.MemoryListener listener = EasyMock.createNiceMock(MemoryContext.MemoryListener.class);
+        listener.memoryContentChanged(234, 236);
         expectLastCall().andThrow(new RuntimeException()).once();
         replay(listener);
 
         memory.addMemoryListener(listener);
-        memory.notifyMemoryChanged(234);
+        memory.notifyMemoryContentChanged(234, 236);
 
         verify(listener);
     }
 
     @Test
     public void testNotifyMemSizeChangedDoesNotThrow() {
-        Memory.MemoryListener listener = EasyMock.createNiceMock(Memory.MemoryListener.class);
+        MemoryContext.MemoryListener listener = EasyMock.createNiceMock(MemoryContext.MemoryListener.class);
         listener.memorySizeChanged();
         expectLastCall().andThrow(new RuntimeException()).once();
         replay(listener);
@@ -88,5 +84,4 @@ public class AbstractMemoryContextTest {
 
         verify(listener);
     }
-
 }
