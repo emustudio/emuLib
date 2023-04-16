@@ -24,8 +24,8 @@ import java.util.Objects;
  * Messages are passed to compiler listeners when the compiler wishes to say something.
  */
 public class CompilerMessage {
-    public static final String MSG_INFO =    "[INFO   ] ";
-    public static final String MSG_ERROR =   "[ERROR  ] ";
+    public static final String MSG_INFO = "[INFO   ] ";
+    public static final String MSG_ERROR = "[ERROR  ] ";
     public static final String MSG_WARNING = "[WARNING] ";
 
     public static final String POSITION_FORMAT = "(%3d,%3d) ";
@@ -35,67 +35,75 @@ public class CompilerMessage {
      */
     public enum MessageType {
         /**
-        * The message represents a warning.
-        */
+         * The message represents a warning.
+         */
         TYPE_WARNING,
         /**
-        * The message represents an error.
-        */
+         * The message represents an error.
+         */
         TYPE_ERROR,
         /**
-        * The message represents an information.
-        */
+         * The message represents an information.
+         */
         TYPE_INFO,
         /**
-        * The message is of unknown type.
-        */
+         * The message is of unknown type.
+         */
         TYPE_UNKNOWN
     }
 
     private final MessageType messageType;
     private final String message;
-    private final int line;
-    private final int column;
+    private final SourceCodePosition position;
 
     /**
      * This constructor creates the Message object. Messages are created by
      * compiler.
-     * @param messageType
-     *   Type of the message.
-     * @param message
-     *   Text of the message
-     * @param line
-     *   Line in the source code
-     * @param column
-     *   Column in the source code
+     *
+     * @param messageType Type of the message.
+     * @param message     Text of the message
+     * @param line        Line in the source code
+     * @param column      Column in the source code
      */
     public CompilerMessage(MessageType messageType, String message, int line, int column) {
         this.messageType = Objects.requireNonNull(messageType);
         this.message = Objects.requireNonNull(message);
-        this.line = line;
-        this.column = column;
+        this.position = new SourceCodePosition(line, column);
     }
 
     /**
      * This constructor creates the Message object. Messages are created by
      * compiler.
-     * @param message
-     *   Text of the message
+     *
+     * @param messageType Type of the message
+     * @param message     Text of the message
+     * @param position    Source code position
+     */
+    public CompilerMessage(MessageType messageType, String message, SourceCodePosition position) {
+        this.messageType = Objects.requireNonNull(messageType);
+        this.message = Objects.requireNonNull(message);
+        this.position = Objects.requireNonNull(position);
+    }
+
+    /**
+     * This constructor creates the Message object. Messages are created by
+     * compiler.
+     *
+     * @param message Text of the message
      */
     public CompilerMessage(String message) {
-        this(MessageType.TYPE_UNKNOWN, message,-1,-1);
+        this(MessageType.TYPE_UNKNOWN, message, -1, -1);
     }
 
     /**
      * This constructor creates the Message object. Messages are created by
      * compiler.
-     * @param type
-     *   Type of the message.
-     * @param message
-     *   Text of the message
+     *
+     * @param type    Type of the message.
+     * @param message Text of the message
      */
     public CompilerMessage(MessageType type, String message) {
-        this(type,message,-1,-1);
+        this(type, message, -1, -1);
     }
 
     /**
@@ -117,31 +125,20 @@ public class CompilerMessage {
                 break;
         }
 
-        if ((line >= 0) || (column >= 0)) {
-            mes.append(String.format(POSITION_FORMAT, line, column));
+        if ((position.line >= 0) || (position.column >= 0)) {
+            mes.append(String.format(POSITION_FORMAT, position.line, position.column));
         }
         mes.append(message);
         return mes.toString();
     }
 
     /**
-     * Get line of the source code that the message belongs to.
+     * Get source code position
      *
-     * @return the line, starting from 0. Negative values indicate that this
-     * value is not valid.
+     * @return position in the source code
      */
-    public int getLine() {
-        return line;
-    }
-
-    /**
-     * Get column of the source code that the message belongs to.
-     *
-     * @return the column, starting from 0. Negative values indicate that this
-     * value is not valid.
-     */
-    public int getColumn() {
-        return column;
+    public SourceCodePosition getPosition() {
+        return position;
     }
 
     /**
@@ -155,6 +152,7 @@ public class CompilerMessage {
 
     /**
      * Get the type of the message.
+     *
      * @return the message type
      */
     public MessageType getMessageType() {

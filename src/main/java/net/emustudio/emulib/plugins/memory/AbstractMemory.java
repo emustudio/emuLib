@@ -28,6 +28,7 @@ import java.util.Objects;
 /**
  * Implements fundamental functionality useful for most of the memory plugins.
  */
+@SuppressWarnings("unused")
 public abstract class AbstractMemory implements Memory {
     /**
      * Plugin ID assigned by emuStudio

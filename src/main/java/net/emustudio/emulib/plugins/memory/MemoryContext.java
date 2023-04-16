@@ -20,34 +20,61 @@ package net.emustudio.emulib.plugins.memory;
 
 import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.annotations.PluginContext;
-import net.emustudio.emulib.plugins.memory.Memory.MemoryListener;
+import net.emustudio.emulib.plugins.memory.annotations.Annotations;
 
 /**
- * This memory context supports basic methods for accessing the memory, like reading and writing memory cells.
- * If the memory wants to support additional functionality, it should extend this interface.
+ * Memory context
  * <p>
- * Plugins which need the specific memory contexts, should declare a dependency on the memory plugin.
+ * It provides the basic memory functionality, such as reading/writing memory cells. The memory cell can be of any Java
+ * type, thus a "byte", as the lowest addressable unit, is not enforced.
+ * <p>
+ * The memory context must be extended in a memory plugin in order to support additional functionality (e.g. bank-switching
+ * or memory-mapped I/O).
+ * <p>
+ * Memory context supports annotations - a possibility to annotate any memory cell with supplemental information. Usual
+ * annotations are: breakpoints, text information, position in source code, or any custom annotation. Annotation API
+ * is accessible by using {@link #annotations()} method.
  *
- * @param <CellType> type of the memory cell
+ * @param <CellType> memory cell type
  */
 @SuppressWarnings("unused")
 @PluginContext
 public interface MemoryContext<CellType> extends Context {
 
     /**
-     * Reads one cell from a memory.
-     *
-     * @param memoryPosition memory position (address) of the read cell
-     * @return read cell
+     * A listener for receiving memory related events.
+     * <p>
+     * A class interested in processing memory event implements this interface, and the object created with
+     * that class is registered with the memory context (with {@link #addMemoryListener(MemoryListener)} method).
      */
-    CellType read(int memoryPosition);
+    interface MemoryListener {
+        /**
+         * Invoked when memory content changed.
+         *
+         * @param fromLocation from location
+         * @param toLocation   to location
+         */
+        void memoryContentChanged(int fromLocation, int toLocation);
+
+        /**
+         * Invoked when memory size changed
+         */
+        void memorySizeChanged();
+    }
 
     /**
-     * Reads one or more adjacent cells from a memory at once.
+     * Reads one memory cell at given location.
+     *
+     * @param location memory location of the memory cell
+     * @return cell at given location
+     */
+    CellType read(int location);
+
+    /**
+     * Reads one or more adjacent cells from a memory.
      * <p>
-     * Implementation of return value is up to plugin programmer (e.g. ordering of cells).
-     * If cells in memory are pure bytes (java type is e.g. <code>short</code>), concatenation
-     * can be realized as (in small endian):
+     * Implementation of return value is up to plugin programmer (e.g. ordering of cells or atomicity).
+     * If cells in memory are pure bytes, concatenation can be realized as (in small endian):
      *
      * <pre>
      * {@code
@@ -63,92 +90,89 @@ public interface MemoryContext<CellType> extends Context {
      * }
      * </pre>
      * <p>
-     * If memory size is smaller than (memoryPosition+count), then only available cells are returned - returned
+     * If memory size is smaller than (location + count), then only available cells are returned - returned
      * array size can be less than <code>count</code>.
      *
-     * @param memoryPosition memory position (address) of the read cells
-     * @param count          how many cells should be read
-     * @return one or more read cells, accessible at indexes 0 and 1, respectively.
-     * @throws RuntimeException if memory size is smaller than (memoryPosition+count)
+     * @param location location of the first cell
+     * @param count    number of cells to read
+     * @return array of cells at given location
+     * @throws RuntimeException if memory size is smaller than (location + count)
      */
-    CellType[] read(int memoryPosition, int count);
+    CellType[] read(int location, int count);
 
     /**
-     * Write one cell-size (e.g. byte) data to a cell to a memory at specified location.
+     * Write a value to a memory cell at given location.
      *
-     * @param memoryPosition memory position (address) of the cell where data will be written
-     * @param value          data to be written
+     * @param location location of the cell
+     * @param value    data to be written
      */
-    void write(int memoryPosition, CellType value);
+    void write(int location, CellType value);
 
     /**
-     * Write an array of data to a memory at specified location.
-     * Data will be written in small endian order.
+     * Write several cell values at once to a given location.
+     * The ordering of values, as well as atomicity is implementation-specific.
      *
-     * @param memoryPosition memory position (address) of the cell with index 0
-     * @param values         data to be written
-     * @param count          how many values should be taken
-     * @throws RuntimeException if memory size is smaller than (memoryPosition+values.length)
+     * @param location location of the first cell
+     * @param values   data to be written
+     * @param count    number of values taken from given array
+     * @throws RuntimeException if memory size is less than (location + count) or if (count &gt; values.length) or if (count &lt; 0)
      */
-    void write(int memoryPosition, CellType[] values, int count);
+    void write(int location, CellType[] values, int count);
 
     /**
-     * Write an array of data to a memory at specified location.
-     * Data will be written in small endian order.
+     * Write several cell values at once to a given location.
+     * The ordering of values, as well as atomicity is implementation-specific.
      *
-     * @param memoryPosition memory position (address) of the cell with index 0
-     * @param values         data to be written
-     * @throws RuntimeException if memory size is smaller than (memoryPosition+values.length)
+     * @param location location of the first cell
+     * @param values   data to be written
+     * @throws RuntimeException if memory size is less than (location + count)
      */
-    default void write(int memoryPosition, CellType[] values) {
-        write(memoryPosition, values, values.length);
+    default void write(int location, CellType[] values) {
+        write(location, values, values.length);
     }
 
     /**
-     * Get the type of memory cells.
+     * Get memory cell type class.
      *
      * @return Java data type of memory cells
      */
-    Class<CellType> getDataType();
+    Class<CellType> getCellTypeClass();
 
     /**
-     * Clears the memory.
+     * Clears the memory content.
      */
     void clear();
 
     /**
-     * Adds the specified memory listener to receive memory events from this memory.
-     * Memory events occur even if single cell is changed in memory.
-     * If listener is <code>null</code>, no exception is thrown and no action is
-     * performed.
-     *
-     * @param listener the memory listener
-     */
-    void addMemoryListener(MemoryListener listener);
-
-    /**
-     * Removes the specified memory listener so that it no longer receives memory
-     * events from this memory. Memory events occur even if single cell is
-     * changed in memory. If listener is <code>null</code>, no exception is
-     * thrown and no action is performed.
-     *
-     * @param listener the memory listener to be removed
-     */
-    void removeMemoryListener(MemoryListener listener);
-
-    /**
-     * Get memory size.
+     * Get memory size
      * <p>
-     * The size is a number of cells of the generic type T.
+     * A memory size is basically a number of cells.
+     * <p>
+     * If the memory supports bank-switching, it is up to the implementing memory how this is interpreted. Usually
+     * it returns size of the active (alternatively the most "common") bank.
      *
-     * @return memory size
+     * @return memory size (number of cells)
      */
     int getSize();
 
     /**
+     * Adds a memory listener
+     *
+     * @param listener the memory listener (non-null)
+     */
+    void addMemoryListener(MemoryListener listener);
+
+    /**
+     * Removes a memory listener
+     *
+     * @param listener the memory listener to be removed (non-null)
+     */
+    void removeMemoryListener(MemoryListener listener);
+
+    /**
      * Enable/disable notifications of memory changes globally.
      * <p>
-     * Enabled by default.
+     * Enabled by default. Usually it is disabled by CPU when in a "running" state.
      *
      * @param enabled - true if enabled, false if disabled.
      */
@@ -161,5 +185,14 @@ public interface MemoryContext<CellType> extends Context {
      */
     boolean areMemoryNotificationsEnabled();
 
+    /**
+     * Get memory annotations API.
+     * <p>
+     * Annotations is a possibility to annotate any memory cell with supplemental information. Usual
+     * annotations are: breakpoints, text information, position in source code, or any custom annotation.
+     *
+     * @return memory annotations API
+     */
+    Annotations annotations();
 }
 

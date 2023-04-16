@@ -35,8 +35,9 @@ public class CompilerMessageTest {
 
         assertEquals(MessageType.TYPE_UNKNOWN, compilerMessage.getMessageType());
         assertEquals(MESSAGE, compilerMessage.getMessage());
-        assertEquals(-1, compilerMessage.getLine());
-        assertEquals(-1, compilerMessage.getColumn());
+        SourceCodePosition position = compilerMessage.getPosition();
+        assertEquals(-1, position.getLine());
+        assertEquals(-1, position.getColumn());
     }
 
     @Test
@@ -45,8 +46,9 @@ public class CompilerMessageTest {
 
         assertEquals(MESSAGE_TYPE, compilerMessage.getMessageType());
         assertEquals(MESSAGE, compilerMessage.getMessage());
-        assertEquals(LINE, compilerMessage.getLine());
-        assertEquals(COLUMN, compilerMessage.getColumn());
+        SourceCodePosition position = compilerMessage.getPosition();
+        assertEquals(LINE, position.getLine());
+        assertEquals(COLUMN, position.getColumn());
     }
 
     @Test
@@ -106,7 +108,7 @@ public class CompilerMessageTest {
     @Test
     public void testFormattingForEverything() {
         CompilerMessage compilerMessage = new CompilerMessage(
-            MessageType.TYPE_INFO, MESSAGE, LINE, COLUMN
+                MessageType.TYPE_INFO, MESSAGE, LINE, COLUMN
         );
 
         String expected = CompilerMessage.MSG_INFO
