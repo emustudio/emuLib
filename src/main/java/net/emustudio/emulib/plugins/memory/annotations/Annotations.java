@@ -18,13 +18,11 @@
  */
 package net.emustudio.emulib.plugins.memory.annotations;
 
+import net.emustudio.emulib.runtime.helpers.ReadWriteLockSupport;
 import net.jcip.annotations.GuardedBy;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.*;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -44,13 +42,13 @@ import java.util.stream.Collectors;
 public class Annotations {
     @GuardedBy("rwl")
     private final Map<Integer, Set<Annotation>> annotations = new HashMap<>();
-    private final ReadWriteLock rwl = new ReentrantReadWriteLock();
+    private final ReadWriteLockSupport rwl = new ReadWriteLockSupport();
 
     /**
      * Clears all annotations
      */
     protected void clear() {
-        lockWrite(annotations::clear);
+        rwl.lockWrite(annotations::clear);
     }
 
     /**
@@ -69,7 +67,7 @@ public class Annotations {
             }
         }
 
-        lockWrite(() -> {
+        rwl.lockWrite(() -> {
             Set<P> toRemove = new HashSet<>();
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
                 Set<Annotation> toRemoveAtLocation = entry
@@ -100,7 +98,7 @@ public class Annotations {
      * @param sourcePluginId source plugin ID
      */
     public void removeAll(long sourcePluginId) {
-        lockWrite(() -> {
+        rwl.lockWrite(() -> {
             Set<Integer> toRemove = new HashSet<>();
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
                 Set<Annotation> atLocation = entry.getValue();
@@ -126,7 +124,7 @@ public class Annotations {
      * @param location       memory location
      */
     public void removeAll(long sourcePluginId, int location) {
-        lockWrite(() -> {
+        rwl.lockWrite(() -> {
             Set<Annotation> atLocation = Optional
                     .ofNullable(annotations.get(location))
                     .orElse(Collections.emptySet());
@@ -152,7 +150,7 @@ public class Annotations {
      */
     @SuppressWarnings("unchecked")
     public <T extends Annotation> Map<Integer, Set<T>> getAll(Class<? extends T> annotationClass) {
-        return lockRead(() -> {
+        return rwl.lockRead(() -> {
             Map<Integer, Set<T>> result = new HashMap<>();
 
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
@@ -180,7 +178,7 @@ public class Annotations {
      */
     @SuppressWarnings("unchecked")
     public <T extends Annotation> Map<Integer, Set<T>> getAll(long sourcePluginId, Class<? extends T> annotationClass) {
-        return lockRead(() -> {
+        return rwl.lockRead(() -> {
             Map<Integer, Set<T>> result = new HashMap<>();
 
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
@@ -206,7 +204,7 @@ public class Annotations {
      * @return annotations coming from given source plugin ID (always non-null)
      */
     public Map<Integer, Set<Annotation>> getAll(long sourcePluginId) {
-        return lockRead(() -> {
+        return rwl.lockRead(() -> {
             Map<Integer, Set<Annotation>> result = new HashMap<>();
 
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
@@ -233,7 +231,7 @@ public class Annotations {
      */
     @SuppressWarnings("unchecked")
     public <T extends Annotation> Set<T> get(int location, Class<? extends T> annotationClass) {
-        return lockRead(() -> {
+        return rwl.lockRead(() -> {
             Set<T> result = new HashSet<>();
             Set<Annotation> atLocation = Optional
                     .ofNullable(annotations.get(location))
@@ -259,7 +257,7 @@ public class Annotations {
      */
     @SuppressWarnings("unchecked")
     public <T extends Annotation> Set<T> get(long sourcePluginId, int location, Class<? extends T> annotationClass) {
-        return lockRead(() -> {
+        return rwl.lockRead(() -> {
             Set<T> result = new HashSet<>();
             Set<Annotation> atLocation = Optional
                     .ofNullable(annotations.get(location))
@@ -282,7 +280,7 @@ public class Annotations {
      * @return set of annotations at given location set by given source plugin ID (always non-null)
      */
     public Set<Annotation> get(long sourcePluginId, int location) {
-        return lockRead(() -> {
+        return rwl.lockRead(() -> {
             Set<Annotation> result = new HashSet<>();
             Set<Annotation> atLocation = Optional
                     .ofNullable(annotations.get(location))
@@ -305,7 +303,7 @@ public class Annotations {
      * @param annotation annotation
      */
     public void add(int location, Annotation annotation) {
-        lockWrite(() -> {
+        rwl.lockWrite(() -> {
             Set<Annotation> atLocation = Optional
                     .ofNullable(annotations.get(location))
                     .orElse(new HashSet<>());
@@ -313,23 +311,5 @@ public class Annotations {
             atLocation.add(annotation);
             annotations.put(location, atLocation);
         });
-    }
-
-    private void lockWrite(Runnable runnable) {
-        rwl.writeLock().lock();
-        try {
-            runnable.run();
-        } finally {
-            rwl.writeLock().unlock();
-        }
-    }
-
-    private <T> T lockRead(Supplier<T> supplier) {
-        rwl.readLock().lock();
-        try {
-            return supplier.get();
-        } finally {
-            rwl.readLock().unlock();
-        }
     }
 }
