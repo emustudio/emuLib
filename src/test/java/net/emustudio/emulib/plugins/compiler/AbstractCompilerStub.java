@@ -26,6 +26,7 @@ import net.emustudio.emulib.runtime.settings.PluginSettings;
 import javax.swing.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import static org.easymock.EasyMock.createNiceMock;
 
@@ -40,7 +41,7 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public void compile(Path inputPath) {
+    public void compile(Path inputPath, Optional<Path> outputPath) {
         throw new UnsupportedOperationException();
     }
 

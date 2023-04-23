@@ -22,6 +22,7 @@ import net.emustudio.emulib.plugins.Plugin;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import static net.emustudio.emulib.plugins.compiler.FileExtension.stripKnownExtension;
 
@@ -57,14 +58,15 @@ public interface Compiler extends Plugin {
     /**
      * Compile given input file.
      * <p>
-     * Output file name (if the compiler has any output) is derived by the compiler itself. Usually, the
-     * extension of the input file is replaced by another one, denoting compiled file. It is compiler-specific.
+     * Output file name (if the compiler has any output and if it is not given here), is derived by the compiler itself.
+     * Usually, the extension of the input file is replaced by another one, denoting compiled file. It is compiler-specific.
      * <p>
      * Usually a successfully compiled program is loaded in memory.
      *
-     * @param inputPath input file path (source code)
+     * @param inputPath  input file path (source code)
+     * @param outputPath optional output file path
      */
-    void compile(Path inputPath);
+    void compile(Path inputPath, Optional<Path> outputPath);
 
     /**
      * Creates a lexical analyzer.
