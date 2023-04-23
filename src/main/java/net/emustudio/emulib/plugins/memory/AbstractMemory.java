@@ -20,6 +20,8 @@ package net.emustudio.emulib.plugins.memory;
 
 import net.emustudio.emulib.plugins.PluginInitializationException;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.plugins.memory.annotations.Annotations;
+import net.emustudio.emulib.plugins.memory.annotations.MemoryAnnotations;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
 
@@ -44,6 +46,8 @@ public abstract class AbstractMemory implements Memory {
      * Memory custom settings.
      */
     protected final PluginSettings settings;
+
+    protected final MemoryAnnotations annotations = new Annotations();
 
     /**
      * Creates new instance.
@@ -77,5 +81,10 @@ public abstract class AbstractMemory implements Memory {
     @Override
     public void reset() {
 
+    }
+
+    @Override
+    public MemoryAnnotations getAnnotations() {
+        return annotations;
     }
 }

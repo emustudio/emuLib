@@ -21,6 +21,7 @@ package net.emustudio.emulib.plugins.memory;
 import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.memory.annotations.Annotations;
+import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 
 /**
  * Memory context
@@ -186,13 +187,13 @@ public interface MemoryContext<CellType> extends Context {
     boolean areMemoryNotificationsEnabled();
 
     /**
-     * Get memory annotations API.
+     * Get memory context annotations API.
      * <p>
      * Annotations is a possibility to annotate any memory cell with supplemental information. Usual
      * annotations are: breakpoints, text information, position in source code, or any custom annotation.
      *
-     * @return memory annotations API
+     * @return memory context annotations API
      */
-    Annotations annotations();
+    MemoryContextAnnotations annotations();
 }
 

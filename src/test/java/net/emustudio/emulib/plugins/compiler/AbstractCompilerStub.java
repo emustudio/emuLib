@@ -30,8 +30,8 @@ import java.util.List;
 import static org.easymock.EasyMock.createNiceMock;
 
 @PluginRoot(
-    type = PLUGIN_TYPE.COMPILER,
-    title = "title"
+        type = PLUGIN_TYPE.COMPILER,
+        title = "title"
 )
 class AbstractCompilerStub extends AbstractCompiler {
 
@@ -40,10 +40,9 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public void compile(Path inputFileName, Path outputFileName) {
+    public void compile(Path inputPath) {
         throw new UnsupportedOperationException();
     }
-
 
     @Override
     public LexicalAnalyzer createLexer() {

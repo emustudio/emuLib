@@ -25,38 +25,19 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Memory annotations.
- * <p>
- * Each memory cell (at one location) can be annotated with one or more annotations. An annotation is a class extending
- * {@link net.emustudio.emulib.plugins.memory.annotations.Annotation} abstract class, which must implement hashCode and
- * equals methods properly. That way it is guaranteed multiple annotations can be put on single location, but they won't
- * get duplicated.
- * <p>
- * Accessible from memory context, but some methods ({@link #clear()}, {@link #removeAll(Class)}) are needed by the root
- * memory class. The reason for not allowing to ignore source plugin ID in the context is to be able to forbid by one
- * plugin to remove annotations of another plugin. The root memory plugin class is accessible only to emuStudio, which
- * can ultimately decide about all annotations since it controls all plugins already.
- */
 @ThreadSafe
-public class Annotations {
+public class Annotations implements MemoryAnnotations {
     @GuardedBy("rwl")
     private final Map<Integer, Set<Annotation>> annotations = new HashMap<>();
     private final ReadWriteLockSupport rwl = new ReadWriteLockSupport();
 
-    /**
-     * Clears all annotations
-     */
-    protected void clear() {
+    @Override
+    public void clear() {
         rwl.lockWrite(annotations::clear);
     }
 
-    /**
-     * Removes all annotations of given annotation class
-     *
-     * @param annotationClass annotation class
-     */
-    protected void removeAll(Class<?> annotationClass) {
+    @Override
+    public void removeAll(Class<?> annotationClass) {
         class P {
             final Integer k;
             final Set<Annotation> v;
@@ -90,14 +71,8 @@ public class Annotations {
         });
     }
 
-    /**
-     * Removes all annotations for given sourcePluginId.
-     * <p>
-     * Each plugin which sets memory annotations is responsible for cleaning them.
-     *
-     * @param sourcePluginId source plugin ID
-     */
-    public void removeAll(long sourcePluginId) {
+    @Override
+    public void removeAll(long pluginId) {
         rwl.lockWrite(() -> {
             Set<Integer> toRemove = new HashSet<>();
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
@@ -105,7 +80,7 @@ public class Annotations {
 
                 Set<Annotation> toRemoveAtLocation = atLocation
                         .stream()
-                        .filter(v -> v.getSourcePluginId() == sourcePluginId)
+                        .filter(v -> v.getPluginId() == pluginId)
                         .collect(Collectors.toSet());
                 atLocation.removeAll(toRemoveAtLocation);
 
@@ -117,13 +92,8 @@ public class Annotations {
         });
     }
 
-    /**
-     * Removes all annotations at given memory location set by given plugin ID
-     *
-     * @param sourcePluginId source plugin ID
-     * @param location       memory location
-     */
-    public void removeAll(long sourcePluginId, int location) {
+    @Override
+    public void removeAll(long pluginId, int location) {
         rwl.lockWrite(() -> {
             Set<Annotation> atLocation = Optional
                     .ofNullable(annotations.get(location))
@@ -131,7 +101,7 @@ public class Annotations {
 
             Set<Annotation> toRemove = atLocation
                     .stream()
-                    .filter(v -> v.getSourcePluginId() == sourcePluginId)
+                    .filter(v -> v.getPluginId() == pluginId)
                     .collect(Collectors.toSet());
             atLocation.removeAll(toRemove);
 
@@ -141,14 +111,8 @@ public class Annotations {
         });
     }
 
-    /**
-     * Get all annotations of given type
-     *
-     * @param annotationClass annotation class (of type T)
-     * @param <T>             type of annotation
-     * @return annotations of type T (always non-null)
-     */
     @SuppressWarnings("unchecked")
+    @Override
     public <T extends Annotation> Map<Integer, Set<T>> getAll(Class<? extends T> annotationClass) {
         return rwl.lockRead(() -> {
             Map<Integer, Set<T>> result = new HashMap<>();
@@ -168,16 +132,9 @@ public class Annotations {
         });
     }
 
-    /**
-     * Get all annotations of given type coming from given source plugin ID
-     *
-     * @param sourcePluginId  source plugin ID
-     * @param annotationClass annotation class (of type T)
-     * @param <T>             type of annotation
-     * @return annotations of type T coming from given source plugin ID (always non-null)
-     */
     @SuppressWarnings("unchecked")
-    public <T extends Annotation> Map<Integer, Set<T>> getAll(long sourcePluginId, Class<? extends T> annotationClass) {
+    @Override
+    public <T extends Annotation> Map<Integer, Set<T>> getAll(long pluginId, Class<? extends T> annotationClass) {
         return rwl.lockRead(() -> {
             Map<Integer, Set<T>> result = new HashMap<>();
 
@@ -185,7 +142,7 @@ public class Annotations {
                 Set<T> keyValues = entry
                         .getValue()
                         .stream()
-                        .filter(v -> v.getSourcePluginId() == sourcePluginId)
+                        .filter(v -> v.getPluginId() == pluginId)
                         .filter(v -> (v.getClass().equals(annotationClass)))
                         .map(v -> (T) v)
                         .collect(Collectors.toSet());
@@ -197,13 +154,8 @@ public class Annotations {
         });
     }
 
-    /**
-     * Get all annotations coming from given source plugin ID
-     *
-     * @param sourcePluginId source plugin ID
-     * @return annotations coming from given source plugin ID (always non-null)
-     */
-    public Map<Integer, Set<Annotation>> getAll(long sourcePluginId) {
+    @Override
+    public Map<Integer, Set<Annotation>> getAll(long pluginId) {
         return rwl.lockRead(() -> {
             Map<Integer, Set<Annotation>> result = new HashMap<>();
 
@@ -211,7 +163,7 @@ public class Annotations {
                 Set<Annotation> keyValues = entry
                         .getValue()
                         .stream()
-                        .filter(v -> v.getSourcePluginId() == sourcePluginId)
+                        .filter(v -> v.getPluginId() == pluginId)
                         .collect(Collectors.toSet());
                 if (!keyValues.isEmpty()) {
                     result.put(entry.getKey(), keyValues);
@@ -221,15 +173,8 @@ public class Annotations {
         });
     }
 
-    /**
-     * Get annotations at given location (and of given type)
-     *
-     * @param location        memory location
-     * @param annotationClass annotation class (of type T)
-     * @param <T>             type of annotation
-     * @return annotations set at given memory location (always non-null)
-     */
     @SuppressWarnings("unchecked")
+    @Override
     public <T extends Annotation> Set<T> get(int location, Class<? extends T> annotationClass) {
         return rwl.lockRead(() -> {
             Set<T> result = new HashSet<>();
@@ -246,17 +191,9 @@ public class Annotations {
         });
     }
 
-    /**
-     * Get annotations at given location set by given source plugin ID (and of given type)
-     *
-     * @param sourcePluginId  source plugin ID
-     * @param location        memory location
-     * @param annotationClass annotation class (of type T)
-     * @param <T>             type of annotation
-     * @return annotations set at given memory location by given source plugin ID (always non-null)
-     */
     @SuppressWarnings("unchecked")
-    public <T extends Annotation> Set<T> get(long sourcePluginId, int location, Class<? extends T> annotationClass) {
+    @Override
+    public <T extends Annotation> Set<T> get(long pluginId, int location, Class<? extends T> annotationClass) {
         return rwl.lockRead(() -> {
             Set<T> result = new HashSet<>();
             Set<Annotation> atLocation = Optional
@@ -264,7 +201,7 @@ public class Annotations {
                     .orElse(Collections.emptySet());
 
             atLocation.forEach(a -> {
-                if (a.getClass().equals(annotationClass) && a.getSourcePluginId() == sourcePluginId) {
+                if (a.getClass().equals(annotationClass) && a.getPluginId() == pluginId) {
                     result.add((T) a);
                 }
             });
@@ -272,14 +209,8 @@ public class Annotations {
         });
     }
 
-    /**
-     * Get annotations at given location set by given source plugin ID
-     *
-     * @param sourcePluginId source plugin ID
-     * @param location       memory location
-     * @return set of annotations at given location set by given source plugin ID (always non-null)
-     */
-    public Set<Annotation> get(long sourcePluginId, int location) {
+    @Override
+    public Set<Annotation> get(long pluginId, int location) {
         return rwl.lockRead(() -> {
             Set<Annotation> result = new HashSet<>();
             Set<Annotation> atLocation = Optional
@@ -287,7 +218,7 @@ public class Annotations {
                     .orElse(Collections.emptySet());
 
             atLocation.forEach(a -> {
-                if (a.getSourcePluginId() == sourcePluginId) {
+                if (a.getPluginId() == pluginId) {
                     result.add(a);
                 }
             });
@@ -295,13 +226,7 @@ public class Annotations {
         });
     }
 
-    /**
-     * Adds an annotation at given memory location.
-     * The same annotations will not be duplicated.
-     *
-     * @param location   memory location
-     * @param annotation annotation
-     */
+    @Override
     public void add(int location, Annotation annotation) {
         rwl.lockWrite(() -> {
             Set<Annotation> atLocation = Optional

@@ -38,6 +38,11 @@ public class SourceCodePosition {
     public final int column;
 
     /**
+     * File name
+     */
+    public final String fileName;
+
+    /**
      * Gets line
      *
      * @return line
@@ -58,23 +63,26 @@ public class SourceCodePosition {
     /**
      * Creates new SourceCodePosition object
      *
-     * @param line   line
-     * @param column column
+     * @param line     line
+     * @param column   column
+     * @param fileName file name (non-null)
      */
-    public SourceCodePosition(int line, int column) {
+    public SourceCodePosition(int line, int column, String fileName) {
         this.line = line;
         this.column = column;
+        this.fileName = Objects.requireNonNull(fileName);
     }
 
     /**
      * Creates new SourceCodePosition object
      *
-     * @param line   line
-     * @param column column
+     * @param line     line
+     * @param column   column
+     * @param fileName file name (non-null)
      * @return SourceCodePosition object
      */
-    public static SourceCodePosition of(int line, int column) {
-        return new SourceCodePosition(line, column);
+    public static SourceCodePosition of(int line, int column, String fileName) {
+        return new SourceCodePosition(line, column, fileName);
     }
 
     @Override
@@ -82,16 +90,16 @@ public class SourceCodePosition {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SourceCodePosition that = (SourceCodePosition) o;
-        return line == that.line && column == that.column;
+        return line == that.line && column == that.column && Objects.equals(fileName, that.fileName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(line, column);
+        return Objects.hash(line, column, fileName);
     }
 
     @Override
     public String toString() {
-        return "[line=" + line + ", column=" + column + "]";
+        return "[line=" + line + ", column=" + column + ", file=" + fileName + "]";
     }
 }

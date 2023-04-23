@@ -23,6 +23,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -37,7 +38,11 @@ public abstract class AbstractMemoryContext<CellType> implements MemoryContext<C
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     private volatile boolean notificationsEnabled = true;
-    protected final Annotations annotations = new Annotations();
+    protected final Annotations annotations;
+
+    protected AbstractMemoryContext(Annotations annotations) {
+        this.annotations = Objects.requireNonNull(annotations);
+    }
 
     @Override
     public boolean areMemoryNotificationsEnabled() {

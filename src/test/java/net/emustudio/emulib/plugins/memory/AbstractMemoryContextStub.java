@@ -18,7 +18,13 @@
  */
 package net.emustudio.emulib.plugins.memory;
 
-public class AbstractMemoryContextStub extends AbstractMemoryContext {
+import net.emustudio.emulib.plugins.memory.annotations.Annotations;
+
+public class AbstractMemoryContextStub extends AbstractMemoryContext<Object> {
+
+    public AbstractMemoryContextStub() {
+        super(new Annotations());
+    }
 
     @Override
     public Object read(int location) {
@@ -41,7 +47,7 @@ public class AbstractMemoryContextStub extends AbstractMemoryContext {
     }
 
     @Override
-    public Class<?> getCellTypeClass() {
+    public Class<Object> getCellTypeClass() {
         throw new UnsupportedOperationException();
     }
 
