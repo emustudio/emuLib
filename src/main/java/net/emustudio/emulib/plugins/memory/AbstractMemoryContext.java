@@ -18,7 +18,7 @@
  */
 package net.emustudio.emulib.plugins.memory;
 
-import net.emustudio.emulib.plugins.memory.annotations.Annotations;
+import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,9 @@ public abstract class AbstractMemoryContext<CellType> implements MemoryContext<C
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     private volatile boolean notificationsEnabled = true;
-    protected final Annotations annotations;
+    protected final MemoryContextAnnotations annotations;
 
-    protected AbstractMemoryContext(Annotations annotations) {
+    protected AbstractMemoryContext(MemoryContextAnnotations annotations) {
         this.annotations = Objects.requireNonNull(annotations);
     }
 
@@ -128,7 +128,7 @@ public abstract class AbstractMemoryContext<CellType> implements MemoryContext<C
     }
 
     @Override
-    public Annotations annotations() {
+    public MemoryContextAnnotations annotations() {
         return annotations;
     }
 }
