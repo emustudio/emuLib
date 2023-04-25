@@ -18,6 +18,8 @@
  */
 package net.emustudio.emulib.plugins.memory.annotations;
 
+import net.jcip.annotations.ThreadSafe;
+
 /**
  * Memory annotations.
  * <p>
@@ -31,6 +33,7 @@ package net.emustudio.emulib.plugins.memory.annotations;
  * plugin to remove annotations of another plugin. The root memory plugin class is accessible only to emuStudio, which
  * can ultimately decide about all annotations since it controls all plugins already.
  */
+@ThreadSafe
 public interface MemoryAnnotations extends MemoryContextAnnotations {
 
     /**

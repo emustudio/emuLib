@@ -18,11 +18,14 @@
  */
 package net.emustudio.emulib.plugins.memory.annotations;
 
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.*;
 
 /**
  * Annotations for memory context.
  */
+@ThreadSafe
 public interface MemoryContextAnnotations {
 
     /**
