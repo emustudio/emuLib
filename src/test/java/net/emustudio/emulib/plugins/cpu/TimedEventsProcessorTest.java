@@ -42,11 +42,11 @@ public class TimedEventsProcessorTest {
         tep.schedule(50, count::incrementAndGet);
         tep.schedule(100, count::incrementAndGet);
 
-        tep.advanceClock(5); // should trigger the first event
-        tep.advanceClock(44); // should do nothing
-        tep.advanceClock(1);  // should trigger the second event
+        tep.advanceClock(5); // should trigger the first event 1x
+        tep.advanceClock(44); // should trigger the first event 8x
+        tep.advanceClock(1);  // should trigger the second event 1x and the first event 1x
 
-        assertEquals(2, count.get());
+        assertEquals(11, count.get());
     }
 
     @Test
@@ -54,8 +54,8 @@ public class TimedEventsProcessorTest {
         AtomicInteger count = new AtomicInteger();
 
         tep.schedule(5, count::incrementAndGet);
-        tep.advanceClock(30); // should trigger the event once
-        assertEquals(1, count.get());
+        tep.advanceClock(30); // should trigger the event 30/5 = 6x
+        assertEquals(6, count.get());
     }
 
     @Test
@@ -72,5 +72,15 @@ public class TimedEventsProcessorTest {
     @Test
     public void testAdvanceWithoutScheduleDoesNotThrow() {
         tep.advanceClock(5);
+    }
+
+    @Test
+    public void testScheduleOnce() {
+        AtomicInteger count = new AtomicInteger();
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.advanceClock(1);
+        tep.advanceClock(1);
+        tep.advanceClock(1);
+        assertEquals(1, count.get());
     }
 }
