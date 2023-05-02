@@ -18,13 +18,12 @@
  */
 package net.emustudio.emulib.plugins.memory;
 
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import net.emustudio.emulib.plugins.memory.annotations.Annotations;
 import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This class implements some fundamental functionality of MemoryContext
@@ -37,7 +36,6 @@ public abstract class AbstractMemoryContext<CellType> implements MemoryContext<C
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     private volatile boolean notificationsEnabled = true;
-    protected final Annotations annotations = new Annotations();
 
     @Override
     public boolean areMemoryNotificationsEnabled() {
@@ -120,10 +118,5 @@ public abstract class AbstractMemoryContext<CellType> implements MemoryContext<C
                 }
             });
         }
-    }
-
-    @Override
-    public Annotations annotations() {
-        return annotations;
     }
 }

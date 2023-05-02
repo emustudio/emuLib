@@ -90,6 +90,7 @@ public abstract class AbstractCompiler implements Compiler {
 
     /**
      * Get plugin title
+     *
      * @return title from the {@link PluginRoot} annotation
      */
     @Override
@@ -107,6 +108,7 @@ public abstract class AbstractCompiler implements Compiler {
 
     /**
      * Return false. Should be overridden.
+     *
      * @return false
      */
     @Override
@@ -180,12 +182,11 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Notifies the error message.
      *
-     * @param line line in the source code
-     * @param column column in the source code
-     * @param msg text of the message
+     * @param position position in the source code
+     * @param msg      text of the message
      */
-    public void notifyError(int line, int column, String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, msg, line, column));
+    public void notifyError(SourceCodePosition position, String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, msg, position));
     }
 
     /**
@@ -200,12 +201,11 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Notifies information message
      *
-     * @param line line in the source code
-     * @param column column in the source code
-     * @param msg text of the message
+     * @param position position in the source code
+     * @param msg      text of the message
      */
-    public void notifyInfo(int line, int column, String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, msg, line, column));
+    public void notifyInfo(SourceCodePosition position, String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, msg, position));
     }
 
     /**
@@ -220,12 +220,11 @@ public abstract class AbstractCompiler implements Compiler {
     /**
      * Fires warning message
      *
-     * @param line line in the source code
-     * @param column column in the source code
-     * @param msg text of the message
+     * @param position position in the source code
+     * @param msg      text of the message
      */
-    public void notifyWarning(int line, int column, String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg, line, column));
+    public void notifyWarning(SourceCodePosition position, String msg) {
+        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg, position));
     }
 
     /**

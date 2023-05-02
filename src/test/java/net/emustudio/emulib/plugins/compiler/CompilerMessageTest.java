@@ -21,6 +21,8 @@ package net.emustudio.emulib.plugins.compiler;
 import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static org.junit.Assert.*;
 
 public class CompilerMessageTest {
@@ -28,6 +30,7 @@ public class CompilerMessageTest {
     private static final MessageType MESSAGE_TYPE = MessageType.TYPE_INFO;
     private static final int LINE = 34;
     private static final int COLUMN = 24;
+    private static final SourceCodePosition position = new SourceCodePosition(LINE, COLUMN, "");
 
     @Test
     public void testDefaultValues() {
@@ -35,20 +38,16 @@ public class CompilerMessageTest {
 
         assertEquals(MessageType.TYPE_UNKNOWN, compilerMessage.getMessageType());
         assertEquals(MESSAGE, compilerMessage.getMessage());
-        SourceCodePosition position = compilerMessage.getPosition();
-        assertEquals(-1, position.getLine());
-        assertEquals(-1, position.getColumn());
+        assertEquals(Optional.empty(), compilerMessage.getPosition());
     }
 
     @Test
     public void testGetAllValues() {
-        CompilerMessage compilerMessage = new CompilerMessage(MESSAGE_TYPE, MESSAGE, LINE, COLUMN);
+        CompilerMessage compilerMessage = new CompilerMessage(MESSAGE_TYPE, MESSAGE, position);
 
         assertEquals(MESSAGE_TYPE, compilerMessage.getMessageType());
         assertEquals(MESSAGE, compilerMessage.getMessage());
-        SourceCodePosition position = compilerMessage.getPosition();
-        assertEquals(LINE, position.getLine());
-        assertEquals(COLUMN, position.getColumn());
+        assertEquals(Optional.of(position), compilerMessage.getPosition());
     }
 
     @Test
@@ -84,19 +83,19 @@ public class CompilerMessageTest {
     @Test
     public void testFormattingForInfoMessage() {
         CompilerMessage compilerMessage = new CompilerMessage(MessageType.TYPE_INFO, MESSAGE);
-        assertEquals(CompilerMessage.MSG_INFO + MESSAGE, compilerMessage.getFormattedMessage());
+        assertEquals(MESSAGE, compilerMessage.getFormattedMessage());
     }
 
     @Test
     public void testFormattingForErrorMessage() {
         CompilerMessage compilerMessage = new CompilerMessage(MessageType.TYPE_ERROR, MESSAGE);
-        assertEquals(CompilerMessage.MSG_ERROR + MESSAGE, compilerMessage.getFormattedMessage());
+        assertEquals(MESSAGE, compilerMessage.getFormattedMessage());
     }
 
     @Test
     public void testFormattingForWarningMessage() {
         CompilerMessage compilerMessage = new CompilerMessage(MessageType.TYPE_WARNING, MESSAGE);
-        assertEquals(CompilerMessage.MSG_WARNING + MESSAGE, compilerMessage.getFormattedMessage());
+        assertEquals(MESSAGE, compilerMessage.getFormattedMessage());
     }
 
     @Test
@@ -107,14 +106,9 @@ public class CompilerMessageTest {
 
     @Test
     public void testFormattingForEverything() {
-        CompilerMessage compilerMessage = new CompilerMessage(
-                MessageType.TYPE_INFO, MESSAGE, LINE, COLUMN
-        );
+        CompilerMessage compilerMessage = new CompilerMessage(MessageType.TYPE_INFO, MESSAGE, position);
 
-        String expected = CompilerMessage.MSG_INFO
-                + String.format(CompilerMessage.POSITION_FORMAT, LINE, COLUMN)
-                + MESSAGE;
-
+        String expected = position + " " + MESSAGE;
         assertEquals(expected, compilerMessage.getFormattedMessage());
     }
 }

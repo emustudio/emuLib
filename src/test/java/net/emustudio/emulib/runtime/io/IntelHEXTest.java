@@ -27,6 +27,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -56,12 +57,12 @@ public class IntelHEXTest {
     }
 
     private List<String> generateReadAndDeleteHexFile() throws Exception {
-        String tmpName = "tmp" + System.currentTimeMillis();
+        Path tmpName = Path.of("tmp" + System.currentTimeMillis());
         hexFile.generate(tmpName);
         try {
-            return readFileContent(new File(tmpName));
+            return readFileContent(tmpName.toFile());
         } finally {
-            new File(tmpName).delete();
+            tmpName.toFile().delete();
         }
     }
 

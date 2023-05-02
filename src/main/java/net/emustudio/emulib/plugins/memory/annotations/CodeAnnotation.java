@@ -16,39 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.plugins.memory;
-
-import net.emustudio.emulib.plugins.Plugin;
-import net.emustudio.emulib.plugins.memory.annotations.MemoryAnnotations;
+package net.emustudio.emulib.plugins.memory.annotations;
 
 /**
- * Memory plugin root interface.
- * <p>
- * Memory can define a "memory context", which can enable additional non-standard functionality, which can be used
- * by other plugins.
- *
- * @see MemoryContext
+ * Memory annotation which represents code.
  */
-@SuppressWarnings("unused")
-public interface Memory extends Plugin {
+public class CodeAnnotation extends Annotation {
 
-    @Override
-    default boolean isAutomationSupported() {
-        return true;
+    public CodeAnnotation(long pluginId) {
+        super(pluginId);
     }
-
-    /**
-     * Get memory annotations
-     *
-     * @return memory annotations
-     */
-    MemoryAnnotations getAnnotations();
-
-    /**
-     * Get memory size
-     *
-     * @return memory size
-     */
-    int getSize();
 }
-

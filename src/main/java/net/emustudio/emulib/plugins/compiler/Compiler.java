@@ -24,6 +24,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
+import static net.emustudio.emulib.plugins.compiler.FileExtension.stripKnownExtension;
+
 /**
  * Compiler plugin root interface.
  * <p>
@@ -54,27 +56,17 @@ public interface Compiler extends Plugin {
     void removeCompilerListener(CompilerListener listener);
 
     /**
-     * Compile an input file into the output file.
-     * If output file exists, it will be overwritten.
-     * Resets program start address.
-     *
-     * @param inputFile  input file path (source code)
-     * @param outputFile output file path (compiled code). Can be null.
-     */
-    void compile(Path inputFile, Path outputFile);
-
-    /**
-     * Compile an input file into the output file.
+     * Compile given input file.
      * <p>
-     * Output file name is derived by the compiler itself. Usually, the
-     * extension of the input file is replaced by another one, denoting
-     * compiled file. It is compiler-specific.
+     * Output file name (if the compiler has any output and if it is not given here), is derived by the compiler itself.
+     * Usually, the extension of the input file is replaced by another one, denoting compiled file. It is compiler-specific.
+     * <p>
+     * Usually a successfully compiled program is loaded in memory.
      *
-     * @param inputFile input file path (source code)
+     * @param inputPath  input file path (source code)
+     * @param outputPath optional output file path
      */
-    default void compile(Path inputFile) {
-        compile(inputFile, null);
-    }
+    void compile(Path inputPath, Optional<Path> outputPath);
 
     /**
      * Creates a lexical analyzer.
@@ -98,6 +90,22 @@ public interface Compiler extends Plugin {
     @Override
     default boolean isAutomationSupported() {
         return true;
+    }
+
+    /**
+     * Converts input path to output path.
+     * <p>
+     * The conversion is performed by stripping off known source file extension from the input path
+     * (by calling {@link #getSourceFileExtensions()} method), and appending
+     * output extension. If the input path doesn't end with any known source file extension, just the output extension
+     * is appended to given input path.
+     *
+     * @param inputPath       input path
+     * @param outputExtension output extension (e.g. ".hex")
+     * @return input path converted
+     */
+    default Path convertInputToOutputPath(Path inputPath, String outputExtension) {
+        return Path.of(stripKnownExtension(inputPath.toString(), getSourceFileExtensions()) + outputExtension);
     }
 }
 

@@ -26,12 +26,13 @@ import net.emustudio.emulib.runtime.settings.PluginSettings;
 import javax.swing.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 import static org.easymock.EasyMock.createNiceMock;
 
 @PluginRoot(
-    type = PLUGIN_TYPE.COMPILER,
-    title = "title"
+        type = PLUGIN_TYPE.COMPILER,
+        title = "title"
 )
 class AbstractCompilerStub extends AbstractCompiler {
 
@@ -40,10 +41,9 @@ class AbstractCompilerStub extends AbstractCompiler {
     }
 
     @Override
-    public void compile(Path inputFileName, Path outputFileName) {
+    public void compile(Path inputPath, Optional<Path> outputPath) {
         throw new UnsupportedOperationException();
     }
-
 
     @Override
     public LexicalAnalyzer createLexer() {

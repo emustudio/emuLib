@@ -32,19 +32,24 @@ import java.util.Objects;
  */
 @Immutable
 public abstract class Annotation implements Serializable {
-    protected final long sourcePluginId;
+    protected final long pluginId; // owner
 
-    public Annotation(long sourcePluginId) {
-        this.sourcePluginId = sourcePluginId;
+    /**
+     * Creates new memory annotation.
+     *
+     * @param pluginId owner plugin ID
+     */
+    public Annotation(long pluginId) {
+        this.pluginId = pluginId;
     }
 
     /**
-     * Get source plugin ID (which plugin set the metadata?)
+     * Get owner plugin ID.
      *
-     * @return source plugin ID (0 for emuStudio)
+     * @return owner plugin ID (0 for emuStudio)
      */
-    public long getSourcePluginId() {
-        return sourcePluginId;
+    public long getPluginId() {
+        return pluginId;
     }
 
     @Override
@@ -52,11 +57,11 @@ public abstract class Annotation implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Annotation that = (Annotation) o;
-        return sourcePluginId == that.sourcePluginId;
+        return pluginId == that.pluginId;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(sourcePluginId);
+        return Objects.hash(pluginId);
     }
 }

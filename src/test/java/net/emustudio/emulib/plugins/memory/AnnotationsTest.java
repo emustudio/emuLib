@@ -48,7 +48,7 @@ public class AnnotationsTest {
 
         annotations.add(100, new BreakpointAnnotation(0L));
         annotations.add(100, new TextAnnotation(0L, "Hello"));
-        annotations.add(100, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2)));
+        annotations.add(100, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2, "")));
 
         annotations.removeAll(0L);
         Set<Annotation> result = annotations.get(0L, 100);
@@ -99,7 +99,7 @@ public class AnnotationsTest {
         Annotations annotations = new Annotations();
         annotations.add(100, new BreakpointAnnotation(0L));
         annotations.add(100, new TextAnnotation(0L, "Hello"));
-        annotations.add(100, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2)));
+        annotations.add(100, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2, "")));
 
         Set<Annotation> result = annotations.get(0L, 100);
         assertEquals(3, result.size());
@@ -114,21 +114,21 @@ public class AnnotationsTest {
         annotations.add(1, new TextAnnotation(0L, "H"));
         annotations.add(2, new TextAnnotation(0L, "e"));
         annotations.add(4, new TextAnnotation(0L, "l"));
-        annotations.add(1, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2)));
-        annotations.add(2, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 3)));
-        annotations.add(5, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 4)));
+        annotations.add(1, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2, "")));
+        annotations.add(2, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 3, "")));
+        annotations.add(5, new SourceCodeAnnotation(0L, new SourceCodePosition(1, 4, "")));
 
         Map<Integer, Set<Annotation>> all = annotations.getAll(0L);
 
         Set<Annotation> at1 = all.get(1);
         assertTrue(at1.contains(new BreakpointAnnotation(0L)));
         assertTrue(at1.contains(new TextAnnotation(0L, "H")));
-        assertTrue(at1.contains(new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2))));
+        assertTrue(at1.contains(new SourceCodeAnnotation(0L, new SourceCodePosition(1, 2, ""))));
 
         Set<Annotation> at2 = all.get(2);
         assertTrue(at2.contains(new BreakpointAnnotation(0L)));
         assertTrue(at2.contains(new TextAnnotation(0L, "e")));
-        assertTrue(at2.contains(new SourceCodeAnnotation(0L, new SourceCodePosition(1, 3))));
+        assertTrue(at2.contains(new SourceCodeAnnotation(0L, new SourceCodePosition(1, 3, ""))));
 
         Set<Annotation> at3 = all.get(3);
         assertTrue(at3.contains(new BreakpointAnnotation(0L)));
@@ -137,7 +137,7 @@ public class AnnotationsTest {
         assertTrue(at4.contains(new TextAnnotation(0L, "l")));
 
         Set<Annotation> at5 = all.get(5);
-        assertTrue(at5.contains(new SourceCodeAnnotation(0L, new SourceCodePosition(1, 4))));
+        assertTrue(at5.contains(new SourceCodeAnnotation(0L, new SourceCodePosition(1, 4, ""))));
     }
 
     @Test
