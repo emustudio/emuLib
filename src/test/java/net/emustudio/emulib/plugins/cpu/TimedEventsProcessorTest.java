@@ -83,4 +83,29 @@ public class TimedEventsProcessorTest {
         tep.advanceClock(1);
         assertEquals(1, count.get());
     }
+
+    @Test
+    public void testRemoveCyclesRemovesDerivedOnes() {
+        AtomicInteger count = new AtomicInteger();
+        Runnable r1 = count::incrementAndGet;
+
+        tep.schedule(1, r1);
+        tep.schedule(5, r1);
+        tep.remove(1, r1);
+
+        tep.advanceClock(5);
+        assertEquals(1, count.get());
+    }
+
+    @Test
+    public void testRemoveAll() {
+        AtomicInteger count = new AtomicInteger();
+
+        tep.schedule(1, count::incrementAndGet);
+        tep.schedule(10, count::incrementAndGet);
+        tep.removeAll(1);
+
+        tep.advanceClock(10);
+        assertEquals(0, count.get());
+    }
 }

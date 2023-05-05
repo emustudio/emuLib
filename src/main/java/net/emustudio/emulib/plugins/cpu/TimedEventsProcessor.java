@@ -18,13 +18,16 @@
  */
 package net.emustudio.emulib.plugins.cpu;
 
+import net.emustudio.emulib.runtime.helpers.ReadWriteLockSupport;
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.Map;
+import java.util.Collection;
 import java.util.Queue;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -51,9 +54,14 @@ import java.util.concurrent.atomic.AtomicReference;
 public class TimedEventsProcessor {
     private final AtomicInteger cycleMaximum = new AtomicInteger(0);
     private final SortedMap<Integer, Queue<Runnable>> eventQueue = new ConcurrentSkipListMap<>();
+    private final ReadWriteLockSupport lock = new ReadWriteLockSupport();
+
+    // scheduled cycles
+    private final SortedSet<Integer> usedCycleRoots = new ConcurrentSkipListSet<>();
 
     // used on CPU thread only, don't need to be synchronized
     private int clock;
+    private int lastProcessedCycles = 0;
 
     /**
      * Schedule a repeated event to be run every given cycles.
@@ -67,35 +75,89 @@ public class TimedEventsProcessor {
         if (cycles <= 0) {
             throw new IllegalArgumentException("Allowed cycles schedule for an event must be > 0");
         }
-        this.cycleMaximum.getAndUpdate(i -> Math.max(i, cycles));
+        lock.lockWrite(() -> {
+            int oldMaximum = cycleMaximum.getAndUpdate(i -> Math.max(i, cycles));
+            int newMaximum = Math.max(oldMaximum, cycles);
 
-        // I assume most commonly there won't be a cycle clash, but we should support it
-        Queue<Runnable> cyclesEvent = new ConcurrentLinkedQueue<>();
-        cyclesEvent.add(event);
+            // 1 1 1 1 1 1 1 1
+            // 0 2 0 2 0 2 0 2
+            // 0 0 3 0 0 3 0 0
+            // 0 0 0 4 0 0 0 4
+            // ...
 
-        Queue<Runnable> prevCyclesEvent = eventQueue.putIfAbsent(cycles, cyclesEvent);
-        if (prevCyclesEvent != null) {
+            // copy over already scheduled cycles
+            for (int i = oldMaximum + 1; i <= newMaximum; i++) {
+                for (int cycleRoot : usedCycleRoots) {
+                    if (i % cycleRoot == 0) {
+                        // should be absent on normal circumstances - non-absent only if another thread is faster
+                        eventQueue.computeIfAbsent(i, k -> new ConcurrentLinkedQueue<>(eventQueue.get(cycleRoot)));
+                    }
+                }
+            }
+
+            // schedule this event
+            usedCycleRoots.add(cycles);
+            Queue<Runnable> prevCyclesEvent = eventQueue.computeIfAbsent(cycles, c -> new ConcurrentLinkedQueue<>());
             prevCyclesEvent.add(event);
-        }
+        });
     }
 
     /**
      * Remove scheduled event from this processor.
      * <p>
      * This function is thread-safe.
+     * <p>
+     * Given event function must be the same instance as used on scheduling. If the same function instance was used for
+     * different cycles, which are divisible with given cycles (higher % lower == 0), the function will be removed
+     * for cycles which were scheduled first (always the lower ones). In effect the behavior should be as expected
+     * though.
+     * <p>
+     * Also, this function does not work when the event was scheduled using
+     * {@link #scheduleOnce(int, Runnable) scheduleOnce} function.
      *
-     * @param cycles   the number of cycles
-     * @param function the scheduled event
+     * @param cycles the number of cycles
+     * @param event  the scheduled event
      */
-    public void remove(int cycles, Runnable function) {
-        Queue<Runnable> cyclesEvent = eventQueue.get(cycles);
-        cyclesEvent.remove(function);
+    public void remove(int cycles, Runnable event) {
+        lock.lockWrite(() -> {
+            if (usedCycleRoots.remove(cycles)) {
+                int maximum = cycleMaximum.get();
+                for (int i = cycles; i <= maximum; i++) {
+                    if (i % cycles == 0) {
+                        Queue<Runnable> iEvent = eventQueue.get(i);
+                        iEvent.remove(event);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Remove all scheduled events from this processor.
+     * <p>
+     * This function is thread-safe.
+     *
+     * @param cycles the number of cycles
+     */
+    public void removeAll(int cycles) {
+        lock.lockWrite(() -> {
+            if (usedCycleRoots.remove(cycles)) {
+                int maximum = cycleMaximum.get();
+                for (int i = cycles; i <= maximum; i++) {
+                    if (i % cycles == 0) {
+                        eventQueue.remove(i);
+                    }
+                }
+            }
+        });
     }
 
     /**
      * Schedule an event to be run after given cycles once.
      * <p>
      * This function is thread-safe.
+     * <p>
+     * Given event cannot be removed by calling {@link #remove(int, Runnable) remove()} function.
      *
      * @param cycles the number of cycles (must be &gt; 0)
      * @param event  event to be triggered every given cycles
@@ -120,29 +182,25 @@ public class TimedEventsProcessor {
      * @param cycles passed cycles in the system
      */
     public void advanceClock(int cycles) {
-        // 1 1 1 1 1 1 1 1
-        // 0 2 0 2 0 2 0 2
-        // 0 0 3 0 0 3 0 0
-        // 0 0 0 4 0 0 0 4
-        // ...
+        int currentCycleMaximum = cycleMaximum.get();
+        clock += cycles;
 
-        // trigger if (clock + cycle) % key == 0
-        Map<Integer, Queue<Runnable>> subMap = eventQueue.subMap(0, clock + cycles + 1);
-        for (int i = 1; i <= cycles; i++) {
-            int nextCycles = clock + i;
-            for (Map.Entry<Integer, Queue<Runnable>> entry : subMap.entrySet()) {
-                int atScheduledCycles = entry.getKey();
-                if (nextCycles % atScheduledCycles == 0) {
-                    entry.getValue().forEach(Runnable::run);
-                }
+        Collection<Queue<Runnable>> eventsToTrigger = eventQueue
+                .subMap(lastProcessedCycles, clock + 1)
+                .values();
+
+        if (clock < currentCycleMaximum) {
+            eventsToTrigger.forEach(e -> e.forEach(Runnable::run));
+        } else if (currentCycleMaximum > 0) {
+            for (int i = 0; i < clock / currentCycleMaximum; i++) {
+                eventsToTrigger.forEach(e -> e.forEach(Runnable::run));
             }
         }
 
-        clock += cycles;
-
-        int currentCycleMaximum = cycleMaximum.get();
+        lastProcessedCycles = clock + 1;
         if (clock > currentCycleMaximum) {
             clock = (clock % (currentCycleMaximum + 1));
+            lastProcessedCycles = 0;
         }
     }
 }
