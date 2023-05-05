@@ -18,9 +18,13 @@
  */
 package net.emustudio.emulib.plugins.cpu;
 
+import net.emustudio.emulib.runtime.helpers.ReadWriteLockSupport;
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Queue;
+import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -50,6 +54,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class TimedEventsProcessor {
     private final AtomicInteger cycleMaximum = new AtomicInteger(0);
     private final SortedMap<Integer, Queue<Runnable>> eventQueue = new ConcurrentSkipListMap<>();
+    private final ReadWriteLockSupport lock = new ReadWriteLockSupport();
 
     // scheduled cycles
     private final SortedSet<Integer> usedCycleRoots = new ConcurrentSkipListSet<>();
@@ -70,29 +75,31 @@ public class TimedEventsProcessor {
         if (cycles <= 0) {
             throw new IllegalArgumentException("Allowed cycles schedule for an event must be > 0");
         }
-        int oldMaximum = cycleMaximum.getAndUpdate(i -> Math.max(i, cycles));
-        int newMaximum = Math.max(oldMaximum, cycles);
+        lock.lockWrite(() -> {
+            int oldMaximum = cycleMaximum.getAndUpdate(i -> Math.max(i, cycles));
+            int newMaximum = Math.max(oldMaximum, cycles);
 
-        // 1 1 1 1 1 1 1 1
-        // 0 2 0 2 0 2 0 2
-        // 0 0 3 0 0 3 0 0
-        // 0 0 0 4 0 0 0 4
-        // ...
+            // 1 1 1 1 1 1 1 1
+            // 0 2 0 2 0 2 0 2
+            // 0 0 3 0 0 3 0 0
+            // 0 0 0 4 0 0 0 4
+            // ...
 
-        // copy over already scheduled cycles
-        for (int i = oldMaximum + 1; i <= newMaximum; i++) {
-            for (int cycleRoot : usedCycleRoots) {
-                if (i % cycleRoot == 0) {
-                    // should be absent on normal circumstances - non-absent only if another thread is faster
-                    eventQueue.computeIfAbsent(i, k -> new ConcurrentLinkedQueue<>(eventQueue.get(cycleRoot)));
+            // copy over already scheduled cycles
+            for (int i = oldMaximum + 1; i <= newMaximum; i++) {
+                for (int cycleRoot : usedCycleRoots) {
+                    if (i % cycleRoot == 0) {
+                        // should be absent on normal circumstances - non-absent only if another thread is faster
+                        eventQueue.computeIfAbsent(i, k -> new ConcurrentLinkedQueue<>(eventQueue.get(cycleRoot)));
+                    }
                 }
             }
-        }
 
-        // schedule this event
-        usedCycleRoots.add(cycles);
-        Queue<Runnable> prevCyclesEvent = eventQueue.computeIfAbsent(cycles, c -> new ConcurrentLinkedQueue<>());
-        prevCyclesEvent.add(event);
+            // schedule this event
+            usedCycleRoots.add(cycles);
+            Queue<Runnable> prevCyclesEvent = eventQueue.computeIfAbsent(cycles, c -> new ConcurrentLinkedQueue<>());
+            prevCyclesEvent.add(event);
+        });
     }
 
     /**
@@ -112,16 +119,17 @@ public class TimedEventsProcessor {
      * @param event  the scheduled event
      */
     public void remove(int cycles, Runnable event) {
-        // TODO: synchronize
-        if (usedCycleRoots.remove(cycles)) {
-            int maximum = cycleMaximum.get();
-            for (int i = cycles; i <= maximum; i++) {
-                if (i % cycles == 0) {
-                    Queue<Runnable> iEvent = eventQueue.get(i);
-                    iEvent.remove(event);
+        lock.lockWrite(() -> {
+            if (usedCycleRoots.remove(cycles)) {
+                int maximum = cycleMaximum.get();
+                for (int i = cycles; i <= maximum; i++) {
+                    if (i % cycles == 0) {
+                        Queue<Runnable> iEvent = eventQueue.get(i);
+                        iEvent.remove(event);
+                    }
                 }
             }
-        }
+        });
     }
 
     /**
@@ -132,15 +140,16 @@ public class TimedEventsProcessor {
      * @param cycles the number of cycles
      */
     public void removeAll(int cycles) {
-        // TODO: synchronize
-        if (usedCycleRoots.remove(cycles)) {
-            int maximum = cycleMaximum.get();
-            for (int i = cycles; i <= maximum; i++) {
-                if (i % cycles == 0) {
-                    eventQueue.remove(i);
+        lock.lockWrite(() -> {
+            if (usedCycleRoots.remove(cycles)) {
+                int maximum = cycleMaximum.get();
+                for (int i = cycles; i <= maximum; i++) {
+                    if (i % cycles == 0) {
+                        eventQueue.remove(i);
+                    }
                 }
             }
-        }
+        });
     }
 
     /**
