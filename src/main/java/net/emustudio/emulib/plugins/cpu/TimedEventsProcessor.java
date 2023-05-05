@@ -85,7 +85,7 @@ public class TimedEventsProcessor {
             // 0 0 0 4 0 0 0 4
             // ...
 
-            // copy over already scheduled cycles
+            // if maximum changed, copy over already scheduled cycles (prolong them to new maximum)
             for (int i = oldMaximum + 1; i <= newMaximum; i++) {
                 for (int cycleRoot : usedCycleRoots) {
                     if (i % cycleRoot == 0) {
@@ -97,9 +97,36 @@ public class TimedEventsProcessor {
 
             // schedule this event
             usedCycleRoots.add(cycles);
-            Queue<Runnable> prevCyclesEvent = eventQueue.computeIfAbsent(cycles, c -> new ConcurrentLinkedQueue<>());
-            prevCyclesEvent.add(event);
+
+            // fill the cycles up to the current maximum
+            int fillupCycles = cycles;
+            while (fillupCycles <= newMaximum) {
+                Queue<Runnable> prevCyclesEvent = eventQueue.computeIfAbsent(cycles, c -> new ConcurrentLinkedQueue<>());
+                prevCyclesEvent.add(event);
+                fillupCycles += cycles;
+            }
         });
+    }
+
+    /**
+     * Schedule an event to be run after given cycles only once (does not ever repeat).
+     * <p>
+     * This function is thread-safe.
+     * <p>
+     * Given event cannot be removed by calling {@link #remove(int, Runnable) remove()} function.
+     *
+     * @param cycles the number of cycles (must be &gt; 0)
+     * @param event  event to be triggered every given cycles
+     */
+    public void scheduleOnce(int cycles, Runnable event) {
+        AtomicReference<Runnable> selfReference = new AtomicReference<>();
+        Runnable proxy = () -> {
+            event.run();
+            remove(cycles, selfReference.get());
+        };
+        selfReference.set(proxy);
+
+        schedule(cycles, proxy);
     }
 
     /**
@@ -150,27 +177,6 @@ public class TimedEventsProcessor {
                 }
             }
         });
-    }
-
-    /**
-     * Schedule an event to be run after given cycles once.
-     * <p>
-     * This function is thread-safe.
-     * <p>
-     * Given event cannot be removed by calling {@link #remove(int, Runnable) remove()} function.
-     *
-     * @param cycles the number of cycles (must be &gt; 0)
-     * @param event  event to be triggered every given cycles
-     */
-    public void scheduleOnce(int cycles, Runnable event) {
-        AtomicReference<Runnable> selfReference = new AtomicReference<>();
-        Runnable proxy = () -> {
-            event.run();
-            remove(cycles, selfReference.get());
-        };
-        selfReference.set(proxy);
-
-        schedule(cycles, proxy);
     }
 
     /**
