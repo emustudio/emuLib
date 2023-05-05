@@ -108,4 +108,14 @@ public class TimedEventsProcessorTest {
         tep.advanceClock(10);
         assertEquals(0, count.get());
     }
+
+    @Test
+    public void testScheduleMaximumFillUp() {
+        AtomicInteger count = new AtomicInteger();
+        tep.schedule(10, count::incrementAndGet);  // 10
+        tep.schedule(2, count::incrementAndGet);   // 2 4 6 8 10
+
+        tep.advanceClock(10);
+        assertEquals(6, count.get());
+    }
 }
