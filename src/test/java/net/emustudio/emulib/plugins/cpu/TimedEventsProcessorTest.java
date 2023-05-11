@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -171,6 +172,28 @@ public class TimedEventsProcessorTest {
         assertEquals(6, count.get());
     }
 
+    @Test
+    public void testScheduleOnceDecreaseMaximum() {
+        AtomicInteger count = new AtomicInteger();
+        tep.scheduleOnce(10, count::incrementAndGet);
+        tep.advanceClock(18); // should decrease maximum
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.advanceClock(1);
+        assertEquals(2, count.get()); // the 1
+    }
+
+    @Test
+    public void testScheduleDecreaseMaximum() {
+        AtomicInteger count = new AtomicInteger();
+        Runnable r1 = count::incrementAndGet;
+        tep.scheduleOnce(10, r1);
+        tep.advanceClock(18);
+        tep.remove(10, r1); // should decrease maximum
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.advanceClock(1);
+        assertEquals(2, count.get()); // the 1
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testAdvanceNegativeCyclesThrows() {
         tep.advanceClock(-1);
@@ -179,5 +202,17 @@ public class TimedEventsProcessorTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAdvanceZeroCyclesThrows() {
         tep.advanceClock(0);
+    }
+
+    @Test
+    public void testScheduleOnceMultiple() {
+        AtomicInteger count = new AtomicInteger();
+        tep.scheduleOnceMultiple(Map.of(
+                2, count::incrementAndGet,
+                4, count::incrementAndGet,
+                6, count::incrementAndGet
+        ));
+        tep.advanceClock(6);
+        assertEquals(3, count.get());
     }
 }
