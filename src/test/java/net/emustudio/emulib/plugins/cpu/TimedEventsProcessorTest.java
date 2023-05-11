@@ -19,6 +19,7 @@
 package net.emustudio.emulib.plugins.cpu;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -43,6 +44,8 @@ public class TimedEventsProcessorTest {
         tep.schedule(100, count::incrementAndGet);
 
         tep.advanceClock(5); // should trigger the first event 1x
+        assertEquals(1, count.get());
+
         tep.advanceClock(44); // should trigger the first event 8x
         tep.advanceClock(1);  // should trigger the second event 1x and the first event 1x
 
@@ -85,6 +88,37 @@ public class TimedEventsProcessorTest {
     }
 
     @Test
+    public void testScheduleOnceAgain() {
+        AtomicInteger count = new AtomicInteger();
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.scheduleOnce(2, count::incrementAndGet);
+        tep.scheduleOnce(3, count::incrementAndGet);
+        tep.advanceClock(1);
+        tep.advanceClock(1);
+        tep.advanceClock(1);
+        assertEquals(3, count.get());
+    }
+
+    @Test
+    public void testScheduleOnceHugeAdvance() {
+        AtomicInteger count = new AtomicInteger();
+        tep.scheduleOnce(10, count::incrementAndGet);
+        tep.advanceClock(9);
+        tep.advanceClock(Integer.MAX_VALUE);
+        assertEquals(1, count.get());
+    }
+
+    @Test
+    public void testScheduleOneCycle() {
+        AtomicInteger count = new AtomicInteger();
+        tep.schedule(1, count::incrementAndGet);
+        tep.advanceClock(1);
+        tep.advanceClock(1);
+        tep.advanceClock(1);
+        assertEquals(3, count.get());
+    }
+
+    @Test
     public void testRemoveCyclesRemovesDerivedOnes() {
         AtomicInteger count = new AtomicInteger();
         Runnable r1 = count::incrementAndGet;
@@ -102,11 +136,29 @@ public class TimedEventsProcessorTest {
         AtomicInteger count = new AtomicInteger();
 
         tep.schedule(1, count::incrementAndGet);
-        tep.schedule(10, count::incrementAndGet);
+        tep.schedule(10, () -> System.out.println("HH"));
         tep.removeAll(1);
 
         tep.advanceClock(10);
         assertEquals(0, count.get());
+    }
+
+    @Test
+    public void testScheduleOverflow() {
+        AtomicInteger count = new AtomicInteger();
+
+        tep.schedule(5, count::incrementAndGet);
+        tep.schedule(9, count::incrementAndGet);
+        tep.schedule(7, count::incrementAndGet);
+
+        tep.advanceClock(5);
+        assertEquals(1, count.get());
+
+        tep.advanceClock(2);
+        assertEquals(2, count.get());
+
+        tep.advanceClock(2);
+        assertEquals(3, count.get());
     }
 
     @Test
@@ -117,5 +169,15 @@ public class TimedEventsProcessorTest {
 
         tep.advanceClock(10);
         assertEquals(6, count.get());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAdvanceNegativeCyclesThrows() {
+        tep.advanceClock(-1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testAdvanceZeroCyclesThrows() {
+        tep.advanceClock(0);
     }
 }
