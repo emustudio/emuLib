@@ -21,7 +21,7 @@ package net.emustudio.emulib.plugins.cpu;
 import net.emustudio.emulib.runtime.helpers.ReadWriteLockSupport;
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.Collection;
+import java.util.Map;
 import java.util.Queue;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -29,7 +29,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Timed events processing is a soft real-time system based on a logical system clock,
@@ -56,19 +55,23 @@ public class TimedEventsProcessor {
     private final SortedMap<Integer, Queue<Runnable>> eventQueue = new ConcurrentSkipListMap<>();
     private final ReadWriteLockSupport lock = new ReadWriteLockSupport();
 
-    // scheduled cycles
+    private final AtomicInteger cycleNoRepeatMaximum = new AtomicInteger(0);
+    private final SortedMap<Integer, Queue<Runnable>> noRepeatEventQueue = new ConcurrentSkipListMap<>();
+    private final ReadWriteLockSupport lockNoRepeat = new ReadWriteLockSupport();
+
+    // scheduled (repeated) cycles
     private final SortedSet<Integer> usedCycleRoots = new ConcurrentSkipListSet<>();
 
     // used on CPU thread only, don't need to be synchronized
-    private int clock;
-    private int lastProcessedCycles = 0;
+    private int repeatClock;
+    private int nonRepeatClock;
 
     /**
      * Schedule a repeated event to be run every given cycles.
      * <p>
      * This function is thread-safe.
      *
-     * @param cycles the number of cycles (must be &gt; 0)
+     * @param cycles schedule at the number of cycles (must be &gt; 0)
      * @param event  event to be triggered every given cycles
      */
     public void schedule(int cycles, Runnable event) {
@@ -77,7 +80,7 @@ public class TimedEventsProcessor {
         }
         lock.lockWrite(() -> {
             int oldMaximum = cycleMaximum.getAndUpdate(i -> Math.max(i, cycles));
-            int newMaximum = Math.max(oldMaximum, cycles);
+            int newMaximum = cycleMaximum.get();
 
             // 1 1 1 1 1 1 1 1
             // 0 2 0 2 0 2 0 2
@@ -115,18 +118,34 @@ public class TimedEventsProcessor {
      * <p>
      * Given event cannot be removed by calling {@link #remove(int, Runnable) remove()} function.
      *
-     * @param cycles the number of cycles (must be &gt; 0)
+     * @param cycles schedule at the number of cycles (must be &gt; 0)
      * @param event  event to be triggered every given cycles
      */
     public void scheduleOnce(int cycles, Runnable event) {
-        AtomicReference<Runnable> selfReference = new AtomicReference<>();
-        Runnable proxy = () -> {
-            event.run();
-            remove(cycles, selfReference.get());
-        };
-        selfReference.set(proxy);
+        lockNoRepeat.lockWrite(() -> {
+            cycleNoRepeatMaximum.updateAndGet(i -> Math.max(i, cycles));
+            Queue<Runnable> queue = noRepeatEventQueue.computeIfAbsent(cycles, k -> new ConcurrentLinkedQueue<>());
+            queue.add(event);
+        });
+    }
 
-        schedule(cycles, proxy);
+    /**
+     * Schedule multiple events to be run after given cycles only once (does not ever repeat).
+     * <p>
+     * This function is thread-safe.
+     * <p>
+     * Given events cannot be removed by calling {@link #remove(int, Runnable) remove()} function.
+     *
+     * @param events events to be scheduled once. Keys are the number of cycles (must be &gt; 0), values events themselves.
+     */
+    public void scheduleOnceMultiple(Map<Integer, Runnable> events) {
+        lockNoRepeat.lockWrite(() -> {
+            for (Map.Entry<Integer, Runnable> e : events.entrySet()) {
+                cycleNoRepeatMaximum.updateAndGet(i -> Math.max(i, e.getKey()));
+                Queue<Runnable> queue = noRepeatEventQueue.computeIfAbsent(e.getKey(), k -> new ConcurrentLinkedQueue<>());
+                queue.add(e.getValue());
+            }
+        });
     }
 
     /**
@@ -149,11 +168,19 @@ public class TimedEventsProcessor {
         lock.lockWrite(() -> {
             if (usedCycleRoots.remove(cycles)) {
                 int maximum = cycleMaximum.get();
-                for (int i = cycles; i <= maximum; i++) {
-                    if (i % cycles == 0) {
+                for (int i = 0; i <= maximum; i++) {
+                    if (i % cycles == 0 && eventQueue.containsKey(i)) {
                         Queue<Runnable> iEvent = eventQueue.get(i);
                         iEvent.remove(event);
+                        if (iEvent.isEmpty()) {
+                            eventQueue.remove(i);
+                        }
                     }
+                }
+                if (eventQueue.isEmpty()) {
+                    cycleMaximum.set(0);
+                } else {
+                    cycleMaximum.set(eventQueue.lastKey());
                 }
             }
         });
@@ -175,6 +202,11 @@ public class TimedEventsProcessor {
                         eventQueue.remove(i);
                     }
                 }
+                if (eventQueue.isEmpty()) {
+                    cycleMaximum.set(0);
+                } else {
+                    cycleMaximum.set(eventQueue.lastKey());
+                }
             }
         });
     }
@@ -188,25 +220,77 @@ public class TimedEventsProcessor {
      * @param cycles passed cycles in the system
      */
     public void advanceClock(int cycles) {
-        int currentCycleMaximum = cycleMaximum.get();
-        clock += cycles;
+        if (cycles <= 0) {
+            throw new IllegalArgumentException("cycles must be > 0");
+        }
+        // repeated events first
+        int currentCycleMaximum = Math.max(1, cycleMaximum.get());
+        int fullRounds = cycles / currentCycleMaximum;
 
-        Collection<Queue<Runnable>> eventsToTrigger = eventQueue
-                .subMap(lastProcessedCycles, clock + 1)
-                .values();
-
-        if (clock < currentCycleMaximum) {
-            eventsToTrigger.forEach(e -> e.forEach(Runnable::run));
-        } else if (currentCycleMaximum > 0) {
-            for (int i = 0; i < clock / currentCycleMaximum; i++) {
-                eventsToTrigger.forEach(e -> e.forEach(Runnable::run));
-            }
+        for (int i = 0; i < fullRounds; i++) {
+            eventQueue.forEach((k, v) -> v.forEach(Runnable::run));
         }
 
-        lastProcessedCycles = clock + 1;
-        if (clock > currentCycleMaximum) {
-            clock = (clock % (currentCycleMaximum + 1));
-            lastProcessedCycles = 0;
+        int oldClock = repeatClock;
+        // so complex because we don't want integer overflow
+        repeatClock = (repeatClock + 1 + (cycles % (currentCycleMaximum + 1))) % (currentCycleMaximum + 1);
+
+        if (oldClock + 1 < repeatClock) {
+            eventQueue
+                    .subMap(oldClock + 1, repeatClock)
+                    .values()
+                    .forEach(e -> e.forEach(Runnable::run));
+        } else if (oldClock == currentCycleMaximum) {
+            // execute last one
+            eventQueue
+                    .subMap(currentCycleMaximum, currentCycleMaximum + 1)
+                    .values()
+                    .forEach(e -> e.forEach(Runnable::run));
+
+            // and then the rest due to clock overflow
+            eventQueue
+                    .subMap(0, repeatClock)
+                    .values()
+                    .forEach(e -> e.forEach(Runnable::run));
+        }
+        advanceNonRepeatedClock(cycles);
+    }
+
+    private void advanceNonRepeatedClock(int cycles) {
+        int currentCycleMaximum = cycleNoRepeatMaximum.get();
+
+        if (currentCycleMaximum > 0) {
+            if (cycles > currentCycleMaximum) {
+                noRepeatEventQueue
+                        .forEach((k, v) -> {
+                            v.forEach(Runnable::run);
+                            noRepeatEventQueue.remove(k);
+                        });
+                nonRepeatClock = 0;
+            } else {
+                int newClock = (nonRepeatClock + (cycles % (currentCycleMaximum + 1)));
+                noRepeatEventQueue
+                        .subMap(nonRepeatClock, newClock + 1)
+                        .forEach((k, v) -> {
+                            v.forEach(Runnable::run);
+                            noRepeatEventQueue.remove(k);
+                        });
+                if (newClock > currentCycleMaximum) {
+                    newClock = newClock % currentCycleMaximum;
+                    noRepeatEventQueue
+                            .subMap(0, newClock + 1)
+                            .forEach((k, v) -> {
+                                v.forEach(Runnable::run);
+                                noRepeatEventQueue.remove(k);
+                            });
+                }
+                nonRepeatClock = newClock;
+            }
+            if (noRepeatEventQueue.isEmpty()) {
+                cycleNoRepeatMaximum.set(0);
+            } else {
+                cycleNoRepeatMaximum.set(noRepeatEventQueue.lastKey());
+            }
         }
     }
 }
