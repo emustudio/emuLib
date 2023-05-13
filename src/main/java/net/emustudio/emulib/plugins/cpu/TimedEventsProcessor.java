@@ -158,7 +158,7 @@ public class TimedEventsProcessor {
      * for cycles which were scheduled first (always the lower ones). In effect the behavior should be as expected
      * though.
      * <p>
-     * Also, this function does not work when the event was scheduled using
+     * This function does not work when the event was scheduled using
      * {@link #scheduleOnce(int, Runnable) scheduleOnce} function.
      *
      * @param cycles the number of cycles
@@ -190,6 +190,8 @@ public class TimedEventsProcessor {
      * Remove all scheduled events from this processor.
      * <p>
      * This function is thread-safe.
+     * This function does not work when the event was scheduled using
+     * {@link #scheduleOnce(int, Runnable) scheduleOnce} function.
      *
      * @param cycles the number of cycles
      */
@@ -207,6 +209,57 @@ public class TimedEventsProcessor {
                 } else {
                     cycleMaximum.set(eventQueue.lastKey());
                 }
+            }
+        });
+    }
+
+    /**
+     * Remove events scheduled once.
+     * <p>
+     * This function is thread-safe.
+     * <p>
+     * Given event function must be the same instance as used on scheduling.
+     * <p>
+     * This function does not work when the event was scheduled using
+     * {@link #schedule(int, Runnable) schedule} function.
+     *
+     * @param cycles the number of cycles
+     * @param event  the scheduled event
+     */
+    public void removeScheduledOnce(int cycles, Runnable event) {
+        lockNoRepeat.lockWrite(() -> {
+            if (noRepeatEventQueue.containsKey(cycles)) {
+                Queue<Runnable> queue = noRepeatEventQueue.get(cycles);
+                queue.remove(event);
+                if (queue.isEmpty()) {
+                    noRepeatEventQueue.remove(cycles);
+                }
+                if (noRepeatEventQueue.isEmpty()) {
+                    cycleNoRepeatMaximum.set(0);
+                } else {
+                    cycleNoRepeatMaximum.set(noRepeatEventQueue.lastKey());
+                }
+            }
+        });
+    }
+
+    /**
+     * Removes all events scheduled once
+     * <p>
+     * This function is thread-safe.
+     * <p>
+     * This function does not work when the event was scheduled using
+     * {@link #schedule(int, Runnable) schedule} function.
+     *
+     * @param cycles the number of cycles
+     */
+    public void removeAllScheduledOnce(int cycles) {
+        lockNoRepeat.lockWrite(() -> {
+            noRepeatEventQueue.remove(cycles);
+            if (noRepeatEventQueue.isEmpty()) {
+                cycleNoRepeatMaximum.set(0);
+            } else {
+                cycleNoRepeatMaximum.set(noRepeatEventQueue.lastKey());
             }
         });
     }
