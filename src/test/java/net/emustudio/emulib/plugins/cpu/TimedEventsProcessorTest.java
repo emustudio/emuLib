@@ -19,7 +19,6 @@
 package net.emustudio.emulib.plugins.cpu;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Map;
@@ -51,6 +50,18 @@ public class TimedEventsProcessorTest {
         tep.advanceClock(1);  // should trigger the second event 1x and the first event 1x
 
         assertEquals(11, count.get());
+    }
+
+    @Test
+    public void testScheduleOneCycleMoreEvents() {
+        AtomicInteger count = new AtomicInteger();
+
+        tep.schedule(1, count::incrementAndGet);
+        tep.schedule(1, count::incrementAndGet);
+        tep.schedule(1, count::incrementAndGet);
+
+        tep.advanceClock(2);
+        assertEquals(6, count.get());
     }
 
     @Test
@@ -214,5 +225,43 @@ public class TimedEventsProcessorTest {
         ));
         tep.advanceClock(6);
         assertEquals(3, count.get());
+    }
+
+    @Test
+    public void testScheduleOnceOneCycleMoreEvents() {
+        AtomicInteger count = new AtomicInteger();
+
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.scheduleOnce(1, count::incrementAndGet);
+
+        tep.advanceClock(1);
+        assertEquals(3, count.get());
+    }
+
+    @Test
+    public void testRemoveScheduledOnce() {
+        AtomicInteger count = new AtomicInteger();
+        Runnable r1 = count::incrementAndGet;
+
+        tep.scheduleOnce(1, r1);
+        tep.scheduleOnce(5, r1);
+        tep.removeScheduledOnce(1, r1);
+
+        tep.advanceClock(5);
+        assertEquals(1, count.get());
+    }
+
+    @Test
+    public void testRemoveAllScheduledOnce() {
+        AtomicInteger count = new AtomicInteger();
+
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.scheduleOnce(1, count::incrementAndGet);
+        tep.removeAllScheduledOnce(1);
+
+        tep.advanceClock(10);
+        assertEquals(0, count.get());
     }
 }
