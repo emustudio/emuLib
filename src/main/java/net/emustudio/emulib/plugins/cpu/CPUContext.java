@@ -70,5 +70,40 @@ public interface CPUContext extends Context {
     default Optional<TimedEventsProcessor> getTimedEventsProcessor() {
         return Optional.empty();
     }
+
+    /**
+     * Determines if this CPU context supports providing passed cycles
+     *
+     * @return true if passed cycles is supported by this CPU; false otherwise
+     */
+    boolean passedCyclesSupported();
+
+    /**
+     * Adds passed cycles listener
+     *
+     * @param passedCyclesListener passed cycles listener
+     */
+    void addPassedCyclesListener(PassedCyclesListener passedCyclesListener);
+
+    /**
+     * Removes given passed cycles listener
+     *
+     * @param passedCyclesListener passed cycles listener
+     */
+    void removePassedCyclesListener(PassedCyclesListener passedCyclesListener);
+
+    /**
+     * Listener for passed CPU cycles
+     */
+    interface PassedCyclesListener {
+
+        /**
+         * Notifies the context that CPU has executed given number of cycles.
+         * Consumer is responsible for handling overflows.
+         *
+         * @param cyclesDelta cycles that were executed (delta from the last call)
+         */
+        void passedCycles(long cyclesDelta);
+    }
 }
 
