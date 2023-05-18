@@ -26,6 +26,7 @@ plugins {
 
 group 'net.emustudio'
 version '12.1.0-SNAPSHOT'
+archivesBaseName = 'emulib'
 
 repositories {
   mavenCentral()
