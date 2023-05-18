@@ -3,7 +3,7 @@ package net.emustudio.emulib.plugins.cpu;
 import net.jcip.annotations.ThreadSafe;
 
 import java.io.Closeable;
-import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,11 +26,7 @@ public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Clo
     private final AtomicLong cycles = new AtomicLong();
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final AtomicReference<Future<Runnable>> frequencyUpdaterFuture = new AtomicReference<>();
-    private final Consumer<Float> frequencyKhzChanged;
-
-    public FrequencyCalculator(Consumer<Float> frequencyKHzChanged) {
-        this.frequencyKhzChanged = Objects.requireNonNull(frequencyKHzChanged);
-    }
+    private final Set<Consumer<Float>> frequencyChangedListeners = new CopyOnWriteArraySet<>();
 
     private class Updater implements Runnable {
         private final long startTime = System.nanoTime();
@@ -56,7 +52,14 @@ public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Clo
             }
 
             if (frequencyChanged) {
-                frequencyKhzChanged.accept(frequencyKhz);
+                notifyListeners();
+            }
+        }
+
+        private void notifyListeners() {
+            float localFrequencyKhz = frequencyKhz;
+            for (Consumer<Float> listener : frequencyChangedListeners) {
+                listener.accept(localFrequencyKhz);
             }
         }
     }
@@ -66,6 +69,14 @@ public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Clo
         if (frequencyUpdaterFuture.get() != null) {
             this.cycles.addAndGet(cyclesDelta);
         }
+    }
+
+    public void addListener(Consumer<Float> listener) {
+        frequencyChangedListeners.add(listener);
+    }
+
+    public void removeListener(Consumer<Float> listener) {
+        frequencyChangedListeners.remove(listener);
     }
 
     public void stop() {
