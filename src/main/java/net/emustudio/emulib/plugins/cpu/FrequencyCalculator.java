@@ -43,7 +43,7 @@ public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Clo
             synchronized (this) {
                 long endTime = System.nanoTime();
                 long time = endTime - startTime;
-                long executedCycles = cycles.get();
+                double executedCycles = cycles.get();
 
                 if (executedCycles > 0) {
                     frequencyKhz = (float) (executedCycles / (time / 1000000.0)); // per millisecond = kHz
