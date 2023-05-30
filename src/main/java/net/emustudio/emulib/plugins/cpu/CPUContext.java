@@ -61,17 +61,6 @@ public interface CPUContext extends Context {
     }
 
     /**
-     * Get timed events processor, a soft real-time system based on a logical clock.
-     * <p>
-     * See {@link TimedEventsProcessor} for more details.
-     *
-     * @return timed events processor if available
-     */
-    default Optional<TimedEventsProcessor> getTimedEventsProcessor() {
-        return Optional.empty();
-    }
-
-    /**
      * Determines if this CPU context supports providing passed cycles
      *
      * @return true if passed cycles is supported by this CPU; false otherwise

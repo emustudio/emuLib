@@ -148,7 +148,7 @@ public interface CPU extends Plugin {
      * While CPU is running, the emuStudio will not allow to call method
      * <code>step()</code>.
      * <p>
-     * A good CPU should performs right timing for instructions here.
+     * A good CPU should perform right timing for instructions here.
      * Debug window should not be updated after each instruction execution,
      * in order to the execution loop would be faster.
      */
