@@ -30,7 +30,7 @@ public class DebuggerColumnTest {
         assertEquals(-1, new DebuggerColumnStub().getDefaultWidth());
     }
 
-    private final class DebuggerColumnStub implements DebuggerColumn {
+    private static final class DebuggerColumnStub implements DebuggerColumn {
 
         @Override
         public Class getClassType() {
