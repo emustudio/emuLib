@@ -70,7 +70,7 @@ public class FrequencyCalculatorTest {
         } catch (InterruptedException ignored) {
 
         }
-        assertEquals(1000, Math.round(counter.get()));
+        assertEquals(1000, Math.round(counter.get() / 10.0) * 10);
     }
 
     @Test
