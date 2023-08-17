@@ -24,7 +24,7 @@ package net.emustudio.emulib.runtime.helpers;
  * <p>
  * This code was borrowed from:
  * <p>
- * http://stackoverflow.com/questions/19757300/java-8-lambda-streams-filter-by-method-with-exception
+ * <a href="http://stackoverflow.com/questions/19757300/java-8-lambda-streams-filter-by-method-with-exception">exceptions in lambda</a>
  */
 public class Unchecked {
 
