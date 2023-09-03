@@ -25,25 +25,25 @@ import java.util.function.Consumer;
 import static javax.swing.Action.SHORT_DESCRIPTION;
 
 /**
- * Toolbar button - a button ready to add to a toolbar.
+ * Toolbar toggle button - a JToggleButton ready to add to a toolbar.
  * Properties:
  * - button text is hidden
- * - tooltip is set from Action.getValue(SHORT_DESCRIPTION)
+ * - tooltip is set from Action.getValue(SHORT_DESCRIPTION) by default
  * - is not focusable
  * - icon is set from icon resource path
  * - button action is external
  */
 @SuppressWarnings("unused")
-public class ToolbarButton extends JButton {
+public class ToolbarToggleButton extends JToggleButton {
 
     /**
-     * Creates a new toolbar button.
+     * Creates a new toolbar toggle button.
      * <p>
      * Tooltip text is set from <code>action.getValue(SHORT_DESCRIPTION)</code>.
      *
      * @param action action to be performed when the button is pressed
      */
-    public ToolbarButton(Action action) {
+    public ToolbarToggleButton(Action action) {
         super(action);
         setHideActionText(true);
         setToolTipText(String.valueOf(action.getValue(SHORT_DESCRIPTION)));
@@ -51,13 +51,13 @@ public class ToolbarButton extends JButton {
     }
 
     /**
-     * Creates a new toolbar button.
+     * Creates a new toolbar toggle button.
      *
      * @param action       action to be performed when the button is pressed
      * @param iconResource icon resource path
      * @param tooltipText  tooltip text
      */
-    public ToolbarButton(Consumer<ActionEvent> action, String iconResource, String tooltipText) {
+    public ToolbarToggleButton(Consumer<ActionEvent> action, String iconResource, String tooltipText) {
         this(new ActionFromEvent(action, iconResource, tooltipText));
     }
 }
