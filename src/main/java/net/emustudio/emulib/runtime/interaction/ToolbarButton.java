@@ -23,6 +23,8 @@ import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
 import static javax.swing.Action.SHORT_DESCRIPTION;
+import static javax.swing.Action.SMALL_ICON;
+import static net.emustudio.emulib.runtime.interaction.GuiUtils.loadIcon;
 
 /**
  * Toolbar button - a button ready to add to a toolbar.
@@ -47,6 +49,25 @@ public class ToolbarButton extends JButton {
         super(action);
         setHideActionText(true);
         setToolTipText(String.valueOf(action.getValue(SHORT_DESCRIPTION)));
+        setFocusable(false);
+    }
+
+    /**
+     * Creates a new toolbar button.
+     * <p>
+     * Tooltip text is set to <code>Action.SHORT_DESCRIPTION</code>.
+     * Icon is set to <code>Action.SMALL_ICON</code>.
+     *
+     * @param action       action to be performed when the button is pressed
+     * @param iconResource icon resource path
+     * @param tooltipText  tooltip text
+     */
+    public ToolbarButton(Action action, String iconResource, String tooltipText) {
+        super(action);
+        action.putValue(SHORT_DESCRIPTION, tooltipText);
+        action.putValue(SMALL_ICON, loadIcon(iconResource));
+        setHideActionText(true);
+        setToolTipText(tooltipText);
         setFocusable(false);
     }
 

@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
+
 @SuppressWarnings("unused")
 public class GuiUtils {
 
@@ -96,7 +98,9 @@ public class GuiUtils {
      * @return loaded icon, or null if the icon could not be loaded
      */
     public static ImageIcon loadIcon(String resource) {
-        URL url = GuiUtils.class.getResource(resource);
+        // emuLib is loaded at the system level, so it does not see resources of a plugin
+        Class<?> klass = StackWalker.getInstance(RETAIN_CLASS_REFERENCE).getCallerClass();
+        URL url = (klass == null ? GuiUtils.class : klass).getResource(resource);
         return url == null ? null : new ImageIcon(url);
     }
 }
