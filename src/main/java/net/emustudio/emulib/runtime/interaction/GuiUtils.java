@@ -18,13 +18,17 @@
  */
 package net.emustudio.emulib.runtime.interaction;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 
 @SuppressWarnings("unused")
 public class GuiUtils {
@@ -69,7 +73,7 @@ public class GuiUtils {
      * @param path          Resource path
      * @param size          Default font size
      * @param resourceClass class where to look for resources
-     * @return loaded font, or Font.MONOSPACED if the font could not be loaded
+     * @return loaded font, or <code>Font.MONOSPACED</code> if the font could not be loaded
      */
     public static Font loadFontResource(String path, Class<?> resourceClass, int size) {
         Map<TextAttribute, Object> attrs = new HashMap<>();
@@ -85,5 +89,18 @@ public class GuiUtils {
         } catch (Exception e) {
             return new Font(Font.MONOSPACED, Font.PLAIN, size);
         }
+    }
+
+    /**
+     * Loads an icon from a resource
+     *
+     * @param resource resource path
+     * @return loaded icon, or null if the icon could not be loaded
+     */
+    public static ImageIcon loadIcon(String resource) {
+        // emuLib is loaded at the system level, so it does not see resources of a plugin
+        Class<?> klass = StackWalker.getInstance(RETAIN_CLASS_REFERENCE).getCallerClass();
+        URL url = (klass == null ? GuiUtils.class : klass).getResource(resource);
+        return url == null ? null : new ImageIcon(url);
     }
 }
