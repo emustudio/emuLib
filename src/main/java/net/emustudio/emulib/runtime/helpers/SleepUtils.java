@@ -68,7 +68,7 @@ public class SleepUtils {
                     Thread.currentThread().interrupt();
                 }
             } else if (timeLeft > SPIN_YIELD_PRECISION) {
-                Thread.yield();
+                Thread.onSpinWait();
             }
             timeLeft = end - System.nanoTime();
         } while (!Thread.currentThread().isInterrupted() && timeLeft > 0);
