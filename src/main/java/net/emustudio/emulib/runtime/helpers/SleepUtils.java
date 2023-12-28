@@ -18,6 +18,8 @@
  */
 package net.emustudio.emulib.runtime.helpers;
 
+import java.util.concurrent.locks.LockSupport;
+
 /**
  * Sleeping and time measurement utilities.
  */
@@ -27,7 +29,7 @@ public class SleepUtils {
 
     static {
         // determine sleep precision
-        int count = 100;
+        int count = 600;
         long time = 0;
         for (int i = 0; i < count; i++) {
             long start = System.nanoTime();
@@ -40,6 +42,9 @@ public class SleepUtils {
         }
         SLEEP_PRECISION = time / count;
         SPIN_YIELD_PRECISION = SLEEP_PRECISION / 2;
+
+        System.out.println("Sleep precision: " + SLEEP_PRECISION + " ns");
+        System.out.println("Spin yield precision: " + SPIN_YIELD_PRECISION + " ns");
     }
 
 
@@ -55,18 +60,13 @@ public class SleepUtils {
      *
      * @param nanoDuration nanoseconds
      */
-    @SuppressWarnings("BusyWait")
     public static void preciseSleepNanos(long nanoDuration) {
         final long end = System.nanoTime() + nanoDuration;
         long timeLeft = nanoDuration;
 
         do {
             if (timeLeft > SLEEP_PRECISION) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
+                LockSupport.parkNanos(timeLeft);
             } else if (timeLeft > SPIN_YIELD_PRECISION) {
                 Thread.onSpinWait();
             }
