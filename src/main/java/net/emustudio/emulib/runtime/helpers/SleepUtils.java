@@ -18,8 +18,6 @@
  */
 package net.emustudio.emulib.runtime.helpers;
 
-import java.util.concurrent.locks.LockSupport;
-
 /**
  * Sleeping and time measurement utilities.
  */
@@ -60,13 +58,18 @@ public class SleepUtils {
      *
      * @param nanoDuration nanoseconds
      */
+    @SuppressWarnings("BusyWait")
     public static void preciseSleepNanos(long nanoDuration) {
         final long end = System.nanoTime() + nanoDuration;
         long timeLeft = nanoDuration;
 
         do {
             if (timeLeft > SLEEP_PRECISION) {
-                LockSupport.parkNanos(timeLeft);
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             } else if (timeLeft > SPIN_YIELD_PRECISION) {
                 Thread.onSpinWait();
             }
