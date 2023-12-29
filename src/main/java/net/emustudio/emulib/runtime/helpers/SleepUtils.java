@@ -27,7 +27,7 @@ public class SleepUtils {
 
     static {
         // determine sleep precision
-        int count = 100;
+        int count = 600;
         long time = 0;
         for (int i = 0; i < count; i++) {
             long start = System.nanoTime();
@@ -40,6 +40,9 @@ public class SleepUtils {
         }
         SLEEP_PRECISION = time / count;
         SPIN_YIELD_PRECISION = SLEEP_PRECISION / 2;
+
+        System.out.println("Sleep precision: " + SLEEP_PRECISION + " ns");
+        System.out.println("Spin yield precision: " + SPIN_YIELD_PRECISION + " ns");
     }
 
 
@@ -68,7 +71,7 @@ public class SleepUtils {
                     Thread.currentThread().interrupt();
                 }
             } else if (timeLeft > SPIN_YIELD_PRECISION) {
-                Thread.yield();
+                Thread.onSpinWait();
             }
             timeLeft = end - System.nanoTime();
         } while (!Thread.currentThread().isInterrupted() && timeLeft > 0);
