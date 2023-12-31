@@ -61,6 +61,7 @@ public class AccurateFrequencyRunner {
         while (!Thread.currentThread().isInterrupted() && (currentRunState == CPU.RunState.STATE_RUNNING)) {
             try {
                 if (delayNanos > 0) {
+                    // We do not require precise sleep here!
                     Thread.sleep(TimeUnit.NANOSECONDS.toMillis(delayNanos));
                 }
             } catch (InterruptedException e) {
@@ -68,9 +69,11 @@ public class AccurateFrequencyRunner {
             }
 
             long computationStartTime = System.nanoTime();
+
+            // We take into consideration real sleep time
             long targetCycles = (computationStartTime - emulationStartTime) / slotNanos * cyclesPerSlot;
 
-            while ((executedCyclesPerSlot.get() < targetCycles) &&
+            while ((executedCyclesPerSlot.get() < targetCycles || targetCycles == 0) &&
                     !Thread.currentThread().isInterrupted() &&
                     (currentRunState == CPU.RunState.STATE_RUNNING)) {
                 currentRunState = runInstruction.get();
