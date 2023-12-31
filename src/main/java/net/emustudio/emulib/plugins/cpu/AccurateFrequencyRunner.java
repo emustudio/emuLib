@@ -20,6 +20,8 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.runtime.helpers.SleepUtils;
 import net.jcip.annotations.NotThreadSafe;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -35,6 +37,8 @@ import java.util.function.Supplier;
  */
 @NotThreadSafe
 public class AccurateFrequencyRunner {
+    private final static Logger LOGGER = LoggerFactory.getLogger(AccurateFrequencyRunner.class);
+
     private final long slotNanos = SleepUtils.SLEEP_PRECISION;
     private final double slotMicros = slotNanos / 1000.0;
 
@@ -51,7 +55,9 @@ public class AccurateFrequencyRunner {
      */
     @SuppressWarnings("BusyWait")
     public CPU.RunState run(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
-        final int cyclesPerSlot = (int) (slotMicros * getTargetFrequencyKHz.get() / 1000.0); // frequency in kHZ -> MHz
+        final int cyclesPerSlot = Math.max(1, (int) (slotMicros * getTargetFrequencyKHz.get() / 1000.0));
+
+        LOGGER.debug("Running CPU with {} cycles per slot", cyclesPerSlot);
 
         CPU.RunState currentRunState = CPU.RunState.STATE_RUNNING;
         long delayNanos = SleepUtils.SLEEP_PRECISION;
@@ -73,7 +79,7 @@ public class AccurateFrequencyRunner {
             // We take into consideration real sleep time
             long targetCycles = (computationStartTime - emulationStartTime) / slotNanos * cyclesPerSlot;
 
-            while ((executedCyclesPerSlot.get() < targetCycles || cyclesPerSlot == 0) &&
+            while ((executedCyclesPerSlot.get() < targetCycles) &&
                     !Thread.currentThread().isInterrupted() &&
                     (currentRunState == CPU.RunState.STATE_RUNNING)) {
                 currentRunState = runInstruction.get();
