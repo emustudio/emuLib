@@ -50,7 +50,7 @@ public class AccurateFrequencyRunner {
      * @return new run state
      */
     @SuppressWarnings("BusyWait")
-    public CPU.RunState run(Supplier<Integer> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
+    public CPU.RunState run(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
         final int cyclesPerSlot = (int) (slotMicros * getTargetFrequencyKHz.get() / 1000.0); // frequency in kHZ -> MHz
 
         CPU.RunState currentRunState = CPU.RunState.STATE_RUNNING;

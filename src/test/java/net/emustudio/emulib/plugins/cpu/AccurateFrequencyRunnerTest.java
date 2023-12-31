@@ -32,7 +32,7 @@ public class AccurateFrequencyRunnerTest {
         AccurateFrequencyRunner runner = new AccurateFrequencyRunner();
 
         FrequencyCalculator calculator = new FrequencyCalculator();
-        int frequencyKHz = 100;
+        double frequencyKHz = 100;
 
         AtomicInteger runFrequency = new AtomicInteger();
 
