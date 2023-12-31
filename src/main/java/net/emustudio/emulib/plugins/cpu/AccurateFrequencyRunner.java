@@ -73,7 +73,7 @@ public class AccurateFrequencyRunner {
             // We take into consideration real sleep time
             long targetCycles = (computationStartTime - emulationStartTime) / slotNanos * cyclesPerSlot;
 
-            while ((executedCyclesPerSlot.get() < targetCycles || targetCycles == 0) &&
+            while ((executedCyclesPerSlot.get() < targetCycles || cyclesPerSlot == 0) &&
                     !Thread.currentThread().isInterrupted() &&
                     (currentRunState == CPU.RunState.STATE_RUNNING)) {
                 currentRunState = runInstruction.get();
