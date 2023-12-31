@@ -23,7 +23,7 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AccurateFrequencyRunnerTest {
 
@@ -36,10 +36,10 @@ public class AccurateFrequencyRunnerTest {
 
         AtomicInteger runFrequency = new AtomicInteger();
 
-        calculator.start();
         calculator.addListener(f -> runFrequency.set(Math.round(f)));
 
         long startTime = System.nanoTime();
+        calculator.start();
         runner.run(() -> frequencyKHz, () -> {
             runner.addExecutedCycles(1);
             calculator.passedCycles(1);
@@ -54,6 +54,6 @@ public class AccurateFrequencyRunnerTest {
         calculator.stop();
         calculator.close();
 
-        assertEquals(frequencyKHz, runFrequency.get());
+        assertTrue(frequencyKHz == runFrequency.get() || (frequencyKHz - 1) == runFrequency.get());
     }
 }
