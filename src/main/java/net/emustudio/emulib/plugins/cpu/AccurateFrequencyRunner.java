@@ -39,10 +39,10 @@ import java.util.function.Supplier;
 public class AccurateFrequencyRunner {
     private final static Logger LOGGER = LoggerFactory.getLogger(AccurateFrequencyRunner.class);
 
-    private final long slotNanos = SleepUtils.SLEEP_PRECISION;
+    private final double slotNanos = SleepUtils.SLEEP_PRECISION;
     private final double slotMicros = slotNanos / 1000.0;
 
-    private final AtomicLong executedCyclesPerSlot = new AtomicLong();
+    private final AtomicLong executedCycles = new AtomicLong();
 
     /**
      * Runs the CPU.
@@ -55,16 +55,30 @@ public class AccurateFrequencyRunner {
      */
     @SuppressWarnings("BusyWait")
     public CPU.RunState run(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
-        final int cyclesPerSlot = Math.max(1, (int) (slotMicros * getTargetFrequencyKHz.get() / 1000.0));
+        // We need to compensate for 0
+        final double cyclesPerSlot = Math.max(1, slotMicros * getTargetFrequencyKHz.get() / 1000.0);
 
         LOGGER.debug("Running CPU with {} cycles per slot", cyclesPerSlot);
 
         CPU.RunState currentRunState = CPU.RunState.STATE_RUNNING;
-        long delayNanos = SleepUtils.SLEEP_PRECISION;
+        long targetCycles = (long) Math.ceil(cyclesPerSlot);
 
-        long emulationStartTime = System.nanoTime();
-        executedCyclesPerSlot.set(0);
+        executedCycles.set(0);
         while (!Thread.currentThread().isInterrupted() && (currentRunState == CPU.RunState.STATE_RUNNING)) {
+            double computationStartTime = System.nanoTime();
+            while ((executedCycles.get() < targetCycles) &&
+                    !Thread.currentThread().isInterrupted() &&
+                    (currentRunState == CPU.RunState.STATE_RUNNING)) {
+                currentRunState = runInstruction.get();
+            }
+
+            double computationTime = System.nanoTime() - computationStartTime;
+
+            // Delay is actually the thing which "moves" the emulation forwards. Since the host CPU is much faster than
+            // the emulated one, th computationTime << slotNanos. Hence, we will have additional time we haven't used yet,
+            // to execute additional cycles, which will - again - run in a slotNanos time slot. And the situation repeats.
+            long delayNanos = (long) (slotNanos - computationTime);
+
             try {
                 if (delayNanos > 0) {
                     // We do not require precise sleep here!
@@ -72,21 +86,18 @@ public class AccurateFrequencyRunner {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
             }
 
-            long computationStartTime = System.nanoTime();
+            double slotEndTime = System.nanoTime();
 
-            // We take into consideration real sleep time
-            long targetCycles = (computationStartTime - emulationStartTime) / slotNanos * cyclesPerSlot;
+            final long tc = targetCycles;
+            executedCycles.updateAndGet(c -> c - tc);
 
-            while ((executedCyclesPerSlot.get() < targetCycles) &&
-                    !Thread.currentThread().isInterrupted() &&
-                    (currentRunState == CPU.RunState.STATE_RUNNING)) {
-                currentRunState = runInstruction.get();
-            }
-
-            long computationTime = System.nanoTime() - computationStartTime;
-            delayNanos = slotNanos - computationTime;
+            // After the slot is finished, we know not enough cycles were performed. Hence, we need to compensate
+            // with additional cycles - target cycles.
+            // We do not enforce precise sleep here, because we will take into account real sleep time.
+            targetCycles = (long) Math.ceil((slotEndTime - computationStartTime) / slotNanos * cyclesPerSlot);
         }
         return currentRunState;
     }
@@ -99,6 +110,6 @@ public class AccurateFrequencyRunner {
      * @param cycles number of cycles
      */
     public void addExecutedCycles(long cycles) {
-        executedCyclesPerSlot.addAndGet(cycles);
+        executedCycles.addAndGet(cycles);
     }
 }
