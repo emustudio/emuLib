@@ -56,4 +56,14 @@ public class AccurateFrequencyRunnerTest {
 
         assertTrue(frequencyKHz == runFrequency.get() || (frequencyKHz - 1) == runFrequency.get());
     }
+
+    @Test
+    public void testOo() {
+        long l = Long.MAX_VALUE;
+
+        System.out.println(l);
+
+        System.out.println(l + 1);
+        System.out.println(Math.abs((l + 1) % Long.MAX_VALUE));
+    }
 }

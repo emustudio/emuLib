@@ -42,7 +42,7 @@ public class AccurateFrequencyRunner {
     private final long slotNanos = SleepUtils.SLEEP_PRECISION;
     private final double slotMicros = slotNanos / 1000.0;
 
-    private final AtomicLong executedCyclesPerSlot = new AtomicLong();
+    private final AtomicLong executedCycles = new AtomicLong();
 
     /**
      * Runs the CPU.
@@ -60,10 +60,11 @@ public class AccurateFrequencyRunner {
         LOGGER.debug("Running CPU with {} cycles per slot", cyclesPerSlot);
 
         CPU.RunState currentRunState = CPU.RunState.STATE_RUNNING;
-        long delayNanos = SleepUtils.SLEEP_PRECISION;
+        long delayNanos = slotNanos;
+
+        executedCycles.set(0);
 
         long emulationStartTime = System.nanoTime();
-        executedCyclesPerSlot.set(0);
         while (!Thread.currentThread().isInterrupted() && (currentRunState == CPU.RunState.STATE_RUNNING)) {
             try {
                 if (delayNanos > 0) {
@@ -72,6 +73,7 @@ public class AccurateFrequencyRunner {
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
             }
 
             long computationStartTime = System.nanoTime();
@@ -79,7 +81,13 @@ public class AccurateFrequencyRunner {
             // We take into consideration real sleep time
             long targetCycles = (computationStartTime - emulationStartTime) / slotNanos * cyclesPerSlot;
 
-            while ((executedCyclesPerSlot.get() < targetCycles) &&
+            // overflow?
+            if (targetCycles < 0 || executedCycles.get() < 0) {
+                targetCycles = Math.abs(targetCycles % Long.MAX_VALUE);
+                executedCycles.updateAndGet(c -> Math.abs(c % Long.MAX_VALUE));
+            }
+
+            while ((executedCycles.get() < targetCycles) &&
                     !Thread.currentThread().isInterrupted() &&
                     (currentRunState == CPU.RunState.STATE_RUNNING)) {
                 currentRunState = runInstruction.get();
@@ -99,6 +107,6 @@ public class AccurateFrequencyRunner {
      * @param cycles number of cycles
      */
     public void addExecutedCycles(long cycles) {
-        executedCyclesPerSlot.addAndGet(cycles);
+        executedCycles.addAndGet(cycles);
     }
 }
