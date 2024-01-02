@@ -102,6 +102,40 @@ public class AccurateFrequencyRunner {
         return currentRunState;
     }
 
+    public CPU.RunState runNoSleep(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
+        double oneCycleTimeNanos = 1000000.0 / getTargetFrequencyKHz.get();
+
+        CPU.RunState currentRunState = CPU.RunState.STATE_RUNNING;
+
+        double emulatedTime = 0;
+        double computationStartTime = System.nanoTime();
+        double realTime;
+        boolean wait;
+
+        while (!Thread.currentThread().isInterrupted() && (currentRunState == CPU.RunState.STATE_RUNNING)) {
+            realTime = System.nanoTime() - computationStartTime;
+            if (emulatedTime > realTime) {
+                wait = true;
+            } else {
+                executedCycles.set(0);
+                computationStartTime = System.nanoTime();
+                wait = false;
+            }
+
+            while (!Thread.currentThread().isInterrupted() &&
+                    (currentRunState == CPU.RunState.STATE_RUNNING) && !wait) {
+                currentRunState = runInstruction.get();
+                emulatedTime = executedCycles.get() * oneCycleTimeNanos;
+
+                realTime = System.nanoTime() - computationStartTime;
+                if (emulatedTime > realTime) {
+                    wait = true;
+                }
+            }
+        }
+        return currentRunState;
+    }
+
     /**
      * Adds executed cycles to the counter.
      * <p>
