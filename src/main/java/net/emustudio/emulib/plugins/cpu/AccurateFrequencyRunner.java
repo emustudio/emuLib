@@ -102,6 +102,15 @@ public class AccurateFrequencyRunner {
         return currentRunState;
     }
 
+    /**
+     * Runs the CPU without "sleeping".
+     * <p>
+     * The "runInstruction" function must call {@link #addExecutedCycles(long)} to update executed cycles.
+     *
+     * @param getTargetFrequencyKHz get target frequency in kHz
+     * @param runInstruction        runs one instruction
+     * @return new run state
+     */
     public CPU.RunState runNoSleep(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
         double oneCycleTimeNanos = 1000000.0 / getTargetFrequencyKHz.get();
 
