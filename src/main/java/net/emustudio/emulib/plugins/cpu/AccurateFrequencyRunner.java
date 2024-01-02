@@ -103,6 +103,49 @@ public class AccurateFrequencyRunner {
     }
 
     /**
+     * Runs the CPU without "sleeping".
+     * <p>
+     * The "runInstruction" function must call {@link #addExecutedCycles(long)} to update executed cycles.
+     *
+     * @param getTargetFrequencyKHz get target frequency in kHz
+     * @param runInstruction        runs one instruction
+     * @return new run state
+     */
+    public CPU.RunState runNoSleep(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
+        double oneCycleTimeNanos = 1000000.0 / getTargetFrequencyKHz.get();
+
+        CPU.RunState currentRunState = CPU.RunState.STATE_RUNNING;
+
+        double emulatedTime = 0;
+        double computationStartTime = System.nanoTime();
+        double realTime;
+        boolean wait;
+
+        while (!Thread.currentThread().isInterrupted() && (currentRunState == CPU.RunState.STATE_RUNNING)) {
+            realTime = System.nanoTime() - computationStartTime;
+            if (emulatedTime > realTime) {
+                wait = true;
+            } else {
+                executedCycles.set(0);
+                computationStartTime = System.nanoTime();
+                wait = false;
+            }
+
+            while (!Thread.currentThread().isInterrupted() &&
+                    (currentRunState == CPU.RunState.STATE_RUNNING) && !wait) {
+                currentRunState = runInstruction.get();
+                emulatedTime = executedCycles.get() * oneCycleTimeNanos;
+
+                realTime = System.nanoTime() - computationStartTime;
+                if (emulatedTime > realTime) {
+                    wait = true;
+                }
+            }
+        }
+        return currentRunState;
+    }
+
+    /**
      * Adds executed cycles to the counter.
      * <p>
      * Should be called from "runInstruction" function when calling {@link #run(Supplier, Supplier)} method.
