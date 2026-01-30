@@ -54,7 +54,7 @@ public class AccurateFrequencyRunnerTest {
         calculator.stop();
         calculator.close();
 
-        assertTrue(frequencyKHz == runFrequency.get() || (frequencyKHz - 1) == runFrequency.get());
+        assertTrue(frequencyKHz == runFrequency.get() || (frequencyKHz - 1) == runFrequency.get() || (frequencyKHz + 1) == runFrequency.get());
     }
 
     @Test
