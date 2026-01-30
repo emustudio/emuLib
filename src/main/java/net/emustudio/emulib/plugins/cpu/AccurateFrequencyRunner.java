@@ -23,7 +23,6 @@ import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 
@@ -53,7 +52,6 @@ public class AccurateFrequencyRunner {
      * @param runInstruction        runs one instruction
      * @return new run state
      */
-    @SuppressWarnings("BusyWait")
     public CPU.RunState run(Supplier<Double> getTargetFrequencyKHz, Supplier<CPU.RunState> runInstruction) {
         // We need to compensate for 0
         final double cyclesPerSlot = Math.max(1, slotMicros * getTargetFrequencyKHz.get() / 1000.0);
@@ -79,14 +77,8 @@ public class AccurateFrequencyRunner {
             // to execute additional cycles, which will - again - run in a slotNanos time slot. And the situation repeats.
             long delayNanos = (long) (slotNanos - computationTime);
 
-            try {
-                if (delayNanos > 0) {
-                    // We do not require precise sleep here!
-                    Thread.sleep(TimeUnit.NANOSECONDS.toMillis(delayNanos));
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+            if (delayNanos > 0) {
+                SleepUtils.preciseSleepNanos(delayNanos);
             }
 
             double slotEndTime = System.nanoTime();
