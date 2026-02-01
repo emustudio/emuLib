@@ -1,22 +1,5 @@
-/*
- * This file is part of emuLib.
- *
- * Copyright (C) 2012  Matúš Sulír
- * Copyright (C) 2006-2023  Peter Jakubčo
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.runtime.helpers.Bits;
@@ -36,8 +19,9 @@ public class DecodedInstruction {
 
     /**
      * Adds the recognized string-returning variant to the instruction.
-     * @param key the key (rule code)
-     * @param string the string which the recognized variant returned
+     *
+     * @param key      the key (rule code)
+     * @param string   the string which the recognized variant returned
      * @param constant the constant obtained from the string
      */
     public void add(int key, String string, int constant) {
@@ -47,8 +31,9 @@ public class DecodedInstruction {
 
     /**
      * Adds the recognized subrule-returning variant to the instruction.
-     * @param key the rule code
-     * @param bits the bit sequence in little-endian, padded to whole bytes
+     *
+     * @param key    the rule code
+     * @param bits   the bit sequence in little-endian, padded to whole bytes
      * @param length bit length (in bits)
      */
     public void add(int key, int bits, int length) {
@@ -57,6 +42,7 @@ public class DecodedInstruction {
 
     /**
      * Returns true if the instruction contains the specified key.
+     *
      * @param key the rule code
      * @return true if the instruction contains the key, false otherwise
      */
@@ -66,6 +52,7 @@ public class DecodedInstruction {
 
     /**
      * Returns the constant value to which the given key is mapped.
+     *
      * @param key the key
      * @return the constant; or -1 if the key is not mapped to a constant
      */
@@ -76,6 +63,7 @@ public class DecodedInstruction {
 
     /**
      * Returns the string value to which the given key is mapped.
+     *
      * @param key the key
      * @return the string; or null if the key is not mapped to a string
      */
@@ -85,6 +73,7 @@ public class DecodedInstruction {
 
     /**
      * Returns the bit sequence to which the given key is mapped.
+     *
      * @param key the key
      * @return the bit sequence; or null if the key is not mapped to bits
      */
@@ -94,6 +83,7 @@ public class DecodedInstruction {
 
     /**
      * Returns the binary image of the whole instruction.
+     *
      * @return the binary image
      */
     public byte[] getImage() {
@@ -102,6 +92,7 @@ public class DecodedInstruction {
 
     /**
      * Sets the binary image of the whole instruction.
+     *
      * @param image the binary image
      */
     public void setImage(byte[] image) {
@@ -110,6 +101,7 @@ public class DecodedInstruction {
 
     /**
      * Returns the length of the instruction in the memory.
+     *
      * @return the length, in bytes
      */
     public int getLength() {
@@ -118,6 +110,7 @@ public class DecodedInstruction {
 
     /**
      * Returns the set of all keys contained in this instruction.
+     *
      * @return the set of keys
      */
     public Set<Integer> getKeys() {

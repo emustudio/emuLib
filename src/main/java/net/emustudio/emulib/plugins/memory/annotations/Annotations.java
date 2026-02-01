@@ -1,21 +1,5 @@
-/*
- * This file is part of emuLib.
- *
- * Copyright (C) 2006-2023  Peter Jakubčo
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.memory.annotations;
 
 import net.emustudio.emulib.runtime.helpers.ReadWriteLockSupport;
@@ -51,11 +35,7 @@ public class Annotations implements MemoryAnnotations {
         rwl.lockWrite(() -> {
             Set<P> toRemove = new HashSet<>();
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
-                Set<Annotation> toRemoveAtLocation = entry
-                        .getValue()
-                        .stream()
-                        .filter(e -> e.getClass().equals(annotationClass))
-                        .collect(Collectors.toSet());
+                Set<Annotation> toRemoveAtLocation = entry.getValue().stream().filter(e -> e.getClass().equals(annotationClass)).collect(Collectors.toSet());
 
                 if (!toRemoveAtLocation.isEmpty()) {
                     toRemove.add(new P(entry.getKey(), toRemoveAtLocation));
@@ -78,10 +58,7 @@ public class Annotations implements MemoryAnnotations {
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
                 Set<Annotation> atLocation = entry.getValue();
 
-                Set<Annotation> toRemoveAtLocation = atLocation
-                        .stream()
-                        .filter(v -> v.getPluginId() == pluginId)
-                        .collect(Collectors.toSet());
+                Set<Annotation> toRemoveAtLocation = atLocation.stream().filter(v -> v.getPluginId() == pluginId).collect(Collectors.toSet());
                 atLocation.removeAll(toRemoveAtLocation);
 
                 if (atLocation.isEmpty()) {
@@ -95,14 +72,9 @@ public class Annotations implements MemoryAnnotations {
     @Override
     public void removeAll(long pluginId, int location) {
         rwl.lockWrite(() -> {
-            Set<Annotation> atLocation = Optional
-                    .ofNullable(annotations.get(location))
-                    .orElse(Collections.emptySet());
+            Set<Annotation> atLocation = Optional.ofNullable(annotations.get(location)).orElse(Collections.emptySet());
 
-            Set<Annotation> toRemove = atLocation
-                    .stream()
-                    .filter(v -> v.getPluginId() == pluginId)
-                    .collect(Collectors.toSet());
+            Set<Annotation> toRemove = atLocation.stream().filter(v -> v.getPluginId() == pluginId).collect(Collectors.toSet());
             atLocation.removeAll(toRemove);
 
             if (atLocation.isEmpty()) {
@@ -118,12 +90,7 @@ public class Annotations implements MemoryAnnotations {
             Map<Integer, Set<T>> result = new HashMap<>();
 
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
-                Set<T> keyValues = entry
-                        .getValue()
-                        .stream()
-                        .filter(v -> (v.getClass().equals(annotationClass)))
-                        .map(v -> (T) v)
-                        .collect(Collectors.toSet());
+                Set<T> keyValues = entry.getValue().stream().filter(v -> (v.getClass().equals(annotationClass))).map(v -> (T) v).collect(Collectors.toSet());
                 if (!keyValues.isEmpty()) {
                     result.put(entry.getKey(), keyValues);
                 }
@@ -139,13 +106,7 @@ public class Annotations implements MemoryAnnotations {
             Map<Integer, Set<T>> result = new HashMap<>();
 
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
-                Set<T> keyValues = entry
-                        .getValue()
-                        .stream()
-                        .filter(v -> v.getPluginId() == pluginId)
-                        .filter(v -> (v.getClass().equals(annotationClass)))
-                        .map(v -> (T) v)
-                        .collect(Collectors.toSet());
+                Set<T> keyValues = entry.getValue().stream().filter(v -> v.getPluginId() == pluginId).filter(v -> (v.getClass().equals(annotationClass))).map(v -> (T) v).collect(Collectors.toSet());
                 if (!keyValues.isEmpty()) {
                     result.put(entry.getKey(), keyValues);
                 }
@@ -160,11 +121,7 @@ public class Annotations implements MemoryAnnotations {
             Map<Integer, Set<Annotation>> result = new HashMap<>();
 
             for (Map.Entry<Integer, Set<Annotation>> entry : annotations.entrySet()) {
-                Set<Annotation> keyValues = entry
-                        .getValue()
-                        .stream()
-                        .filter(v -> v.getPluginId() == pluginId)
-                        .collect(Collectors.toSet());
+                Set<Annotation> keyValues = entry.getValue().stream().filter(v -> v.getPluginId() == pluginId).collect(Collectors.toSet());
                 if (!keyValues.isEmpty()) {
                     result.put(entry.getKey(), keyValues);
                 }
@@ -178,9 +135,7 @@ public class Annotations implements MemoryAnnotations {
     public <T extends Annotation> Set<T> get(int location, Class<? extends T> annotationClass) {
         return rwl.lockRead(() -> {
             Set<T> result = new HashSet<>();
-            Set<Annotation> atLocation = Optional
-                    .ofNullable(annotations.get(location))
-                    .orElse(Collections.emptySet());
+            Set<Annotation> atLocation = Optional.ofNullable(annotations.get(location)).orElse(Collections.emptySet());
 
             atLocation.forEach(a -> {
                 if (a.getClass().equals(annotationClass)) {
@@ -196,9 +151,7 @@ public class Annotations implements MemoryAnnotations {
     public <T extends Annotation> Set<T> get(long pluginId, int location, Class<? extends T> annotationClass) {
         return rwl.lockRead(() -> {
             Set<T> result = new HashSet<>();
-            Set<Annotation> atLocation = Optional
-                    .ofNullable(annotations.get(location))
-                    .orElse(Collections.emptySet());
+            Set<Annotation> atLocation = Optional.ofNullable(annotations.get(location)).orElse(Collections.emptySet());
 
             atLocation.forEach(a -> {
                 if (a.getClass().equals(annotationClass) && a.getPluginId() == pluginId) {
@@ -213,9 +166,7 @@ public class Annotations implements MemoryAnnotations {
     public Set<Annotation> get(long pluginId, int location) {
         return rwl.lockRead(() -> {
             Set<Annotation> result = new HashSet<>();
-            Set<Annotation> atLocation = Optional
-                    .ofNullable(annotations.get(location))
-                    .orElse(Collections.emptySet());
+            Set<Annotation> atLocation = Optional.ofNullable(annotations.get(location)).orElse(Collections.emptySet());
 
             atLocation.forEach(a -> {
                 if (a.getPluginId() == pluginId) {
@@ -229,9 +180,7 @@ public class Annotations implements MemoryAnnotations {
     @Override
     public void add(int location, Annotation annotation) {
         rwl.lockWrite(() -> {
-            Set<Annotation> atLocation = Optional
-                    .ofNullable(annotations.get(location))
-                    .orElse(new HashSet<>());
+            Set<Annotation> atLocation = Optional.ofNullable(annotations.get(location)).orElse(new HashSet<>());
 
             atLocation.add(annotation);
             annotations.put(location, atLocation);

@@ -1,21 +1,5 @@
-/*
- * This file is part of emuLib.
- *
- * Copyright (C) 2006-2023  Peter Jakubčo
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
 /**
@@ -33,6 +17,7 @@ public class DisassembledInstruction {
 
     /**
      * Creates a new instance of DisassembledInstruction
+     *
      * @param address The address of the instruction in memory
      * @param mnemo   The mnemonic form of the instruction (textual representation)
      * @param opCode  Operating code in textual representation
@@ -45,6 +30,7 @@ public class DisassembledInstruction {
 
     /**
      * Returns mnemonic representation of the instruction.
+     *
      * @return a string representing mnemonics form of the instruction
      */
     public String getMnemo() {
@@ -63,7 +49,7 @@ public class DisassembledInstruction {
     /**
      * Assigns new/modified instruction.
      *
-     * @param mnemo new mnemonics representation of the instruction
+     * @param mnemo  new mnemonics representation of the instruction
      * @param opcode new operating code
      */
     public void setInstruction(String mnemo, String opcode) {
