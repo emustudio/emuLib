@@ -2,7 +2,10 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui;
 
+import net.emustudio.emulib.runtime.ui.components.BrowseButton;
+import net.emustudio.emulib.runtime.ui.components.FileExtensionsFilter;
 import net.emustudio.emulib.runtime.ui.components.ToolbarToggleButton;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +15,7 @@ import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -57,8 +61,8 @@ public class GUI {
      * @param tooltipText  tooltip text
      * @return the toolbar toggle button
      */
-    public static JToggleButton toolbarToggleButton(Consumer<ActionEvent> action, String iconResource,
-                                                    String tooltipText) {
+    public static ToolbarToggleButton toolbarToggleButton(Consumer<ActionEvent> action, String iconResource,
+                                                          String tooltipText) {
         return new ToolbarToggleButton(action, iconResource, tooltipText);
     }
 
@@ -132,6 +136,43 @@ public class GUI {
     }
 
     /**
+     * Creates a new BrowseButton with directory-choosing action. It's a button with "Browse..." text, opening a dialog
+     * for selecting directories.
+     * <p>
+     * It can remember up to 10 last selected paths for convenience.
+     *
+     * @param dialogs           emuStudio dialogs
+     * @param dialogTitle       Open/Save dialog title
+     * @param approveButtonText Approve button text (in the Open/Save dialog)
+     * @param onApprove         Approved path consumer
+     * @return the BrowseButton
+     */
+    public static BrowseButton buttonBrowseDirectories(Dialogs dialogs, String dialogTitle, String approveButtonText,
+                                                       Consumer<Path> onApprove) {
+        return new BrowseButton(dialogs, dialogTitle, approveButtonText, onApprove);
+    }
+
+    /**
+     * Creates a new BrowseButton with file-choosing action. It's a button with "Browse..." text, opening a dialog
+     * for selecting files.
+     * <p>
+     * It can remember up to 10 last selected paths for convenience.
+     *
+     * @param dialogs                 emuStudio dialogs
+     * @param dialogTitle             Open/Save dialog title
+     * @param approveButtonText       Approve button text (in the Open/Save dialog)
+     * @param onApprove               Approved path consumer
+     * @param appendMissingExtensions Append extension to selected file if it doesn't have it (useful for Save dialog)
+     * @param filters                 list of file filters
+     * @return the BrowseButton
+     */
+    public static BrowseButton buttonBrowseFiles(Dialogs dialogs, String dialogTitle, String approveButtonText,
+                                                 boolean appendMissingExtensions,
+                                                 Consumer<Path> onApprove, FileExtensionsFilter... filters) {
+        return new BrowseButton(dialogs, dialogTitle, approveButtonText, appendMissingExtensions, onApprove, filters);
+    }
+
+    /**
      * Creates a JTextField with given text. The columns count is set to 20.
      *
      * @param text initial text
@@ -188,6 +229,36 @@ public class GUI {
         JScrollPane scrollPane = new JScrollPane(view);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         return scrollPane;
+    }
+
+    /**
+     * Creates a JPanel in a vertical arrangement. Vertical panel has one column that grows and
+     * fills the available horizontal space.
+     *
+     * @return the JPanel in a vertical arrangement
+     */
+    public static JPanel panelVertical() {
+        return new JPanel(new MigLayout("insets dialog, fillx", "[grow]", "[]"));
+    }
+
+    /**
+     * Creates a JPanel in a horizontal arrangement. Horizontal panel has one row that grows and
+     * fills the available vertical space.
+     *
+     * @return the JPanel in a horizontal arrangement
+     */
+    public static JPanel panelHorizontal() {
+        return new JPanel(new MigLayout("insets dialog, filly", "[]", "[grow]"));
+    }
+
+    /**
+     * Creates a JPanel for buttons at the bottom of dialogs. The panel has one row and one column,
+     * aligned to the right and growing.
+     *
+     * @return the JPanel for buttons
+     */
+    public static JPanel panelButtons() {
+        return new JPanel(new MigLayout("insets dialog", "[grow, right]", "[]"));
     }
 
     /**

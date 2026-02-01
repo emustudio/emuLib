@@ -42,22 +42,27 @@ public interface Formatter {
                 String string = new String(bits.toBytes());
                 return (!string.isEmpty()) ? string.substring(0, 1) : "?";
             case 'd':
-                return Integer.toString(bits.bits);
+                return Integer.toString(bits.number);
             case 'f':
                 switch (bits.length) {
                     case 32:
                         return Float.toString(ByteBuffer.wrap(bits.toBytes()).order(ByteOrder.LITTLE_ENDIAN).getFloat());
                     case 64:
-                        return Double.toString(ByteBuffer.wrap(bits.toBytes()).order(ByteOrder.LITTLE_ENDIAN).getDouble());
+                        // Bits only stores 32-bit int, but we need 8 bytes for double
+                        // Extend the 4-byte array to 8 bytes for proper double interpretation
+                        ByteBuffer buffer = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN);
+                        buffer.put(bits.toBytes());
+                        buffer.position(0); // Reset position to read from start
+                        return Double.toString(buffer.getDouble());
                     default:
                         return "NaN";
                 }
             case 's':
                 return new String(bits.toBytes()).replace("\0", "");
             case 'x':
-                return Integer.toHexString(bits.bits);
+                return Integer.toHexString(bits.number);
             case 'X':
-                return Integer.toHexString(bits.bits).toUpperCase();
+                return Integer.toHexString(bits.number).toUpperCase();
             case '%':
                 return "%";
             default:

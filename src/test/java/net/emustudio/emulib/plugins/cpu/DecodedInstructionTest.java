@@ -68,7 +68,7 @@ public class DecodedInstructionTest {
     @Test
     public void testGetBits() {
         instruction.add(0, 0x0605, 16);
-        assertEquals(0x0605, instruction.getBits(0).bits);
+        assertEquals(0x0605, instruction.getBits(0).number);
     }
 
     @Test

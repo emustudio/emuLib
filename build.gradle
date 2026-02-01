@@ -43,6 +43,8 @@ dependencies {
   compileOnly 'net.jcip:jcip-annotations:1.0'
   testImplementation 'net.jcip:jcip-annotations:1.0'
 
+  compileOnly "com.miglayout:miglayout-swing:11.1"
+  testImplementation "com.miglayout:miglayout-swing:11.1"
   compileOnly "com.formdev:flatlaf:${versions.flatlaf}:no-natives"
   testImplementation "com.formdev:flatlaf:${versions.flatlaf}:no-natives"
   compileOnly "com.formdev:flatlaf-extras:${versions.flatlaf}"

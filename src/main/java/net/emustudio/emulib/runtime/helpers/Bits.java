@@ -24,28 +24,34 @@ import java.nio.ByteBuffer;
 
 /**
  * Bits utility class. Supports various operations on bits.
+ * It supports maximally 32 bits, because it works with an integer.
  */
 @NotThreadSafe
 public class Bits {
-    public int bits;
+    public int number;
     public final int length;
     private final int mask;
 
     /**
      * Constructs new Bits object.
      *
-     * @param bits   integer number in little endian
+     * @param number integer number in little endian
      * @param length significant bits count
      */
-    public Bits(int bits, int length) {
-        this.bits = bits;
+    public Bits(int number, int length) {
+        this.number = number;
         this.length = length;
         this.mask = (1 << length) - 1;
     }
 
+    /**
+     * Converts the bits to byte array in little endian. The size of the array is always 4 bytes.
+     *
+     * @return byte array representing the bits in little endian
+     */
     @SuppressWarnings("unused")
     public byte[] toBytes() {
-        return ByteBuffer.allocate(4).putInt(bits).array();
+        return ByteBuffer.allocate(4).putInt(number).array();
     }
 
     /**
@@ -58,7 +64,7 @@ public class Bits {
         //
         // little endian
         // [ FF 00 00 00 ] = 0xFF   => [ 00 00 00 FF ] = 0xFF000000 >> (32 - 8 = 24) = 0xFF
-        bits = Integer.reverseBytes(bits) >>> (32 - length);
+        number = Integer.reverseBytes(number) >>> (32 - length);
         return this;
     }
 
@@ -70,7 +76,7 @@ public class Bits {
      * @return this Bits, reversed bits within each byte
      */
     public Bits reverseBits() {
-        bits = NumberUtils.reverseBits(bits, length);
+        number = NumberUtils.reverseBits(number, length);
         return this;
     }
 
@@ -82,7 +88,7 @@ public class Bits {
      * @return this Bits - the negative sign is removed
      */
     public Bits absolute() {
-        bits = Math.abs(bits);
+        number = Math.abs(number);
         return this;
     }
 
@@ -92,7 +98,7 @@ public class Bits {
      * @return this Bits with value shifted to the left by 1 bit, padded with zeroes from the right
      */
     public Bits shiftLeft() {
-        bits = (bits << 1) & mask;
+        number = (number << 1) & mask;
         return this;
     }
 
@@ -102,7 +108,7 @@ public class Bits {
      * @return this Bits shifted to the right by 1 bit, padded with zeroes from the left
      */
     public Bits shiftRight() {
-        bits >>>= 1;
+        number >>>= 1;
         return this;
     }
 }
