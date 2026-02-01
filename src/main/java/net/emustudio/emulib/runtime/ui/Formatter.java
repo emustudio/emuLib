@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui;
 
 import net.emustudio.emulib.runtime.helpers.Bits;
 
@@ -40,7 +40,7 @@ public interface Formatter {
         switch (format) {
             case 'c':
                 String string = new String(bits.toBytes());
-                return (string.length() != 0) ? string.substring(0, 1) : "?";
+                return (!string.isEmpty()) ? string.substring(0, 1) : "?";
             case 'd':
                 return Integer.toString(bits.bits);
             case 'f':

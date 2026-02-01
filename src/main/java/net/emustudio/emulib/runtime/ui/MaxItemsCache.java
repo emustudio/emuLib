@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui;
 
 import net.jcip.annotations.NotThreadSafe;
 
@@ -27,7 +27,7 @@ import java.util.*;
  * A cache with max items limit, retaining most used items, and removing the least used items above given limit.
  */
 @NotThreadSafe
-public class LimitedCache<V> {
+public class MaxItemsCache<V> {
     private final SortedMap<Integer, V> cache = new TreeMap<>();
 
     private final int limit;
@@ -37,7 +37,7 @@ public class LimitedCache<V> {
      *
      * @param limit the cache is allowed to contain only given number of items
      */
-    public LimitedCache(int limit) {
+    public MaxItemsCache(int limit) {
         this.limit = limit;
     }
 

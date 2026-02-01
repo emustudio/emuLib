@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui;
 
 import org.junit.Test;
 
@@ -26,11 +26,11 @@ import java.util.List;
 
 import static org.junit.Assert.*;
 
-public class LimitedCacheTest {
+public class MaxItemsCacheTest {
 
     @Test
     public void testClearCache() {
-        LimitedCache<Integer> cache = new LimitedCache<>(2);
+        MaxItemsCache<Integer> cache = new MaxItemsCache<>(2);
         cache.put(0);
         assertEquals(1, cache.getSize());
 
@@ -40,7 +40,7 @@ public class LimitedCacheTest {
 
     @Test
     public void testEmptyCachePut() {
-        LimitedCache<Integer> cache = new LimitedCache<>(2);
+        MaxItemsCache<Integer> cache = new MaxItemsCache<>(2);
         cache.put(10);
 
         Iterator<Integer> it = cache.iterator();
@@ -52,7 +52,7 @@ public class LimitedCacheTest {
 
     @Test
     public void testPutTheSameValueTwice() {
-        LimitedCache<Integer> cache = new LimitedCache<>(2);
+        MaxItemsCache<Integer> cache = new MaxItemsCache<>(2);
         cache.put(10);
         cache.put(10);
 
@@ -61,7 +61,7 @@ public class LimitedCacheTest {
 
     @Test
     public void testCorrectOrderingOnRetrieval() {
-        LimitedCache<Integer> cache = new LimitedCache<>(5);
+        MaxItemsCache<Integer> cache = new MaxItemsCache<>(5);
         cache.put(10);
         cache.put(10);
         cache.put(1);
@@ -79,7 +79,7 @@ public class LimitedCacheTest {
 
     @Test
     public void testLimit() {
-        LimitedCache<Integer> cache = new LimitedCache<>(2);
+        MaxItemsCache<Integer> cache = new MaxItemsCache<>(2);
         assertEquals(2, cache.getLimit());
 
         cache.put(1);
@@ -100,7 +100,7 @@ public class LimitedCacheTest {
 
     @Test
     public void testZeroItemsLimit() {
-        LimitedCache<Integer> cache = new LimitedCache<>(0);
+        MaxItemsCache<Integer> cache = new MaxItemsCache<>(0);
 
         cache.put(10);
         assertEquals(0, cache.getSize());

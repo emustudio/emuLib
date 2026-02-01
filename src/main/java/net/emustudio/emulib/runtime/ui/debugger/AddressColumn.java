@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction.debugger;
+package net.emustudio.emulib.runtime.ui.debugger;
 
 import java.util.Objects;
 
@@ -75,11 +75,6 @@ public class AddressColumn implements DebuggerColumn<String> {
     @Override
     public String getValue(int location) {
         return String.format(addressFormat, location);
-    }
-
-    @Override
-    public int getDefaultWidth() {
-        return -1;
     }
 
 }

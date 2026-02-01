@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction.debugger;
+package net.emustudio.emulib.runtime.ui.debugger;
 
 import net.emustudio.emulib.plugins.cpu.Disassembler;
 import net.emustudio.emulib.plugins.cpu.InvalidInstructionException;
@@ -25,7 +25,7 @@ import java.util.Objects;
 
 /**
  * This class represents "opcode" column in the debug table.
- *
+ * <p>
  * The opcode means operating code - the formatted binary representation of the instruction.
  */
 public class OpcodeColumn implements DebuggerColumn<String> {
@@ -54,7 +54,7 @@ public class OpcodeColumn implements DebuggerColumn<String> {
      * Has no effect.
      *
      * @param location memory address (not row in debug table)
-     * @param value  new value of the cell
+     * @param value    new value of the cell
      */
     @Override
     public void setValue(int location, Object value) {
@@ -64,7 +64,7 @@ public class OpcodeColumn implements DebuggerColumn<String> {
     /**
      * Get opcode for instruction at specific location.
      *
-     * @param location  memory address (not row in debug table)
+     * @param location memory address (not row in debug table)
      * @return Opcode string of an instruction at specific location
      */
     @Override
@@ -76,8 +76,4 @@ public class OpcodeColumn implements DebuggerColumn<String> {
         }
     }
 
-    @Override
-    public int getDefaultWidth() {
-        return -1;
-    }
 }

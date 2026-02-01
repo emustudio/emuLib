@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction.debugger;
+package net.emustudio.emulib.runtime.ui.debugger;
 
 import net.emustudio.emulib.plugins.Plugin;
 
@@ -24,7 +24,7 @@ import java.util.List;
 
 /**
  * Debugger table in emuStudio.
- *
+ * <p>
  * Allows to set up custom columns by a plugin. If no plugin sets the columns, emuStudio will provide default columns.
  */
 @SuppressWarnings("unused")
@@ -32,10 +32,10 @@ public interface DebuggerTable {
 
     /**
      * Set custom columns in the debugger table.
-     *
+     * <p>
      * The call has immediate effect. Subsequent calls are allowed; plugins can change the columns at any time. However,
      * it is not recommended to change it once the columns are set.
-     *
+     * <p>
      * NOTE: Should be called in {@link Plugin#initialize()} method, not sooner.
      *
      * @param columns non-null debug columns

@@ -16,7 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui.components;
+
+import net.emustudio.emulib.runtime.ui.MaxItemsCache;
 
 import javax.swing.*;
 import java.util.Iterator;
@@ -26,7 +28,7 @@ import java.util.Iterator;
  */
 @SuppressWarnings("unused")
 public class CachedComboBoxModel<T> extends AbstractListModel<T> implements ComboBoxModel<T> {
-    private final LimitedCache<T> cache = new LimitedCache<>(10);
+    private final MaxItemsCache<T> cache = new MaxItemsCache<>(10);
     private Object selected;
 
     public void add(T item) {

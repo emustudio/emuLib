@@ -16,7 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui.components;
+
+import net.emustudio.emulib.runtime.ui.Dialogs;
+import net.emustudio.emulib.runtime.ui.MaxItemsCache;
 
 import javax.swing.*;
 import java.nio.file.Path;
@@ -29,7 +32,7 @@ import java.util.function.Consumer;
  */
 @SuppressWarnings("unused")
 public class BrowseButton extends JButton {
-    private final LimitedCache<Path> pathCache = new LimitedCache<>(10);
+    private final MaxItemsCache<Path> pathCache = new MaxItemsCache<>(10);
 
     /**
      * Constructs new BrowseButton with directory-choosing action

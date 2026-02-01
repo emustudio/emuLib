@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui;
 
 import java.awt.*;
 
@@ -27,7 +27,7 @@ import java.awt.*;
  * Default constants for emuStudio GUI
  */
 @SuppressWarnings("unused")
-public class GuiConstants {
+public class Constants {
 
     /**
      * Default font size

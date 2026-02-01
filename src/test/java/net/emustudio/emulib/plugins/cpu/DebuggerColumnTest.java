@@ -18,7 +18,7 @@
  */
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.runtime.interaction.debugger.DebuggerColumn;
+import net.emustudio.emulib.runtime.ui.debugger.DebuggerColumn;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

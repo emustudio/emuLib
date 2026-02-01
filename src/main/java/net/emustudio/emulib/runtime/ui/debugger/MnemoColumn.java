@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction.debugger;
+package net.emustudio.emulib.runtime.ui.debugger;
 
 import net.emustudio.emulib.plugins.cpu.DisassembledInstruction;
 import net.emustudio.emulib.plugins.cpu.Disassembler;
@@ -26,7 +26,7 @@ import java.util.Objects;
 
 /**
  * This class represents "mnemo" column in the debug table.
- *
+ * <p>
  * The column displays mnemonic (textual) representations of the instruction at specific location..
  */
 public class MnemoColumn implements DebuggerColumn<String> {
@@ -55,7 +55,7 @@ public class MnemoColumn implements DebuggerColumn<String> {
      * Has no effect.
      *
      * @param location memory address (not row in debug table)
-     * @param value  new value of the cell
+     * @param value    new value of the cell
      */
     @Override
     public void setValue(int location, Object value) {
@@ -65,7 +65,7 @@ public class MnemoColumn implements DebuggerColumn<String> {
     /**
      * Get instruction mnemonic.
      *
-     * @param location  memory address (not row in debug table)
+     * @param location memory address (not row in debug table)
      * @return Mnemonic form of an instruction at specific location
      */
     @Override
@@ -75,13 +75,9 @@ public class MnemoColumn implements DebuggerColumn<String> {
             return instr.getMnemo();
         } catch (InvalidInstructionException e) {
             return "[invalid]";
-        } catch(IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException e) {
             return "[incomplete]";
         }
     }
 
-    @Override
-    public int getDefaultWidth() {
-        return -1;
-    }
 }

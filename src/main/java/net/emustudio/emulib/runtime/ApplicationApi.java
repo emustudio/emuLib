@@ -18,8 +18,8 @@
  */
 package net.emustudio.emulib.runtime;
 
-import net.emustudio.emulib.runtime.interaction.Dialogs;
-import net.emustudio.emulib.runtime.interaction.debugger.DebuggerTable;
+import net.emustudio.emulib.runtime.ui.Dialogs;
+import net.emustudio.emulib.runtime.ui.debugger.DebuggerTable;
 import net.jcip.annotations.ThreadSafe;
 
 /**

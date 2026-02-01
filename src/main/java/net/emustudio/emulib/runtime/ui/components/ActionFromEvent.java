@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-package net.emustudio.emulib.runtime.interaction;
+package net.emustudio.emulib.runtime.ui.components;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.util.function.Consumer;
 
-import static net.emustudio.emulib.runtime.interaction.GuiUtils.loadIcon;
+import static net.emustudio.emulib.runtime.ui.GUI.loadIcon;
 
 public class ActionFromEvent extends AbstractAction {
     private final Consumer<ActionEvent> action;
