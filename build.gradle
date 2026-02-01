@@ -1,21 +1,5 @@
-/*
- * This file is part of emuLib.
- *
- * Copyright (C) 2006-2023  Peter Jakubčo
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
 
 plugins {
   id "java-library"
@@ -28,13 +12,27 @@ group 'net.emustudio'
 version '12.1.0-SNAPSHOT'
 archivesBaseName = 'emulib'
 
+ext.versions = [
+        slf4j: '2.0.17',
+        flatlaf: '3.5.2'
+]
+
 repositories {
   mavenCentral()
 }
 
 dependencies {
-  implementation 'org.slf4j:slf4j-api:2.0.5'
-  implementation 'net.jcip:jcip-annotations:1.0'
+  compileOnly "org.slf4j:slf4j-api:${versions.slf4j}"
+  testImplementation "org.slf4j:slf4j-api:${versions.slf4j}"
+  compileOnly 'net.jcip:jcip-annotations:1.0'
+  testImplementation 'net.jcip:jcip-annotations:1.0'
+
+  compileOnly "com.miglayout:miglayout-swing:11.1"
+  testImplementation "com.miglayout:miglayout-swing:11.1"
+  compileOnly "com.formdev:flatlaf:${versions.flatlaf}:no-natives"
+  testImplementation "com.formdev:flatlaf:${versions.flatlaf}:no-natives"
+  compileOnly "com.formdev:flatlaf-extras:${versions.flatlaf}"
+  testImplementation "com.formdev:flatlaf-extras:${versions.flatlaf}"
 
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.easymock:easymock:5.1.0'
@@ -112,6 +110,13 @@ signing {
   def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
   useInMemoryPgpKeys(signingKey, signingPassword)
   sign publishing.publications.mavenJava
+}
+
+test {
+  systemProperty 'java.awt.headless', 'true'
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
 }
 
 javadoc {
