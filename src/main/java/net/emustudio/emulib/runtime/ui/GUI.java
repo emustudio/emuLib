@@ -4,6 +4,7 @@ package net.emustudio.emulib.runtime.ui;
 
 import net.emustudio.emulib.runtime.ui.components.BrowseButton;
 import net.emustudio.emulib.runtime.ui.components.FileExtensionsFilter;
+import net.emustudio.emulib.runtime.ui.components.ToolbarButton;
 import net.emustudio.emulib.runtime.ui.components.ToolbarToggleButton;
 import net.miginfocom.swing.MigLayout;
 
@@ -26,6 +27,40 @@ import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 public class GUI {
 
     /**
+     * Toolbar button - a JButton ready to add to a toolbar.
+     *
+     * @param action       button action
+     * @param iconResource icon resource path
+     * @param tooltipText  tooltip text
+     * @return the toolbar button
+     */
+    public static ToolbarButton toolbarButton(Consumer<ActionEvent> action, String iconResource, String tooltipText) {
+        return new ToolbarButton(action, iconResource, tooltipText);
+    }
+
+    /**
+     * Toolbar button - a JButton ready to add to a toolbar.
+     *
+     * @param action button action
+     * @return the toolbar button
+     */
+    public static ToolbarButton toolbarButton(Action action) {
+        return new ToolbarButton(action);
+    }
+
+    /**
+     * Toolbar button - a JButton ready to add to a toolbar.
+     *
+     * @param action       button action
+     * @param iconResource icon resource path
+     * @param tooltipText  tooltip text
+     * @return the toolbar button
+     */
+    public static ToolbarButton toolbarButton(Action action, String iconResource, String tooltipText) {
+        return new ToolbarButton(action, iconResource, tooltipText);
+    }
+
+    /**
      * Toolbar toggle button - a JToggleButton ready to add to a toolbar.
      * <p>
      * Properties:
@@ -41,8 +76,7 @@ public class GUI {
      * @param tooltipText  tooltip text
      * @return the toolbar toggle button
      */
-    public static ToolbarToggleButton toolbarToggleButton(Consumer<ActionEvent> action, Consumer<ItemEvent> itemAction,
-                                                          String iconResource, String tooltipText) {
+    public static ToolbarToggleButton toolbarToggleButton(Consumer<ActionEvent> action, Consumer<ItemEvent> itemAction, String iconResource, String tooltipText) {
         return new ToolbarToggleButton(action, itemAction, iconResource, tooltipText);
     }
 
@@ -61,8 +95,7 @@ public class GUI {
      * @param tooltipText  tooltip text
      * @return the toolbar toggle button
      */
-    public static ToolbarToggleButton toolbarToggleButton(Consumer<ActionEvent> action, String iconResource,
-                                                          String tooltipText) {
+    public static ToolbarToggleButton toolbarToggleButton(Consumer<ActionEvent> action, String iconResource, String tooltipText) {
         return new ToolbarToggleButton(action, iconResource, tooltipText);
     }
 
@@ -147,8 +180,7 @@ public class GUI {
      * @param onApprove         Approved path consumer
      * @return the BrowseButton
      */
-    public static BrowseButton buttonBrowseDirectories(Dialogs dialogs, String dialogTitle, String approveButtonText,
-                                                       Consumer<Path> onApprove) {
+    public static BrowseButton buttonBrowseDirectories(Dialogs dialogs, String dialogTitle, String approveButtonText, Consumer<Path> onApprove) {
         return new BrowseButton(dialogs, dialogTitle, approveButtonText, onApprove);
     }
 
@@ -166,9 +198,7 @@ public class GUI {
      * @param filters                 list of file filters
      * @return the BrowseButton
      */
-    public static BrowseButton buttonBrowseFiles(Dialogs dialogs, String dialogTitle, String approveButtonText,
-                                                 boolean appendMissingExtensions,
-                                                 Consumer<Path> onApprove, FileExtensionsFilter... filters) {
+    public static BrowseButton buttonBrowseFiles(Dialogs dialogs, String dialogTitle, String approveButtonText, boolean appendMissingExtensions, Consumer<Path> onApprove, FileExtensionsFilter... filters) {
         return new BrowseButton(dialogs, dialogTitle, approveButtonText, appendMissingExtensions, onApprove, filters);
     }
 
@@ -328,10 +358,7 @@ public class GUI {
         attrs.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
 
         try (InputStream fin = resourceClass.getResourceAsStream(path)) {
-            Font font = Font
-                    .createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(fin))
-                    .deriveFont(Font.PLAIN, size)
-                    .deriveFont(attrs);
+            Font font = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(fin)).deriveFont(Font.PLAIN, size).deriveFont(attrs);
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
             return font;
         } catch (Exception e) {
