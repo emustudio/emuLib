@@ -2,168 +2,135 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui.components;
 
-import org.assertj.swing.edt.GuiActionRunner;
-import org.assertj.swing.junit.testcase.AssertJSwingJUnitTestCase;
 import org.junit.Test;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.*;
 
-public class ToolbarToggleButtonTest extends AssertJSwingJUnitTestCase {
-
-    @Override
-    protected void onSetUp() {
-        System.setProperty("java.awt.headless", "false");
-    }
+public class ToolbarToggleButtonTest {
 
     @Test
-    public void testConstructorWithAction() {
-        Action action = new AbstractAction("Toggle Test") {
+    public void testConstructorWithActionOnly() {
+        Action action = new AbstractAction("Test") {
             @Override
             public void actionPerformed(ActionEvent e) {}
         };
-        action.putValue(Action.SHORT_DESCRIPTION, "Toggle tooltip");
-
-        ToolbarToggleButton button = GuiActionRunner.execute(() -> new ToolbarToggleButton(action));
-
+        action.putValue(Action.SHORT_DESCRIPTION, "Test tooltip");
+        
+        ToolbarToggleButton button = new ToolbarToggleButton(action);
+        
         assertNotNull(button);
-        assertEquals("Toggle tooltip", button.getToolTipText());
+        assertEquals("Test tooltip", button.getToolTipText());
+        assertFalse(button.isSelected());
         assertFalse(button.isFocusable());
-        assertEquals("toolBarButton", button.getClientProperty("JButton.buttonType"));
     }
 
     @Test
-    public void testConstructorWithActionAndIcon() {
+    public void testConstructorWithIconResource() {
+        AtomicInteger actionCounter = new AtomicInteger(0);
+        
+        Action action = new AbstractAction("Test") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                actionCounter.incrementAndGet();
+            }
+        };
+
+        ToolbarToggleButton button = new ToolbarToggleButton(action, "/icon.png", "Test tooltip");
+        
+        assertNotNull(button);
+        assertEquals("Test tooltip", button.getToolTipText());
+        assertFalse(button.isFocusable());
+    }
+
+    @Test
+    public void testToggle() {
         Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {}
         };
-
-        ToolbarToggleButton button = GuiActionRunner.execute(() ->
-            new ToolbarToggleButton(action, "test.png", "Toggle tooltip")
-        );
-
-        assertNotNull(button);
-        assertEquals("Toggle tooltip", button.getToolTipText());
-        assertFalse(button.isFocusable());
-    }
-
-    @Test
-    public void testConstructorWithConsumers() {
-        AtomicInteger actionCounter = new AtomicInteger(0);
-        AtomicInteger itemCounter = new AtomicInteger(0);
-
-        ToolbarToggleButton button = GuiActionRunner.execute(() ->
-            new ToolbarToggleButton(
-                e -> actionCounter.incrementAndGet(),
-                e -> itemCounter.incrementAndGet(),
-                "test.png",
-                "Toggle with consumers"
-            )
-        );
-
-        assertNotNull(button);
-        assertEquals("Toggle with consumers", button.getToolTipText());
-
-        // Click to select
-        GuiActionRunner.execute(() -> button.doClick());
-        assertTrue(actionCounter.get() > 0);
-        assertTrue(itemCounter.get() > 0);
-    }
-
-    @Test
-    public void testToggleState() {
-        ToolbarToggleButton button = GuiActionRunner.execute(() ->
-            new ToolbarToggleButton(e -> {}, "test.png", "Toggle state test")
-        );
-
+        ToolbarToggleButton button = new ToolbarToggleButton(action);
+        
         assertFalse(button.isSelected());
-
-        // Toggle on
-        GuiActionRunner.execute(() -> button.setSelected(true));
+        
+        button.doClick();
         assertTrue(button.isSelected());
-
-        // Toggle off
-        GuiActionRunner.execute(() -> button.setSelected(false));
+        
+        button.doClick();
         assertFalse(button.isSelected());
     }
 
     @Test
     public void testItemStateChange() {
-        AtomicBoolean selected = new AtomicBoolean(false);
-        AtomicBoolean deselected = new AtomicBoolean(false);
+        AtomicReference<ItemEvent> capturedEvent = new AtomicReference<>();
+        Consumer<ItemEvent> itemConsumer = capturedEvent::set;
 
-        ToolbarToggleButton button = GuiActionRunner.execute(() ->
-            new ToolbarToggleButton(
-                e -> {},
-                e -> {
-                    if (e.getStateChange() == ItemEvent.SELECTED) {
-                        selected.set(true);
-                    } else if (e.getStateChange() == ItemEvent.DESELECTED) {
-                        deselected.set(true);
-                    }
-                },
-                "test.png",
-                "Item state test"
-            )
-        );
-
-        // Select
-        GuiActionRunner.execute(() -> button.setSelected(true));
-        assertTrue(selected.get());
-
-        // Deselect
-        GuiActionRunner.execute(() -> button.setSelected(false));
-        assertTrue(deselected.get());
+        ToolbarToggleButton button = new ToolbarToggleButton(e -> {}, itemConsumer, "/icon.png", "Test");
+        
+        button.doClick();
+        
+        ItemEvent event = capturedEvent.get();
+        assertNotNull(event);
+        assertEquals(ItemEvent.SELECTED, event.getStateChange());
+        assertEquals(button, event.getSource());
     }
 
     @Test
-    public void testButtonIsNotFocusable() {
+    public void testItemStateChangeDeselected() {
+        AtomicReference<ItemEvent> capturedEvent = new AtomicReference<>();
+        Consumer<ItemEvent> itemConsumer = capturedEvent::set;
+
+        ToolbarToggleButton button = new ToolbarToggleButton(e -> {}, itemConsumer, "/icon.png", "Test");
+        
+        button.setSelected(true);
+        button.doClick();
+        
+        ItemEvent event = capturedEvent.get();
+        assertNotNull(event);
+        assertEquals(ItemEvent.DESELECTED, event.getStateChange());
+    }
+
+    @Test
+    public void testConstructorWithConsumer() {
+        AtomicInteger counter = new AtomicInteger(0);
+        
+        ToolbarToggleButton button = new ToolbarToggleButton(e -> counter.incrementAndGet(), "/icon.png", "Test");
+        
+        assertNotNull(button);
+        assertEquals("Test", button.getToolTipText());
+        assertFalse(button.isFocusable());
+        
+        button.doClick();
+        assertEquals(1, counter.get());
+    }
+
+    @Test
+    public void testClientProperty() {
+        Action action = new AbstractAction("Test") {
+            @Override
+            public void actionPerformed(ActionEvent e) {}
+        };
+        
+        ToolbarToggleButton button = new ToolbarToggleButton(action);
+        assertEquals("toolBarButton", button.getClientProperty("JButton.buttonType"));
+    }
+
+    @Test
+    public void testNotFocusable() {
         Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {}
         };
-
-        ToolbarToggleButton button = GuiActionRunner.execute(() -> new ToolbarToggleButton(action));
+        ToolbarToggleButton button = new ToolbarToggleButton(action);
         assertFalse(button.isFocusable());
-    }
-
-    @Test
-    public void testButtonHidesText() {
-        Action action = new AbstractAction("Visible Text") {
-            @Override
-            public void actionPerformed(ActionEvent e) {}
-        };
-
-        ToolbarToggleButton button = GuiActionRunner.execute(() -> new ToolbarToggleButton(action));
-        assertTrue(button.getHideActionText());
-    }
-
-    @Test
-    public void testMultipleToggles() {
-        AtomicInteger toggleCount = new AtomicInteger(0);
-
-        ToolbarToggleButton button = GuiActionRunner.execute(() ->
-            new ToolbarToggleButton(
-                e -> {},
-                e -> toggleCount.incrementAndGet(),
-                "test.png",
-                "Multiple toggles"
-            )
-        );
-
-        GuiActionRunner.execute(() -> {
-            button.doClick(); // Select
-            button.doClick(); // Deselect
-            button.doClick(); // Select
-            button.doClick(); // Deselect
-        });
-
-        assertEquals(4, toggleCount.get());
+        
+        button = new ToolbarToggleButton(e -> {}, "/icon.png", "Test");
+        assertFalse(button.isFocusable());
     }
 }

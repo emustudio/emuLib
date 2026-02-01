@@ -36,7 +36,6 @@ dependencies {
 
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.easymock:easymock:5.1.0'
-  testImplementation 'org.assertj:assertj-swing-junit:3.17.1'
 }
 
 java {
@@ -111,6 +110,13 @@ signing {
   def signingPassword = findProperty("GPG_PASSWORD") ?: System.getenv("GPG_PASSWORD")
   useInMemoryPgpKeys(signingKey, signingPassword)
   sign publishing.publications.mavenJava
+}
+
+test {
+  systemProperty 'java.awt.headless', 'true'
+  testLogging {
+    events "passed", "skipped", "failed"
+  }
 }
 
 javadoc {
