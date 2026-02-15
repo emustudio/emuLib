@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/java,gradle,netbeans,intellij+all
 # Edit at https://www.gitignore.io/?templates=java,gradle,netbeans,intellij+all
 
@@ -50,6 +49,7 @@ cmake-build-*/
 
 # IntelliJ
 out/
+bin/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
@@ -142,3 +142,14 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/java,gradle,netbeans,intellij+all
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Metals (Scala)
+.metals/
+.bloop/
+.ammonite/
+.metals-sbt/
+.scala-build/
