@@ -19,6 +19,10 @@ java {
 group 'net.emustudio'
 version '12.1.0-SNAPSHOT'
 
+base {
+  archivesName = 'emulib'
+}
+
 ext.versions = [
         slf4j: '2.0.17',
         flatlaf: '3.5.2'

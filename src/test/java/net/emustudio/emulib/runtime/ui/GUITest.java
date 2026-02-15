@@ -130,7 +130,7 @@ public class GUITest {
 
         GUI.buttonMakePrimary(button);
 
-        assertEquals("borderless", button.getClientProperty("JButton.buttonType"));
+        assertTrue(button.isDefaultCapable());
         assertEquals(Font.BOLD, button.getFont().getStyle());
     }
 

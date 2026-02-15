@@ -165,12 +165,14 @@ public class GUI {
 
     /**
      * Makes a JButton look like a primary button.
+     * Sets the button as the default button and applies bold font styling.
      *
      * @param button the JButton
      * @return the same JButton with modified properties
      */
     public static JButton buttonMakePrimary(JButton button) {
         button.putClientProperty("JButton.buttonType", "borderless");
+        button.setDefaultCapable(true);
         button.setFont(button.getFont().deriveFont(Font.BOLD));
         return button;
     }
