@@ -13,6 +13,11 @@ import java.util.List;
  */
 @ThreadSafe
 public class NumberUtils {
+    /**
+     * Constructs NumberUtils (utility class).
+     */
+    private NumberUtils() {
+    }
 
     /**
      * Constructs a new NumberUtils instance.
@@ -26,6 +31,11 @@ public class NumberUtils {
      * Strategies can be combined with | (or) operator.
      */
     public static final class Strategy {
+        /**
+         * Constructs Strategy (utility class).
+         */
+        private Strategy() {
+        }
 
         /**
          * Constructs a new Strategy instance.

@@ -25,6 +25,12 @@ public class Annotations implements MemoryAnnotations {
     private final Map<Integer, Set<Annotation>> annotations = new HashMap<>();
     private final ReadWriteLockSupport rwl = new ReadWriteLockSupport();
 
+    /**
+     * Constructs new annotations container.
+     */
+    public Annotations() {
+    }
+
     @Override
     public void clear() {
         rwl.lockWrite(annotations::clear);

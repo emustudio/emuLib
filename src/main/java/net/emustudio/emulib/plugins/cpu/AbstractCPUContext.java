@@ -23,6 +23,12 @@ public abstract class AbstractCPUContext implements CPUContext {
 
     private final Set<PassedCyclesListener> passedCyclesListenerSet = new CopyOnWriteArraySet<>();
 
+    /**
+     * Constructs new abstract CPU context.
+     */
+    protected AbstractCPUContext() {
+    }
+
     @Override
     public void addPassedCyclesListener(PassedCyclesListener passedCyclesListener) {
         passedCyclesListenerSet.add(passedCyclesListener);

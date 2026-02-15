@@ -36,6 +36,12 @@ public class IntelHEX {
     private int nextAddress;
 
     /**
+     * Constructs new Intel HEX generator/loader.
+     */
+    public IntelHEX() {
+    }
+
+    /**
      * Adds sequential bytes into the code table.
      * The bytes are encoded as hex String, each byte consuming exactly 2 hex digits.
      * <p>

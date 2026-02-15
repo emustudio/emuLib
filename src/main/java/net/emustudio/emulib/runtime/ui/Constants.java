@@ -12,6 +12,11 @@ import java.awt.*;
  */
 @SuppressWarnings("unused")
 public class Constants {
+    /**
+     * Constructs Constants (utility class).
+     */
+    private Constants() {
+    }
 
     /**
      * Constructs a new Constants instance.

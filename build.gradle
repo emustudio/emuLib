@@ -102,6 +102,8 @@ test {
 }
 
 javadoc {
+  options.addStringOption('Xdoclint:all', '-quiet')
+  options.memberLevel = JavadocMemberLevel.PROTECTED
   if (JavaVersion.current().isJava9Compatible()) {
     options.addBooleanOption('html5', true)
   }

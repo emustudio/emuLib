@@ -28,6 +28,12 @@ public abstract class AbstractMemoryContext<CellType> implements MemoryContext<C
 
     private volatile boolean notificationsEnabled = true;
 
+    /**
+     * Constructs new abstract memory context.
+     */
+    protected AbstractMemoryContext() {
+    }
+
     @Override
     public boolean areMemoryNotificationsEnabled() {
         return notificationsEnabled;
