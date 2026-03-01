@@ -31,6 +31,9 @@ public abstract class AbstractMemory implements Memory {
      */
     protected final PluginSettings settings;
 
+    /**
+     * Memory annotations.
+     */
     protected final MemoryAnnotations annotations = new Annotations();
 
     /**

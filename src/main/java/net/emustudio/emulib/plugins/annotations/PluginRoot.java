@@ -18,7 +18,17 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface PluginRoot {
+    /**
+     * Title of the plugin.
+     *
+     * @return plugin title
+     */
     String title();
 
+    /**
+     * Type of the plugin.
+     *
+     * @return plugin type
+     */
     PLUGIN_TYPE type();
 }

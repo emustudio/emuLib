@@ -15,6 +15,11 @@ import java.util.Objects;
 public class OpcodeColumn implements DebuggerColumn<String> {
     private final Disassembler disassembler;
 
+    /**
+     * Constructs a new OpcodeColumn.
+     *
+     * @param disassembler the disassembler
+     */
     public OpcodeColumn(Disassembler disassembler) {
         this.disassembler = Objects.requireNonNull(disassembler);
     }

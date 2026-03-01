@@ -16,6 +16,9 @@ import java.util.function.Consumer;
  * It can remember up to 10 last selected paths for convenience.
  */
 public class BrowseButton extends JButton {
+    /**
+     * Cache of recently selected paths.
+     */
     private final MaxItemsCache<Path> pathCache = new MaxItemsCache<>(10);
 
     /**

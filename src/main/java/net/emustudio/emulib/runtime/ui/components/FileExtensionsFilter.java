@@ -19,16 +19,33 @@ public class FileExtensionsFilter {
     private final String description;
     private final List<String> extensions;
 
+    /**
+     * Constructs a new FileExtensionsFilter.
+     *
+     * @param description filter description
+     * @param extensions  supported file extensions
+     */
     public FileExtensionsFilter(String description, String... extensions) {
         this.description = Objects.requireNonNull(description);
         this.extensions = List.of(extensions);
     }
 
+    /**
+     * Constructs a new FileExtensionsFilter.
+     *
+     * @param description filter description
+     * @param extensions  supported file extensions
+     */
     public FileExtensionsFilter(String description, Collection<String> extensions) {
         this.description = Objects.requireNonNull(description);
         this.extensions = List.copyOf(extensions);
     }
 
+    /**
+     * Constructs a new FileExtensionsFilter from a FileExtension.
+     *
+     * @param extension the file extension
+     */
     public FileExtensionsFilter(FileExtension extension) {
         this(extension.getDescription(), extension.getExtension());
     }

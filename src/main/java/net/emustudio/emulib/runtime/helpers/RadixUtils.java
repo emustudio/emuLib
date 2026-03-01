@@ -102,6 +102,11 @@ public class RadixUtils {
         patterns.add(new NumberPattern("[0-9]+o", 8, 0, 1));
     }
 
+    /**
+     * Gets the singleton instance of RadixUtils.
+     *
+     * @return RadixUtils instance
+     */
     public static RadixUtils getInstance() {
         return INSTANCE;
     }

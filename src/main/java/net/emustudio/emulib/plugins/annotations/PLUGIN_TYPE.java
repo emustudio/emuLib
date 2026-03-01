@@ -7,5 +7,20 @@ package net.emustudio.emulib.plugins.annotations;
  */
 @SuppressWarnings("unused")
 public enum PLUGIN_TYPE {
-    COMPILER, CPU, MEMORY, DEVICE
+    /**
+     * Compiler plugin.
+     */
+    COMPILER,
+    /**
+     * CPU plugin.
+     */
+    CPU,
+    /**
+     * Memory plugin.
+     */
+    MEMORY,
+    /**
+     * Device plugin.
+     */
+    DEVICE
 }

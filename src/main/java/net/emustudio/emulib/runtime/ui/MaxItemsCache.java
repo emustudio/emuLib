@@ -9,6 +9,8 @@ import java.util.*;
 /**
  * Limited Cache
  * A cache with max items limit, retaining most used items, and removing the least used items above given limit.
+ *
+ * @param <V> type of cached values
  */
 @NotThreadSafe
 public class MaxItemsCache<V> {

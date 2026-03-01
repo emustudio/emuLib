@@ -7,6 +7,11 @@ package net.emustudio.emulib.plugins.memory.annotations;
  */
 public class DataAnnotation extends Annotation {
 
+    /**
+     * Constructs a new DataAnnotation.
+     *
+     * @param pluginId owner plugin ID
+     */
     public DataAnnotation(long pluginId) {
         super(pluginId);
     }

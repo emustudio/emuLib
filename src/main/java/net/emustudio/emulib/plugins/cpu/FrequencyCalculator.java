@@ -25,6 +25,13 @@ import java.util.function.Consumer;
  */
 @ThreadSafe
 public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Closeable {
+
+    /**
+     * Constructs a new FrequencyCalculator.
+     */
+    public FrequencyCalculator() {
+    }
+
     private final AtomicLong cycles = new AtomicLong();
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final AtomicReference<Future<Runnable>> frequencyUpdaterFuture = new AtomicReference<>();
@@ -73,14 +80,27 @@ public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Clo
         }
     }
 
+    /**
+     * Adds a listener for frequency changes.
+     *
+     * @param listener the listener
+     */
     public void addListener(Consumer<Float> listener) {
         frequencyChangedListeners.add(listener);
     }
 
+    /**
+     * Removes a listener for frequency changes.
+     *
+     * @param listener the listener
+     */
     public void removeListener(Consumer<Float> listener) {
         frequencyChangedListeners.remove(listener);
     }
 
+    /**
+     * Stops the frequency calculator.
+     */
     public void stop() {
         Future<Runnable> tmpFuture;
         do {
@@ -91,6 +111,9 @@ public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Clo
         } while (!frequencyUpdaterFuture.compareAndSet(tmpFuture, null));
     }
 
+    /**
+     * Starts the frequency calculator.
+     */
     @SuppressWarnings("unchecked")
     public void start() {
         Future<Runnable> tmpFuture;

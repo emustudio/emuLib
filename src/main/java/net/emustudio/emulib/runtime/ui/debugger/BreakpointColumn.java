@@ -6,9 +6,17 @@ import net.emustudio.emulib.plugins.cpu.CPU;
 
 import java.util.Objects;
 
+/**
+ * Represents the "breakpoint" column in the debug table.
+ */
 public class BreakpointColumn implements DebuggerColumn<Boolean> {
     private final CPU cpu;
 
+    /**
+     * Constructs a new BreakpointColumn.
+     *
+     * @param cpu the CPU instance
+     */
     public BreakpointColumn(CPU cpu) {
         this.cpu = Objects.requireNonNull(cpu);
     }

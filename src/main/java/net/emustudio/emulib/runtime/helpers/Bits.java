@@ -12,7 +12,13 @@ import java.nio.ByteBuffer;
  */
 @NotThreadSafe
 public class Bits {
+    /**
+     * The integer number in little endian.
+     */
     public int number;
+    /**
+     * Significant bits count.
+     */
     public final int length;
     private final int mask;
 

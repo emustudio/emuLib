@@ -9,6 +9,11 @@ import net.emustudio.emulib.plugins.PluginInitializationException;
  */
 public class ContextNotFoundException extends PluginInitializationException {
 
+    /**
+     * Constructs a new ContextNotFoundException.
+     *
+     * @param message the detail message
+     */
     public ContextNotFoundException(String message) {
         super(message);
     }

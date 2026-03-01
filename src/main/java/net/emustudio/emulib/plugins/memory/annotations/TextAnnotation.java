@@ -13,13 +13,27 @@ import java.util.Objects;
  */
 @Immutable
 public class TextAnnotation extends Annotation {
+    /**
+     * The annotation text.
+     */
     private final String info;
 
+    /**
+     * Constructs a new TextAnnotation.
+     *
+     * @param sourcePluginId source plugin ID
+     * @param text           annotation text
+     */
     public TextAnnotation(long sourcePluginId, String text) {
         super(sourcePluginId);
         this.info = Objects.requireNonNull(text);
     }
 
+    /**
+     * Gets the annotation text.
+     *
+     * @return annotation text
+     */
     public String getText() {
         return info;
     }

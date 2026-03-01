@@ -11,6 +11,13 @@ import java.util.*;
  * Basic unit is a byte. Instruction image is an int stored in big-endian.
  */
 public class DecodedInstruction {
+
+    /**
+     * Constructs a new DecodedInstruction.
+     */
+    public DecodedInstruction() {
+    }
+
     private final Map<Integer, Integer> constants = new HashMap<>();
     private final Map<Integer, String> strings = new HashMap<>();
     private final Map<Integer, Bits> bits = new HashMap<>();

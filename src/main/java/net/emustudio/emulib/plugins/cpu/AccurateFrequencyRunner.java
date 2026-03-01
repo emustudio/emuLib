@@ -20,6 +20,13 @@ import java.util.function.Supplier;
  */
 @NotThreadSafe
 public class AccurateFrequencyRunner {
+
+    /**
+     * Constructs a new AccurateFrequencyRunner.
+     */
+    public AccurateFrequencyRunner() {
+    }
+
     private final static Logger LOGGER = LoggerFactory.getLogger(AccurateFrequencyRunner.class);
 
     private final double slotNanos = SleepUtils.SLEEP_PRECISION;

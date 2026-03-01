@@ -16,6 +16,9 @@ import java.util.Objects;
  */
 @Immutable
 public abstract class Annotation implements Serializable {
+    /**
+     * Owner plugin ID.
+     */
     protected final long pluginId; // owner
 
     /**

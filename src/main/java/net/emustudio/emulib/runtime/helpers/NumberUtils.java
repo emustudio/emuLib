@@ -15,11 +15,23 @@ import java.util.List;
 public class NumberUtils {
 
     /**
+     * Constructs a new NumberUtils instance.
+     */
+    private NumberUtils() {
+    }
+
+    /**
      * Strategy defining how to manipulate with bytes.
      * <p>
      * Strategies can be combined with | (or) operator.
      */
     public static final class Strategy {
+
+        /**
+         * Constructs a new Strategy instance.
+         */
+        private Strategy() {
+        }
 
         /**
          * Bytes are read/written in the little endian

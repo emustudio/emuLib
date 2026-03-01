@@ -4,7 +4,16 @@ package net.emustudio.emulib.runtime.helpers;
 
 import java.awt.*;
 
+/**
+ * String utility class.
+ */
 public class StringUtils {
+
+    /**
+     * Constructs a new StringUtils instance.
+     */
+    private StringUtils() {
+    }
 
     /**
      * Shortens a string to a given length.

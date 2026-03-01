@@ -24,7 +24,16 @@ import java.util.function.Consumer;
 
 import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 
+/**
+ * GUI utility class providing factory methods for common Swing components.
+ */
 public class GUI {
+
+    /**
+     * Constructs a new GUI instance.
+     */
+    private GUI() {
+    }
 
     /**
      * Toolbar button - a JButton ready to add to a toolbar.

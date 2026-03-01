@@ -12,6 +12,17 @@ package net.emustudio.emulib.runtime.helpers;
  */
 public class Unchecked {
 
+    /**
+     * Constructs a new Unchecked instance.
+     */
+    private Unchecked() {
+    }
+
+    /**
+     * Runs a runnable that can throw checked exceptions.
+     *
+     * @param r the runnable
+     */
     public static void run(RunnableWhichCanThrow r) {
         try {
             r.run();
@@ -20,6 +31,13 @@ public class Unchecked {
         }
     }
 
+    /**
+     * Calls a callable that can throw checked exceptions.
+     *
+     * @param c   the callable
+     * @param <T> the return type
+     * @return the result of the callable
+     */
     public static <T> T call(CallableWithCanThrow<T> c) {
         try {
             return c.call();
@@ -29,6 +47,13 @@ public class Unchecked {
         return null; // never called
     }
 
+    /**
+     * Throws a checked exception as an unchecked one.
+     *
+     * @param e   the exception
+     * @param <T> the return type
+     * @return never returns, always throws
+     */
     public static <T> T sneakyThrow(Throwable e) {
         return Unchecked.<RuntimeException, T>sneakyThrow0(e);
     }
@@ -38,13 +63,32 @@ public class Unchecked {
         throw (E) t;
     }
 
+    /**
+     * A runnable that can throw checked exceptions.
+     */
     @FunctionalInterface
     public interface RunnableWhichCanThrow {
+        /**
+         * Runs the action.
+         *
+         * @throws Exception if an error occurs
+         */
         void run() throws Exception;
     }
 
+    /**
+     * A callable that can throw checked exceptions.
+     *
+     * @param <T> the return type
+     */
     @FunctionalInterface
     public interface CallableWithCanThrow<T> {
+        /**
+         * Calls the action.
+         *
+         * @return the result
+         * @throws Exception if an error occurs
+         */
         T call() throws Exception;
     }
 }

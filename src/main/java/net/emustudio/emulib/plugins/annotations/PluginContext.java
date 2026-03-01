@@ -14,5 +14,10 @@ import java.lang.annotation.*;
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface PluginContext {
+    /**
+     * Unique identifier of the plugin context.
+     *
+     * @return context ID
+     */
     String id() default "unknown";
 }

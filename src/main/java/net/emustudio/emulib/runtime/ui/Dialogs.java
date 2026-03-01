@@ -21,8 +21,22 @@ import java.util.Optional;
 @SuppressWarnings("unused")
 public interface Dialogs {
 
+    /**
+     * Possible answers for dialogs.
+     */
     enum DialogAnswer {
-        ANSWER_YES, ANSWER_NO, ANSWER_CANCEL
+        /**
+         * Yes answer.
+         */
+        ANSWER_YES,
+        /**
+         * No answer.
+         */
+        ANSWER_NO,
+        /**
+         * Cancel answer.
+         */
+        ANSWER_CANCEL
     }
 
     /**

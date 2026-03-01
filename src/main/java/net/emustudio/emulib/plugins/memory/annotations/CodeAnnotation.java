@@ -7,6 +7,11 @@ package net.emustudio.emulib.plugins.memory.annotations;
  */
 public class CodeAnnotation extends Annotation {
 
+    /**
+     * Constructs a new CodeAnnotation.
+     *
+     * @param pluginId owner plugin ID
+     */
     public CodeAnnotation(long pluginId) {
         super(pluginId);
     }

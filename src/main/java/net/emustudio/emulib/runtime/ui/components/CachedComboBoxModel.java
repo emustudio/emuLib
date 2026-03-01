@@ -9,12 +9,25 @@ import java.util.Iterator;
 
 /**
  * Cached ComboBox model. Saves up to 10 items
+ *
+ * @param <T> type of items in the combo box
  */
 @SuppressWarnings("unused")
 public class CachedComboBoxModel<T> extends AbstractListModel<T> implements ComboBoxModel<T> {
     private final MaxItemsCache<T> cache = new MaxItemsCache<>(10);
     private Object selected;
 
+    /**
+     * Constructs a new CachedComboBoxModel.
+     */
+    public CachedComboBoxModel() {
+    }
+
+    /**
+     * Adds an item to the combo box model.
+     *
+     * @param item item to add
+     */
     public void add(T item) {
         int origSize = cache.getSize();
         cache.put(item);

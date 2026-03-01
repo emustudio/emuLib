@@ -12,6 +12,11 @@ import net.jcip.annotations.Immutable;
 @Immutable
 public class BreakpointAnnotation extends Annotation {
 
+    /**
+     * Constructs a new BreakpointAnnotation.
+     *
+     * @param sourcePluginId source plugin ID
+     */
     public BreakpointAnnotation(long sourcePluginId) {
         super(sourcePluginId);
     }

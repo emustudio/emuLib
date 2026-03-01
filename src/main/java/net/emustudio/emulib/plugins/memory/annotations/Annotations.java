@@ -9,8 +9,18 @@ import net.jcip.annotations.ThreadSafe;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Default implementation of {@link MemoryAnnotations}.
+ */
 @ThreadSafe
 public class Annotations implements MemoryAnnotations {
+
+    /**
+     * Constructs a new Annotations instance.
+     */
+    public Annotations() {
+    }
+
     @GuardedBy("rwl")
     private final Map<Integer, Set<Annotation>> annotations = new HashMap<>();
     private final ReadWriteLockSupport rwl = new ReadWriteLockSupport();

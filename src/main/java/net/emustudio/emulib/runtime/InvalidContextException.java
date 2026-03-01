@@ -10,10 +10,21 @@ import net.emustudio.emulib.plugins.PluginInitializationException;
 @SuppressWarnings("unused")
 public class InvalidContextException extends PluginInitializationException {
 
+    /**
+     * Constructs a new InvalidContextException.
+     *
+     * @param message the detail message
+     */
     public InvalidContextException(String message) {
         super(message);
     }
 
+    /**
+     * Constructs a new InvalidContextException.
+     *
+     * @param message the detail message
+     * @param cause   the cause
+     */
     public InvalidContextException(String message, Throwable cause) {
         super(message, cause);
     }

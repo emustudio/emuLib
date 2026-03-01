@@ -7,4 +7,9 @@ package net.emustudio.emulib.runtime;
  */
 public class ContextAlreadyRegisteredException extends Exception {
 
+    /**
+     * Constructs a new ContextAlreadyRegisteredException.
+     */
+    public ContextAlreadyRegisteredException() {
+    }
 }

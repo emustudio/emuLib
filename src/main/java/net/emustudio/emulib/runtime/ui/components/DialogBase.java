@@ -14,11 +14,25 @@ import java.awt.event.KeyEvent;
  */
 public abstract class DialogBase extends JDialog {
 
+    /**
+     * Constructs a new DialogBase.
+     *
+     * @param parent parent frame
+     * @param title  dialog title
+     * @param modal  whether the dialog is modal
+     */
     protected DialogBase(Frame parent, String title, boolean modal) {
         super(parent, title, modal);
         initDialog();
     }
 
+    /**
+     * Constructs a new DialogBase.
+     *
+     * @param parent parent dialog
+     * @param title  dialog title
+     * @param modal  whether the dialog is modal
+     */
     protected DialogBase(Dialog parent, String title, boolean modal) {
         super(parent, title, modal);
         initDialog();

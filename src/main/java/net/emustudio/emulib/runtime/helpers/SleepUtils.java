@@ -6,7 +6,20 @@ package net.emustudio.emulib.runtime.helpers;
  * Sleeping and time measurement utilities.
  */
 public class SleepUtils {
+
+    /**
+     * Constructs a new SleepUtils instance.
+     */
+    private SleepUtils() {
+    }
+
+    /**
+     * Sleep precision in nanoseconds (determined automatically).
+     */
     public final static long SLEEP_PRECISION;
+    /**
+     * Spin yield precision in nanoseconds (half of sleep precision).
+     */
     public final static long SPIN_YIELD_PRECISION;
 
     static {

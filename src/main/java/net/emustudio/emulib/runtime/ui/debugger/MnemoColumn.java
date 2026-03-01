@@ -16,6 +16,11 @@ import java.util.Objects;
 public class MnemoColumn implements DebuggerColumn<String> {
     private final Disassembler disassembler;
 
+    /**
+     * Constructs a new MnemoColumn.
+     *
+     * @param disassembler the disassembler
+     */
     public MnemoColumn(Disassembler disassembler) {
         this.disassembler = Objects.requireNonNull(disassembler);
     }

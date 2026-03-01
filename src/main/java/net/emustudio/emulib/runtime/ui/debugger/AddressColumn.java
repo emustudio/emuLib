@@ -4,6 +4,9 @@ package net.emustudio.emulib.runtime.ui.debugger;
 
 import java.util.Objects;
 
+/**
+ * Represents the "address" column in the debug table.
+ */
 public class AddressColumn implements DebuggerColumn<String> {
     private final String addressFormat;
 

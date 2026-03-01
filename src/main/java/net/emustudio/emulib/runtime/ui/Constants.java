@@ -14,6 +14,12 @@ import java.awt.*;
 public class Constants {
 
     /**
+     * Constructs a new Constants instance.
+     */
+    private Constants() {
+    }
+
+    /**
      * Default font size
      */
     public static final int FONT_DEFAULT_SIZE = 12;

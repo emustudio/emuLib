@@ -14,13 +14,27 @@ import java.util.Objects;
  */
 @Immutable
 public class SourceCodeAnnotation extends Annotation {
+    /**
+     * The source code position.
+     */
     private final SourceCodePosition position;
 
+    /**
+     * Constructs a new SourceCodeAnnotation.
+     *
+     * @param sourcePluginId source plugin ID
+     * @param position       source code position
+     */
     public SourceCodeAnnotation(long sourcePluginId, SourceCodePosition position) {
         super(sourcePluginId);
         this.position = Objects.requireNonNull(position);
     }
 
+    /**
+     * Gets the source code position.
+     *
+     * @return source code position
+     */
     public SourceCodePosition getPosition() {
         return position;
     }

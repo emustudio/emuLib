@@ -7,8 +7,14 @@ import net.emustudio.emulib.runtime.helpers.Bits;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+/**
+ * Formatter for disassembled instruction operands.
+ */
 @SuppressWarnings("unused")
 public interface Formatter {
+    /**
+     * Default formatter instance.
+     */
     Formatter DEFAULT = new Formatter() {
     };
 
