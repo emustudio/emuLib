@@ -14,7 +14,13 @@ import java.util.Iterator;
  */
 @SuppressWarnings("unused")
 public class CachedComboBoxModel<T> extends AbstractListModel<T> implements ComboBoxModel<T> {
+    /**
+     * Cache of items.
+     */
     private final MaxItemsCache<T> cache = new MaxItemsCache<>(10);
+    /**
+     * Currently selected item.
+     */
     private Object selected;
 
     /**

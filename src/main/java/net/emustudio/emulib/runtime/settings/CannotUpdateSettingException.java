@@ -2,10 +2,10 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.settings;
 
-@SuppressWarnings("unused")
 /**
  * Exception thrown when a setting cannot be updated.
  */
+@SuppressWarnings("unused")
 public class CannotUpdateSettingException extends RuntimeException {
     /**
      * Constructs a new CannotUpdateSettingException.
