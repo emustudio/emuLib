@@ -11,6 +11,7 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
@@ -125,7 +126,7 @@ public class GUI {
      * @param text label text
      * @return the bold JLabel
      */
-    public static JLabel boldLabel(String text) {
+    public static JLabel labelBold(String text) {
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.BOLD));
         return label;
@@ -137,7 +138,7 @@ public class GUI {
      * @param text label text
      * @return the title JLabel
      */
-    public static JLabel titleLabel(String text) {
+    public static JLabel labelTitle(String text) {
         JLabel label = new JLabel(text);
         Font font = label.getFont();
         label.setFont(font.deriveFont(Font.BOLD, font.getSize() + 2));
@@ -145,13 +146,31 @@ public class GUI {
     }
 
     /**
+     * Creates a JLabel with given text and padding (empty border).
+     *
+     * @param text   label text
+     * @param top    top padding in pixels
+     * @param left   left padding in pixels
+     * @param bottom bottom padding in pixels
+     * @param right  right padding in pixels
+     * @return the padded JLabel
+     */
+    public static JLabel labelPadded(String text, int top, int left, int bottom, int right) {
+        JLabel label = new JLabel(text);
+        label.setBorder(BorderFactory.createEmptyBorder(top, left, bottom, right));
+        return label;
+    }
+
+    /**
      * Makes a JButton look like a primary button.
      *
      * @param button the JButton
+     * @return the same JButton with modified properties
      */
-    public static void buttonMakePrimary(JButton button) {
+    public static JButton buttonMakePrimary(JButton button) {
         button.putClientProperty("JButton.buttonType", "borderless");
         button.setFont(button.getFont().deriveFont(Font.BOLD));
+        return button;
     }
 
     /**
@@ -174,6 +193,33 @@ public class GUI {
     public static JButton button(String text, Runnable action) {
         JButton btn = new JButton(text);
         btn.addActionListener(e -> action.run());
+        return btn;
+    }
+
+    /**
+     * Creates a JButton with given icon, text and action.
+     *
+     * @param iconResource icon resource path
+     * @param text         button text
+     * @param action       button action
+     * @return the JButton
+     */
+    public static JButton button(String iconResource, String text, Runnable action) {
+        JButton btn = new JButton(text, loadIcon(iconResource));
+        btn.addActionListener(e -> action.run());
+        return btn;
+    }
+
+    /**
+     * Creates a JButton with given text and action.
+     *
+     * @param text   button text
+     * @param action button action
+     * @return the JButton
+     */
+    public static JButton button(String text, ActionListener action) {
+        JButton btn = new JButton(text);
+        btn.addActionListener(action);
         return btn;
     }
 
@@ -212,6 +258,16 @@ public class GUI {
     }
 
     /**
+     * Creates a JMenuItem from a Swing Action.
+     *
+     * @param action the action for the menu item
+     * @return the JMenuItem
+     */
+    public static JMenuItem menuItem(Action action) {
+        return new JMenuItem(action);
+    }
+
+    /**
      * Creates a JTextField with given text. The columns count is set to 20.
      *
      * @param text initial text
@@ -233,6 +289,20 @@ public class GUI {
     }
 
     /**
+     * Creates a non-editable JTextArea with given columns and rows.
+     *
+     * @param columns number of columns
+     * @param rows    number of rows
+     * @return the non-editable JTextArea
+     */
+    public static JTextArea textAreaReadOnly(int columns, int rows) {
+        JTextArea textArea = new JTextArea(columns, rows);
+        textArea.setEditable(false);
+        return textArea;
+    }
+
+
+    /**
      * Creates a non-floatable, rollover JToolBar with no border painted.
      *
      * @return the JToolBar
@@ -246,6 +316,17 @@ public class GUI {
     }
 
     /**
+     * Creates a vertical JToolBar with the same properties as {@link #toolBar()}.
+     *
+     * @return the vertical JToolBar
+     */
+    public static JToolBar toolBarVertical() {
+        JToolBar toolbar = toolBar();
+        toolbar.setOrientation(JToolBar.VERTICAL);
+        return toolbar;
+    }
+
+    /**
      * Creates a JSplitPane with no border, one-touch expandable and continuous layout.
      *
      * @return the JSplitPane
@@ -255,6 +336,42 @@ public class GUI {
         splitPane.setBorder(null);
         splitPane.setOneTouchExpandable(true);
         splitPane.setContinuousLayout(true);
+        return splitPane;
+    }
+
+    /**
+     * Creates a JSplitPane with left and right components, no border, one-touch expandable and continuous layout.
+     * The split pane is oriented horizontally (left to right).
+     *
+     * @param left         left component
+     * @param right        right component
+     * @param resizeWeight resize weight (0.0 - left component does not resize, 1.0 - right component does not resize)
+     * @return the JSplitPane
+     */
+    public static JSplitPane splitPaneLeftToRight(Component left, Component right, Double resizeWeight) {
+        JSplitPane splitPane = splitPane();
+        splitPane.setLeftComponent(left);
+        splitPane.setRightComponent(right);
+        splitPane.setResizeWeight(resizeWeight);
+        splitPane.setOrientation(JSplitPane.HORIZONTAL_SPLIT);
+        return splitPane;
+    }
+
+    /**
+     * Creates a JSplitPane with top and bottom components, no border, one-touch expandable and continuous layout.
+     * The split pane is oriented vertically (top to bottom).
+     *
+     * @param top          top component
+     * @param bottom       bottom component
+     * @param resizeWeight resize weight (0.0 - top component does not resize, 1.0 - bottom component does not resize)
+     * @return the JSplitPane
+     */
+    public static JSplitPane splitPaneTopToBottom(Component top, Component bottom, Double resizeWeight) {
+        JSplitPane splitPane = splitPane();
+        splitPane.setLeftComponent(top);
+        splitPane.setRightComponent(bottom);
+        splitPane.setResizeWeight(resizeWeight);
+        splitPane.setOrientation(JSplitPane.VERTICAL_SPLIT);
         return splitPane;
     }
 
@@ -278,6 +395,18 @@ public class GUI {
      */
     public static JPanel panelVertical() {
         return new JPanel(new MigLayout("insets dialog, fillx", "[grow]", "[]"));
+    }
+
+    /**
+     * Creates a JPanel with custom MigLayout constraints.
+     *
+     * @param layoutConstraints layout constraints
+     * @param colConstraints    column constraints
+     * @param rowConstraints    row constraints
+     * @return the JPanel
+     */
+    public static JPanel panel(String layoutConstraints, String colConstraints, String rowConstraints) {
+        return new JPanel(new MigLayout(layoutConstraints, colConstraints, rowConstraints));
     }
 
     /**
@@ -373,6 +502,21 @@ public class GUI {
         } catch (Exception e) {
             return new Font(Font.MONOSPACED, Font.PLAIN, size);
         }
+    }
+
+    /**
+     * Creates a titled section panel with MigLayout.
+     *
+     * @param title             section title (used as titled border)
+     * @param layoutConstraints MigLayout layout constraints
+     * @param colConstraints    MigLayout column constraints
+     * @param rowConstraints    MigLayout row constraints
+     * @return JPanel with a titled border and MigLayout
+     */
+    public static JPanel section(String title, String layoutConstraints, String colConstraints, String rowConstraints) {
+        JPanel panel = new JPanel(new MigLayout(layoutConstraints, colConstraints, rowConstraints));
+        panel.setBorder(BorderFactory.createTitledBorder(title));
+        return panel;
     }
 
     /**

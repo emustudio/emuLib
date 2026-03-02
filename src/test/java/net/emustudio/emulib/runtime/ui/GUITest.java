@@ -3,10 +3,15 @@
 package net.emustudio.emulib.runtime.ui;
 
 import net.emustudio.emulib.runtime.ui.components.BrowseButton;
+import net.miginfocom.swing.MigLayout;
 import org.junit.Test;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -25,7 +30,7 @@ public class GUITest {
 
     @Test
     public void testBoldLabelCreation() {
-        JLabel label = GUI.boldLabel("Bold Text");
+        JLabel label = GUI.labelBold("Bold Text");
 
         assertNotNull(label);
         assertEquals("Bold Text", label.getText());
@@ -33,8 +38,8 @@ public class GUITest {
     }
 
     @Test
-    public void testTitleLabelCreation() {
-        JLabel label = GUI.titleLabel("Title Text");
+    public void testLabelTitleCreation() {
+        JLabel label = GUI.labelTitle("Title Text");
 
         assertNotNull(label);
         assertEquals("Title Text", label.getText());
@@ -222,5 +227,285 @@ public class GUITest {
         Icon icon = GUI.loadIcon("/nonexistent/icon.png");
 
         assertNull(icon);
+    }
+
+    // --- toolbarButton ---
+
+    @Test
+    public void testToolbarButtonWithConsumerAction() {
+        boolean[] actionCalled = {false};
+
+        var button = GUI.toolbarButton(
+            e -> actionCalled[0] = true,
+            "/icon.png",
+            "Tooltip"
+        );
+
+        assertNotNull(button);
+        assertEquals("Tooltip", button.getToolTipText());
+        assertFalse(button.isFocusable());
+    }
+
+    @Test
+    public void testToolbarButtonWithSwingAction() {
+        Action action = new AbstractAction("Test") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        };
+
+        var button = GUI.toolbarButton(action);
+
+        assertNotNull(button);
+    }
+
+    @Test
+    public void testToolbarButtonWithSwingActionAndIcon() {
+        Action action = new AbstractAction("Test") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        };
+
+        var button = GUI.toolbarButton(action, "/icon.png", "Tooltip");
+
+        assertNotNull(button);
+        assertEquals("Tooltip", button.getToolTipText());
+    }
+
+    // --- labelPadded ---
+
+    @Test
+    public void testLabelPadded() {
+        JLabel label = GUI.labelPadded("Padded", 5, 10, 5, 10);
+
+        assertNotNull(label);
+        assertEquals("Padded", label.getText());
+        assertNotNull(label.getBorder());
+        Insets insets = label.getBorder().getBorderInsets(label);
+        assertEquals(5, insets.top);
+        assertEquals(10, insets.left);
+        assertEquals(5, insets.bottom);
+        assertEquals(10, insets.right);
+    }
+
+    // --- button with icon ---
+
+    @Test
+    public void testButtonWithIconTextAndAction() {
+        boolean[] actionCalled = {false};
+        JButton button = GUI.button("/nonexistent/icon.png", "Icon Button", () -> actionCalled[0] = true);
+
+        assertNotNull(button);
+        assertEquals("Icon Button", button.getText());
+
+        button.doClick();
+        assertTrue(actionCalled[0]);
+    }
+
+    // --- button with ActionListener ---
+
+    @Test
+    public void testButtonWithActionListenerCreation() {
+        boolean[] actionCalled = {false};
+        JButton button = GUI.button("Listener Button", e -> actionCalled[0] = true);
+
+        assertNotNull(button);
+        assertEquals("Listener Button", button.getText());
+
+        button.doClick();
+        assertTrue(actionCalled[0]);
+    }
+
+    // --- buttonBrowseFiles ---
+
+    @Test
+    public void testButtonBrowseFiles() {
+        Dialogs dialogs = createMock(Dialogs.class);
+
+        expect(dialogs.chooseFile(
+            eq("Open File"),
+            eq("Open"),
+            anyObject(Path.class),
+            eq(false)
+        )).andReturn(Optional.empty());
+
+        replay(dialogs);
+
+        BrowseButton button = GUI.buttonBrowseFiles(
+            dialogs, "Open File", "Open", false, path -> {
+            }
+        );
+
+        assertNotNull(button);
+        assertEquals("Browse...", button.getText());
+
+        button.doClick();
+        verify(dialogs);
+    }
+
+    // --- menuItem ---
+
+    @Test
+    public void testMenuItemCreation() {
+        Action action = new AbstractAction("Test Action") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            }
+        };
+
+        JMenuItem item = GUI.menuItem(action);
+
+        assertNotNull(item);
+        assertEquals("Test Action", item.getText());
+    }
+
+    // --- textAreaReadOnly ---
+
+    @Test
+    public void testTextAreaReadOnly() {
+        JTextArea textArea = GUI.textAreaReadOnly(10, 5);
+
+        assertNotNull(textArea);
+        assertFalse(textArea.isEditable());
+    }
+
+    // --- toolBarVertical ---
+
+    @Test
+    public void testToolBarVertical() {
+        JToolBar toolbar = GUI.toolBarVertical();
+
+        assertNotNull(toolbar);
+        assertFalse(toolbar.isFloatable());
+        assertTrue(toolbar.isRollover());
+        assertFalse(toolbar.isBorderPainted());
+        assertEquals(JToolBar.VERTICAL, toolbar.getOrientation());
+    }
+
+    // --- splitPaneLeftToRight ---
+
+    @Test
+    public void testSplitPaneLeftToRight() {
+        JPanel left = new JPanel();
+        JPanel right = new JPanel();
+
+        JSplitPane splitPane = GUI.splitPaneLeftToRight(left, right, 0.5);
+
+        assertNotNull(splitPane);
+        assertNull(splitPane.getBorder());
+        assertTrue(splitPane.isOneTouchExpandable());
+        assertTrue(splitPane.isContinuousLayout());
+        assertEquals(JSplitPane.HORIZONTAL_SPLIT, splitPane.getOrientation());
+        assertSame(left, splitPane.getLeftComponent());
+        assertSame(right, splitPane.getRightComponent());
+        assertEquals(0.5, splitPane.getResizeWeight(), 0.001);
+    }
+
+    // --- splitPaneTopToBottom ---
+
+    @Test
+    public void testSplitPaneTopToBottom() {
+        JPanel top = new JPanel();
+        JPanel bottom = new JPanel();
+
+        JSplitPane splitPane = GUI.splitPaneTopToBottom(top, bottom, 0.3);
+
+        assertNotNull(splitPane);
+        assertNull(splitPane.getBorder());
+        assertTrue(splitPane.isOneTouchExpandable());
+        assertTrue(splitPane.isContinuousLayout());
+        assertEquals(JSplitPane.VERTICAL_SPLIT, splitPane.getOrientation());
+        assertSame(top, splitPane.getLeftComponent());
+        assertSame(bottom, splitPane.getRightComponent());
+        assertEquals(0.3, splitPane.getResizeWeight(), 0.001);
+    }
+
+    // --- panel ---
+
+    @Test
+    public void testPanelWithCustomLayout() {
+        JPanel panel = GUI.panel("insets dialog", "[grow]", "[][]");
+
+        assertNotNull(panel);
+        assertTrue(panel.getLayout() instanceof MigLayout);
+    }
+
+    // --- addKeyListenerRecursively / removeKeyListenerRecursively ---
+
+    @Test
+    public void testAddKeyListenerRecursively() {
+        JPanel parent = new JPanel();
+        JPanel child = new JPanel();
+        JButton grandChild = new JButton();
+        parent.add(child);
+        child.add(grandChild);
+
+        KeyAdapter listener = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+        };
+
+        GUI.addKeyListenerRecursively(parent, listener);
+
+        assertTrue(containsKeyListener(parent, listener));
+        assertTrue(containsKeyListener(child, listener));
+        assertTrue(containsKeyListener(grandChild, listener));
+    }
+
+    @Test
+    public void testRemoveKeyListenerRecursively() {
+        JPanel parent = new JPanel();
+        JPanel child = new JPanel();
+        JButton grandChild = new JButton();
+        parent.add(child);
+        child.add(grandChild);
+
+        KeyAdapter listener = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+            }
+        };
+
+        GUI.addKeyListenerRecursively(parent, listener);
+        GUI.removeKeyListenerRecursively(parent, listener);
+
+        assertFalse(containsKeyListener(parent, listener));
+        assertFalse(containsKeyListener(child, listener));
+        assertFalse(containsKeyListener(grandChild, listener));
+    }
+
+    private boolean containsKeyListener(Component component, java.awt.event.KeyListener listener) {
+        for (java.awt.event.KeyListener kl : component.getKeyListeners()) {
+            if (kl == listener) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // --- loadFontResource ---
+
+    @Test
+    public void testLoadFontResourceFallsBackToMonospaced() {
+        Font font = GUI.loadFontResource("/nonexistent/font.ttf", GUITest.class, 12);
+
+        assertNotNull(font);
+        assertEquals(Font.MONOSPACED, font.getFamily());
+        assertEquals(Font.PLAIN, font.getStyle());
+        assertEquals(12, font.getSize());
+    }
+
+    // --- section ---
+
+    @Test
+    public void testSectionCreation() {
+        JPanel panel = GUI.section("Tape content", "insets dialog", "[grow]", "[grow]");
+
+        assertNotNull(panel);
+        assertTrue(panel.getLayout() instanceof MigLayout);
+        assertTrue(panel.getBorder() instanceof TitledBorder);
+        assertEquals("Tape content", ((TitledBorder) panel.getBorder()).getTitle());
     }
 }
