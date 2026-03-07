@@ -29,17 +29,16 @@ repositories {
 }
 
 dependencies {
-  compileOnly "org.slf4j:slf4j-api:${versions.slf4j}"
-  testImplementation "org.slf4j:slf4j-api:${versions.slf4j}"
-  compileOnly 'net.jcip:jcip-annotations:1.0'
-  testImplementation 'net.jcip:jcip-annotations:1.0'
+  def compileOnlyWithTests = { String dependency ->
+    compileOnly dependency
+    testImplementation dependency
+  }
 
-  compileOnly "com.miglayout:miglayout-swing:11.1"
-  testImplementation "com.miglayout:miglayout-swing:11.1"
-  compileOnly "com.formdev:flatlaf:${versions.flatlaf}:no-natives"
-  testImplementation "com.formdev:flatlaf:${versions.flatlaf}:no-natives"
-  compileOnly "com.formdev:flatlaf-extras:${versions.flatlaf}"
-  testImplementation "com.formdev:flatlaf-extras:${versions.flatlaf}"
+  compileOnlyWithTests("org.slf4j:slf4j-api:${versions.slf4j}")
+  compileOnlyWithTests('net.jcip:jcip-annotations:1.0')
+  compileOnlyWithTests("com.miglayout:miglayout-swing:11.1")
+  compileOnlyWithTests("com.formdev:flatlaf:${versions.flatlaf}:no-natives")
+  compileOnlyWithTests("com.formdev:flatlaf-extras:${versions.flatlaf}")
 
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.easymock:easymock:5.6.0'
