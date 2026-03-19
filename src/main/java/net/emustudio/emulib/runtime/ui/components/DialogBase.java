@@ -2,9 +2,13 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui.components;
 
+import net.emustudio.emulib.runtime.ui.GUI;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 /**
  * Base class for dialogs.
@@ -13,6 +17,16 @@ import java.awt.event.KeyEvent;
  * Call buildContent() at the end of your constructor to build and display the content.
  */
 public abstract class DialogBase extends JDialog {
+
+    private final KeyListener escapeKeyListener = new KeyAdapter() {
+        @Override
+        public void keyPressed(KeyEvent e) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE && shouldCloseOnEscape()) {
+                e.consume();
+                dispose();
+            }
+        }
+    };
 
     /**
      * Constructs a new DialogBase.
@@ -23,7 +37,7 @@ public abstract class DialogBase extends JDialog {
      */
     protected DialogBase(Frame parent, String title, boolean modal) {
         super(parent, title, modal);
-        initDialog();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
     /**
@@ -35,18 +49,24 @@ public abstract class DialogBase extends JDialog {
      */
     protected DialogBase(Dialog parent, String title, boolean modal) {
         super(parent, title, modal);
-        initDialog();
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
     }
 
-    private void initDialog() {
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+    /**
+     * Determines whether pressing ESC should close this dialog.
+     * Subclasses can override this to prevent ESC from closing the dialog
+     * (e.g., when ESC is needed for other purposes like emulated keyboard input).
+     *
+     * @return true if ESC should close the dialog (default), false otherwise
+     */
+    protected boolean shouldCloseOnEscape() {
+        return true;
+    }
 
-        // ESC key closes dialog
-        getRootPane().registerKeyboardAction(
-                e -> dispose(),
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+    @Override
+    public void dispose() {
+        GUI.removeKeyListenerRecursively(this, escapeKeyListener);
+        super.dispose();
     }
 
     /**
@@ -61,6 +81,7 @@ public abstract class DialogBase extends JDialog {
             pack();
         }
         setLocationRelativeTo(getParent());
+        GUI.addKeyListenerRecursively(this, escapeKeyListener);
     }
 
     /**

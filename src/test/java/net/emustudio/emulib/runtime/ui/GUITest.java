@@ -11,7 +11,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.nio.file.Path;
 import java.util.Optional;
 
@@ -63,6 +62,11 @@ public class GUITest {
         assertNotNull(button);
         assertEquals("Test Tooltip", button.getToolTipText());
         assertFalse(button.isFocusable());
+        // Simulate button click to test action - doClick() on JToggleButton triggers both
+        // the action listener and the item listener (since toggle state changes)
+        button.doClick();
+        assertTrue(actionCalled[0]);
+        assertTrue(itemActionCalled[0]);
     }
 
     @Test
@@ -78,6 +82,8 @@ public class GUITest {
         assertNotNull(button);
         assertEquals("Test Tooltip", button.getToolTipText());
         assertFalse(button.isFocusable());
+        button.doClick();
+        assertTrue(actionCalled[0]);
     }
 
     @Test
@@ -244,6 +250,8 @@ public class GUITest {
         assertNotNull(button);
         assertEquals("Tooltip", button.getToolTipText());
         assertFalse(button.isFocusable());
+        button.doClick();
+        assertTrue(actionCalled[0]);
     }
 
     @Test
@@ -442,9 +450,6 @@ public class GUITest {
         child.add(grandChild);
 
         KeyAdapter listener = new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-            }
         };
 
         GUI.addKeyListenerRecursively(parent, listener);
@@ -463,9 +468,6 @@ public class GUITest {
         child.add(grandChild);
 
         KeyAdapter listener = new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-            }
         };
 
         GUI.addKeyListenerRecursively(parent, listener);

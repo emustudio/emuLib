@@ -12,6 +12,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
+import java.awt.event.ContainerListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
@@ -450,24 +452,67 @@ public class GUI {
     }
 
     /**
+     * ContainerListener that automatically adds/removes a KeyListener to/from dynamically added/removed children.
+     */
+    private static class KeyListenerContainerAdapter implements ContainerListener {
+        final KeyListener keyListener;
+
+        KeyListenerContainerAdapter(KeyListener keyListener) {
+            this.keyListener = keyListener;
+        }
+
+        @Override
+        public void componentAdded(ContainerEvent e) {
+            addKeyListenerRecursively(e.getChild(), keyListener);
+        }
+
+        @Override
+        public void componentRemoved(ContainerEvent e) {
+            removeKeyListenerRecursively(e.getChild(), keyListener);
+        }
+    }
+
+    private static boolean hasKeyListener(Component component, KeyListener listener) {
+        for (KeyListener kl : component.getKeyListeners()) {
+            if (kl == listener) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Adds a KeyListener to given component recursively.
+     * Also installs a ContainerListener so that dynamically added children automatically get the KeyListener.
      *
      * @param component GUI component
      * @param listener  KeyListener object
      */
     public static void addKeyListenerRecursively(Component component, KeyListener listener) {
-        component.addKeyListener(listener);
+        if (!hasKeyListener(component, listener)) {
+            component.addKeyListener(listener);
+        }
         if (component instanceof Container) {
             Container cont = (Container) component;
-            Component[] children = cont.getComponents();
-            for (Component child : children) {
+            for (Component child : cont.getComponents()) {
                 addKeyListenerRecursively(child, listener);
+            }
+            boolean hasAdapter = false;
+            for (ContainerListener cl : cont.getContainerListeners()) {
+                if (cl instanceof KeyListenerContainerAdapter && ((KeyListenerContainerAdapter) cl).keyListener == listener) {
+                    hasAdapter = true;
+                    break;
+                }
+            }
+            if (!hasAdapter) {
+                cont.addContainerListener(new KeyListenerContainerAdapter(listener));
             }
         }
     }
 
     /**
      * Removes given KeyListener from a component recursively.
+     * Also removes the ContainerListener that was installed by {@link #addKeyListenerRecursively}.
      *
      * @param component GUI component
      * @param listener  KeyListener object
@@ -476,8 +521,13 @@ public class GUI {
         component.removeKeyListener(listener);
         if (component instanceof Container) {
             Container cont = (Container) component;
-            Component[] children = cont.getComponents();
-            for (Component child : children) {
+            for (ContainerListener cl : cont.getContainerListeners()) {
+                if (cl instanceof KeyListenerContainerAdapter && ((KeyListenerContainerAdapter) cl).keyListener == listener) {
+                    cont.removeContainerListener(cl);
+                    break;
+                }
+            }
+            for (Component child : cont.getComponents()) {
                 removeKeyListenerRecursively(child, listener);
             }
         }
