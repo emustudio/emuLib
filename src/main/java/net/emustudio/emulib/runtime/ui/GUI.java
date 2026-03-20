@@ -5,6 +5,7 @@ package net.emustudio.emulib.runtime.ui;
 import net.emustudio.emulib.runtime.ui.components.FileExtensionsFilter;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -437,6 +438,15 @@ public interface GUI {
      * @return JPanel with a titled border
      */
     JPanel section(String title, String layoutConstraints, String colConstraints, String rowConstraints);
+
+    /**
+     * Creates a border that fades from inner color to outer transparent.
+     *
+     * @param thickness border thickness in pixels
+     * @param color     the border color
+     * @return the fading border
+     */
+    Border fadingBorder(int thickness, Color color);
 
 
     // ========================= Internal helper classes =========================
