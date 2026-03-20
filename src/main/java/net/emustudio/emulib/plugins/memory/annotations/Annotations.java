@@ -15,15 +15,15 @@ import java.util.stream.Collectors;
 @ThreadSafe
 public class Annotations implements MemoryAnnotations {
 
-    /**
-     * Constructs a new Annotations instance.
-     */
-    public Annotations() {
-    }
-
     @GuardedBy("rwl")
     private final Map<Integer, Set<Annotation>> annotations = new HashMap<>();
     private final ReadWriteLockSupport rwl = new ReadWriteLockSupport();
+
+    /**
+     * Constructs new annotations container.
+     */
+    public Annotations() {
+    }
 
     @Override
     public void clear() {

@@ -19,6 +19,10 @@ java {
 group 'net.emustudio'
 version '12.1.0-SNAPSHOT'
 
+base {
+  archivesName = 'emulib'
+}
+
 ext.versions = [
         slf4j: '2.0.17',
         flatlaf: '3.5.2'
@@ -102,6 +106,8 @@ test {
 }
 
 javadoc {
+  options.addStringOption('Xdoclint:all', '-quiet')
+  options.memberLevel = JavadocMemberLevel.PROTECTED
   if (JavaVersion.current().isJava9Compatible()) {
     options.addBooleanOption('html5', true)
   }

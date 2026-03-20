@@ -15,13 +15,13 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ThreadSafe
 public abstract class AbstractCPUContext implements CPUContext {
 
+    private final Set<PassedCyclesListener> passedCyclesListenerSet = new CopyOnWriteArraySet<>();
+
     /**
-     * Constructs a new AbstractCPUContext.
+     * Constructs new abstract CPU context.
      */
     protected AbstractCPUContext() {
     }
-
-    private final Set<PassedCyclesListener> passedCyclesListenerSet = new CopyOnWriteArraySet<>();
 
     @Override
     public void addPassedCyclesListener(PassedCyclesListener passedCyclesListener) {

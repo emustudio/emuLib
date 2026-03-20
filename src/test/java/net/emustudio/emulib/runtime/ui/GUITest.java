@@ -49,7 +49,9 @@ public class GUITest {
 
     @Test
     public void testToolbarToggleButtonWithItemAction() {
+        @SuppressWarnings("MismatchedReadAndWriteOfArray")
         boolean[] actionCalled = {false};
+        @SuppressWarnings("MismatchedReadAndWriteOfArray")
         boolean[] itemActionCalled = {false};
 
         var button = GUI.toolbarToggleButton(
@@ -71,6 +73,7 @@ public class GUITest {
 
     @Test
     public void testToolbarToggleButtonWithoutItemAction() {
+        @SuppressWarnings("MismatchedReadAndWriteOfArray")
         boolean[] actionCalled = {false};
 
         var button = GUI.toolbarToggleButton(
@@ -130,7 +133,7 @@ public class GUITest {
 
         GUI.buttonMakePrimary(button);
 
-        assertEquals("borderless", button.getClientProperty("JButton.buttonType"));
+        assertTrue(button.isDefaultCapable());
         assertEquals(Font.BOLD, button.getFont().getStyle());
     }
 

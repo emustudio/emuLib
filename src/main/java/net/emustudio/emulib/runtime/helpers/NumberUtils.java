@@ -26,7 +26,6 @@ public class NumberUtils {
      * Strategies can be combined with | (or) operator.
      */
     public static final class Strategy {
-
         /**
          * Constructs a new Strategy instance.
          */

@@ -23,17 +23,17 @@ import java.util.function.Function;
 @NotThreadSafe
 public class IntelHEX {
 
-    /**
-     * Constructs a new IntelHEX instance.
-     */
-    public IntelHEX() {
-    }
-
     // 16-bit Intel HEX has max 15 bytes per line
     private final static int MAX_DATA_BYTES_COUNT_IN_LINE = 15;
 
     private final Map<Integer, Byte> program = new HashMap<>();
     private int nextAddress;
+
+    /**
+     * Constructs new Intel HEX generator/loader.
+     */
+    public IntelHEX() {
+    }
 
     /**
      * Adds sequential bytes into the code table.
