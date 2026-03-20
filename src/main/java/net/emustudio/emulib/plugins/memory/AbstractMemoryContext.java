@@ -18,12 +18,6 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @ThreadSafe
 public abstract class AbstractMemoryContext<CellType> implements MemoryContext<CellType> {
 
-    /**
-     * Constructs a new AbstractMemoryContext.
-     */
-    protected AbstractMemoryContext() {
-    }
-
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractMemoryContext.class);
 
     private volatile boolean notificationsEnabled = true;
