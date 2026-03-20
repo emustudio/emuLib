@@ -24,8 +24,7 @@ base {
 }
 
 ext.versions = [
-        slf4j: '2.0.17',
-        flatlaf: '3.5.2'
+        slf4j: '2.0.17'
 ]
 
 repositories {
@@ -40,9 +39,6 @@ dependencies {
 
   compileOnlyWithTests("org.slf4j:slf4j-api:${versions.slf4j}")
   compileOnlyWithTests('net.jcip:jcip-annotations:1.0')
-  compileOnlyWithTests("com.miglayout:miglayout-swing:11.1")
-  compileOnlyWithTests("com.formdev:flatlaf:${versions.flatlaf}:no-natives")
-  compileOnlyWithTests("com.formdev:flatlaf-extras:${versions.flatlaf}")
 
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.easymock:easymock:5.6.0'
