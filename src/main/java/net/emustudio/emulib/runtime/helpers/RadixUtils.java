@@ -4,8 +4,10 @@ package net.emustudio.emulib.runtime.helpers;
 
 import net.jcip.annotations.NotThreadSafe;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -18,8 +20,8 @@ import java.util.regex.Pattern;
  */
 @NotThreadSafe
 public class RadixUtils {
-    private static final double LOG102 = 0.30102999566398114;
     private static final RadixUtils INSTANCE = new RadixUtils();
+    private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
     private final List<NumberPattern> patterns = new ArrayList<>();
 
@@ -138,84 +140,11 @@ public class RadixUtils {
      * @return String of a number in specified radix
      */
     public static String convertToRadix(byte[] number, int toRadix, boolean littleEndian) {
-        int bytes;
-        int i, j, val;
-        int temp;
-        int rem;
-        int ip;
-        char k;
-        String result = "";
-
-        int digitsCount = number.length;
-
-        bytes = (int) Math.ceil((double) digitsCount * 8.0 * LOG102 / Math.log10(toRadix)) + 2;
-
-        if (!littleEndian) {
-            for (i = 0; i < digitsCount / 2; i++) {
-                byte tmp = number[i];
-                number[i] = number[digitsCount - i - 1];
-                number[digitsCount - i - 1] = tmp;
-            }
+        checkRadix(toRadix);
+        if (toRadix == 16) {
+            return toHexString(number, littleEndian);
         }
-
-        int[] str = new int[bytes + 1];
-        int[] ts = new int[bytes + 1];
-
-        ts[0] = 1;
-        for (k = 0; k < digitsCount; k++) {
-            short digit = number[k];
-
-            for (i = 0; i < 8; i++) {
-                val = (digit >>> i) & 1;
-                for (j = 0; j < bytes; j++) {
-                    str[j] += ts[j] * val;
-                    temp = str[j];
-                    ip = j;
-                    do { // fix up any remainders in radix
-                        rem = temp / toRadix;
-                        str[ip++] = temp - rem * toRadix;
-                        str[ip] += rem;
-                        temp = str[ip];
-                    } while (temp >= toRadix);
-                }
-
-                //calculate the next power 2^i in radix format
-                for (j = 0; j < bytes; j++) {
-                    ts[j] = ts[j] * 2;
-                }
-                for (j = 0; j < bytes; j++) { //check for any remainders
-                    temp = ts[j];
-                    ip = j;
-                    do { //fix up any remainders
-                        rem = temp / toRadix;
-                        ts[ip++] = temp - rem * toRadix;
-                        ts[ip] += rem;
-                        temp = ts[ip];
-                    } while (temp >= toRadix);
-                }
-            }
-        }
-
-        //convert the output to string format (digits 0,to-1 converted to 0-Z
-        //characters)
-        boolean first = false; //leading zero flag
-        for (i = bytes - 1; i >= 0; i--) {
-            if (str[i] != 0) {
-                first = true;
-            }
-            if (!first) {
-                continue;
-            }
-            if (str[i] < 10) {
-                result += (char) (str[i] + (int) '0');
-            } else {
-                result += (char) (str[i] + (int) 'A' - 10);
-            }
-        }
-        if (!first) {
-            result += "0";
-        }
-        return result;
+        return toRadixString(toBigInteger(number, littleEndian), toRadix);
     }
 
     /**
@@ -235,7 +164,7 @@ public class RadixUtils {
                 if (pattern.getRadix() == toRadix) {
                     return pattern.prepareNumber(number);
                 }
-                return convertToRadix(convertToNumber(pattern.prepareNumber(number), pattern.getRadix()), toRadix, true);
+                return convertToRadix(pattern.prepareNumber(number), pattern.getRadix(), toRadix);
             }
         }
         throw new NumberFormatException("Number not recognized");
@@ -253,8 +182,7 @@ public class RadixUtils {
         if (fromRadix == toRadix) {
             return number;
         }
-        byte[] xnumber = convertToNumber(number, fromRadix);
-        return convertToRadix(xnumber, toRadix, true);
+        return toRadixString(parseUnsignedBigInteger(number, fromRadix), toRadix);
     }
 
     /**
@@ -268,26 +196,11 @@ public class RadixUtils {
      * @return Array of binary components of that number
      */
     public static byte[] convertToNumber(String number, int fromRadix) {
-        List<Byte> bytes = new ArrayList<>();
-
-        long parsed = Long.parseLong(number, fromRadix);
-        if (parsed < 0) {
-            throw new NumberFormatException("Too big number to parse");
+        BigInteger parsed = parseUnsignedBigInteger(number, fromRadix);
+        if (parsed.signum() == 0) {
+            return new byte[]{0};
         }
-        while (parsed != 0) {
-            bytes.add((byte) (parsed & 0xFF));
-            parsed >>>= 8;
-        }
-
-        byte[] result = new byte[bytes.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = bytes.get(i);
-        }
-        if (result.length == 0) {
-            result = new byte[]{0};
-        }
-
-        return result;
+        return toLittleEndianBytes(parsed.toByteArray(), -1);
     }
 
     /**
@@ -303,14 +216,7 @@ public class RadixUtils {
      * @return Array of binary components of that number
      */
     public static byte[] convertToNumber(String number, int fromRadix, int bytesCount) {
-        byte[] result = convertToNumber(number, fromRadix);
-        if (result.length != bytesCount) {
-            byte[] newResult = new byte[bytesCount];
-
-            System.arraycopy(result, 0, newResult, 0, Math.min(result.length, bytesCount));
-            return newResult;
-        }
-        return result;
+        return toLittleEndianBytes(parseUnsignedBigInteger(number, fromRadix).toByteArray(), bytesCount);
     }
 
     /**
@@ -355,7 +261,7 @@ public class RadixUtils {
      * @return formatted string as a hexadecimal number, with string length=2
      */
     public static String formatByteHexString(int byteNumber) {
-        return String.format("%02X", byteNumber);
+        return formatHexString(byteNumber, 2);
     }
 
     /**
@@ -367,7 +273,7 @@ public class RadixUtils {
      * @return formatted string as a hexadecimal number, with string length=4
      */
     public static String formatWordHexString(int wordNumber) {
-        return String.format("%04X", wordNumber);
+        return formatHexString(wordNumber, 4);
     }
 
     /**
@@ -380,7 +286,7 @@ public class RadixUtils {
      * @return formatted string as a hexadecimal number, with string length=4
      */
     public static String formatWordHexString(short upper, short lower) {
-        return String.format("%04X", ((upper << 8) | lower) & 0xFFFF);
+        return formatHexString(((upper & 0xFF) << 8) | (lower & 0xFF), 4);
     }
 
     /**
@@ -392,7 +298,7 @@ public class RadixUtils {
      * @return formatted string as a hexadecimal number, with string length=8
      */
     public static String formatDwordHexString(int number) {
-        return String.format("%08X", number);
+        return formatHexString(number, 8);
     }
 
     /**
@@ -410,29 +316,27 @@ public class RadixUtils {
      * @return formatted string as a binary number, with given string length
      */
     public static String formatBinaryString(int number, int length, int spacePerBits, boolean spacesFromLeft) {
-        String binNumber = Integer.toBinaryString(number);
-        binNumber = String.format("%" + length + "s", binNumber).replace(" ", "0");
+        int totalBits = Math.max(length, bitLength(number));
+        int spaces = (spacePerBits > 0) ? ((totalBits - 1) / spacePerBits) : 0;
+        char[] result = new char[totalBits + spaces];
+        int index = 0;
 
-        char[] resultBits = binNumber.toCharArray();
-
-        StringBuilder builder = new StringBuilder();
-        int bitsCounter = spacePerBits - 1;
-
-        for (int k = 0; k < resultBits.length; k++) {
-            char c = spacesFromLeft ? resultBits[k] : resultBits[resultBits.length - k - 1];
-            builder.append(c);
-
+        for (int bit = 0; bit < totalBits; bit++) {
             if (spacePerBits > 0) {
-                if (bitsCounter == 0) {
-                    builder.append(' ');
-                    bitsCounter = spacePerBits - 1;
-                } else {
-                    bitsCounter--;
+                if (spacesFromLeft) {
+                    if (bit > 0 && (bit % spacePerBits) == 0) {
+                        result[index++] = ' ';
+                    }
+                } else if (bit > 0 && ((totalBits - bit) % spacePerBits) == 0) {
+                    result[index++] = ' ';
                 }
             }
+
+            int shift = totalBits - bit - 1;
+            result[index++] = bitAt(number, shift);
         }
 
-        return (spacesFromLeft ? builder.toString() : builder.reverse().toString()).trim();
+        return new String(result);
     }
 
     /**
@@ -448,5 +352,128 @@ public class RadixUtils {
      */
     public static String formatBinaryString(int number, int length) {
         return formatBinaryString(number, length, 0, false);
+    }
+
+    private static BigInteger parseUnsignedBigInteger(String number, int radix) {
+        checkRadix(radix);
+
+        BigInteger parsed = new BigInteger(number, radix);
+        if (parsed.signum() < 0) {
+            throw new NumberFormatException("Too big number to parse");
+        }
+        return parsed;
+    }
+
+    private static String toRadixString(BigInteger value, int radix) {
+        checkRadix(radix);
+
+        String result = value.toString(radix);
+        return (radix > 10) ? result.toUpperCase(Locale.ROOT) : result;
+    }
+
+    private static BigInteger toBigInteger(byte[] number, boolean littleEndian) {
+        if (number.length == 0) {
+            return BigInteger.ZERO;
+        }
+        if (!littleEndian) {
+            return new BigInteger(1, number);
+        }
+
+        byte[] magnitude = new byte[number.length];
+        for (int i = 0, j = number.length - 1; i < number.length; i++, j--) {
+            magnitude[j] = number[i];
+        }
+        return new BigInteger(1, magnitude);
+    }
+
+    private static byte[] toLittleEndianBytes(byte[] bigEndianBytes, int bytesCount) {
+        int offset = (bigEndianBytes.length > 1 && bigEndianBytes[0] == 0) ? 1 : 0;
+        int magnitudeLength = bigEndianBytes.length - offset;
+
+        if (bytesCount >= 0) {
+            byte[] result = new byte[bytesCount];
+            int copyLength = Math.min(magnitudeLength, bytesCount);
+            for (int i = 0; i < copyLength; i++) {
+                result[i] = bigEndianBytes[bigEndianBytes.length - 1 - i];
+            }
+            return result;
+        }
+
+        byte[] result = new byte[magnitudeLength];
+        for (int i = 0; i < magnitudeLength; i++) {
+            result[i] = bigEndianBytes[bigEndianBytes.length - 1 - i];
+        }
+        return result;
+    }
+
+    private static String toHexString(byte[] number, boolean littleEndian) {
+        int start = littleEndian ? number.length - 1 : 0;
+        int end = littleEndian ? -1 : number.length;
+        int step = littleEndian ? -1 : 1;
+
+        while (start != end && number[start] == 0) {
+            start += step;
+        }
+        if (start == end) {
+            return "0";
+        }
+
+        int significantBytes = littleEndian ? (start + 1) : (number.length - start);
+        int mostSignificantByte = number[start] & 0xFF;
+        char[] result = new char[(significantBytes << 1) - ((mostSignificantByte >>> 4) == 0 ? 1 : 0)];
+
+        int index = appendHexByte(result, 0, mostSignificantByte, true);
+        for (int i = start + step; i != end; i += step) {
+            index = appendHexByte(result, index, number[i] & 0xFF, false);
+        }
+        return new String(result);
+    }
+
+    private static int appendHexByte(char[] result, int index, int value, boolean trimLeadingNibble) {
+        int upperNibble = (value >>> 4) & 0xF;
+        if (!trimLeadingNibble || upperNibble != 0) {
+            result[index++] = HEX_DIGITS[upperNibble];
+        }
+        result[index++] = HEX_DIGITS[value & 0xF];
+        return index;
+    }
+
+    private static String formatHexString(int value, int digits) {
+        char[] result = new char[Math.max(digits, hexLength(value))];
+        for (int i = result.length - 1; i >= 0; i--) {
+            result[i] = HEX_DIGITS[value & 0xF];
+            value >>>= 4;
+        }
+        return new String(result);
+    }
+
+    private static int hexLength(int value) {
+        if (value == 0) {
+            return 1;
+        }
+        if (value < 0) {
+            return Integer.SIZE / 4;
+        }
+        return (bitLength(value) + 3) / 4;
+    }
+
+    private static int bitLength(int number) {
+        if (number == 0) {
+            return 1;
+        }
+        return 32 - Integer.numberOfLeadingZeros(number);
+    }
+
+    private static char bitAt(int number, int shift) {
+        if (shift >= Integer.SIZE) {
+            return '0';
+        }
+        return (((number >>> shift) & 1) == 0) ? '0' : '1';
+    }
+
+    private static void checkRadix(int radix) {
+        if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
+            throw new NumberFormatException("Radix out of range");
+        }
     }
 }

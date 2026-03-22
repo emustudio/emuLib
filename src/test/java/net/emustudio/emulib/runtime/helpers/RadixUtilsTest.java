@@ -66,6 +66,30 @@ public class RadixUtilsTest {
     }
 
     @Test
+    public void testConvertLargeHexToNumber() {
+        byte[] expected = new byte[]{
+            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
+            0x78, 0x56, 0x34, 0x12,
+            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
+            0x78, 0x56, 0x34, 0x12
+        };
+
+        assertArrayEquals(expected, RadixUtils.convertToNumber("123456789ABCDEF0123456789ABCDEF0", 16));
+    }
+
+    @Test
+    public void testConvertLargeNumberToHexRadix() {
+        byte[] value = new byte[]{
+            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
+            0x78, 0x56, 0x34, 0x12,
+            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
+            0x78, 0x56, 0x34, 0x12
+        };
+
+        assertEquals("123456789ABCDEF0123456789ABCDEF0", RadixUtils.convertToRadix(value, 16, true));
+    }
+
+    @Test
     public void testConvertToNumberFrom2to10() {
         byte[] expected = new byte[]{(byte) 214};
         byte[] result = RadixUtils.convertToNumber("11010110", 2);
@@ -151,6 +175,12 @@ public class RadixUtilsTest {
         assertEquals("1F", RadixUtils.formatByteHexString(number));
     }
 
+    @Test
+    public void testHexFormattersDoNotTruncateWiderValues() {
+        assertEquals("123", RadixUtils.formatByteHexString(0x123));
+        assertEquals("12345", RadixUtils.formatWordHexString(0x12345));
+    }
+
     @Test(expected = NumberFormatException.class)
     public void testParseUnknownRadixThrows() {
         RadixUtils.getInstance().parseRadix("ppp");
@@ -207,4 +237,3 @@ public class RadixUtilsTest {
         assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F, 10));
     }
 }
-
