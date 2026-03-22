@@ -3,6 +3,7 @@
 package net.emustudio.emulib.runtime;
 
 import net.emustudio.emulib.runtime.ui.Dialogs;
+import net.emustudio.emulib.runtime.ui.GUI;
 import net.emustudio.emulib.runtime.ui.debugger.DebuggerTable;
 import net.jcip.annotations.ThreadSafe;
 
@@ -40,6 +41,16 @@ public interface ApplicationApi {
      * @return dialogs object
      */
     Dialogs getDialogs();
+
+    /**
+     * Get GUI object.
+     * <p>
+     * GUI object can be used by plugins to create common Swing components like labels, buttons, panels, etc.
+     * The implementation is provided by the host application.
+     *
+     * @return GUI object, or null if GUI is not available
+     */
+    GUI getGUI();
 
     /**
      * Sets program start location (usually a memory address).
@@ -95,6 +106,15 @@ public interface ApplicationApi {
          */
         @Override
         public Dialogs getDialogs() {
+            return null;
+        }
+
+        /**
+         * Returns null.
+         * @return null
+         */
+        @Override
+        public GUI getGUI() {
             return null;
         }
 

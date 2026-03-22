@@ -5,6 +5,7 @@ package net.emustudio.emulib.runtime.helpers;
 import net.emustudio.emulib.runtime.helpers.NumberUtils.Strategy;
 import org.junit.Test;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import static net.emustudio.emulib.runtime.helpers.NumberUtils.*;
@@ -31,6 +32,12 @@ public class NumberUtilsTest {
     @Test
     public void testReverseBitsFullInteger() {
         assertEquals(0xD96DD96D, reverseBits(0xB69BB69B, 32));
+    }
+
+    @Test
+    public void testReverseBitsZeroBits() {
+        assertEquals(0x12345678, reverseBits(0x12345678, 0));
+        assertEquals(0L, reverseBits(0x12345678L, 0));
     }
 
     @Test
@@ -142,6 +149,12 @@ public class NumberUtilsTest {
     public void testReadIntDoesNotTakeMoreBytesIntoAccount() {
         Integer[] word = new Integer[]{0xAB, 0xCD, 0xEF, 0x12, 0x30, 0x50, 0xAA};
         assertEquals(0x12EFCDAB, readInt(word, Strategy.LITTLE_ENDIAN));
+    }
+
+    @Test
+    public void testReadIntOffsetReverseBitsBigEndian() {
+        byte[] word = new byte[]{0x55, 0x0B, 6, 9, 0x0B, 0x22};
+        assertEquals(0xD06090D0, readInt(word, 1, 4, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
     }
 
     @Test
@@ -282,6 +295,13 @@ public class NumberUtilsTest {
     @Test
     public void testListToNativeInts() {
         List<Integer> list = List.of(1, 2, 3, 4);
+        int[] expected = new int[]{1, 2, 3, 4};
+        assertArrayEquals(expected, listToNativeInts(list));
+    }
+
+    @Test
+    public void testListToNativeIntsLinkedList() {
+        List<Integer> list = new LinkedList<>(List.of(1, 2, 3, 4));
         int[] expected = new int[]{1, 2, 3, 4};
         assertArrayEquals(expected, listToNativeInts(list));
     }

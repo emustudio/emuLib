@@ -4,15 +4,15 @@ package net.emustudio.emulib.runtime.helpers;
 
 import net.jcip.annotations.ThreadSafe;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.List;
+import java.util.RandomAccess;
 
 /**
  * A number utility class with various useful operations on numbers and number arrays.
  */
 @ThreadSafe
 public class NumberUtils {
+    private static final byte[] REVERSED_BYTES = createReversedBytes();
 
     /**
      * Constructs a new NumberUtils instance.
@@ -56,11 +56,15 @@ public class NumberUtils {
      * @return value with reversed bits
      */
     public static int reverseBits(int value, int numberOfBits) {
-        int result = value & ((numberOfBits == 32) ? 0 : (0xFFFFFFFF << numberOfBits));
-        for (int i = 0; i < numberOfBits; i++) {
-            result |= ((value >>> i) & 0x1) << (numberOfBits - i - 1);
+        if (numberOfBits <= 0) {
+            return value;
         }
-        return result;
+        if (numberOfBits >= 32) {
+            return Integer.reverse(value);
+        }
+
+        int mask = -1 >>> (32 - numberOfBits);
+        return (value & ~mask) | (Integer.reverse(value & mask) >>> (32 - numberOfBits));
     }
 
     /**
@@ -71,11 +75,15 @@ public class NumberUtils {
      * @return value with reversed bits
      */
     public static long reverseBits(long value, int numberOfBits) {
-        long result = 0;
-        for (int i = 0; i < numberOfBits; i++) {
-            result |= ((value >>> i) & 0x1) << (numberOfBits - i - 1);
+        if (numberOfBits <= 0) {
+            return 0;
         }
-        return result;
+        if (numberOfBits >= 64) {
+            return Long.reverse(value);
+        }
+
+        long mask = -1L >>> (64 - numberOfBits);
+        return Long.reverse(value & mask) >>> (64 - numberOfBits);
     }
 
     /**
@@ -128,20 +136,20 @@ public class NumberUtils {
     /**
      * Reads an integer from the array of numbers.
      * <p>
-     * Uses ByteBuffer.wrap. The array must have 4 items - because integer has 4 bytes.
+     * Uses direct bit assembly. The array must have 4 items - because integer has 4 bytes.
      *
      * @param word     the array of 4 bytes
      * @param strategy strategy how to deal with the array. See <code>Strategy</code> class for more information.
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(Byte[] word, int strategy) {
-        return readInt(numbersToNativeBytes(word), strategy);
+        return readInt(word, 0, Math.min(4, word.length), strategy);
     }
 
     /**
      * Reads an integer from the array of numbers.
      * <p>
-     * Uses ByteBuffer.wrap. The array must have exactly 4 items - because integer has 4 bytes. If the array
+     * Uses direct bit assembly. The array must have exactly 4 items - because integer has 4 bytes. If the array
      * has more bytes, they are ignored. Which ones are ignored depends on the byte ordering (=strategy).
      *
      * @param word     the array of 4 bytes
@@ -155,7 +163,7 @@ public class NumberUtils {
     /**
      * Reads an integer from the array of numbers.
      * <p>
-     * Uses ByteBuffer.wrap. The array should have up to 4 items, each one represents a byte. If the length is
+     * Uses direct bit assembly. The array should have up to 4 items, each one represents a byte. If the length is
      * less than 4, the array for reading is padded with zeroes from the left (in case of big endian) or from the
      * right (in case of little endian), so that the array size is 4.
      *
@@ -168,27 +176,27 @@ public class NumberUtils {
     public static int readInt(byte[] word, int startOffset, int length, int strategy) {
         assert (length >= 0 && length <= 4 && word.length >= (startOffset + length) && startOffset >= 0);
 
-        byte[] newarray = new byte[4];
-        boolean littleEndian = ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN);
+        boolean littleEndian = isLittleEndian(strategy);
+        boolean reverseBits = hasReverseBits(strategy);
+        int value = 0;
 
-        System.arraycopy(word, startOffset, newarray, littleEndian ? 0 : (4 - length), length);
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            for (int i = 0; i < 4; i++) {
-                newarray[i] = (byte) (reverseBits(newarray[i], 8) & 0xFF);
-            }
-        }
-
-        ByteBuffer wrapped = ByteBuffer.wrap(newarray);
         if (littleEndian) {
-            wrapped.order(ByteOrder.LITTLE_ENDIAN);
+            for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                value = (value << 8) | readByte(word[i], reverseBits);
+            }
+            return value;
         }
-        return wrapped.getInt();
+
+        for (int i = startOffset, end = startOffset + length; i < end; i++) {
+            value = (value << 8) | readByte(word[i], reverseBits);
+        }
+        return value;
     }
 
     /**
      * Reads an integer from the array of numbers.
      * <p>
-     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
+     * Uses direct bit assembly. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      *
      * @param word     the array of 4 bytes
@@ -196,13 +204,13 @@ public class NumberUtils {
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(Integer[] word, int strategy) {
-        return readInt(numbersToNativeBytes(word), strategy);
+        return readInt(word, 0, Math.min(4, word.length), strategy);
     }
 
     /**
      * Reads an integer from the array of numbers.
      * <p>
-     * Uses ByteBuffer.wrap. The array must have 4 items, each one must represent a byte. If the value in the
+     * Uses direct bit assembly. The array must have 4 items, each one must represent a byte. If the value in the
      * array is larger than a byte, the higher-order bits are cut.
      *
      * @param word     the array of 4 bytes
@@ -210,123 +218,102 @@ public class NumberUtils {
      * @return Single integer number which combines the array of bytes into one 32-bit value
      */
     public static int readInt(int[] word, int strategy) {
-        return readInt(nativeIntsToNativeBytes(word), strategy);
+        return readInt(word, 0, Math.min(4, word.length), strategy);
     }
 
     /**
      * Split the value into 4 bytes.
      * <p>
-     * Uses ByteBuffer.
+     * Uses direct bit shifts.
      *
      * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Integer[] output, int strategy) {
-        int toSave = value;
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            toSave = reverseBits(value, 32);
-        }
+        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
+        boolean littleEndian = isLittleEndian(strategy);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
-            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        }
-        byteBuffer.putInt(toSave);
-        System.arraycopy(nativeBytesToIntegers(byteBuffer.array()), 0, output, 0, 4);
+        output[0] = byteAt(toSave, littleEndian, 0);
+        output[1] = byteAt(toSave, littleEndian, 1);
+        output[2] = byteAt(toSave, littleEndian, 2);
+        output[3] = byteAt(toSave, littleEndian, 3);
     }
 
     /**
      * Split the value into 4 bytes.
      * <p>
-     * Uses ByteBuffer.
+     * Uses direct bit shifts.
      *
      * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, int[] output, int strategy) {
-        int toSave = value;
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            toSave = reverseBits(value, 32);
-        }
+        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
+        boolean littleEndian = isLittleEndian(strategy);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
-            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        }
-        byteBuffer.putInt(toSave);
-        System.arraycopy(nativeBytesToInts(byteBuffer.array()), 0, output, 0, 4);
+        output[0] = byteAt(toSave, littleEndian, 0);
+        output[1] = byteAt(toSave, littleEndian, 1);
+        output[2] = byteAt(toSave, littleEndian, 2);
+        output[3] = byteAt(toSave, littleEndian, 3);
     }
 
     /**
      * Split the value into 4 bytes.
      * <p>
-     * Uses ByteBuffer.
+     * Uses direct bit shifts.
      *
      * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Byte[] output, int strategy) {
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
-            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        }
-        byteBuffer.putInt(value);
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            for (int i = 0; i < 4; i++) {
-                byteBuffer.array()[i] = (byte) (reverseBits(byteBuffer.array()[i], 8) & 0xFF);
-            }
-        }
+        boolean littleEndian = isLittleEndian(strategy);
+        boolean reverseBits = hasReverseBits(strategy);
 
-        System.arraycopy(nativeBytesToBytes(byteBuffer.array()), 0, output, 0, 4);
+        output[0] = (byte) writeByte(value, littleEndian, 0, reverseBits);
+        output[1] = (byte) writeByte(value, littleEndian, 1, reverseBits);
+        output[2] = (byte) writeByte(value, littleEndian, 2, reverseBits);
+        output[3] = (byte) writeByte(value, littleEndian, 3, reverseBits);
     }
 
     /**
      * Split the value into 4 bytes.
      * <p>
-     * Uses ByteBuffer.
+     * Uses direct bit shifts.
      *
      * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, byte[] output, int strategy) {
-        int toSave = value;
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            toSave = reverseBits(value, 32);
-        }
+        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
+        boolean littleEndian = isLittleEndian(strategy);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
-            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        }
-        byteBuffer.putInt(toSave);
-        System.arraycopy(byteBuffer.array(), 0, output, 0, 4);
+        output[0] = (byte) byteAt(toSave, littleEndian, 0);
+        output[1] = (byte) byteAt(toSave, littleEndian, 1);
+        output[2] = (byte) byteAt(toSave, littleEndian, 2);
+        output[3] = (byte) byteAt(toSave, littleEndian, 3);
     }
 
     /**
      * Split the value into 4 bytes.
      * <p>
-     * Uses binary arithmetic.
+     * Uses direct bit shifts.
      *
      * @param value    The value which should be split into bytes. It is assumed that it is always in native little endian.
      * @param output   The output array. Must have space for 4 bytes. If the array is larger, other elements are ignored.
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Short[] output, int strategy) {
-        int toSave = value;
-        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
-            toSave = reverseBits(value, 32);
-        }
+        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
+        boolean littleEndian = isLittleEndian(strategy);
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
-            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
-        }
-        byteBuffer.putInt(toSave);
-        System.arraycopy(nativeBytesToShorts(byteBuffer.array()), 0, output, 0, 4);
+        output[0] = (short) byteAt(toSave, littleEndian, 0);
+        output[1] = (short) byteAt(toSave, littleEndian, 1);
+        output[2] = (short) byteAt(toSave, littleEndian, 2);
+        output[3] = (short) byteAt(toSave, littleEndian, 3);
     }
 
     /**
@@ -527,10 +514,111 @@ public class NumberUtils {
      */
     public static int[] listToNativeInts(List<Integer> list) {
         int[] result = new int[list.size()];
-        for (int i = 0; i < result.length; i++) {
-            result[i] = list.get(i);
+        if (list instanceof RandomAccess) {
+            for (int i = 0; i < result.length; i++) {
+                result[i] = list.get(i);
+            }
+            return result;
+        }
+
+        int index = 0;
+        for (Integer value : list) {
+            result[index++] = value;
         }
         return result;
+    }
+
+    private static int readInt(Integer[] word, int startOffset, int length, int strategy) {
+        boolean littleEndian = isLittleEndian(strategy);
+        boolean reverseBits = hasReverseBits(strategy);
+        int value = 0;
+
+        if (littleEndian) {
+            for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                value = (value << 8) | readByte(word[i], reverseBits);
+            }
+            return value;
+        }
+
+        for (int i = startOffset, end = startOffset + length; i < end; i++) {
+            value = (value << 8) | readByte(word[i], reverseBits);
+        }
+        return value;
+    }
+
+    private static int readInt(Byte[] word, int startOffset, int length, int strategy) {
+        boolean littleEndian = isLittleEndian(strategy);
+        boolean reverseBits = hasReverseBits(strategy);
+        int value = 0;
+
+        if (littleEndian) {
+            for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                value = (value << 8) | readByte(word[i], reverseBits);
+            }
+            return value;
+        }
+
+        for (int i = startOffset, end = startOffset + length; i < end; i++) {
+            value = (value << 8) | readByte(word[i], reverseBits);
+        }
+        return value;
+    }
+
+    private static int readInt(int[] word, int startOffset, int length, int strategy) {
+        boolean littleEndian = isLittleEndian(strategy);
+        boolean reverseBits = hasReverseBits(strategy);
+        int value = 0;
+
+        if (littleEndian) {
+            for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                value = (value << 8) | readByte(word[i], reverseBits);
+            }
+            return value;
+        }
+
+        for (int i = startOffset, end = startOffset + length; i < end; i++) {
+            value = (value << 8) | readByte(word[i], reverseBits);
+        }
+        return value;
+    }
+
+    private static boolean isLittleEndian(int strategy) {
+        return (strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
+    }
+
+    private static boolean hasReverseBits(int strategy) {
+        return (strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS;
+    }
+
+    private static int readByte(byte value, boolean reverseBits) {
+        return reverseBits ? reverseByte(value) : (value & 0xFF);
+    }
+
+    private static int readByte(Number value, boolean reverseBits) {
+        int byteValue = value.byteValue();
+        return reverseBits ? reverseByte(byteValue) : (byteValue & 0xFF);
+    }
+
+    private static int writeByte(int value, boolean littleEndian, int index, boolean reverseBits) {
+        int byteValue = byteAt(value, littleEndian, index);
+        return reverseBits ? reverseByte(byteValue) : byteValue;
+    }
+
+    private static int byteAt(int value, boolean littleEndian, int index) {
+        int shift = littleEndian ? (index << 3) : (24 - (index << 3));
+        return (value >>> shift) & 0xFF;
+    }
+
+    private static int reverseByte(int value) {
+        return REVERSED_BYTES[value & 0xFF] & 0xFF;
+    }
+
+    private static byte[] createReversedBytes() {
+        byte[] reversedBytes = new byte[256];
+        for (int i = 0; i < reversedBytes.length; i++) {
+            reversedBytes[i] = (byte) (Integer.reverse(i) >>> 24);
+        }
+        return reversedBytes;
     }
 
     /**

@@ -72,6 +72,19 @@ public class DecodedInstructionTest {
     }
 
     @Test
+    public void testHighKeyExpandsStorage() {
+        instruction.add(64, "A", 5);
+        instruction.add(128, 0x0605, 16);
+
+        assertTrue(instruction.hasKey(64));
+        assertTrue(instruction.hasKey(128));
+        assertEquals("A", instruction.getString(64));
+        assertEquals(5, instruction.get(64));
+        assertEquals(0x0605, instruction.getBits(128).number);
+        assertEquals(2, instruction.getKeys().size());
+    }
+
+    @Test
     public void testSetImage() {
         instruction.setImage(new byte[] {6});
         assertArrayEquals(new byte[] {6}, instruction.getImage());
