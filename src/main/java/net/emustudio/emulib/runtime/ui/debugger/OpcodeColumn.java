@@ -59,7 +59,7 @@ public class OpcodeColumn implements DebuggerColumn<String> {
     @Override
     public String getValue(int location) {
         try {
-            return disassembler.disassemble(location).getOpCode();
+            return disassembler.disassemble(location).opCode;
         } catch (InvalidInstructionException | IndexOutOfBoundsException e) {
             return "";
         }

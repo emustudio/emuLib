@@ -23,28 +23,8 @@ public class DisassembledInstructionTest {
 
     @Test
     public void testGetDefaultValues() {
-        assertEquals(DEFAULT_ADDRESS, instruction.getAddress());
-        assertEquals(DEFAULT_MNEMO, instruction.getMnemo());
-        assertEquals(DEFAULT_OPCODE, instruction.getOpCode());
+        assertEquals(DEFAULT_ADDRESS, instruction.address);
+        assertEquals(DEFAULT_MNEMO, instruction.mnemo);
+        assertEquals(DEFAULT_OPCODE, instruction.opCode);
     }
-
-    @Test
-    public void testOverwriteInstruction() {
-        String otherMnemo = DEFAULT_MNEMO + "AAA";
-        String otherOpcode = DEFAULT_OPCODE + "BBB";
-
-        instruction.setInstruction(otherMnemo, otherOpcode);
-        assertEquals(otherMnemo, instruction.getMnemo());
-        assertEquals(otherOpcode, instruction.getOpCode());
-    }
-
-    @Test
-    public void testOverwriteAddress() {
-        int otherAddress = DEFAULT_ADDRESS + 222;
-
-        instruction.setAddress(otherAddress);
-        assertEquals(otherAddress, instruction.getAddress());
-    }
-
-
 }

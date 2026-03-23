@@ -2,18 +2,29 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
+import net.jcip.annotations.Immutable;
+
 /**
- * This class represents disassembled instruction. It is used by
- * disassembler.
+ * This class represents disassembled instruction. It is used by disassembler.
  * <p>
- * It is implemented as read/write container that stores address, mnemo
- * and opcode of the instruction.
- *
+ * It is immutable.
  */
+@Immutable
 public class DisassembledInstruction {
-    private int address;
-    private String mnemo;
-    private String operCode;
+    /**
+     * Instruction address
+     */
+    public final int address;
+
+    /**
+     * Instruction mnemonic and operand code in textual representation.
+     */
+    public final String mnemo;
+
+    /**
+     * Instruction opcode in hex string (as sequence of bytes)
+     */
+    public final String opCode;
 
     /**
      * Creates a new instance of DisassembledInstruction
@@ -24,59 +35,12 @@ public class DisassembledInstruction {
      */
     public DisassembledInstruction(int address, String mnemo, String opCode) {
         this.mnemo = mnemo;
-        this.operCode = opCode;
-        this.address = address;
-    }
-
-    /**
-     * Returns mnemonic representation of the instruction.
-     *
-     * @return a string representing mnemonics form of the instruction
-     */
-    public String getMnemo() {
-        return this.mnemo;
-    }
-
-    /**
-     * Returns operating code of the instruction.
-     *
-     * @return a string that represents the operating code of the instruction
-     */
-    public String getOpCode() {
-        return this.operCode;
-    }
-
-    /**
-     * Assigns new/modified instruction.
-     *
-     * @param mnemo  new mnemonics representation of the instruction
-     * @param opcode new operating code
-     */
-    public void setInstruction(String mnemo, String opcode) {
-        this.mnemo = mnemo;
-        this.operCode = opcode;
-    }
-
-    /**
-     * Returns the address of the instruction.
-     *
-     * @return address of the instruction
-     */
-    public int getAddress() {
-        return address;
-    }
-
-    /**
-     * Set the address of the instruction to a new value.
-     *
-     * @param address new address of the instruction
-     */
-    public void setAddress(int address) {
+        this.opCode = opCode;
         this.address = address;
     }
 
     @Override
     public String toString() {
-        return address + " | " + mnemo + " | " + operCode;
+        return address + " | " + mnemo + " | " + opCode;
     }
 }
