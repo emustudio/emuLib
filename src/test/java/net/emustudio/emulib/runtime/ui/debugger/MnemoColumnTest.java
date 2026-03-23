@@ -62,9 +62,7 @@ public class MnemoColumnTest {
 
     @Test
     public void testMnemoIsReturned() throws Exception {
-        DisassembledInstruction instruction = createMock(DisassembledInstruction.class);
-        expect(instruction.getMnemo()).andReturn("some mnemo").once();
-        replay(instruction);
+        DisassembledInstruction instruction = new DisassembledInstruction(0x53, "some mnemo", "some opcode");
 
         Disassembler disassembler = createMock(Disassembler.class);
         expect(disassembler.disassemble(0x53)).andReturn(instruction).once();
@@ -74,7 +72,7 @@ public class MnemoColumnTest {
 
         assertEquals("some mnemo", column.getValue(0x53));
 
-        verify(instruction, disassembler);
+        verify(disassembler);
     }
 
     @Test

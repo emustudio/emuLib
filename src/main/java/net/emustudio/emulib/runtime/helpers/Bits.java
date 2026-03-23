@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.helpers;
 
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.Immutable;
 
 import java.nio.ByteBuffer;
 
@@ -10,12 +10,12 @@ import java.nio.ByteBuffer;
  * Bits utility class. Supports various operations on bits.
  * It supports maximally 32 bits, because it works with an integer.
  */
-@NotThreadSafe
+@Immutable
 public class Bits {
     /**
      * The integer number in little endian.
      */
-    public int number;
+    public final int number;
     /**
      * Significant bits count.
      */
@@ -47,15 +47,14 @@ public class Bits {
     /**
      * Reverses the bytes.
      *
-     * @return this Bits, with bytes reversed
+     * @return a new {@link Bits} instance with bytes reversed
      */
     public Bits reverseBytes() {
         // if length = 8
         //
         // little endian
         // [ FF 00 00 00 ] = 0xFF   => [ 00 00 00 FF ] = 0xFF000000 >> (32 - 8 = 24) = 0xFF
-        number = Integer.reverseBytes(number) >>> (32 - length);
-        return this;
+        return new Bits(Integer.reverseBytes(number) >>> (32 - length), length);
     }
 
     /**
@@ -63,11 +62,10 @@ public class Bits {
      * <p>
      * However, order of bytes is kept.
      *
-     * @return this Bits, reversed bits within each byte
+     * @return a new {@link Bits} instance with reversed bits within each byte
      */
     public Bits reverseBits() {
-        number = NumberUtils.reverseBits(number, length);
-        return this;
+        return new Bits(NumberUtils.reverseBits(number, length), length);
     }
 
     /**
@@ -75,30 +73,27 @@ public class Bits {
      * <p>
      * If the number is already positive, it is kept as-is.
      *
-     * @return this Bits - the negative sign is removed
+     * @return a new {@link Bits} instance with the negative sign removed
      */
     public Bits absolute() {
-        number = Math.abs(number);
-        return this;
+        return new Bits(Math.abs(number), length);
     }
 
     /**
      * Shift the value to the left.
      *
-     * @return this Bits with value shifted to the left by 1 bit, padded with zeroes from the right
+     * @return a new {@link Bits} instance shifted to the left by 1 bit
      */
     public Bits shiftLeft() {
-        number = (number << 1) & mask;
-        return this;
+        return new Bits((number << 1) & mask, length);
     }
 
     /**
      * Shift the value to the right.
      *
-     * @return this Bits shifted to the right by 1 bit, padded with zeroes from the left
+     * @return a new {@link Bits} instance shifted to the right by 1 bit
      */
     public Bits shiftRight() {
-        number >>>= 1;
-        return this;
+        return new Bits(number >>> 1, length);
     }
 }

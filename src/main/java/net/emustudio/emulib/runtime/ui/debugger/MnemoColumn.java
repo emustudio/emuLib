@@ -2,7 +2,6 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui.debugger;
 
-import net.emustudio.emulib.plugins.cpu.DisassembledInstruction;
 import net.emustudio.emulib.plugins.cpu.Disassembler;
 import net.emustudio.emulib.plugins.cpu.InvalidInstructionException;
 
@@ -60,8 +59,7 @@ public class MnemoColumn implements DebuggerColumn<String> {
     @Override
     public String getValue(int location) {
         try {
-            DisassembledInstruction instr = disassembler.disassemble(location);
-            return instr.getMnemo();
+            return disassembler.disassemble(location).mnemo;
         } catch (InvalidInstructionException e) {
             return "[invalid]";
         } catch (IndexOutOfBoundsException e) {

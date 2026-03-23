@@ -62,9 +62,7 @@ public class OpcodeColumnTest {
 
     @Test
     public void testOpcodeIsReturned() throws Exception {
-        DisassembledInstruction instruction = createMock(DisassembledInstruction.class);
-        expect(instruction.getOpCode()).andReturn("some opcode").once();
-        replay(instruction);
+        DisassembledInstruction instruction = new DisassembledInstruction(0x53, "some mnemo", "some opcode");
 
         Disassembler disassembler = createMock(Disassembler.class);
         expect(disassembler.disassemble(0x53)).andReturn(instruction).once();
@@ -74,7 +72,7 @@ public class OpcodeColumnTest {
 
         assertEquals("some opcode", column.getValue(0x53));
 
-        verify(instruction, disassembler);
+        verify(disassembler);
     }
 
     @Test
@@ -86,5 +84,4 @@ public class OpcodeColumnTest {
     public void testSetDebugValueJustForIncreasingCoverage() {
         new OpcodeColumn(createMock(Disassembler.class)).setValue(-1, null);
     }
-
 }
