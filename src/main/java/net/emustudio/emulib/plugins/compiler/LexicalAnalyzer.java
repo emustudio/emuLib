@@ -4,8 +4,6 @@ package net.emustudio.emulib.plugins.compiler;
 
 import net.jcip.annotations.NotThreadSafe;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,17 +35,11 @@ public interface LexicalAnalyzer extends Iterable<Token> {
     /**
      * Reset this lexical analyzer with new input.
      *
-     * @param input new program source code
-     * @throws IOException when input cannot be read
+     * @param array new program source code
+     * @param offset the index of the first character to read
+     * @param length length of how much to read
      */
-    void reset(InputStream input) throws IOException;
-
-    /**
-     * Reset this lexical analyzer with new input.
-     *
-     * @param input new program source code
-     */
-    void reset(String input);
+    void reset(char[] array, int offset, int length);
 
     @Override
     default Iterator<Token> iterator() {
