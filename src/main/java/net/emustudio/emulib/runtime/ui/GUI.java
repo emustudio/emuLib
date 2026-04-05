@@ -37,8 +37,6 @@ import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
 @SuppressWarnings("unused")
 public interface GUI {
 
-    // ========================= Static utility methods =========================
-
     /**
      * Loads an icon from a resource, using the caller's class for resource lookup.
      * <p>
@@ -140,8 +138,6 @@ public interface GUI {
             }
         }
     }
-
-    // ========================= Instance (abstract) factory methods =========================
 
     /**
      * Toolbar button - a JButton ready to add to a toolbar.
@@ -447,9 +443,6 @@ public interface GUI {
      * @return the fading border
      */
     Border fadingBorder(int thickness, Color color);
-
-
-    // ========================= Internal helper classes =========================
 
     /**
      * ContainerListener that automatically adds/removes a KeyListener to/from dynamically added/removed children.
