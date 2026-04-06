@@ -13,6 +13,8 @@ import java.util.RandomAccess;
 @ThreadSafe
 public class NumberUtils {
     private static final byte[] REVERSED_BYTES = createReversedBytes();
+    private static final int[] BCD_TO_BIN = createBcdToBin();
+    private static final int[] BIN_TO_BCD = createBinToBcd();
 
     /**
      * Constructs a new NumberUtils instance.
@@ -98,36 +100,43 @@ public class NumberUtils {
      * @return the bytes read
      */
     public static int readBits(byte[] bytes, int start, int length, int bytesStrategy) {
-        // if start >= n * 8, we can skip reading whole bytes, because they will be lost by shifting anyway
-        int startByte = start / 8;
-        int endByte = (start + length - 1) / 8;
+        int startByte = start >>> 3;
+        int endByte = (start + length - 1) >>> 3;
+        int realStart = start & 7;
 
-        int div = start / 8; // force java to store integer (drop decimal part)
-        int realStart = start - 8 * div; // we just "shifted" bits which were not read
+        boolean littleEndian = (bytesStrategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
+        boolean reverseBits = (bytesStrategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS;
 
-        int value = readInt(bytes, startByte, endByte - startByte + 1, bytesStrategy);
-
-        int clear = (int) ((1L << length) - 1);
-        int shift;
-
-        boolean littleEndian = ((bytesStrategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN);
-        if (littleEndian) {
-            // from LSB to MSB
-            shift = realStart % 8;
+        // Inlined readInt to avoid redundant strategy parsing and method call overhead
+        int value = 0;
+        if (reverseBits) {
+            if (littleEndian) {
+                for (int i = endByte; i >= startByte; i--) {
+                    value = (value << 8) | (REVERSED_BYTES[bytes[i] & 0xFF] & 0xFF);
+                }
+            } else {
+                for (int i = startByte; i <= endByte; i++) {
+                    value = (value << 8) | (REVERSED_BYTES[bytes[i] & 0xFF] & 0xFF);
+                }
+            }
         } else {
-            // from MSB to LSB
-            //
-            // 1. (8-length) tells us how much we should shift to the right, if realStart=0
-            //
-            // 2. if realStart>0, it means we meed more bits from the right, exactly (8-length-realStart) bits
-            //
-            // 3. we need ((realStart + length) % 8), because we shift at max 7 bits
-            //    (we "dropped" whole bytes if start>8)
-            //
-            // 4. and finally, we need the last %8 because if ((realStart + length) % 8)=0 we end up with shift=8.
-            //    That would be the same as dropping the byte, but we dropped it already (thus we can shift only
-            //    max 7 times (0-7), not 8)
-            shift = (8 - ((realStart + length) % 8)) % 8;
+            if (littleEndian) {
+                for (int i = endByte; i >= startByte; i--) {
+                    value = (value << 8) | (bytes[i] & 0xFF);
+                }
+            } else {
+                for (int i = startByte; i <= endByte; i++) {
+                    value = (value << 8) | (bytes[i] & 0xFF);
+                }
+            }
+        }
+
+        int clear = length >= 32 ? -1 : (1 << length) - 1;
+        int shift;
+        if (littleEndian) {
+            shift = realStart;
+        } else {
+            shift = (8 - ((realStart + length) & 7)) & 7;
         }
 
         return (value >>> shift) & clear;
@@ -176,19 +185,29 @@ public class NumberUtils {
     public static int readInt(byte[] word, int startOffset, int length, int strategy) {
         assert (length >= 0 && length <= 4 && word.length >= (startOffset + length) && startOffset >= 0);
 
-        boolean littleEndian = isLittleEndian(strategy);
-        boolean reverseBits = hasReverseBits(strategy);
+        boolean littleEndian = (strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
         int value = 0;
 
-        if (littleEndian) {
-            for (int i = startOffset + length - 1; i >= startOffset; i--) {
-                value = (value << 8) | readByte(word[i], reverseBits);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
             }
-            return value;
-        }
-
-        for (int i = startOffset, end = startOffset + length; i < end; i++) {
-            value = (value << 8) | readByte(word[i], reverseBits);
+        } else {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            }
         }
         return value;
     }
@@ -231,13 +250,18 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Integer[] output, int strategy) {
-        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
-        boolean littleEndian = isLittleEndian(strategy);
-
-        output[0] = byteAt(toSave, littleEndian, 0);
-        output[1] = byteAt(toSave, littleEndian, 1);
-        output[2] = byteAt(toSave, littleEndian, 2);
-        output[3] = byteAt(toSave, littleEndian, 3);
+        int toSave = (strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS ? Integer.reverse(value) : value;
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            output[0] = toSave & 0xFF;
+            output[1] = (toSave >>> 8) & 0xFF;
+            output[2] = (toSave >>> 16) & 0xFF;
+            output[3] = (toSave >>> 24) & 0xFF;
+        } else {
+            output[0] = (toSave >>> 24) & 0xFF;
+            output[1] = (toSave >>> 16) & 0xFF;
+            output[2] = (toSave >>> 8) & 0xFF;
+            output[3] = toSave & 0xFF;
+        }
     }
 
     /**
@@ -250,13 +274,18 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, int[] output, int strategy) {
-        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
-        boolean littleEndian = isLittleEndian(strategy);
-
-        output[0] = byteAt(toSave, littleEndian, 0);
-        output[1] = byteAt(toSave, littleEndian, 1);
-        output[2] = byteAt(toSave, littleEndian, 2);
-        output[3] = byteAt(toSave, littleEndian, 3);
+        int toSave = (strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS ? Integer.reverse(value) : value;
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            output[0] = toSave & 0xFF;
+            output[1] = (toSave >>> 8) & 0xFF;
+            output[2] = (toSave >>> 16) & 0xFF;
+            output[3] = (toSave >>> 24) & 0xFF;
+        } else {
+            output[0] = (toSave >>> 24) & 0xFF;
+            output[1] = (toSave >>> 16) & 0xFF;
+            output[2] = (toSave >>> 8) & 0xFF;
+            output[3] = toSave & 0xFF;
+        }
     }
 
     /**
@@ -269,13 +298,31 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Byte[] output, int strategy) {
-        boolean littleEndian = isLittleEndian(strategy);
-        boolean reverseBits = hasReverseBits(strategy);
-
-        output[0] = (byte) writeByte(value, littleEndian, 0, reverseBits);
-        output[1] = (byte) writeByte(value, littleEndian, 1, reverseBits);
-        output[2] = (byte) writeByte(value, littleEndian, 2, reverseBits);
-        output[3] = (byte) writeByte(value, littleEndian, 3, reverseBits);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+                output[0] = REVERSED_BYTES[value & 0xFF];
+                output[1] = REVERSED_BYTES[(value >>> 8) & 0xFF];
+                output[2] = REVERSED_BYTES[(value >>> 16) & 0xFF];
+                output[3] = REVERSED_BYTES[(value >>> 24) & 0xFF];
+            } else {
+                output[0] = REVERSED_BYTES[(value >>> 24) & 0xFF];
+                output[1] = REVERSED_BYTES[(value >>> 16) & 0xFF];
+                output[2] = REVERSED_BYTES[(value >>> 8) & 0xFF];
+                output[3] = REVERSED_BYTES[value & 0xFF];
+            }
+        } else {
+            if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+                output[0] = (byte) (value & 0xFF);
+                output[1] = (byte) ((value >>> 8) & 0xFF);
+                output[2] = (byte) ((value >>> 16) & 0xFF);
+                output[3] = (byte) ((value >>> 24) & 0xFF);
+            } else {
+                output[0] = (byte) ((value >>> 24) & 0xFF);
+                output[1] = (byte) ((value >>> 16) & 0xFF);
+                output[2] = (byte) ((value >>> 8) & 0xFF);
+                output[3] = (byte) (value & 0xFF);
+            }
+        }
     }
 
     /**
@@ -288,13 +335,18 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, byte[] output, int strategy) {
-        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
-        boolean littleEndian = isLittleEndian(strategy);
-
-        output[0] = (byte) byteAt(toSave, littleEndian, 0);
-        output[1] = (byte) byteAt(toSave, littleEndian, 1);
-        output[2] = (byte) byteAt(toSave, littleEndian, 2);
-        output[3] = (byte) byteAt(toSave, littleEndian, 3);
+        int toSave = (strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS ? Integer.reverse(value) : value;
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            output[0] = (byte) (toSave & 0xFF);
+            output[1] = (byte) ((toSave >>> 8) & 0xFF);
+            output[2] = (byte) ((toSave >>> 16) & 0xFF);
+            output[3] = (byte) ((toSave >>> 24) & 0xFF);
+        } else {
+            output[0] = (byte) ((toSave >>> 24) & 0xFF);
+            output[1] = (byte) ((toSave >>> 16) & 0xFF);
+            output[2] = (byte) ((toSave >>> 8) & 0xFF);
+            output[3] = (byte) (toSave & 0xFF);
+        }
     }
 
     /**
@@ -307,13 +359,18 @@ public class NumberUtils {
      * @param strategy strategy for how to save the value. See <code>Strategy</code> class for more information.
      */
     public static void writeInt(int value, Short[] output, int strategy) {
-        int toSave = hasReverseBits(strategy) ? Integer.reverse(value) : value;
-        boolean littleEndian = isLittleEndian(strategy);
-
-        output[0] = (short) byteAt(toSave, littleEndian, 0);
-        output[1] = (short) byteAt(toSave, littleEndian, 1);
-        output[2] = (short) byteAt(toSave, littleEndian, 2);
-        output[3] = (short) byteAt(toSave, littleEndian, 3);
+        int toSave = (strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS ? Integer.reverse(value) : value;
+        if ((strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN) {
+            output[0] = (short) (toSave & 0xFF);
+            output[1] = (short) ((toSave >>> 8) & 0xFF);
+            output[2] = (short) ((toSave >>> 16) & 0xFF);
+            output[3] = (short) ((toSave >>> 24) & 0xFF);
+        } else {
+            output[0] = (short) ((toSave >>> 24) & 0xFF);
+            output[1] = (short) ((toSave >>> 16) & 0xFF);
+            output[2] = (short) ((toSave >>> 8) & 0xFF);
+            output[3] = (short) (toSave & 0xFF);
+        }
     }
 
     /**
@@ -529,84 +586,87 @@ public class NumberUtils {
     }
 
     private static int readInt(Integer[] word, int startOffset, int length, int strategy) {
-        boolean littleEndian = isLittleEndian(strategy);
-        boolean reverseBits = hasReverseBits(strategy);
+        boolean littleEndian = (strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
         int value = 0;
 
-        if (littleEndian) {
-            for (int i = startOffset + length - 1; i >= startOffset; i--) {
-                value = (value << 8) | readByte(word[i], reverseBits);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
             }
-            return value;
-        }
-
-        for (int i = startOffset, end = startOffset + length; i < end; i++) {
-            value = (value << 8) | readByte(word[i], reverseBits);
+        } else {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            }
         }
         return value;
     }
 
     private static int readInt(Byte[] word, int startOffset, int length, int strategy) {
-        boolean littleEndian = isLittleEndian(strategy);
-        boolean reverseBits = hasReverseBits(strategy);
+        boolean littleEndian = (strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
         int value = 0;
 
-        if (littleEndian) {
-            for (int i = startOffset + length - 1; i >= startOffset; i--) {
-                value = (value << 8) | readByte(word[i], reverseBits);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
             }
-            return value;
-        }
-
-        for (int i = startOffset, end = startOffset + length; i < end; i++) {
-            value = (value << 8) | readByte(word[i], reverseBits);
+        } else {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            }
         }
         return value;
     }
 
     private static int readInt(int[] word, int startOffset, int length, int strategy) {
-        boolean littleEndian = isLittleEndian(strategy);
-        boolean reverseBits = hasReverseBits(strategy);
+        boolean littleEndian = (strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
         int value = 0;
 
-        if (littleEndian) {
-            for (int i = startOffset + length - 1; i >= startOffset; i--) {
-                value = (value << 8) | readByte(word[i], reverseBits);
+        if ((strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS) {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (REVERSED_BYTES[word[i] & 0xFF] & 0xFF);
+                }
             }
-            return value;
-        }
-
-        for (int i = startOffset, end = startOffset + length; i < end; i++) {
-            value = (value << 8) | readByte(word[i], reverseBits);
+        } else {
+            if (littleEndian) {
+                for (int i = startOffset + length - 1; i >= startOffset; i--) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            } else {
+                for (int i = startOffset, end = startOffset + length; i < end; i++) {
+                    value = (value << 8) | (word[i] & 0xFF);
+                }
+            }
         }
         return value;
-    }
-
-    private static boolean isLittleEndian(int strategy) {
-        return (strategy & Strategy.BIG_ENDIAN) != Strategy.BIG_ENDIAN;
-    }
-
-    private static boolean hasReverseBits(int strategy) {
-        return (strategy & Strategy.REVERSE_BITS) == Strategy.REVERSE_BITS;
-    }
-
-    private static int readByte(byte value, boolean reverseBits) {
-        return reverseBits ? reverseByte(value) : (value & 0xFF);
-    }
-
-    private static int readByte(Number value, boolean reverseBits) {
-        int byteValue = value.byteValue();
-        return reverseBits ? reverseByte(byteValue) : (byteValue & 0xFF);
-    }
-
-    private static int writeByte(int value, boolean littleEndian, int index, boolean reverseBits) {
-        int byteValue = byteAt(value, littleEndian, index);
-        return reverseBits ? reverseByte(byteValue) : byteValue;
-    }
-
-    private static int byteAt(int value, boolean littleEndian, int index) {
-        int shift = littleEndian ? (index << 3) : (24 - (index << 3));
-        return (value >>> shift) & 0xFF;
     }
 
     private static int reverseByte(int value) {
@@ -621,6 +681,22 @@ public class NumberUtils {
         return reversedBytes;
     }
 
+    private static int[] createBcdToBin() {
+        int[] table = new int[256];
+        for (int i = 0; i < 256; i++) {
+            table[i] = ((i >> 4) & 0xF) * 10 + (i & 0xF);
+        }
+        return table;
+    }
+
+    private static int[] createBinToBcd() {
+        int[] table = new int[100];
+        for (int i = 0; i < 100; i++) {
+            table[i] = ((i / 10) << 4) | (i % 10);
+        }
+        return table;
+    }
+
     /**
      * Converts packed BCD code (1 byte, 2 BCD digits) to binary
      * It is assumed the BCD has little endian.
@@ -629,16 +705,16 @@ public class NumberUtils {
      * @return binary number
      */
     public static int bcd2bin(int bcd) {
-        return ((bcd >> 4) & 0xF) * 10 + (bcd & 0xF);
+        return BCD_TO_BIN[bcd & 0xFF];
     }
 
     /**
      * Converts a binary number into packed BCD (1 byte, 2 BCD digits)
      *
-     * @param bin binary number
+     * @param bin binary number (0-99)
      * @return number in packed BCD code, little endian
      */
     public static int bin2bcd(int bin) {
-        return ((((bin / 10) & 0xF) << 4) + ((bin % 10) & 0xF));
+        return BIN_TO_BCD[bin];
     }
 }

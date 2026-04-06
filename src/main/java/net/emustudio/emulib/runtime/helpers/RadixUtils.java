@@ -7,7 +7,7 @@ import net.jcip.annotations.NotThreadSafe;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -23,6 +23,24 @@ public class RadixUtils {
     private static final RadixUtils INSTANCE = new RadixUtils();
     private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
 
+    /**
+     * Maximum number of digits that fit in a long for each radix (index).
+     * Used as a heuristic to decide whether Long.parseUnsignedLong can be used.
+     * Index 0 and 1 are unused. Computed conservatively (values from Long.parseUnsignedLong source).
+     */
+    private static final int[] MAX_LONG_DIGITS = new int[Character.MAX_RADIX + 1];
+
+    static {
+        // Precompute max digit counts per radix for unsigned long
+        // These are the maximum string lengths that Long.parseUnsignedLong can handle
+        for (int radix = Character.MIN_RADIX; radix <= Character.MAX_RADIX; radix++) {
+            // BigInteger.valueOf(Long.MAX_VALUE) * 2 + 1 = 2^64 - 1 max digits
+            // We use a conservative bound: floor(64 / log2(radix))
+            // but the simplest correct approach is to compute it
+            MAX_LONG_DIGITS[radix] = Long.toUnsignedString(-1, radix).length();
+        }
+    }
+
     private final List<NumberPattern> patterns = new ArrayList<>();
 
     /**
@@ -33,6 +51,7 @@ public class RadixUtils {
         private final int radix;
         private final int start;
         private final int end;
+        private Matcher cachedMatcher;
 
         /**
          * Create instance of the NumberPattern
@@ -59,7 +78,12 @@ public class RadixUtils {
          * @return true if the number matches this pattern, false otherwise
          */
         public boolean matches(String number) {
-            return pattern.matcher(number).matches();
+            if (cachedMatcher == null) {
+                cachedMatcher = pattern.matcher(number);
+            } else {
+                cachedMatcher.reset(number);
+            }
+            return cachedMatcher.matches();
         }
 
         /**
@@ -144,7 +168,12 @@ public class RadixUtils {
         if (toRadix == 16) {
             return toHexString(number, littleEndian);
         }
-        return toRadixString(toBigInteger(number, littleEndian), toRadix);
+        // Fast path: if the byte array fits in a long (≤ 8 bytes), avoid BigInteger
+        if (number.length <= 8) {
+            long value = toLongValue(number, littleEndian);
+            return toRadixStringFast(value, toRadix);
+        }
+        return toRadixStringUnchecked(toBigInteger(number, littleEndian), toRadix);
     }
 
     /**
@@ -182,7 +211,18 @@ public class RadixUtils {
         if (fromRadix == toRadix) {
             return number;
         }
-        return toRadixString(parseUnsignedBigInteger(number, fromRadix), toRadix);
+        checkRadix(fromRadix);
+        checkRadix(toRadix);
+        // Fast path using long
+        if (number.length() <= MAX_LONG_DIGITS[fromRadix]) {
+            try {
+                long value = Long.parseUnsignedLong(number, fromRadix);
+                return toRadixStringFast(value, toRadix);
+            } catch (NumberFormatException e) {
+                // fall through to BigInteger path
+            }
+        }
+        return toRadixStringUnchecked(parseUnsignedBigIntegerUnchecked(number, fromRadix), toRadix);
     }
 
     /**
@@ -196,7 +236,20 @@ public class RadixUtils {
      * @return Array of binary components of that number
      */
     public static byte[] convertToNumber(String number, int fromRadix) {
-        BigInteger parsed = parseUnsignedBigInteger(number, fromRadix);
+        checkRadix(fromRadix);
+        // Fast path: try long first
+        if (number.length() <= MAX_LONG_DIGITS[fromRadix]) {
+            try {
+                long value = Long.parseUnsignedLong(number, fromRadix);
+                if (value == 0) {
+                    return new byte[]{0};
+                }
+                return longToLittleEndianBytes(value, -1);
+            } catch (NumberFormatException e) {
+                // fall through to BigInteger path
+            }
+        }
+        BigInteger parsed = parseUnsignedBigIntegerUnchecked(number, fromRadix);
         if (parsed.signum() == 0) {
             return new byte[]{0};
         }
@@ -216,7 +269,17 @@ public class RadixUtils {
      * @return Array of binary components of that number
      */
     public static byte[] convertToNumber(String number, int fromRadix, int bytesCount) {
-        return toLittleEndianBytes(parseUnsignedBigInteger(number, fromRadix).toByteArray(), bytesCount);
+        checkRadix(fromRadix);
+        // Fast path: try long first
+        if (number.length() <= MAX_LONG_DIGITS[fromRadix]) {
+            try {
+                long value = Long.parseUnsignedLong(number, fromRadix);
+                return longToLittleEndianBytes(value, bytesCount);
+            } catch (NumberFormatException e) {
+                // fall through to BigInteger path
+            }
+        }
+        return toLittleEndianBytes(parseUnsignedBigIntegerUnchecked(number, fromRadix).toByteArray(), bytesCount);
     }
 
     /**
@@ -333,7 +396,7 @@ public class RadixUtils {
             }
 
             int shift = totalBits - bit - 1;
-            result[index++] = bitAt(number, shift);
+            result[index++] = (shift < Integer.SIZE && ((number >>> shift) & 1) != 0) ? '1' : '0';
         }
 
         return new String(result);
@@ -354,9 +417,7 @@ public class RadixUtils {
         return formatBinaryString(number, length, 0, false);
     }
 
-    private static BigInteger parseUnsignedBigInteger(String number, int radix) {
-        checkRadix(radix);
-
+    private static BigInteger parseUnsignedBigIntegerUnchecked(String number, int radix) {
         BigInteger parsed = new BigInteger(number, radix);
         if (parsed.signum() < 0) {
             throw new NumberFormatException("Too big number to parse");
@@ -364,11 +425,87 @@ public class RadixUtils {
         return parsed;
     }
 
-    private static String toRadixString(BigInteger value, int radix) {
-        checkRadix(radix);
+    /**
+     * Convert a long value to a radix string, uppercasing a-f in-place (no extra String allocation).
+     */
+    private static String toRadixStringFast(long value, int radix) {
+        String result = Long.toUnsignedString(value, radix);
+        if (radix <= 10) {
+            return result;
+        }
+        // Uppercase in-place to avoid toUpperCase() allocation
+        char[] chars = result.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c >= 'a' && c <= 'z') {
+                chars[i] = (char) (c - 32);
+            }
+        }
+        return new String(chars);
+    }
 
+    /**
+     * Convert BigInteger to radix string without checking radix (caller must have checked).
+     */
+    private static String toRadixStringUnchecked(BigInteger value, int radix) {
         String result = value.toString(radix);
-        return (radix > 10) ? result.toUpperCase(Locale.ROOT) : result;
+        if (radix <= 10) {
+            return result;
+        }
+        // Uppercase in-place to avoid toUpperCase(Locale.ROOT) allocation
+        char[] chars = result.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c >= 'a' && c <= 'z') {
+                chars[i] = (char) (c - 32);
+            }
+        }
+        return new String(chars);
+    }
+
+    /**
+     * Convert a byte array to a long value. Array must be ≤ 8 bytes.
+     */
+    private static long toLongValue(byte[] number, boolean littleEndian) {
+        long value = 0;
+        if (littleEndian) {
+            for (int i = number.length - 1; i >= 0; i--) {
+                value = (value << 8) | (number[i] & 0xFFL);
+            }
+        } else {
+            for (byte b : number) {
+                value = (value << 8) | (b & 0xFFL);
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Convert a long value to little-endian byte array.
+     *
+     * @param value      the long value
+     * @param bytesCount target byte count, or -1 for minimal representation
+     */
+    private static byte[] longToLittleEndianBytes(long value, int bytesCount) {
+        if (bytesCount >= 0) {
+            byte[] result = new byte[bytesCount];
+            for (int i = 0; i < bytesCount && value != 0; i++) {
+                result[i] = (byte) (value & 0xFF);
+                value >>>= 8;
+            }
+            return result;
+        }
+        // Minimal representation
+        if (value == 0) {
+            return new byte[]{0};
+        }
+        int len = (64 - Long.numberOfLeadingZeros(value) + 7) >>> 3;
+        byte[] result = new byte[len];
+        for (int i = 0; i < len; i++) {
+            result[i] = (byte) (value & 0xFF);
+            value >>>= 8;
+        }
+        return result;
     }
 
     private static BigInteger toBigInteger(byte[] number, boolean littleEndian) {
@@ -397,6 +534,11 @@ public class RadixUtils {
                 result[i] = bigEndianBytes[bigEndianBytes.length - 1 - i];
             }
             return result;
+        }
+
+        // Special case for 1 byte - avoid loop
+        if (magnitudeLength == 1) {
+            return new byte[]{bigEndianBytes[offset]};
         }
 
         byte[] result = new byte[magnitudeLength];
@@ -464,12 +606,6 @@ public class RadixUtils {
         return 32 - Integer.numberOfLeadingZeros(number);
     }
 
-    private static char bitAt(int number, int shift) {
-        if (shift >= Integer.SIZE) {
-            return '0';
-        }
-        return (((number >>> shift) & 1) == 0) ? '0' : '1';
-    }
 
     private static void checkRadix(int radix) {
         if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
