@@ -5,8 +5,6 @@ package net.emustudio.emulib.plugins.cpu;
 import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 
-import java.util.Optional;
-
 /**
  * CPU context can be used by plugins which are connected to CPU.
  * <p>
@@ -49,7 +47,7 @@ public interface CPUContext extends Context {
      *
      * @return true if passed cycles is supported by this CPU; false otherwise
      */
-    boolean passedCyclesSupported();
+    boolean isPassedCyclesSupported();
 
     /**
      * Adds passed cycles listener
