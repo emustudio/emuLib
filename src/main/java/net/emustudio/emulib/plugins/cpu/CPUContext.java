@@ -75,6 +75,19 @@ public interface CPUContext extends Context {
          * @param cyclesDelta cycles that were executed (delta from the last call)
          */
         void passedCycles(long cyclesDelta);
+
+        /**
+         * Notifies the context that CPU advanced passive memory-bus cycles at {@code address}.
+         * <p>
+         * The CPU core already accounts for the base elapsed T-states. Implementations may use
+         * {@code address} to model machine-specific side effects such as contention. Default
+         * implementation ignores the address and forwards only the elapsed cycles.
+         *
+         * @param address address currently driven on the bus
+         * @param cycles  elapsed passive memory-bus cycles
+         */
+        default void passedCycles(int address, int cycles) {
+            passedCycles((long) cycles);
+        }
     }
 }
-
