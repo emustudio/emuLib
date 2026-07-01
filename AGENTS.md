@@ -1,23 +1,27 @@
 # emuStudio Repo Routing
 
-## Repository Map
-- `/home/vbmacher/projects/emustudio/emuLib`: shared runtime library for emuStudio. Owns plugin API contracts, runtime services, settings/context APIs, Swing helpers, and reusable utilities.
-- `/home/vbmacher/projects/emustudio/edigen`: generator for instruction decoders and disassemblers from `.eds` specifications. Owns the DSL, parser, and generated decoder/disassembler code shape.
-- `/home/vbmacher/projects/emustudio/emuStudio`: desktop application, CLI launcher, bundled official plugins, bundled virtual computers, configs, and distribution packaging.
-- `/home/vbmacher/projects/emustudio/emustudio.github.io`: website, user documentation, developer documentation, release-facing pages, and download-related content.
-- `/home/vbmacher/projects/emustudio/edigen-gradle-plugin`: Gradle integration for Edigen. Owns Gradle tasks and DSL for source generation from `.eds`.
-- `/home/vbmacher/projects/emustudio/cpu-testsuite`: shared CPU instruction test framework. Owns reusable CPU test builders, fixtures, and verification helpers.
+## Current Repository
+- `emuLib` owns the shared plugin API, runtime services, settings/context APIs, Swing helpers, and reusable utilities used across emuStudio repositories.
 
-## Task Routing
-- Shared plugin API, common utility, runtime service, or reusable UI helper change: update `emuLib`; also check `emuStudio`, `edigen`, and `cpu-testsuite` for consumers.
-- Desktop app behavior, plugin wiring, bundled configs, bundled computers, or packaging change: update `emuStudio`; check `emuLib` if the task needs shared API support.
-- `.eds` syntax, decoder generation, disassembler generation, or generated code semantics change: update `edigen`; also check `edigen-gradle-plugin` and any affected bundled CPUs in `emuStudio`.
-- Gradle build integration for generated decoders/disassemblers: update `edigen-gradle-plugin`; check `edigen` if the task depends on generator inputs or outputs.
-- Shared CPU testing API or reusable instruction-test helper change: update `cpu-testsuite`; check `emuStudio` CPU plugin tests that consume it.
-- User-facing docs, developer guides, website pages, release notes, or download links: update `emustudio.github.io`; also update the owning code repository when behavior changed.
-- Cross-repository emulator feature work: start with the owning repository above, then update every listed consumer repository that depends on that contract or behavior.
+## Sibling Repositories
+The emuStudio project spans several repositories, listed below with their GitHub locations:
+- `emuLib` (https://github.com/vbmacher/emuLib): shared plugin API, runtime services, shared UI helpers, and reusable utilities.
+- `edigen` (https://github.com/emustudio/edigen): decoder/disassembler generator from `.eds` specifications.
+- `emuStudio` (https://github.com/emustudio/emuStudio): desktop application, bundled plugins, virtual computers, configs, and packaging.
+- `emustudio.github.io` (https://github.com/emustudio/emustudio.github.io): website, user documentation, developer documentation, and release-facing pages.
+- `edigen-gradle-plugin` (https://github.com/emustudio/edigen-gradle-plugin): Gradle task and DSL integration for Edigen source generation.
+- `cpu-testsuite` (https://github.com/emustudio/cpu-testsuite): shared CPU instruction test framework and reusable verification helpers.
+
+When a change may affect a sibling repository, first check whether that repository is checked out locally (typically as a sibling directory next to this one). If it is present, inspect and update it as needed. If it is not available locally, do not attempt to modify it; instead report which repository is missing and what changes it would require, so it can be handled separately.
+
+## When To Update Which Repository
+- Shared plugin API, runtime service, settings/context contract, Swing helper, or reusable utility change: update `emuLib`.
+- If an `emuLib` contract change affects generator output, check `edigen` and `edigen-gradle-plugin`.
+- If an `emuLib` contract change affects bundled plugins, application wiring, or virtual computers, update `emuStudio`.
+- If an `emuLib` contract change affects reusable CPU tests, update `cpu-testsuite`.
+- If public behavior or developer-facing usage changed, update `emustudio.github.io`.
 
 ## Tickets And Commits
-- Every change must be tied to an existing GitHub ticket before edits are finalized.
-- Every commit message must start with the ticket prefix in this format: `[#123] Short summary`.
-- If one task spans multiple repositories, use the same ticket number in each related commit.
+- Every change must have an existing GitHub ticket.
+- Every commit subject must start with the ticket prefix: `[#123] Short summary`.
+- If one task touches multiple emuStudio repositories, use the same ticket prefix in each related commit.
