@@ -4,12 +4,15 @@
 - `emuLib` owns the shared plugin API, runtime services, settings/context APIs, Swing helpers, and reusable utilities used across emuStudio repositories.
 
 ## Sibling Repositories
-- `/home/vbmacher/projects/emustudio/emuLib`: shared plugin API, runtime services, shared UI helpers, and reusable utilities.
-- `/home/vbmacher/projects/emustudio/edigen`: decoder/disassembler generator from `.eds` specifications.
-- `/home/vbmacher/projects/emustudio/emuStudio`: desktop application, bundled plugins, virtual computers, configs, and packaging.
-- `/home/vbmacher/projects/emustudio/emustudio.github.io`: website, user documentation, developer documentation, and release-facing pages.
-- `/home/vbmacher/projects/emustudio/edigen-gradle-plugin`: Gradle task and DSL integration for Edigen source generation.
-- `/home/vbmacher/projects/emustudio/cpu-testsuite`: shared CPU instruction test framework and reusable verification helpers.
+The emuStudio project spans several repositories, listed below with their GitHub locations:
+- `emuLib` (https://github.com/vbmacher/emuLib): shared plugin API, runtime services, shared UI helpers, and reusable utilities.
+- `edigen` (https://github.com/emustudio/edigen): decoder/disassembler generator from `.eds` specifications.
+- `emuStudio` (https://github.com/emustudio/emuStudio): desktop application, bundled plugins, virtual computers, configs, and packaging.
+- `emustudio.github.io` (https://github.com/emustudio/emustudio.github.io): website, user documentation, developer documentation, and release-facing pages.
+- `edigen-gradle-plugin` (https://github.com/emustudio/edigen-gradle-plugin): Gradle task and DSL integration for Edigen source generation.
+- `cpu-testsuite` (https://github.com/emustudio/cpu-testsuite): shared CPU instruction test framework and reusable verification helpers.
+
+When a change may affect a sibling repository, first check whether that repository is checked out locally (typically as a sibling directory next to this one). If it is present, inspect and update it as needed. If it is not available locally, do not attempt to modify it; instead report which repository is missing and what changes it would require, so it can be handled separately.
 
 ## When To Update Which Repository
 - Shared plugin API, runtime service, settings/context contract, Swing helper, or reusable utility change: update `emuLib`.
