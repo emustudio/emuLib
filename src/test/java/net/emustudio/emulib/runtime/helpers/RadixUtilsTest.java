@@ -231,6 +231,17 @@ public class RadixUtilsTest {
     }
 
     @Test
+    public void testParseOctalWithSuffix() {
+        assertEquals(15, RadixUtils.getInstance().parseRadix("17o"));
+        assertEquals(15, RadixUtils.getInstance().parseRadix("17o", 8));
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void testParseInvalidOctalSuffixThrows() {
+        RadixUtils.getInstance().parseRadix("89o");
+    }
+
+    @Test
     public void testFormatBinaryStringWithoutSpaces() {
         assertEquals("00100000", RadixUtils.formatBinaryString(32, 8));
         assertEquals("00000000", RadixUtils.formatBinaryString(0, 8));

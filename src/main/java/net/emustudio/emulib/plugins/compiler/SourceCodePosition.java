@@ -45,6 +45,15 @@ public class SourceCodePosition {
     }
 
     /**
+     * Gets file name
+     *
+     * @return file name (non-null)
+     */
+    public String getFileName() {
+        return fileName;
+    }
+
+    /**
      * Creates new SourceCodePosition object
      *
      * @param line     line

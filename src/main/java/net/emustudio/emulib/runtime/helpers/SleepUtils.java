@@ -2,10 +2,14 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.helpers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Sleeping and time measurement utilities.
  */
 public class SleepUtils {
+    private final static Logger LOGGER = LoggerFactory.getLogger(SleepUtils.class);
 
     /**
      * Constructs a new SleepUtils instance.
@@ -38,8 +42,8 @@ public class SleepUtils {
         SLEEP_PRECISION = time / count;
         SPIN_YIELD_PRECISION = SLEEP_PRECISION / 2;
 
-        System.out.println("Sleep precision: " + SLEEP_PRECISION + " ns");
-        System.out.println("Spin yield precision: " + SPIN_YIELD_PRECISION + " ns");
+        LOGGER.debug("Sleep precision: {} ns", SLEEP_PRECISION);
+        LOGGER.debug("Spin yield precision: {} ns", SPIN_YIELD_PRECISION);
     }
 
 

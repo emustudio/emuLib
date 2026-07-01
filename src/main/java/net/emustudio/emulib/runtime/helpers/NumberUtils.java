@@ -71,10 +71,14 @@ public class NumberUtils {
 
     /**
      * Reverse bits in long (max 64-bit) value.
+     * <p>
+     * Note: this overload behaves differently from {@link #reverseBits(int, int)} by design. Only the lowest
+     * {@code numberOfBits} bits are kept and reversed; any higher bits of {@code value} are discarded (not
+     * preserved), and {@code numberOfBits <= 0} yields {@code 0}.
      *
      * @param value        value which bits will be reversed
      * @param numberOfBits how many bits should be reversed. If the value has more bits, the rest will be ignored.
-     * @return value with reversed bits
+     * @return value with the lowest {@code numberOfBits} bits reversed and higher bits cleared
      */
     public static long reverseBits(long value, int numberOfBits) {
         if (numberOfBits <= 0) {
@@ -667,10 +671,6 @@ public class NumberUtils {
             }
         }
         return value;
-    }
-
-    private static int reverseByte(int value) {
-        return REVERSED_BYTES[value & 0xFF] & 0xFF;
     }
 
     private static byte[] createReversedBytes() {
