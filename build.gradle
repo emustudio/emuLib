@@ -9,6 +9,7 @@ import com.vanniktech.maven.publish.DeploymentValidation
 plugins {
   id 'java-library'
   id "com.vanniktech.maven.publish" version "0.36.0"
+  id "org.asciidoctor.jvm.convert" version "4.0.4"
 }
 
 java {
@@ -107,4 +108,34 @@ javadoc {
   if (JavaVersion.current().isJava9Compatible()) {
     options.addBooleanOption('html5', true)
   }
+}
+
+asciidoctorj {
+  modules {
+    diagram.use()
+  }
+}
+
+tasks.register('doc', org.asciidoctor.gradle.jvm.AsciidoctorTask) {
+  group = 'documentation'
+  description = 'Renders the AsciiDoc documents in docs/ to HTML into docs/output/'
+
+  sourceDir file('docs')
+  sources {
+    include '*.adoc'
+  }
+  outputDir file('docs/output')
+  baseDirFollowsSourceFile()
+
+  outputOptions {
+    backends = ['html5']
+    separateOutputDirs = false
+  }
+
+  attributes 'source-highlighter': 'rouge',
+             'toc'               : 'left',
+             'icons'             : 'font',
+             'sectanchors'       : '',
+             'idprefix'          : '',
+             'idseparator'       : '-'
 }

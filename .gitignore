@@ -153,3 +153,6 @@ gradle-app.setting
 .ammonite/
 .metals-sbt/
 .scala-build/
+
+# Generated AsciiDoc documentation (./gradlew doc)
+docs/output/
