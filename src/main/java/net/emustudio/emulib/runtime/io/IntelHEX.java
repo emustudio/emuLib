@@ -23,8 +23,8 @@ import java.util.function.Function;
 @NotThreadSafe
 public class IntelHEX {
 
-    // 16-bit Intel HEX has max 15 bytes per line
-    private final static int MAX_DATA_BYTES_COUNT_IN_LINE = 15;
+    // Number of data bytes emitted per data record (standard I8HEX record length)
+    private final static int MAX_DATA_BYTES_COUNT_IN_LINE = 16;
 
     private final Map<Integer, Byte> program = new HashMap<>();
     private int nextAddress;
@@ -50,7 +50,7 @@ public class IntelHEX {
         }
         for (int i = 0; i < hexData.length() - 1; i += 2) {
             String tmp = hexData.substring(i, i + 2);
-            program.put(nextAddress++, Byte.parseByte(tmp, 16));
+            program.put(nextAddress++, (byte) Integer.parseInt(tmp, 16));
         }
         return nextAddress;
     }
@@ -221,7 +221,7 @@ public class IntelHEX {
                 byte[] hex = new byte[2];
                 for (int y = 0; y < bytesCount; y++) {
                     buffer.get(hex);
-                    hexFile.add(Byte.parseByte(new String(hex), 16));
+                    hexFile.add((byte) Integer.parseInt(new String(hex), 16));
                 }
                 // checksum - don't care..
                 ignoreLine(buffer);
@@ -263,7 +263,7 @@ public class IntelHEX {
             }
 
             // if element's address does not equal suggested (naturally computed) address or line is full
-            if ((hexLineAddress.get() != address) || (hexDataBytesCount.get() > MAX_DATA_BYTES_COUNT_IN_LINE)) {
+            if ((hexLineAddress.get() != address) || (hexDataBytesCount.get() >= MAX_DATA_BYTES_COUNT_IN_LINE)) {
                 String fullLine = String.format("%02X%s00%s", hexDataBytesCount.get(), hexLineAddressStr.get(), hexDataBytes);
                 intelHexContent.append(String.format(":%s%s\n", fullLine, checksum(fullLine)));
                 hexDataBytesCount.set(0);
@@ -292,13 +292,8 @@ public class IntelHEX {
             sum += Integer.parseInt(lin.substring(i, i + 2), 16);
         }
         sum %= 0x100;
-        // :
-        // 10 00 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-        // 16 0  8  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
-        // 16+8 = 24
-        // 0x100 -24 +1 = 256 - 24 +1 = 232 +1 = 0xe8 + 1 = 0xe9
-        // 0xe9 je zevraj zle, ma byt 0xe8
-        chsum = 0x100 - sum; //+1;
+        // two's complement of the least significant byte of the sum
+        chsum = (0x100 - sum) & 0xFF;
         return String.format("%1$02X", chsum);
     }
 

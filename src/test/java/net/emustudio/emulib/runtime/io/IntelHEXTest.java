@@ -108,6 +108,42 @@ public class IntelHEXTest {
     }
 
     @Test
+    public void testHighBytesAreParsedFromHexString() {
+        hexFile.add("80FF00C0");
+        Map<Integer, Byte> codeTable = hexFile.getCode();
+        assertEquals((byte) 0x80, (byte) codeTable.get(0));
+        assertEquals((byte) 0xFF, (byte) codeTable.get(1));
+        assertEquals((byte) 0x00, (byte) codeTable.get(2));
+        assertEquals((byte) 0xC0, (byte) codeTable.get(3));
+    }
+
+    @Test
+    public void testHighBytesRoundTripThroughGenerateAndParse() throws Exception {
+        hexFile.add(new byte[]{(byte) 0x80, (byte) 0xFF, (byte) 0xAB, (byte) 0xCD});
+        Path tmpName = Path.of("tmp" + System.currentTimeMillis());
+        hexFile.generate(tmpName);
+        try {
+            IntelHEX parsed = IntelHEX.parse(tmpName.toFile());
+            Map<Integer, Byte> codeTable = parsed.getCode();
+            assertEquals((byte) 0x80, (byte) codeTable.get(0));
+            assertEquals((byte) 0xFF, (byte) codeTable.get(1));
+            assertEquals((byte) 0xAB, (byte) codeTable.get(2));
+            assertEquals((byte) 0xCD, (byte) codeTable.get(3));
+        } finally {
+            tmpName.toFile().delete();
+        }
+    }
+
+    @Test
+    public void testChecksumIsAlwaysTwoHexDigits() throws Exception {
+        // A single 0xFF byte at address 0 makes the byte-sum a multiple of 0x100,
+        // which previously produced a malformed 3-character checksum ("100").
+        hexFile.add((byte) 0xFF);
+        List<String> content = generateReadAndDeleteHexFile();
+        content.forEach(this::assertHexLineIsValid);
+    }
+
+    @Test
     public void testPutEmptyCode() throws Exception {
         hexFile.add("");
         List<String> content = generateReadAndDeleteHexFile();

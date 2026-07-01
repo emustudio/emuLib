@@ -78,9 +78,9 @@ public class FileExtension {
      */
     public static String stripKnownExtension(String fileName, Iterable<FileExtension> knownExtensions) {
         for (FileExtension extension : knownExtensions) {
-            int i = fileName.lastIndexOf("." + extension.getExtension());
-            if (i >= 0) {
-                return fileName.substring(0, i);
+            String suffix = "." + extension.getExtension();
+            if (fileName.endsWith(suffix)) {
+                return fileName.substring(0, fileName.length() - suffix.length());
             }
         }
         return fileName;

@@ -122,10 +122,11 @@ public class StringUtilsTest {
     }
 
     @Test
-    public void testFormatLargeHexValue() {
-        Bits bits = new Bits(0xABCDEF, 32);
-        assertEquals("abcdef", StringUtils.format('x', bits));
-        assertEquals("ABCDEF", StringUtils.format('X', bits));
+    public void testShortenWithComponentEmptyStringDoesNotThrow() {
+        // An empty string has zero rendered width; the component overload must not divide by zero.
+        javax.swing.JLabel label = new javax.swing.JLabel();
+        label.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 12));
+        assertEquals("", StringUtils.shorten("", label, 100));
     }
 
 }

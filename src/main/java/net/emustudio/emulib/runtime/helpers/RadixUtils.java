@@ -124,8 +124,7 @@ public class RadixUtils {
         patterns.add(new NumberPattern("[0-9a-f]+h", 16, 0, 1));
         patterns.add(new NumberPattern("[0-9]+", 10, 0, 0));
         patterns.add(new NumberPattern("[0-9]+d", 10, 0, 1));
-        patterns.add(new NumberPattern("0[0-9]+", 8, 1, 0));
-        patterns.add(new NumberPattern("[0-9]+o", 8, 0, 1));
+        patterns.add(new NumberPattern("[0-7]+o", 8, 0, 1));
     }
 
     /**

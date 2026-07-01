@@ -46,4 +46,16 @@ public class FileExtensionTest {
         String result = stripKnownExtension("file.inc", knownExtensions);
         assertEquals("file", result);
     }
+
+    @Test
+    public void testStripKnownExtensionOnlyStripsTrailingExtension() {
+        // ".asm" appears in the middle but the real extension is ".txt" (unknown) - must be preserved
+        assertEquals("archive.asm.txt", stripKnownExtension("archive.asm.txt", knownExtensions));
+    }
+
+    @Test
+    public void testStripKnownExtensionDoesNotStripPartialMatch() {
+        // "asmtext" is not the "asm" extension
+        assertEquals("file.asmtext", stripKnownExtension("file.asmtext", knownExtensions));
+    }
 }

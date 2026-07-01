@@ -5,6 +5,7 @@ package net.emustudio.emulib.runtime.helpers;
 import java.awt.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.Locale;
 
 /**
  * String utility class.
@@ -51,12 +52,19 @@ public class StringUtils {
     public static String shorten(String string, Component component, int componentWidth) {
         FontMetrics fontMetrics = component.getFontMetrics(component.getFont());
         int baseNameWidth = fontMetrics.stringWidth(string);
+        if (baseNameWidth <= 0) {
+            return string;
+        }
         int maxPathLength = string.length() * Math.min(componentWidth, baseNameWidth) / baseNameWidth;
         return shorten(string, maxPathLength);
     }
 
     /**
      * Transforms bits into a meaningful string using the formatting character.
+     * <p>
+     * Note: {@link Bits} carries at most 32 bits of numeric data. When formatting a 64-bit float
+     * ({@code format == 'f'} and {@code bits.length == 64}), only the low 32 bits are available, so the
+     * high 4 bytes of the {@code double} are zero and the result cannot represent a full IEEE-754 double.
      *
      * @param format the formatting character ('s' for a string, etc.)
      * @param bits   the bits to format
@@ -87,7 +95,7 @@ public class StringUtils {
             case 'x':
                 return Integer.toHexString(bits.number);
             case 'X':
-                return Integer.toHexString(bits.number).toUpperCase();
+                return Integer.toHexString(bits.number).toUpperCase(Locale.ROOT);
             case '%':
                 return "%";
             default:

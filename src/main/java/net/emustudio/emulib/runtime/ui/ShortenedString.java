@@ -44,6 +44,10 @@ public class ShortenedString<T> {
         String fullString = getFullString();
         int fullStringWidth = fontMetrics.stringWidth(fullString);
 
+        if (fullStringWidth <= 0) {
+            this.maxStringLength = fullString.length();
+            return;
+        }
         this.maxStringLength = fullString.length() * Math.min(componentWidth, fullStringWidth) / fullStringWidth;
     }
 
