@@ -40,6 +40,8 @@ dependencies {
 
   compileOnlyWithTests("org.slf4j:slf4j-api:${versions.slf4j}")
   compileOnlyWithTests('net.jcip:jcip-annotations:1.0')
+  // provided by compiler plugins that use the plugins.compiler.antlr helpers
+  compileOnlyWithTests('org.antlr:antlr4-runtime:4.13.2')
 
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.easymock:easymock:5.6.0'
