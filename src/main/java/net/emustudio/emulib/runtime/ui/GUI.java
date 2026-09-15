@@ -2,6 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui;
 
+import net.emustudio.emulib.runtime.helpers.Unchecked;
 import net.emustudio.emulib.runtime.ui.components.FileExtensionsFilter;
 
 import javax.swing.*;
@@ -83,6 +84,49 @@ public interface GUI {
         } catch (Exception e) {
             return new Font(Font.MONOSPACED, Font.PLAIN, size);
         }
+    }
+
+    /**
+     * Runs a (potentially long-running, exception-throwing) task off the Event Dispatch Thread using a
+     * {@link SwingWorker}, with a consistent enable/disable and error-handling policy.
+     * <p>
+     * The given action is disabled before the task starts and re-enabled when it finishes (whether it
+     * succeeds or fails). On success {@code onSuccess} is invoked on the EDT; on failure {@code onError}
+     * is invoked on the EDT with the unwrapped cause.
+     *
+     * @param action    the action to disable while the task runs (e.g. the invoking {@code AbstractAction})
+     * @param task      the work to perform on a background thread
+     * @param onSuccess callback invoked on the EDT after the task completes successfully
+     * @param onError   callback invoked on the EDT with the unwrapped cause if the task fails
+     */
+    static void runInBackground(Action action, Unchecked.RunnableWhichCanThrow task,
+                                Runnable onSuccess, Consumer<Throwable> onError) {
+        Objects.requireNonNull(action);
+        Objects.requireNonNull(task);
+        Objects.requireNonNull(onSuccess);
+        Objects.requireNonNull(onError);
+
+        action.setEnabled(false);
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                task.run();
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                    onSuccess.run();
+                } catch (Exception ex) {
+                    Throwable cause = ex.getCause() == null ? ex : ex.getCause();
+                    onError.accept(cause);
+                } finally {
+                    action.setEnabled(true);
+                }
+            }
+        }.execute();
     }
 
     /**
