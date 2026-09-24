@@ -68,6 +68,11 @@ public class AbstractCPUStub extends AbstractCPU {
     }
 
     @Override
+    public int getAddressSpaceSize() {
+        return 256;
+    }
+
+    @Override
     public Disassembler getDisassembler() {
         throw new UnsupportedOperationException();
     }

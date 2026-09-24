@@ -238,6 +238,13 @@ public interface CPU extends Plugin {
     boolean setInstructionLocation(int location);
 
     /**
+     * Get the number of addressable instruction locations exposed by this CPU.
+     *
+     * @return positive address-space size; the highest valid location is one less than this value
+     */
+    int getAddressSpaceSize();
+
+    /**
      * Get disassembler.
      * <p>
      * EmuStudio uses it for filling up the debugger table.
