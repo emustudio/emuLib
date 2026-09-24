@@ -3,6 +3,7 @@
 package net.emustudio.emulib.plugins.compiler;
 
 import net.emustudio.emulib.plugins.PluginInitializationException;
+import net.emustudio.emulib.plugins.PluginMeta;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
 import net.emustudio.emulib.runtime.ApplicationApi;
@@ -80,6 +81,16 @@ public abstract class AbstractCompiler implements Compiler {
     @Override
     public String getTitle() {
         return getClass().getAnnotation(PluginRoot.class).title();
+    }
+
+    @Override
+    public String getVersion() {
+        return PluginMeta.version(getClass());
+    }
+
+    @Override
+    public String getCopyright() {
+        return PluginMeta.copyright(getClass());
     }
 
     /**

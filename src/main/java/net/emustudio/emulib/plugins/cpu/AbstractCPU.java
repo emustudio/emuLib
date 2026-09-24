@@ -2,6 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
+import net.emustudio.emulib.plugins.PluginMeta;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
@@ -124,6 +125,16 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     @Override
     public String getTitle() {
         return getClass().getAnnotation(PluginRoot.class).title();
+    }
+
+    @Override
+    public String getVersion() {
+        return PluginMeta.version(getClass());
+    }
+
+    @Override
+    public String getCopyright() {
+        return PluginMeta.copyright(getClass());
     }
 
     /**
