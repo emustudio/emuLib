@@ -43,6 +43,9 @@ dependencies {
   // provided by compiler plugins that use the plugins.compiler.antlr helpers
   compileOnlyWithTests('org.antlr:antlr4-runtime:4.13.2')
 
+  implementation 'org.jcodec:jcodec:0.2.3'
+  implementation 'org.jcodec:jcodec-javase:0.2.3'
+
   testImplementation 'junit:junit:4.13.2'
   testImplementation 'org.easymock:easymock:5.6.0'
 }
