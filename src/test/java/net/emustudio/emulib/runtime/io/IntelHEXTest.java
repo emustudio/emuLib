@@ -5,9 +5,13 @@ package net.emustudio.emulib.runtime.io;
 import net.emustudio.emulib.plugins.memory.MemoryContext;
 import net.emustudio.emulib.plugins.memory.annotations.Annotations;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.nio.file.Files;
@@ -18,6 +22,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class IntelHEXTest {
+    @Rule public TemporaryFolder tmp = new TemporaryFolder();
     private static final String VALID_HEX_FILE = "valid.hex";
     private static final String INVALID_HEX_FILE = "invalid.hex";
     private static final String INVALID2_HEX_FILE = "invalid2.hex";
@@ -57,6 +62,12 @@ public class IntelHEXTest {
         // verify data length
         int dataLength = Integer.decode("0x" + line.substring(1, 3));
         assertEquals(dataLength * 2, line.length() - 11);
+
+        int sum = 0;
+        for (int offset = 1; offset < line.length(); offset += 2) {
+            sum += Integer.parseInt(line.substring(offset, offset + 2), 16);
+        }
+        assertEquals("Record checksum", 0, sum & 0xFF);
     }
 
     @Test
@@ -171,32 +182,32 @@ public class IntelHEXTest {
         assertArrayEquals(expected.toArray(), content.toArray());
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IOException.class)
     public void testParsingInvalidHexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID_HEX_FILE));
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IOException.class)
     public void testParsingInvalid2HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID2_HEX_FILE));
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IOException.class)
     public void testParsingInvalid3HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID3_HEX_FILE));
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IOException.class)
     public void testParsingInvalid4HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID4_HEX_FILE));
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IOException.class)
     public void testParsingInvalid5HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID5_HEX_FILE));
     }
 
-    @Test(expected = Exception.class)
+    @Test(expected = IOException.class)
     public void testParsingInvalid6HexFile() throws Exception {
         hexFile = IntelHEX.parse(toFile(INVALID6_HEX_FILE));
     }
@@ -213,6 +224,61 @@ public class IntelHEXTest {
         assertEquals(1, (byte) hexCodeTable.get(1));
         assertEquals(2, (byte) hexCodeTable.get(2));
         assertEquals(3, (byte) hexCodeTable.get(3));
+    }
+
+    @Test
+    public void testGenerationSplitsAtRecordLimitAndAddressGaps() throws IOException {
+        hexFile.setNextAddress(0x40);
+        hexFile.add((byte) 0xFF);
+        hexFile.setNextAddress(0x10);
+        for (byte value = 1; value <= 17; value++) hexFile.add(value);
+        StringWriter writer = new StringWriter();
+        hexFile.generate(writer);
+        assertEquals(":100010000102030405060708090A0B0C0D0E0F1058\n"
+                + ":0100200011CE\n:01004000FFC0\n:00000001FF\n", writer.toString());
+    }
+
+    @Test
+    public void testParsingSortsAddressesAndKeepsLastOverlappingData() throws IOException {
+        Path file = tmp.newFile("unordered.hex").toPath();
+        Files.writeString(file, "\n  ; comment\r\n:02002000112200\r\n:02001000AABB00\r\n"
+                + ":01001100CC00\r\n; final comment without newline");
+        IntelHEX parsed = IntelHEX.parse(file.toFile());
+        assertEquals(Map.of(0x10, (byte) 0xAA, 0x11, (byte) 0xCC,
+                0x20, (byte) 0x11, 0x21, (byte) 0x22), parsed.getCode());
+        assertEquals(List.of(0x10, 0x11, 0x20, 0x21), new ArrayList<>(parsed.getCode().keySet()));
+        assertEquals(0x10, parsed.findProgramLocation());
+    }
+
+    @Test
+    public void testParsingIgnoresBlankAndCommentOnlyLines() throws IOException {
+        Path file = tmp.newFile("comments.hex").toPath();
+        Files.writeString(file, "\n \n\t; comment\n; last comment");
+        assertTrue(IntelHEX.parse(file.toFile()).getCode().isEmpty());
+    }
+
+    @Test
+    public void testMalformedRecordReportsItsLineNumber() throws IOException {
+        for (String record : List.of(":", ":01", ":02001000AA", ":01001000GG00", "01001000AA00")) {
+            Path file = tmp.newFile().toPath();
+            Files.writeString(file, "; comment\n\n" + record);
+            IOException error = assertThrows(IOException.class, () -> IntelHEX.parse(file.toFile()));
+            assertTrue(error.getMessage(), error.getMessage().contains("line 3"));
+        }
+    }
+
+    @Test
+    public void testAddTableResolvesOverlapsAndPreservesNextAddress() {
+        hexFile.setNextAddress(0x100);
+        hexFile.add((byte) 1);
+        Map<Integer, String> table = new LinkedHashMap<>();
+        table.put(0x20, "11");
+        table.put(0x11, "FF");
+        table.put(0x10, "010203");
+        hexFile.add(table);
+        assertEquals((byte) 0xFF, (byte) hexFile.getCode().get(0x11));
+        assertEquals(0x102, hexFile.add((byte) 0x44));
+        assertEquals((byte) 0x44, (byte) hexFile.getCode().get(0x101));
     }
 
     private static class MemoryContextStub implements MemoryContext<Short> {

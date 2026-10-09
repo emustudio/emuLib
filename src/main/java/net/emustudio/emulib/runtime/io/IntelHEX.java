@@ -6,13 +6,12 @@ import net.emustudio.emulib.plugins.memory.MemoryContext;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 import java.util.function.Function;
 
 /**
@@ -24,9 +23,10 @@ import java.util.function.Function;
 public class IntelHEX {
 
     // Number of data bytes emitted per data record (standard I8HEX record length)
-    private final static int MAX_DATA_BYTES_COUNT_IN_LINE = 16;
+    private static final int MAX_DATA_BYTES_COUNT_IN_LINE = 16;
+    private static final String HEX_DIGITS = "0123456789ABCDEF";
 
-    private final Map<Integer, Byte> program = new HashMap<>();
+    private final NavigableMap<Integer, Byte> program = new TreeMap<>();
     private int nextAddress;
 
     /**
@@ -49,8 +49,7 @@ public class IntelHEX {
             return nextAddress;
         }
         for (int i = 0; i < hexData.length() - 1; i += 2) {
-            String tmp = hexData.substring(i, i + 2);
-            program.put(nextAddress++, (byte) Integer.parseInt(tmp, 16));
+            program.put(nextAddress++, (byte) readByte(hexData, i));
         }
         return nextAddress;
     }
@@ -91,17 +90,17 @@ public class IntelHEX {
      */
     public void add(Map<Integer, String> hexCodeMap) {
         int previousAddress = nextAddress;
-        hexCodeMap.keySet().stream().sorted().forEach(address -> {
-            nextAddress = address;
-            add(hexCodeMap.get(nextAddress));
-        });
+        for (Map.Entry<Integer, String> entry : new TreeMap<>(hexCodeMap).entrySet()) {
+            nextAddress = entry.getKey();
+            add(entry.getValue());
+        }
         nextAddress = Math.max(nextAddress, previousAddress);
     }
 
     /**
      * Get the program hex code, encoded as map of addresses/bytes.
      *
-     * @return Map representing the program code
+     * @return mutable map of program bytes, iterated in ascending address order
      */
     public Map<Integer, Byte> getCode() {
         return this.program;
@@ -126,10 +125,7 @@ public class IntelHEX {
      * @param convert conversion of byte to T
      */
     public <T extends Number> void loadIntoMemory(MemoryContext<T> mem, Function<Byte, T> convert) {
-        program.keySet().stream().sorted().forEach(address -> {
-            byte code = program.get(address);
-            mem.write(address, convert.apply(code));
-        });
+        program.forEach((address, code) -> mem.write(address, convert.apply(code)));
     }
 
     /**
@@ -139,7 +135,7 @@ public class IntelHEX {
      * @throws java.io.IOException if the HEX file could not be written
      */
     public void generate(Path outputPath) throws IOException {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath.toFile()))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(outputPath, StandardCharsets.US_ASCII)) {
             generate(writer);
         }
     }
@@ -151,25 +147,39 @@ public class IntelHEX {
      * @throws java.io.IOException if the HEX file could not be written
      */
     public void generate(Writer writer) throws IOException {
-        String fileData = generateHEX();
-        writer.write(fileData);
+        int recordAddress = 0;
+        int nextRecordAddress = 0;
+        StringBuilder data = new StringBuilder(MAX_DATA_BYTES_COUNT_IN_LINE * 2);
+        for (Map.Entry<Integer, Byte> entry : program.entrySet()) {
+            int address = entry.getKey();
+            if (data.length() > 0 && (address != nextRecordAddress || data.length() == MAX_DATA_BYTES_COUNT_IN_LINE * 2)) {
+                writeRecord(writer, recordAddress, data);
+                data.setLength(0);
+            }
+            if (data.length() == 0) recordAddress = address;
+            appendByte(data, entry.getValue());
+            nextRecordAddress = address + 1;
+        }
+        if (data.length() > 0) writeRecord(writer, recordAddress, data);
+        writer.write(":00000001FF\n");
     }
 
     /**
      * Finds program location in memory.
      * <p>
-     * It is actually the first address which has occurred in the program.
+     * It is the lowest address in the program, or zero if the program is empty.
      *
      * @return program memory location
      */
     public int findProgramLocation() {
-        return program.keySet().stream().sorted().findFirst().orElse(0);
+        return program.isEmpty() ? 0 : program.firstKey();
     }
 
     /**
      * Parses Intel HEX file.
      * <p>
-     * Lines starting with ; are ignored.
+     * Blank lines and lines starting with ; after leading whitespace are ignored.
+     * Input checksums are ignored. Malformed data records report their line number.
      *
      * @param file file
      * @return new instance of IntelHEX
@@ -178,53 +188,37 @@ public class IntelHEX {
     public static IntelHEX parse(File file) throws IOException {
         IntelHEX hexFile = new IntelHEX();
 
-        try (FileInputStream fis = new FileInputStream(file)) {
-            FileChannel channel = fis.getChannel();
-            ByteBuffer buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-
-            while (buffer.hasRemaining()) {
-                char input = (char) buffer.get();
-                while (buffer.hasRemaining() && (input == ' ' || input == ';')) {
-                    if (input == ' ') {
-                        input = ignoreSpaces(buffer);
+        try (BufferedReader reader = Files.newBufferedReader(file.toPath(), StandardCharsets.ISO_8859_1)) {
+            String line;
+            int lineNumber = 0;
+            while ((line = reader.readLine()) != null) {
+                lineNumber++;
+                line = line.stripLeading();
+                if (line.isEmpty() || line.startsWith(";")) continue;
+                try {
+                    if (line.charAt(0) != ':') {
+                        throw new IOException("Expected ':' at Intel HEX line " + lineNumber);
                     }
-                    if (input == ';') {
-                        ignoreLine(buffer);
-                        input = (char) buffer.get();
+                    int bytesCount = readByte(line, 1);
+                    // Preserve the existing handling of EOF and other empty records.
+                    if (bytesCount == 0) continue;
+                    int address = Integer.parseInt(line, 3, 7, 16);
+                    int dataType = readByte(line, 7);
+                    if (dataType != 0) {
+                        throw new IOException("Unsupported data type " + dataType + " at Intel HEX line " + lineNumber);
                     }
+                    int dataEnd = 9 + bytesCount * 2;
+                    if (line.length() < dataEnd) {
+                        throw new IOException("Incomplete data at Intel HEX line " + lineNumber);
+                    }
+                    hexFile.setNextAddress(address);
+                    for (int offset = 9; offset < dataEnd; offset += 2) {
+                        hexFile.add((byte) readByte(line, offset));
+                    }
+                    // Input checksums remain ignored, as in the existing I8HEX reader.
+                } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                    throw new IOException("Malformed Intel HEX at line " + lineNumber, e);
                 }
-                if (!buffer.hasRemaining()) {
-                    break;
-                }
-                if (input != ':') {
-                    throw new IOException("Unexpected character: " + input);
-                }
-
-                // data bytes count
-                int bytesCount = readWord(buffer);
-                if (bytesCount == 0) {
-                    ignoreLine(buffer);
-                    continue;
-                }
-
-                // address
-                int address = readDword(buffer);
-
-                // data type
-                int dataType = readWord(buffer);
-                if (dataType != 0) {
-                    throw new IOException("Unsupported data type: " + dataType);
-                }
-
-                // data...
-                hexFile.setNextAddress(address);
-                byte[] hex = new byte[2];
-                for (int y = 0; y < bytesCount; y++) {
-                    buffer.get(hex);
-                    hexFile.add((byte) Integer.parseInt(new String(hex), 16));
-                }
-                // checksum - don't care..
-                ignoreLine(buffer);
             }
         }
         return hexFile;
@@ -246,80 +240,21 @@ public class IntelHEX {
         return hexFile.findProgramLocation();
     }
 
-    // generate hex file
-    private String generateHEX() {
-        final AtomicReference<String> hexLineAddressStr = new AtomicReference<>();
-        final AtomicInteger hexLineAddress = new AtomicInteger(0);
-        final AtomicInteger hexDataBytesCount = new AtomicInteger(0);
-        StringBuilder hexDataBytes = new StringBuilder();
-
-        StringBuilder intelHexContent = new StringBuilder();
-
-        program.keySet().stream().sorted().forEach(address -> {
-            // is line at the very beginning ?
-            if (hexLineAddressStr.get() == null) {
-                hexLineAddress.set(address);
-                hexLineAddressStr.set(String.format("%04X", address));
-            }
-
-            // if element's address does not equal suggested (naturally computed) address or line is full
-            if ((hexLineAddress.get() != address) || (hexDataBytesCount.get() >= MAX_DATA_BYTES_COUNT_IN_LINE)) {
-                String fullLine = String.format("%02X%s00%s", hexDataBytesCount.get(), hexLineAddressStr.get(), hexDataBytes);
-                intelHexContent.append(String.format(":%s%s\n", fullLine, checksum(fullLine)));
-                hexDataBytesCount.set(0);
-                hexDataBytes.setLength(0);
-                hexLineAddress.set(address);
-                hexLineAddressStr.set(String.format("%04X", address));
-            }
-
-            // code have to be stored as number of separate pairs of hex digits
-            hexDataBytes.append(String.format("%02X", program.get(address)));
-            hexLineAddress.incrementAndGet();
-            hexDataBytesCount.incrementAndGet();
-        });
-
-        if (hexDataBytes.length() > 0) {
-            String fullLine = String.format("%02X%s00%s", hexDataBytesCount.get(), hexLineAddressStr.get(), hexDataBytes);
-            intelHexContent.append(String.format(":%s%s\n", fullLine, checksum(fullLine)));
+    private static void writeRecord(Writer writer, int address, StringBuilder data) throws IOException {
+        String record = String.format("%02X%04X00%s", data.length() / 2, address, data);
+        int sum = 0;
+        for (int offset = 0; offset < record.length() - 1; offset += 2) {
+            sum += readByte(record, offset);
         }
-        intelHexContent.append(":00000001FF\n");
-        return intelHexContent.toString();
+        writer.write(String.format(":%s%02X\n", record, (-sum) & 0xFF));
     }
 
-    private String checksum(String lin) {
-        int sum = 0, chsum;
-        for (int i = 0; i < lin.length() - 1; i += 2) {
-            sum += Integer.parseInt(lin.substring(i, i + 2), 16);
-        }
-        sum %= 0x100;
-        // two's complement of the least significant byte of the sum
-        chsum = (0x100 - sum) & 0xFF;
-        return String.format("%1$02X", chsum);
+    private static void appendByte(StringBuilder target, byte value) {
+        target.append(HEX_DIGITS.charAt((value & 0xFF) >>> 4));
+        target.append(HEX_DIGITS.charAt(value & 0x0F));
     }
 
-    private static char ignoreSpaces(ByteBuffer buffer) {
-        byte c = buffer.get();
-        while (buffer.hasRemaining() && c == ' ') {
-            c = buffer.get();
-        }
-        return (char) c;
-    }
-
-    private static void ignoreLine(ByteBuffer buffer) {
-        if (buffer.hasRemaining()) {
-            byte c = buffer.get();
-            while (buffer.hasRemaining() && c != '\n') {
-                c = buffer.get();
-            }
-        }
-    }
-
-    private static int readWord(ByteBuffer buffer) {
-        return Integer.parseInt(String.format("%c%c", buffer.get(), buffer.get()), 16);
-    }
-
-    private static int readDword(ByteBuffer buffer) {
-        String hexString = String.format("%c%c%c%c", buffer.get(), buffer.get(), buffer.get(), buffer.get());
-        return Integer.parseInt(hexString, 16);
+    private static int readByte(String value, int offset) {
+        return Integer.parseInt(value, offset, offset + 2, 16);
     }
 }
