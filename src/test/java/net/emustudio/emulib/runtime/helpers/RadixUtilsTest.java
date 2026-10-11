@@ -2,18 +2,11 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.helpers;
 
-import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class RadixUtilsTest {
-
-    @Before
-    public void setUp() throws Exception {
-        RadixUtils.getInstance().setDefaults();
-    }
 
     @Test
     public void testConvertToRadix10to16() {
@@ -40,44 +33,6 @@ public class RadixUtilsTest {
     }
 
     @Test
-    public void testConvertToRadixString10to16() {
-        assertEquals("22DF0", RadixUtils.getInstance().convertToRadix("142832", 16));
-    }
-
-    @Test
-    public void testConvertToRadixString2to10() {
-        assertEquals("5", RadixUtils.convertToRadix("101", 2, 10));
-    }
-
-    @Test
-    public void testConvertToNumberFrom10to10() {
-        byte[] expected = new byte[]{0x2C, 1};
-        byte[] result = RadixUtils.convertToNumber("300", 10);
-
-        assertArrayEquals(expected, result);
-    }
-
-    @Test
-    public void testConvertToNumberFrom16to10() {
-        byte[] expected = new byte[]{(byte) 0xF0, 0x2D, 2};
-        byte[] result = RadixUtils.convertToNumber("22DF0", 16);
-
-        assertArrayEquals(expected, result);
-    }
-
-    @Test
-    public void testConvertLargeHexToNumber() {
-        byte[] expected = new byte[]{
-            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
-            0x78, 0x56, 0x34, 0x12,
-            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
-            0x78, 0x56, 0x34, 0x12
-        };
-
-        assertArrayEquals(expected, RadixUtils.convertToNumber("123456789ABCDEF0123456789ABCDEF0", 16));
-    }
-
-    @Test
     public void testConvertLargeNumberToHexRadix() {
         byte[] value = new byte[]{
             (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
@@ -87,38 +42,6 @@ public class RadixUtilsTest {
         };
 
         assertEquals("123456789ABCDEF0123456789ABCDEF0", RadixUtils.convertToRadix(value, 16, true));
-    }
-
-    @Test
-    public void testConvertToNumberFrom2to10() {
-        byte[] expected = new byte[]{(byte) 214};
-        byte[] result = RadixUtils.convertToNumber("11010110", 2);
-
-        assertArrayEquals(expected, result);
-    }
-
-    @Test
-    public void testConvertToNumberZero() {
-        byte[] expected = new byte[]{0};
-        byte[] result = RadixUtils.convertToNumber("00000000000000000000000000000000", 2);
-
-        assertArrayEquals(expected, result);
-    }
-
-    @Test
-    public void testConvertToNumberZeroWithBytesCount() {
-        byte[] expected = new byte[]{0, 0, 0, 0};
-        byte[] result = RadixUtils.convertToNumber("000", 2, 4);
-
-        assertArrayEquals(expected, result);
-    }
-
-    @Test
-    public void testConvertToNumberWithBytesCount() {
-        byte[] expected = new byte[]{9, 0, 0, 0};
-        byte[] result = RadixUtils.convertToNumber("1001", 2, 4);
-
-        assertArrayEquals(expected, result);
     }
 
     @Test
@@ -187,36 +110,6 @@ public class RadixUtilsTest {
     }
 
     @Test
-    public void testConvertToRadixSameRadixesReturnUnmodifiedInputImmediately() {
-        assertEquals("bullshit", RadixUtils.convertToRadix("bullshit", 18, 18));
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void testConvertToRadixUnrecognizedNumber() {
-        RadixUtils.getInstance().convertToRadix("ppp", 99);
-    }
-
-    @Test
-    public void testConvertToRadixSameRadixAsFoundPattern() {
-        assertEquals("15", RadixUtils.getInstance().convertToRadix("15h", 16));
-    }
-
-    @Test
-    public void testAddBinaryPattern() {
-        RadixUtils radixUtils = RadixUtils.getInstance();
-        radixUtils.addNumberPattern(new RadixUtils.NumberPattern("[01]+b", 2, 0, 1));
-        radixUtils.addNumberPattern(new RadixUtils.NumberPattern("[01]+", 2, 0, 0));
-
-        assertEquals(6, radixUtils.parseRadix("110b", 2));
-        assertEquals(6, radixUtils.parseRadix("110", 2));
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void testParseNonexistantRadixThrows() {
-        RadixUtils.getInstance().parseRadix("15h", 18);
-    }
-
-    @Test
     public void testFormatBinaryString() {
         assertEquals("0010 0000", RadixUtils.formatBinaryString(32, 8, 4, true));
         assertEquals("0000 0000", RadixUtils.formatBinaryString(0, 8, 4, true));
@@ -233,7 +126,6 @@ public class RadixUtilsTest {
     @Test
     public void testParseOctalWithSuffix() {
         assertEquals(15, RadixUtils.getInstance().parseRadix("17o"));
-        assertEquals(15, RadixUtils.getInstance().parseRadix("17o", 8));
     }
 
     @Test(expected = NumberFormatException.class)

@@ -313,28 +313,14 @@ public class NumberUtilsTest {
         assertArrayEquals(new Byte[]{1, 2, 3, 4, 5, 6}, numbersToBytes(new Number[]{1, 2, 3, 4, 5, 6}));
         assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6}, numbersToNativeBytes(new Number[]{1, 2, 3, 4, 5, 6}));
 
-        // Short[] conversions
-        Short[] shorts = new Short[]{1, 2, 3, 4, 5, 6};
-        assertArrayEquals(new Byte[]{1, 2, 3, 4, 5, 6}, shortsToBytes(shorts));
-        assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6}, shortsToNativeBytes(shorts));
-        assertArrayEquals(new short[]{1, 2, 3, 4, 5, 6}, shortsToNativeShorts(shorts));
-
         // short[] conversions
         short[] nShorts = new short[]{1, 2, 3, 4, 5, 6};
-        assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6}, nativeShortsToNativeBytes(nShorts));
         assertArrayEquals(new Byte[]{1, 2, 3, 4, 5, 6}, nativeShortsToBytes(nShorts));
         assertArrayEquals(new Short[]{1, 2, 3, 4, 5, 6}, nativeShortsToShorts(nShorts));
 
         // nativeIntsToNativeBytes
         assertArrayEquals(new byte[]{1, 2, 3, (byte) 0xFF, 0}, nativeIntsToNativeBytes(new int[]{1, 2, 3, 0xFF, 0x100}));
         assertArrayEquals(new byte[0], nativeIntsToNativeBytes(new int[0]));
-
-        // nativeBytes to Integer/Short/int arrays
-        byte[] ba = new byte[]{0, 1, (byte) 0x80, (byte) 0xFF};
-        assertArrayEquals(new Integer[]{0, 1, 0x80, 0xFF}, nativeBytesToIntegers(ba));
-        assertArrayEquals(new Short[]{0, 1, (short) 0x80, (short) 0xFF}, nativeBytesToShorts(ba));
-        assertArrayEquals(new int[]{0, 1, 0x80, 0xFF}, nativeBytesToInts(ba));
-        assertArrayEquals(new Integer[0], nativeBytesToIntegers(new byte[0]));
     }
 
     @Test

@@ -7,11 +7,37 @@ import net.emustudio.emulib.plugins.memory.annotations.*;
 import org.junit.Test;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import static org.junit.Assert.*;
 
 public class AnnotationsTest {
+
+    private static final class BreakpointAnnotation extends Annotation {
+        BreakpointAnnotation(long pluginId) {
+            super(pluginId);
+        }
+    }
+
+    private static final class TextAnnotation extends Annotation {
+        private final String text;
+
+        TextAnnotation(long pluginId, String text) {
+            super(pluginId);
+            this.text = text;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return super.equals(o) && text.equals(((TextAnnotation) o).text);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(super.hashCode(), text);
+        }
+    }
 
     @Test
     public void testAddThenRemoveAllByPluginId() {
