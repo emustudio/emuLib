@@ -138,9 +138,9 @@ tasks.register('doc', org.asciidoctor.gradle.jvm.AsciidoctorTask) {
   }
 
   attributes 'source-highlighter': 'rouge',
-             'toc'               : 'left',
-             'icons'             : 'font',
-             'sectanchors'       : '',
-             'idprefix'          : '',
-             'idseparator'       : '-'
+          'toc': 'left',
+          'icons': 'font',
+          'sectanchors': '',
+          'idprefix': '',
+          'idseparator': '-'
 }

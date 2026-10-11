@@ -35,14 +35,18 @@ public interface LexicalAnalyzer extends Iterable<Token> {
     /**
      * Reset this lexical analyzer with new input.
      *
-     * @param array new program source code
+     * @param array  new program source code
      * @param offset the index of the first character to read
      * @param length length of how much to read
      */
     void reset(char[] array, int offset, int length);
 
-    /** Line comment opening and optional closing text, or null if unsupported. */
-    default String[] getLineCommentStartAndEnd() { return null; }
+    /**
+     * Line comment opening and optional closing text, or null if unsupported.
+     */
+    default String[] getLineCommentStartAndEnd() {
+        return null;
+    }
 
     /**
      * Analyze an entire source snapshot for editing. The result must contain immutable tokens.
@@ -61,14 +65,27 @@ public interface LexicalAnalyzer extends Iterable<Token> {
         return List.copyOf(result);
     }
 
-    /** Supported extraction operations (for example, macro or subroutine). */
-    default List<String> getExtractionKinds() { return List.of(); }
+    /**
+     * Supported extraction operations (for example, macro or subroutine).
+     */
+    default List<String> getExtractionKinds() {
+        return List.of();
+    }
 
-    /** Compiler-specific identifier validation and comparison, used by generic rename. */
-    default boolean isValidSymbolName(String name) { return false; }
-    default String normalizeSymbolName(String name) { return name; }
+    /**
+     * Compiler-specific identifier validation and comparison, used by generic rename.
+     */
+    default boolean isValidSymbolName(String name) {
+        return false;
+    }
 
-    /** Return an edited source snapshot, or reject an unsafe/unsupported extraction. */
+    default String normalizeSymbolName(String name) {
+        return name;
+    }
+
+    /**
+     * Return an edited source snapshot, or reject an unsafe/unsupported extraction.
+     */
     default String extract(String source, int start, int end, String name, String kind) {
         throw new UnsupportedOperationException("Source extraction is unavailable for this language");
     }
