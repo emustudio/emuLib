@@ -15,6 +15,7 @@ import java.awt.event.ContainerListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
+import java.awt.image.BaseMultiResolutionImage;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Path;
@@ -43,6 +44,8 @@ public interface GUI {
      * <p>
      * Uses {@link StackWalker} to determine the caller's class so that the correct classloader is used
      * for plugin resources.
+     * If present, a matching resource with {@code @2x} before the file extension (e.g.,
+     * {@code icon@2x.png} for {@code icon.png}) is used for high-resolution rendering.
      *
      * @param resource resource path
      * @return loaded icon, or null if the icon could not be loaded
@@ -54,14 +57,28 @@ public interface GUI {
 
     /**
      * Loads an icon from a resource using the given class for resource lookup.
+     * If present, a matching resource with {@code @2x} before the file extension is combined
+     * with the base image in a {@link BaseMultiResolutionImage}. Otherwise, only the base image is used.
      *
      * @param resource    resource path
      * @param callerClass the class whose classloader should be used for resource lookup
-     * @return loaded icon, or null if fthe icon could not be loaded
+     * @return loaded icon, or null if the base resource could not be found
      */
     static ImageIcon loadIcon(String resource, Class<?> callerClass) {
-        URL url = (callerClass == null ? GUI.class : callerClass).getResource(resource);
-        return url == null ? null : new ImageIcon(url);
+        Class<?> resourceClass = callerClass == null ? GUI.class : callerClass;
+        URL url = resourceClass.getResource(resource);
+        if (url == null) {
+            return null;
+        }
+        ImageIcon icon = new ImageIcon(url);
+        int extension = resource.lastIndexOf('.');
+        if (extension <= resource.lastIndexOf('/')) {
+            extension = resource.length();
+        }
+        String resource2x = resource.substring(0, extension) + "@2x" + resource.substring(extension);
+        URL url2x = resourceClass.getResource(resource2x);
+        return url2x == null ? icon : new ImageIcon(new BaseMultiResolutionImage(
+                icon.getImage(), new ImageIcon(url2x).getImage()), icon.getDescription());
     }
 
     /**
