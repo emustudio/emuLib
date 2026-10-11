@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.MultiResolutionImage;
+import java.lang.reflect.Field;
 
 import static org.junit.Assert.*;
 
@@ -60,6 +61,20 @@ public class GUIIconTest {
     @Test
     public void testMissingBaseResourceReturnsNull() {
         assertNull(GUI.loadIcon("icons/missing.png", GUIIconTest.class));
+    }
+
+    @Test
+    public void testStandardIconsHaveHighResolutionVariants() throws IllegalAccessException {
+        for (Field field : StandardIcons.class.getFields()) {
+            if (!field.getName().startsWith("ICON_")) {
+                continue;
+            }
+            ImageIcon icon = GUI.loadIcon((String) field.get(null), StandardIcons.class);
+            assertNotNull(field.getName(), icon);
+            assertEquals(field.getName(), 22, icon.getIconWidth());
+            assertEquals(field.getName(), 22, icon.getIconHeight());
+            assertTrue(field.getName(), icon.getImage() instanceof MultiResolutionImage);
+        }
     }
 
     @Test
