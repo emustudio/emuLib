@@ -2,7 +2,6 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui;
 
-import net.emustudio.emulib.runtime.helpers.StringUtils;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.awt.*;
@@ -89,7 +88,27 @@ public class ShortenedString<T> {
      * @return shortened string
      */
     public String getShortenedString() {
-        return StringUtils.shorten(toString.apply(value), maxStringLength);
+        return shorten(toString.apply(value), maxStringLength);
+    }
+
+    /**
+     * Shortens a string to a given length by keeping a prefix and suffix and inserting "..." in the middle.
+     *
+     * @param string    original string
+     * @param maxLength max string length (number of chars)
+     * @return shortened string
+     */
+    private static String shorten(String string, int maxLength) {
+        int length = string.length();
+        if (length <= maxLength) {
+            return string;
+        }
+
+        int maxLengthNoDots = Math.max(maxLength - 3, 0);
+        int charsShown = maxLengthNoDots / 2;
+        int carry = maxLengthNoDots % 2;
+
+        return string.substring(0, charsShown) + "..." + string.substring(length - charsShown - carry);
     }
 
     /**
