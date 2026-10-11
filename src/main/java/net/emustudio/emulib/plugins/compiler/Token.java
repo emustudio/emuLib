@@ -53,6 +53,28 @@ public interface Token {
      */
     int LABEL = 0x900;
 
+    /** Opening and closing tokens of a foldable source block. */
+    int BLOCK_START = 0xA00;
+    int BLOCK_END = 0xB00;
+
+    /** A declared symbol and a reference to a symbol, as identified by source analysis. */
+    int SYMBOL_DEFINITION = 0xC00;
+    int SYMBOL_REFERENCE = 0xD00;
+    /** A token naming another source file. */
+    int INCLUDE_PATH = 0xE00;
+
+    /** Referenced source file path, or null when the token is not an include path. */
+    default String getReferencedFile() { return null; }
+
+    /** Symbol spelling, excluding punctuation, or null when this token has no symbol metadata. */
+    default String getSymbolName() { return null; }
+
+    /** Lexical scope identity. Empty denotes the file/include-global scope; null means unknown. */
+    default String getSymbolScope() { return null; }
+
+    /** Scope searched for the referenced declaration. Defaults to the token's lexical scope. */
+    default String getReferenceScope() { return getSymbolScope(); }
+
     /**
      * Token is a whitespace
      */
@@ -79,7 +101,7 @@ public interface Token {
     int getType();
 
     /**
-     * Get 0-based starting offset of token position.
+     * Get 0-based starting offset in UTF-16 code units (Java String indices).
      *
      * @return starting offset of the token in the source code
      */

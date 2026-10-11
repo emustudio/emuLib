@@ -41,6 +41,38 @@ public interface LexicalAnalyzer extends Iterable<Token> {
      */
     void reset(char[] array, int offset, int length);
 
+    /** Line comment opening and optional closing text, or null if unsupported. */
+    default String[] getLineCommentStartAndEnd() { return null; }
+
+    /**
+     * Analyze an entire source snapshot for editing. The result must contain immutable tokens.
+     * Implementations may supply SYMBOL_DEFINITION/REFERENCE with scope metadata.
+     * Implementations must reject invalid or ambiguous source before providing semantic editing metadata.
+     */
+    default List<Token> analyze(String source) {
+        char[] array = source.toCharArray();
+        reset(array, 0, array.length);
+        List<Token> result = new ArrayList<>();
+        while (hasNext()) {
+            Token token = next();
+            result.add(new SourceToken(token.getType(), token.getOffset(), token.getText(), token.getSymbolName(),
+                    token.getSymbolScope(), token.getReferenceScope(), token.getReferencedFile()));
+        }
+        return List.copyOf(result);
+    }
+
+    /** Supported extraction operations (for example, macro or subroutine). */
+    default List<String> getExtractionKinds() { return List.of(); }
+
+    /** Compiler-specific identifier validation and comparison, used by generic rename. */
+    default boolean isValidSymbolName(String name) { return false; }
+    default String normalizeSymbolName(String name) { return name; }
+
+    /** Return an edited source snapshot, or reject an unsafe/unsupported extraction. */
+    default String extract(String source, int start, int end, String name, String kind) {
+        throw new UnsupportedOperationException("Source extraction is unavailable for this language");
+    }
+
     @Override
     default Iterator<Token> iterator() {
         List<Token> tokens = new ArrayList<>();
