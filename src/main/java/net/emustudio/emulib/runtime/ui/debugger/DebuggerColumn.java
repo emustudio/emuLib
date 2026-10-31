@@ -30,11 +30,13 @@ public interface DebuggerColumn<T> {
      * Determines whether this column is editable by user.
      * <p>
      * For example, a "mnemo" column shouldn't be editable, but "breakpoint" column can (and should).
-     * Note that the returned value holds to all cells in the column.
+     * Note that the returned value holds to all cells in the column. Columns are read-only by default.
      *
      * @return true if the column is editable, false otherwise
      */
-    boolean isEditable();
+    default boolean isEditable() {
+        return false;
+    }
 
     /**
      * Set a value to a column cell.
@@ -43,12 +45,14 @@ public interface DebuggerColumn<T> {
      * the column is editable (see {@link #isEditable() isEditable} method).
      * <p>
      * NOTE: This method should ensure proper changes in CPU's internal state, if necessary.
+     * The default implementation has no effect; editable columns must override it.
      *
      * @param location Cell index (usually memory address). It is not a "row number" in the debugger table.
      * @param value    new value assigned to the cell
      * @throws CannotSetDebuggerValueException if the value cannot be assigned, for any reason
      */
-    void setValue(int location, Object value) throws CannotSetDebuggerValueException;
+    default void setValue(int location, Object value) throws CannotSetDebuggerValueException {
+    }
 
     /**
      * Gets a value from the column cell.

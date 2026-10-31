@@ -81,7 +81,7 @@ public class OpcodeColumnTest {
     }
 
     @Test
-    public void testSetDebugValueJustForIncreasingCoverage() {
+    public void testSetDebugValueJustForIncreasingCoverage() throws Exception {
         new OpcodeColumn(createMock(Disassembler.class)).setValue(-1, null);
     }
 }

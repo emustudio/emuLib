@@ -116,8 +116,9 @@ Horizontal panels use platform dialog insets. There is no SDK-wide spacing scale
 web grid, or breakpoint system.
 
 The default text field has 20 columns. The current host styles tables with no
-grid, zero intercell spacing, and row height `max(existingHeight, 22) + 4`; the
-captured samples were 26 units. List borders have two-unit insets. These are host
+grid, zero intercell spacing, and row height at least `max(22, fontHeight) + 4`,
+preserving a larger existing default height. Reapplying the style does not add more padding;
+ordinary-size samples were 26 units. List borders have two-unit insets. These are host
 implementation details, not additional emuLib constants.
 
 ## Elevation & Depth
@@ -140,6 +141,8 @@ factories accept actions, icons, and tooltips. The toolbar contract specifies
 non-floating, rollover-enabled, borderless toolbars. Hover, focus, pressed, and
 disabled painting comes from the host. `buttonMakePrimary` marks a button
 default-capable and bold in the current host; the root pane selects the default.
+Toolbar buttons and toggles use their tooltip or action name as a default accessible
+name, follow metadata changes, and preserve explicit accessible-name overrides.
 
 ### Fields and sections
 

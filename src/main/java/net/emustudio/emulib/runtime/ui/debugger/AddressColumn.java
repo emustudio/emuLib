@@ -38,21 +38,6 @@ public class AddressColumn implements DebuggerColumn<String> {
         return "address";
     }
 
-    @Override
-    public boolean isEditable() {
-        return false;
-    }
-
-    /**
-     * Has no effect.
-     *
-     * @param location memory address (not row in debug table)
-     * @param value    new value of the cell
-     */
-    @Override
-    public void setValue(int location, Object value) {
-    }
-
     /**
      * Return formatted address into hexadecimal digit, aligned to 4 digits.
      *

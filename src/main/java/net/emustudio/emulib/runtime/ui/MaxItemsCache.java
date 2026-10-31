@@ -7,14 +7,13 @@ import net.jcip.annotations.NotThreadSafe;
 import java.util.*;
 
 /**
- * Limited Cache
- * A cache with max items limit, retaining most used items, and removing the least used items above given limit.
+ * Bounded history of distinct values, ordered from most to least recently inserted.
  *
  * @param <V> type of cached values
  */
 @NotThreadSafe
 public class MaxItemsCache<V> {
-    private final SortedMap<Integer, V> cache = new TreeMap<>();
+    private final LinkedList<V> cache = new LinkedList<>();
 
     private final int limit;
 
@@ -22,8 +21,12 @@ public class MaxItemsCache<V> {
      * Constructs a new cache.
      *
      * @param limit the cache is allowed to contain only given number of items
+     * @throws IllegalArgumentException if the limit is negative
      */
     public MaxItemsCache(int limit) {
+        if (limit < 0) {
+            throw new IllegalArgumentException("Cache limit must not be negative.");
+        }
         this.limit = limit;
     }
 
@@ -36,29 +39,17 @@ public class MaxItemsCache<V> {
 
     /**
      * Adds new value to the cache.
-     * If the cache items are above the limit, the least used item is removed.
-     * Added value is always considered as the most used.
+     * Moves an existing value to the front and removes the oldest value if the limit is exceeded.
      *
      * @param value value to be cached
+     * @throws NullPointerException if the value is null
      */
     public void put(V value) {
-        Map<V, Integer> newCache = new HashMap<>();
-
-        int index = 0;
-        newCache.put(value, index++);
-        for (Map.Entry<Integer, V> e : cache.entrySet()) {
-            if (!e.getValue().equals(value)) {
-                newCache.put(e.getValue(), index++);
-            }
-        }
-
-        cache.clear();
-        for (Map.Entry<V, Integer> e : newCache.entrySet()) {
-            cache.put(e.getValue(), e.getKey());
-        }
-
-        if (index > limit) {
-            cache.remove(cache.lastKey());
+        Objects.requireNonNull(value);
+        cache.remove(value);
+        cache.addFirst(value);
+        if (cache.size() > limit) {
+            cache.removeLast();
         }
     }
 
@@ -70,7 +61,7 @@ public class MaxItemsCache<V> {
      * @return cached values iterator
      */
     public Iterator<V> iterator() {
-        return cache.values().iterator();
+        return cache.iterator();
     }
 
     /**
@@ -79,11 +70,7 @@ public class MaxItemsCache<V> {
      * @return the most recently used value from the cache
      */
     public Optional<V> first() {
-        Iterator<V> it = iterator();
-        if (it.hasNext()) {
-            return Optional.of(it.next());
-        }
-        return Optional.empty();
+        return cache.isEmpty() ? Optional.empty() : Optional.of(cache.getFirst());
     }
 
     /**

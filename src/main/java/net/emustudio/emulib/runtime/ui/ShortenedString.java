@@ -7,6 +7,8 @@ import net.jcip.annotations.NotThreadSafe;
 import java.awt.*;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A shortened string from a value. A string computed from given value can be shortened to fit the component width.
@@ -15,6 +17,7 @@ import java.util.function.Function;
  */
 @NotThreadSafe
 public class ShortenedString<T> {
+    private static final Pattern CHARACTER = Pattern.compile("\\X");
     private final T value;
     private final Function<T, String> toString;
     private int maxStringLength;
@@ -33,21 +36,37 @@ public class ShortenedString<T> {
     /**
      * Derives the maximum length of the shortened string to fit the component width.
      * <p>
-     * Should be called when the component width changes.
+     * Should be called when the component width, font, or displayed value changes.
+     * Non-positive widths produce an empty string.
      *
      * @param component      component
      * @param componentWidth custom component width (if it's different to Component.getWidth())
      */
     public void deriveMaxStringLength(Component component, int componentWidth) {
+        if (componentWidth <= 0) {
+            maxStringLength = 0;
+            return;
+        }
         FontMetrics fontMetrics = component.getFontMetrics(component.getFont());
         String fullString = getFullString();
         int fullStringWidth = fontMetrics.stringWidth(fullString);
 
-        if (fullStringWidth <= 0) {
+        if (fullStringWidth <= componentWidth) {
             this.maxStringLength = fullString.length();
             return;
         }
-        this.maxStringLength = fullString.length() * Math.min(componentWidth, fullStringWidth) / fullStringWidth;
+        int low = 0;
+        int high = fullString.length() - 1;
+        maxStringLength = 0;
+        while (low <= high) {
+            int candidate = low + (high - low) / 2;
+            if (fontMetrics.stringWidth(shorten(fullString, candidate)) <= componentWidth) {
+                maxStringLength = candidate;
+                low = candidate + 1;
+            } else {
+                high = candidate - 1;
+            }
+        }
     }
 
     /**
@@ -83,7 +102,8 @@ public class ShortenedString<T> {
      * Get the shortened String.
      * <p>
      * A shortened string is cut off at derived max string length. It does it by selecting some string prefix and
-     * suffix, and inserts "..." in the middle.
+     * suffix, and inserts "..." in the middle. Unicode character sequences are kept intact.
+     * If there is insufficient room for three dots, only the dots that fit are shown.
      *
      * @return shortened string
      */
@@ -103,12 +123,26 @@ public class ShortenedString<T> {
         if (length <= maxLength) {
             return string;
         }
+        if (maxLength < 3) {
+            return "...".substring(0, maxLength);
+        }
 
-        int maxLengthNoDots = Math.max(maxLength - 3, 0);
-        int charsShown = maxLengthNoDots / 2;
-        int carry = maxLengthNoDots % 2;
-
-        return string.substring(0, charsShown) + "..." + string.substring(length - charsShown - carry);
+        int visible = maxLength - 3;
+        int prefixBudget = visible / 2;
+        int suffixBoundary = length - (visible - prefixBudget);
+        int prefixEnd = 0;
+        int suffixStart = length;
+        Matcher characters = CHARACTER.matcher(string);
+        while (characters.find()) {
+            if (characters.end() <= prefixBudget) {
+                prefixEnd = characters.end();
+            }
+            if (characters.start() >= suffixBoundary) {
+                suffixStart = characters.start();
+                break;
+            }
+        }
+        return string.substring(0, prefixEnd) + "..." + string.substring(suffixStart);
     }
 
     /**

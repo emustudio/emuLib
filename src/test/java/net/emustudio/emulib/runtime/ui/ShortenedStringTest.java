@@ -97,4 +97,53 @@ public class ShortenedStringTest {
     public void testConstructorWithNullFunction() {
         new ShortenedString<>("test", null);
     }
+
+    @Test
+    public void testTextFitsEveryAvailableWidth() {
+        component.setFont(new Font(Font.DIALOG, Font.PLAIN, 18));
+        FontMetrics metrics = component.getFontMetrics(component.getFont());
+        for (String text : new String[]{"WWWiiiiiiiiiiiiiiiiWWW", "文件名称需要缩短", "مرحبا بالعالم", "", "W"}) {
+            ShortenedString<String> value = new ShortenedString<>(text, s -> s);
+            for (int width = 0; width <= 160; width++) {
+                value.deriveMaxStringLength(component, width);
+                assertTrue("Text exceeds width " + width + ": " + value,
+                        metrics.stringWidth(value.getShortenedString()) <= width);
+            }
+            value.deriveMaxStringLength(component, metrics.stringWidth(text));
+            assertEquals(text, value.getShortenedString());
+        }
+    }
+
+    @Test
+    public void testNegativeWidthProducesEmptyText() {
+        shortenedString.deriveMaxStringLength(component, -36);
+        assertEquals(0, shortenedString.getMaxStringLength());
+        assertEquals("", shortenedString.getShortenedString());
+    }
+
+    @Test
+    public void testShorteningPreservesCompleteUnicodeCharacters() {
+        for (String character : new String[]{"\uD83D\uDE00", "e\u0301", "\uD83D\uDC69\u200D\uD83D\uDCBB"}) {
+            ShortenedString<String> value = new ShortenedString<>(character.repeat(12), s -> s);
+            for (int width = 0; width < 120; width++) {
+                value.deriveMaxStringLength(component, width);
+                String text = value.getShortenedString();
+                int dots = text.indexOf("...");
+                if (dots >= 0) {
+                    assertEquals(0, dots % character.length());
+                    assertEquals(0, (text.length() - dots - 3) % character.length());
+                } else {
+                    assertTrue(text.equals(value.getFullString()) || text.isEmpty() || text.equals(".") || text.equals(".."));
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testLongTextDoesNotOverflowLengthCalculation() {
+        ShortenedString<String> value = new ShortenedString<>("W".repeat(100_000), s -> s);
+        value.deriveMaxStringLength(component, 30_000);
+        assertTrue(value.getMaxStringLength() > 0);
+        assertTrue(component.getFontMetrics(component.getFont()).stringWidth(value.toString()) <= 30_000);
+    }
 }

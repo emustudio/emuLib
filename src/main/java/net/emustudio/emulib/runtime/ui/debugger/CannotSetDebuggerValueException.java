@@ -7,11 +7,11 @@ package net.emustudio.emulib.runtime.ui.debugger;
  */
 @SuppressWarnings("unused")
 public class CannotSetDebuggerValueException extends Exception {
-    CannotSetDebuggerValueException(String message) {
+    public CannotSetDebuggerValueException(String message) {
         super(message);
     }
 
-    CannotSetDebuggerValueException(String message, Throwable cause) {
+    public CannotSetDebuggerValueException(String message, Throwable cause) {
         super(message, cause);
     }
 }

@@ -34,22 +34,6 @@ public class OpcodeColumn implements DebuggerColumn<String> {
         return "opcode";
     }
 
-    @Override
-    public boolean isEditable() {
-        return false;
-    }
-
-    /**
-     * Has no effect.
-     *
-     * @param location memory address (not row in debug table)
-     * @param value    new value of the cell
-     */
-    @Override
-    public void setValue(int location, Object value) {
-
-    }
-
     /**
      * Get opcode for instruction at specific location.
      *

@@ -63,19 +63,23 @@ public class BreakpointColumn implements DebuggerColumn<Boolean> {
      */
     @Override
     public void setValue(int location, Object shouldSetObject) throws CannotSetDebuggerValueException {
-        Boolean shouldSet = (Boolean) shouldSetObject;
+        if (!isEditable()) {
+            return;
+        }
+        if (!(shouldSetObject instanceof Boolean)) {
+            throw new CannotSetDebuggerValueException("Breakpoint value must be true or false.");
+        }
+        boolean shouldSet = (Boolean) shouldSetObject;
 
-        if (isEditable()) {
-            try {
-                if (shouldSet) {
-                    cpu.setBreakpoint(location);
-                } else {
-                    cpu.unsetBreakpoint(location);
-                }
-            } catch (IndexOutOfBoundsException e) {
-                String msg = "Could not " + (shouldSet ? "set" : "unset") + " breakpoint to location " + String.format("%04xh", location);
-                throw new CannotSetDebuggerValueException(msg, e);
+        try {
+            if (shouldSet) {
+                cpu.setBreakpoint(location);
+            } else {
+                cpu.unsetBreakpoint(location);
             }
+        } catch (IndexOutOfBoundsException e) {
+            String msg = "Could not " + (shouldSet ? "set" : "unset") + " breakpoint to location " + String.format("%04xh", location);
+            throw new CannotSetDebuggerValueException(msg, e);
         }
     }
 
