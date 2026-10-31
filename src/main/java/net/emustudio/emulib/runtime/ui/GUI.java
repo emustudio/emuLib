@@ -35,6 +35,7 @@ import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
  * Static utility methods ({@link #loadIcon(String)}, {@link #loadFontResource}, {@link #addKeyListenerRecursively},
  * {@link #removeKeyListenerRecursively}) are provided directly on this interface and do not depend on any
  * external layout or look-and-feel libraries.
+ * Toolbar factories provide accessible names from their tooltip or action name; callers can override them.
  */
 @SuppressWarnings("unused")
 public interface GUI {
@@ -466,7 +467,8 @@ public interface GUI {
     JPanel panelHorizontal();
 
     /**
-     * Makes a JTable look modern.
+     * Applies the host's table styling, preserving larger row heights and accommodating the current font.
+     * Reapplying the style must not keep increasing row heights.
      *
      * @param table the JTable
      */
