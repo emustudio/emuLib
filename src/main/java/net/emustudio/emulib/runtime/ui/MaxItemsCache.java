@@ -21,8 +21,12 @@ public class MaxItemsCache<V> {
      * Constructs a new cache.
      *
      * @param limit the cache is allowed to contain only given number of items
+     * @throws IllegalArgumentException if the limit is negative
      */
     public MaxItemsCache(int limit) {
+        if (limit < 0) {
+            throw new IllegalArgumentException("Cache limit must not be negative.");
+        }
         this.limit = limit;
     }
 
@@ -38,8 +42,10 @@ public class MaxItemsCache<V> {
      * Moves an existing value to the front and removes the oldest value if the limit is exceeded.
      *
      * @param value value to be cached
+     * @throws NullPointerException if the value is null
      */
     public void put(V value) {
+        Objects.requireNonNull(value);
         cache.remove(value);
         cache.addFirst(value);
         if (cache.size() > limit) {

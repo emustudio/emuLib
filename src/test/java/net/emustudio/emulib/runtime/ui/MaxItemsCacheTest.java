@@ -90,4 +90,18 @@ public class MaxItemsCacheTest {
         assertEquals(0, cache.getSize());
         assertFalse(cache.iterator().hasNext());
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNegativeLimitIsRejected() {
+        new MaxItemsCache<>(-1);
+    }
+
+    @Test
+    public void testNullIsRejectedWithoutChangingHistory() {
+        MaxItemsCache<String> cache = new MaxItemsCache<>(1);
+        cache.put("existing");
+        assertThrows(NullPointerException.class, () -> cache.put(null));
+        assertEquals(1, cache.getSize());
+        assertEquals("existing", cache.first().orElseThrow());
+    }
 }

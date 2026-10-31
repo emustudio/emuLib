@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
@@ -109,6 +110,7 @@ public interface GUI {
      * The given action is disabled before the task starts and re-enabled when it finishes (whether it
      * succeeds or fails). On success {@code onSuccess} is invoked on the EDT; on failure {@code onError}
      * is invoked on the EDT with the unwrapped cause.
+     * Calls from other threads are queued on the EDT. Calls while the action is disabled are ignored.
      *
      * @param action    the action to disable while the task runs (e.g. the invoking {@code AbstractAction})
      * @param task      the work to perform on a background thread
@@ -122,6 +124,13 @@ public interface GUI {
         Objects.requireNonNull(onSuccess);
         Objects.requireNonNull(onError);
 
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> runInBackground(action, task, onSuccess, onError));
+            return;
+        }
+        if (!action.isEnabled()) {
+            return;
+        }
         action.setEnabled(false);
         new SwingWorker<Void, Void>() {
             @Override
@@ -136,7 +145,7 @@ public interface GUI {
                     get();
                     onSuccess.run();
                 } catch (Exception ex) {
-                    Throwable cause = ex.getCause() == null ? ex : ex.getCause();
+                    Throwable cause = ex instanceof ExecutionException ? ex.getCause() : ex;
                     onError.accept(cause);
                 } finally {
                     action.setEnabled(true);

@@ -72,14 +72,28 @@ public class BreakpointColumnTest {
         verify(cpu);
     }
 
-    @Test(expected = NullPointerException.class)
-    public void testUnsetBreakpointWhenUnparseableValueIsPassed() throws Exception {
+    @Test
+    public void testInvalidValuesReportDebuggerError() throws Exception {
         CPU cpu = createMock(CPU.class);
         expect(cpu.isBreakpointSupported()).andReturn(true).anyTimes();
         replay(cpu);
 
         BreakpointColumn column = new BreakpointColumn(cpu);
-        column.setValue(0x53, null);
+        for (Object value : new Object[]{null, "true", 1}) {
+            CannotSetDebuggerValueException error = assertThrows(CannotSetDebuggerValueException.class,
+                    () -> column.setValue(0x53, value));
+            assertEquals("Breakpoint value must be true or false.", error.getMessage());
+        }
+        verify(cpu);
+    }
+
+    @Test
+    public void testReadOnlyColumnIgnoresInvalidValues() throws Exception {
+        CPU cpu = createMock(CPU.class);
+        expect(cpu.isBreakpointSupported()).andReturn(false).anyTimes();
+        replay(cpu);
+        new BreakpointColumn(cpu).setValue(0, "invalid");
+        verify(cpu);
     }
 
     @Test
