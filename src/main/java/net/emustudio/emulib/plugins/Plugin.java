@@ -5,6 +5,9 @@ package net.emustudio.emulib.plugins;
 import net.emustudio.emulib.runtime.ApplicationApi;
 
 import javax.swing.*;
+import java.util.Locale;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
 
 /**
  * Plugin main interface. This interface is available only to emuStudio, not to other plugins. Plugins communicate
@@ -109,17 +112,38 @@ public interface Plugin {
 
     /**
      * Get version of the plugin.
+     * <p>
+     * By default, reads {@code version} from a {@code version.properties} resource in the concrete plugin class's
+     * package, using that class's own classloader. A missing bundle or key returns {@code "(unknown)"}.
      *
      * @return version string
      */
-    String getVersion();
+    default String getVersion() {
+        return readMetadata("version");
+    }
 
     /**
      * Get copyright string.
+     * <p>
+     * By default, reads {@code copyright} from the same resource bundle as {@link #getVersion()}.
+     * A missing bundle or key returns {@code "(unknown)"}.
      *
      * @return copyright string
      */
-    String getCopyright();
+    default String getCopyright() {
+        return readMetadata("copyright");
+    }
+
+    private String readMetadata(String key) {
+        Class<?> pluginClass = getClass();
+        try {
+            ResourceBundle bundle = ResourceBundle.getBundle(
+                    pluginClass.getPackageName() + ".version", Locale.getDefault(), pluginClass.getClassLoader());
+            return bundle.getString(key);
+        } catch (MissingResourceException e) {
+            return "(unknown)";
+        }
+    }
 
     /**
      * Get plugin short description.

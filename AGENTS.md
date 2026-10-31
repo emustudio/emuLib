@@ -25,3 +25,6 @@ When a change may affect a sibling repository, first check whether that reposito
 - Every change must have an existing GitHub ticket.
 - Every commit subject must start with the ticket prefix: `[#123] Short summary`.
 - If one task touches multiple emuStudio repositories, use the same ticket prefix in each related commit.
+
+## Documentation
+- Keep rationale in existing project documentation; do not create standalone decision documents.
