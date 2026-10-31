@@ -18,6 +18,11 @@ import javax.swing.JPanel;
  */
 @SuppressWarnings("unused")
 public interface CPU extends Plugin {
+    /** Optional portable debugging capabilities. Unsupported plugins keep the empty default. */
+    default java.util.Optional<net.emustudio.emulib.plugins.cpu.debug.DebugCPU> getDebugger() {
+        return java.util.Optional.empty();
+    }
+
 
     /**
      * The run state of the CPU.
@@ -176,6 +181,9 @@ public interface CPU extends Plugin {
      * @return true if breakpoints are supported, false otherwise
      */
     boolean isBreakpointSupported();
+
+    /** Immutable snapshot of ordinary execution breakpoints; empty when enumeration is unsupported. */
+    default java.util.Set<Integer> getBreakpoints() { return java.util.Set.of(); }
 
     /**
      * Set a breakpoint at a memory location.

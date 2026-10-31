@@ -156,3 +156,7 @@ gradle-app.setting
 
 # Generated AsciiDoc documentation (./gradlew doc)
 docs/output/
+
+# Local agent and Impeccable files
+.agents/
+.impeccable/

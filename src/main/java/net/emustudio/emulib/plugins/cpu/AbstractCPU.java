@@ -2,7 +2,6 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.plugins.PluginMeta;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
@@ -14,6 +13,7 @@ import javax.swing.*;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
@@ -93,9 +93,12 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
                     }
                 }
                 LOGGER.error("Unexpected error during emulation", e);
+            } catch (CancellationException e) {
+                // Cancellation requests interruption; it does not acknowledge execution exit.
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
+                waitForFuture(cpuExecutor.submit(EMPTY_TASK));
                 runState = tmpRunState;
                 if (originalRunState != tmpRunState) {
                     notifyStateChanged(tmpRunState);
@@ -127,16 +130,6 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
         return getClass().getAnnotation(PluginRoot.class).title();
     }
 
-    @Override
-    public String getVersion() {
-        return PluginMeta.version(getClass());
-    }
-
-    @Override
-    public String getCopyright() {
-        return PluginMeta.copyright(getClass());
-    }
-
     /**
      * Does nothing. Should be overridden.
      */
@@ -160,6 +153,9 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
      *
      * @return true
      */
+    @Override
+    public Set<Integer> getBreakpoints() { return Set.copyOf(breakpoints); }
+
     @Override
     public boolean isBreakpointSupported() {
         return true;
@@ -238,13 +234,32 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
 
     private void waitForFuture(Future<?> future) {
         Objects.requireNonNull(future);
+        boolean interrupted = false;
         try {
-            future.get();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            LOGGER.error("Unexpected error", e);
+            while (true) {
+                try {
+                    future.get();
+                    return;
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                } catch (ExecutionException e) {
+                    LOGGER.error("Unexpected error", e);
+                    return;
+                }
+            }
+        } finally {
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
         }
+    }
+
+    /** Notify observers after a paused debugger edit, without changing the run state. */
+    protected final void notifyInternalStateChanged() {
+        stateObservers.forEach(observer -> {
+            try { observer.internalStateChanged(); }
+            catch (Exception e) { LOGGER.error("CPU Listener error", e); }
+        });
     }
 
     private void notifyStateChanged(RunState tmpRunState) {
@@ -259,13 +274,7 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     }
 
     private void ensureCpuIsStopped() {
-        try {
-            cpuStoppedWatcher.submit(EMPTY_TASK).get();
-        } catch (ExecutionException e) {
-            LOGGER.error("Unexpected error while waiting for CPU stop", e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        waitForFuture(cpuStoppedWatcher.submit(EMPTY_TASK));
     }
 
     @Override

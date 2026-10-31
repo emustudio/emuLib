@@ -7,6 +7,9 @@ package net.emustudio.emulib.plugins.cpu;
  */
 @SuppressWarnings("unused")
 public interface Disassembler {
+    /** Optional structured flow information; providers must not infer it by parsing rendered mnemonics. */
+    default java.util.Optional<InstructionFlow> getFlow(int address) { return java.util.Optional.empty(); }
+
 
     /**
      * Disassemble one instruction at specific location.

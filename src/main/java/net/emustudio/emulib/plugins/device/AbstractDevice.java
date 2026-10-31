@@ -3,7 +3,6 @@
 package net.emustudio.emulib.plugins.device;
 
 import net.emustudio.emulib.plugins.PluginInitializationException;
-import net.emustudio.emulib.plugins.PluginMeta;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
@@ -54,16 +53,6 @@ public abstract class AbstractDevice implements Device {
     @Override
     public String getTitle() {
         return getClass().getAnnotation(PluginRoot.class).title();
-    }
-
-    @Override
-    public String getVersion() {
-        return PluginMeta.version(getClass());
-    }
-
-    @Override
-    public String getCopyright() {
-        return PluginMeta.copyright(getClass());
     }
 
     /**

@@ -24,6 +24,17 @@ import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 @SuppressWarnings("unused")
 @PluginContext
 public interface MemoryContext<CellType> extends Context {
+    /** Optional bank inspection. Defaults describe a single unbanked address space. */
+    default int getBanksCount() { return 1; }
+    default int getSelectedBank() { return 0; }
+    default int getCommonBoundary() { return 0; }
+    default int getBank(int address) { return address < getCommonBoundary() ? getSelectedBank() : 0; }
+    /** Inspect a bank without selecting it. Implementations should avoid guest timing/I/O effects. */
+    default CellType readBank(int address, int bank) {
+        if (bank != 0) throw new IllegalArgumentException("Bank inspection unsupported");
+        return read(address);
+    }
+
 
     /**
      * A listener for receiving memory related events.

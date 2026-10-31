@@ -38,7 +38,7 @@ public class CachedComboBoxModel<T> extends AbstractListModel<T> implements Comb
         int origSize = cache.getSize();
         cache.put(item);
         if (origSize < cache.getSize()) {
-            fireIntervalAdded(this, cache.getSize() - 1, cache.getSize() -1);
+            fireIntervalAdded(this, cache.getSize() - 1, cache.getSize() - 1);
         }
         fireContentsChanged(this, 0, cache.getSize() - 1);
         if (selected == null && cache.getSize() > 0) {
