@@ -6,6 +6,7 @@ import net.emustudio.emulib.runtime.ui.MaxItemsCache;
 
 import javax.swing.*;
 import java.util.Iterator;
+import java.util.Objects;
 
 /**
  * Cached ComboBox model. Saves up to 10 items
@@ -37,18 +38,18 @@ public class CachedComboBoxModel<T> extends AbstractListModel<T> implements Comb
     public void add(T item) {
         int origSize = cache.getSize();
         cache.put(item);
+        if (selected == null) {
+            cache.first().ifPresent(this::setSelectedItem);
+        }
         if (origSize < cache.getSize()) {
             fireIntervalAdded(this, cache.getSize() - 1, cache.getSize() - 1);
         }
         fireContentsChanged(this, 0, cache.getSize() - 1);
-        if (selected == null && cache.getSize() > 0) {
-            cache.first().ifPresent(f -> selected = f);
-        }
     }
 
     @Override
     public void setSelectedItem(Object item) {
-        if ((selected != null && !selected.equals(item)) || selected == null && item != null) {
+        if (!Objects.equals(selected, item)) {
             this.selected = item;
             fireContentsChanged(this, -1, -1);
         }

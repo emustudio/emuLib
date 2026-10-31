@@ -34,22 +34,6 @@ public class MnemoColumn implements DebuggerColumn<String> {
         return "instruction";
     }
 
-    @Override
-    public boolean isEditable() {
-        return false;
-    }
-
-    /**
-     * Has no effect.
-     *
-     * @param location memory address (not row in debug table)
-     * @param value    new value of the cell
-     */
-    @Override
-    public void setValue(int location, Object value) {
-
-    }
-
     /**
      * Get instruction mnemonic.
      *

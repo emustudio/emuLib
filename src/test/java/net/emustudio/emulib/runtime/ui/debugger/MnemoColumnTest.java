@@ -81,7 +81,7 @@ public class MnemoColumnTest {
     }
 
     @Test
-    public void testSetDebugValueJustForIncreasingCoverage() {
+    public void testSetDebugValueJustForIncreasingCoverage() throws Exception {
         new MnemoColumn(createMock(Disassembler.class)).setValue(-1, null);
     }
 }

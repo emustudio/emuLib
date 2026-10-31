@@ -5,6 +5,10 @@ package net.emustudio.emulib.runtime.ui.components;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.swing.*;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class CachedComboBoxModelTest {
@@ -166,10 +170,26 @@ public class CachedComboBoxModelTest {
     @Test
     public void testSetSelectedItemSameAsCurrentDoesNotTrigger() {
         model.add("item1");
-        model.setSelectedItem("item1");
+        JComboBox<String> comboBox = new JComboBox<>(model);
+        List<Object> selections = new ArrayList<>();
+        comboBox.addActionListener(e -> selections.add(comboBox.getSelectedItem()));
 
-        // Setting same item again - internally should not trigger change
-        model.setSelectedItem("item1");
+        model.setSelectedItem(new String("item1"));
+
+        assertTrue(selections.isEmpty());
         assertEquals("item1", model.getSelectedItem());
+    }
+
+    @Test
+    public void testFirstSelectionNotifiesComboBox() {
+        JComboBox<String> comboBox = new JComboBox<>(model);
+        List<Object> selections = new ArrayList<>();
+        comboBox.addActionListener(e -> selections.add(comboBox.getSelectedItem()));
+
+        model.add("item1");
+        model.add("item2");
+
+        assertEquals(List.of("item1"), selections);
+        assertEquals("item1", comboBox.getSelectedItem());
     }
 }
