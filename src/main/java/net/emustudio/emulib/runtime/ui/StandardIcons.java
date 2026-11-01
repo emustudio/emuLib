@@ -61,6 +61,7 @@ public final class StandardIcons {
     public static final String ICON_RUN = PATH + "run.png";
     public static final String ICON_RUN_TIMED = PATH + "run-timed.png";
     public static final String ICON_SAVE = PATH + "save.png";
+    public static final String ICON_SNAPSHOT = PATH + "snapshot.png";
     public static final String ICON_STEP = PATH + "step.png";
     public static final String ICON_STEP_BACK = PATH + "step-back.png";
     public static final String ICON_STOP = PATH + "stop.png";
