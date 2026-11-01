@@ -6,6 +6,7 @@ import net.emustudio.emulib.plugins.memory.MemoryContext;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Optional CPU debugging port. Register access and listener changes require a paused CPU. Listeners
@@ -22,7 +23,7 @@ public interface DebugCPU {
 
     void writeRegister(String name, long value);
 
-    MemoryContext<Byte> memory();
+    MemoryContext<?> memory();
 
     void addListener(Listener listener);
 
@@ -63,20 +64,34 @@ public interface DebugCPU {
     }
 
     final class Instruction {
+        /** Monotonic execution order within this CPU probe, including across resets. */
+        public final long sequence;
+        /**
+         * Executed instruction location (interrupted location for acknowledge-only events).
+         * A composite interrupt/ISR event's before snapshot may precede interrupt acknowledgement.
+         */
         public final int address, bank;
+        /** Captured before execution; opcode bytes are represented as a hexadecimal sequence. */
+        public final String mnemonic, opcodes;
         public final Map<String, Long> before, after;
         public final List<Access> accesses;
         public final boolean completed;
 
         public Instruction(
+                long sequence,
                 int address,
                 int bank,
+                String mnemonic,
+                String opcodes,
                 Map<String, Long> before,
                 Map<String, Long> after,
                 List<Access> accesses,
                 boolean completed) {
+            this.sequence = sequence;
             this.address = address;
             this.bank = bank;
+            this.mnemonic = Objects.requireNonNull(mnemonic);
+            this.opcodes = Objects.requireNonNull(opcodes);
             this.before = Map.copyOf(before);
             this.after = Map.copyOf(after);
             this.accesses = List.copyOf(accesses);
