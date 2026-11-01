@@ -122,3 +122,11 @@ Example:
 ```text
 emuStudio/lib/emulib.jar
 ```
+
+## Optional CPU debugging
+
+`DebugCPU` and `DebugProbe` expose portable register access and immutable instruction events for the host debugger.
+Events include sequence numbers, execution-time opcode/disassembly text, before/after registers, physical bank,
+guest memory accesses and completion status. The 8080 and Z80 plugins implement these hooks; emuStudio owns recent
+history, continuous recording files, headless recording and offline inspection. Disabled probes preserve the original
+execution-memory path. Listeners run on the execution thread; register edits and listener changes require a paused CPU.
