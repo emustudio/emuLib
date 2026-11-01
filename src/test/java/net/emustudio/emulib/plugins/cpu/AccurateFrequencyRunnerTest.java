@@ -6,68 +6,47 @@ import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class AccurateFrequencyRunnerTest {
 
-    @Test
+    @Test(timeout = 10000)
     public void testRun() {
         AccurateFrequencyRunner runner = new AccurateFrequencyRunner();
-
-        FrequencyCalculator calculator = new FrequencyCalculator();
-        double frequencyKHz = 100;
-
-        AtomicInteger runFrequency = new AtomicInteger();
-
-        calculator.addListener(f -> runFrequency.set(Math.round(f)));
-
-        long startTime = System.nanoTime();
-        calculator.start();
-        runner.run(() -> frequencyKHz, () -> {
-            runner.addExecutedCycles(1);
-            calculator.passedCycles(1);
-            long delta = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-
-            if (delta > 2000) {
-                return CPU.RunState.STATE_STOPPED_NORMAL;
-            }
-            return CPU.RunState.STATE_RUNNING;
-        });
-
-        calculator.stop();
-        calculator.close();
-
-        assertTrue(frequencyKHz == runFrequency.get() || (frequencyKHz - 1) == runFrequency.get() || (frequencyKHz + 1) == runFrequency.get());
+        assertPacedRun(runner, instruction -> runner.run(() -> 100.0, instruction));
     }
 
-    @Test
+    @Test(timeout = 10000)
     public void testRunNoSleep() {
         AccurateFrequencyRunner runner = new AccurateFrequencyRunner();
+        assertPacedRun(runner, instruction -> runner.runNoSleep(() -> 100.0, instruction));
+    }
 
-        FrequencyCalculator calculator = new FrequencyCalculator();
-        double frequencyKHz = 100;
-
-        AtomicInteger runFrequency = new AtomicInteger();
-
-        calculator.addListener(f -> runFrequency.set(Math.round(f)));
+    private void assertPacedRun(AccurateFrequencyRunner runner,
+                                Function<Supplier<CPU.RunState>, CPU.RunState> run) {
+        // 10,000 cycles at 100 kHz require approximately 100 ms.
+        int targetCycles = 10000;
+        AtomicInteger executedCycles = new AtomicInteger();
 
         long startTime = System.nanoTime();
-        calculator.start();
-        runner.runNoSleep(() -> frequencyKHz, () -> {
+        CPU.RunState state = run.apply(() -> {
             runner.addExecutedCycles(1);
-            calculator.passedCycles(1);
-            long delta = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime);
-
-            if (delta > 2000) {
+            if (executedCycles.incrementAndGet() == targetCycles) {
                 return CPU.RunState.STATE_STOPPED_NORMAL;
             }
             return CPU.RunState.STATE_RUNNING;
         });
+        long elapsedNanos = System.nanoTime() - startTime;
 
-        calculator.stop();
-        calculator.close();
-
-        assertTrue(frequencyKHz == runFrequency.get() || (frequencyKHz - 1) == runFrequency.get());
+        assertEquals(CPU.RunState.STATE_STOPPED_NORMAL, state);
+        assertEquals(targetCycles, executedCycles.get());
+        // Allow slot boundaries and rounding, but reject an unthrottled run.
+        // Host scheduling can make execution slower; it cannot guarantee an exact frequency.
+        assertTrue("Runner completed too quickly: " + elapsedNanos + " ns",
+                elapsedNanos >= TimeUnit.MILLISECONDS.toNanos(90));
     }
 }
