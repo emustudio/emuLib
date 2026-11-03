@@ -60,6 +60,16 @@ public interface Compiler extends Plugin {
     LexicalAnalyzer createLexer();
 
     /**
+     * Coordinate convention of this compiler's memory source-position annotations. Declaring a
+     * known unit also declares one-based lines, zero-based columns, and tabs counting as one
+     * column. UNKNOWN means the consumer cannot safely resolve positions to source offsets.
+     * Lexical Token offsets remain UTF-16 independently of this convention.
+     */
+    default SourceCodePosition.ColumnUnit getSourcePositionColumnUnit() {
+        return SourceCodePosition.ColumnUnit.UNKNOWN;
+    }
+
+    /**
      * Get the list of source file extensions supported by the compiler.
      *
      * @return list of supported source file extensions

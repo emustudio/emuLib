@@ -183,6 +183,22 @@ public class DebugProbeTest {
     }
 
     @Test
+    public void memoryAdaptersPreserveAddressCapacityIndependentlyOfLoadedOccupancy() {
+        Memory memory = new Memory() {
+            @Override public int getSize() { return 0; }
+            @Override public int getAddressSpaceSize() { return Integer.MAX_VALUE; }
+        };
+        net.emustudio.emulib.plugins.memory.MemoryContext<Byte> inspection = DebugProbe.inspectionMemory(memory);
+        net.emustudio.emulib.plugins.memory.MemoryContext<Byte> instrumented =
+                new DebugProbe("sparse", memory, disassembler()).instrumentedMemory();
+        assertEquals(0, inspection.getSize());
+        assertEquals(Integer.MAX_VALUE, inspection.getAddressSpaceSize());
+        assertEquals(0, instrumented.getSize());
+        assertEquals(Integer.MAX_VALUE, instrumented.getAddressSpaceSize());
+        assertArrayEquals(new Byte[] {0}, inspection.read(0, 1));
+    }
+
+    @Test
     public void explicitExecutionBankAndIsrRecaptureUseTruthfulLocations() {
         DebugProbe probe = new DebugProbe("banked", new Memory(), disassembler());
         probe.register("PC", 16, () -> 0, value -> {});

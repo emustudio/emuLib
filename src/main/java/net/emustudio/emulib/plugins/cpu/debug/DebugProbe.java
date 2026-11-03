@@ -182,9 +182,9 @@ public final class DebugProbe implements DebugCPU {
         return new AbstractMemoryContext<T>() {
             @Override public T read(int at) { return memory.readBank(at, memory.getBank(at)); }
             @Override @SuppressWarnings("unchecked") public T[] read(int at, int count) {
-                Objects.checkFromIndexSize(at, 0, memory.getSize());
+                Objects.checkFromIndexSize(at, 0, memory.getAddressSpaceSize());
                 if (count < 0) throw new IndexOutOfBoundsException("Negative count");
-                int length = Math.min(count, memory.getSize() - at);
+                int length = Math.min(count, memory.getAddressSpaceSize() - at);
                 T[] values = (T[]) Array.newInstance(memory.getCellTypeClass(), length);
                 for (int i = 0; i < length; i++) values[i] = read(at + i);
                 return values;
@@ -195,6 +195,7 @@ public final class DebugProbe implements DebugCPU {
             @Override public int getSelectedBank() { return memory.getSelectedBank(); }
             @Override public int getCommonBoundary() { return memory.getCommonBoundary(); }
             @Override public int getSize() { return memory.getSize(); }
+            @Override public int getAddressSpaceSize() { return memory.getAddressSpaceSize(); }
             @Override public Class<T> getCellTypeClass() { return memory.getCellTypeClass(); }
             @Override public MemoryContextAnnotations annotations() { return memory.annotations(); }
             @Override public void write(int at, T value) { throw new UnsupportedOperationException("Read-only inspection"); }
@@ -260,6 +261,11 @@ public final class DebugProbe implements DebugCPU {
             @Override
             public int getSize() {
                 return byteMemory.getSize();
+            }
+
+            @Override
+            public int getAddressSpaceSize() {
+                return byteMemory.getAddressSpaceSize();
             }
 
             @Override

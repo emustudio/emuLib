@@ -24,6 +24,14 @@ import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 @SuppressWarnings("unused")
 @PluginContext
 public interface MemoryContext<CellType> extends Context {
+    /**
+     * Exclusive upper bound of valid cell addresses. Unlike getSize(), which some sparse
+     * providers use for loaded occupancy/high-water information, this describes the memory
+     * layout and remains stable across loading, writing, and clearing cells. Dense providers
+     * normally use getSize(); sparse providers must override it with their address capacity.
+     */
+    default int getAddressSpaceSize() { return getSize(); }
+
     /** Optional bank inspection. Defaults describe a single unbanked address space. */
     default int getBanksCount() { return 1; }
     default int getSelectedBank() { return 0; }

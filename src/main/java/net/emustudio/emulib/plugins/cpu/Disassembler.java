@@ -7,6 +7,14 @@ package net.emustudio.emulib.plugins.cpu;
  */
 @SuppressWarnings("unused")
 public interface Disassembler {
+    /**
+     * Capture an immutable decoder for one explicit inspection bank. The returned decoder must
+     * never consult live memory or the selected bank. Empty means stable analysis is unsupported.
+     * Callers pause execution and validate their memory/layout revision around capture and before
+     * accepting derived results; this operation does not coordinate external memory writers.
+     */
+    default java.util.Optional<Disassembler> capture(int bank) { return java.util.Optional.empty(); }
+
     /** Optional structured flow information; providers must not infer it by parsing rendered mnemonics. */
     default java.util.Optional<InstructionFlow> getFlow(int address) { return java.util.Optional.empty(); }
 
