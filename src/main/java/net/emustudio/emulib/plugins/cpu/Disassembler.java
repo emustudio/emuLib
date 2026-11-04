@@ -3,7 +3,8 @@
 package net.emustudio.emulib.plugins.cpu;
 
 /**
- * An instruction disassembler interface.
+ * An instruction disassembler interface. The CPU plugin supplies the memory wiring used for
+ * decoding; addresses belong to that logical address space. The connected plugins implement memory mapping.
  */
 @SuppressWarnings("unused")
 public interface Disassembler {
