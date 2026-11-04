@@ -279,10 +279,5 @@ public class DebugProbeTest {
         @Override
         public void clear() {}
 
-        @Override
-        public net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations
-                annotations() {
-            return null;
-        }
     }
 }

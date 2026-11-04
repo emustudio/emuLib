@@ -4,7 +4,6 @@ package net.emustudio.emulib.plugins.memory;
 
 import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.annotations.PluginContext;
-import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 
 /**
  * Memory context
@@ -13,10 +12,6 @@ import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
  * type, thus a "byte", as the lowest addressable unit, is not enforced.
  * <p>
  * The memory context must be extended in a memory plugin in order to support additional functionality.
- * <p>
- * Memory context supports annotations - a possibility to annotate any memory cell with supplemental information. Usual
- * annotations are: breakpoints, text information, position in source code, or any custom annotation. Annotation API
- * is accessible by using {@link #annotations()} method.
  *
  * @param <CellType> memory cell type
  */
@@ -176,14 +171,5 @@ public interface MemoryContext<CellType> extends Context {
      */
     boolean areMemoryNotificationsEnabled();
 
-    /**
-     * Get memory context annotations API.
-     * <p>
-     * Annotations is a possibility to annotate any memory cell with supplemental information. Usual
-     * annotations are: breakpoints, text information, position in source code, or any custom annotation.
-     *
-     * @return memory context annotations API
-     */
-    MemoryContextAnnotations annotations();
 }
 

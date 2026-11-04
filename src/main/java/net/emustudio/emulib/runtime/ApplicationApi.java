@@ -3,6 +3,7 @@
 package net.emustudio.emulib.runtime;
 
 import net.emustudio.emulib.runtime.ui.Dialogs;
+import net.emustudio.emulib.runtime.annotations.AnnotationEngine;
 import net.emustudio.emulib.runtime.ui.GUI;
 import net.emustudio.emulib.runtime.ui.debugger.DebuggerTable;
 import net.jcip.annotations.ThreadSafe;
@@ -16,6 +17,9 @@ import net.jcip.annotations.ThreadSafe;
 @ThreadSafe
 public interface ApplicationApi {
 
+    /** Returns the active computer's live annotations, or null when unavailable. */
+    AnnotationEngine getAnnotations();
+
     /**
      * Get debugger table.
      *
@@ -23,13 +27,8 @@ public interface ApplicationApi {
      */
     DebuggerTable getDebuggerTable();
 
-    /**
-     * Returns the debugger's memory information service, or null when unavailable.
-     * The service remains valid for the lifetime of this application API.
-     *
-     * @return read-only debugger memory information
-     */
-    DebuggerMemory getDebuggerMemory();
+    /** Returns current execution state, or null when unavailable. */
+    ExecutionState getExecutionState();
 
     /**
      * Get context pool.
@@ -91,7 +90,12 @@ public interface ApplicationApi {
      */
     ApplicationApi UNAVAILABLE = new ApplicationApi() {
         @Override
-        public DebuggerMemory getDebuggerMemory() {
+        public AnnotationEngine getAnnotations() {
+            return null;
+        }
+
+        @Override
+        public ExecutionState getExecutionState() {
             return null;
         }
 

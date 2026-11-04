@@ -8,7 +8,6 @@ import java.lang.reflect.Array;
 import net.emustudio.emulib.plugins.cpu.Disassembler;
 import net.emustudio.emulib.plugins.cpu.DisassembledInstruction;
 import net.emustudio.emulib.plugins.cpu.InvalidInstructionException;
-import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -180,7 +179,6 @@ public final class DebugProbe implements DebugCPU {
             }
             @Override public int getSize() { return memory.getSize(); }
             @Override public Class<T> getCellTypeClass() { return memory.getCellTypeClass(); }
-            @Override public MemoryContextAnnotations annotations() { return memory.annotations(); }
             @Override public void write(int at, T value) { throw new UnsupportedOperationException("Read-only inspection"); }
             @Override public void write(int at, T[] values, int count) { throw new UnsupportedOperationException("Read-only inspection"); }
             @Override public void clear() { throw new UnsupportedOperationException("Read-only inspection"); }
@@ -245,11 +243,6 @@ public final class DebugProbe implements DebugCPU {
             @Override
             public int getSize() {
                 return byteMemory.getSize();
-            }
-
-            @Override
-            public MemoryContextAnnotations annotations() {
-                return byteMemory.annotations();
             }
 
             @Override
