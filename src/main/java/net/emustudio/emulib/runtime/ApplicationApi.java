@@ -24,6 +24,14 @@ public interface ApplicationApi {
     DebuggerTable getDebuggerTable();
 
     /**
+     * Returns the debugger's memory information service, or null when unavailable.
+     * The service remains valid for the lifetime of this application API.
+     *
+     * @return read-only debugger memory information
+     */
+    DebuggerMemory getDebuggerMemory();
+
+    /**
      * Get context pool.
      * <p>
      * Context pool is used for registration and obtaining plugin contexts, which are used in plugin communication.
@@ -82,6 +90,11 @@ public interface ApplicationApi {
      * command-line interface).
      */
     ApplicationApi UNAVAILABLE = new ApplicationApi() {
+        @Override
+        public DebuggerMemory getDebuggerMemory() {
+            return null;
+        }
+
         /**
          * Returns null.
          * @return null
