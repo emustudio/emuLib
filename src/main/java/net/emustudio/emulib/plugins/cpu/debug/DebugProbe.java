@@ -27,7 +27,7 @@ public final class DebugProbe implements DebugCPU {
     private final List<Access> accesses = new ArrayList<>();
     private Map<String, Long> before;
     private Runnable registerEdited = () -> {};
-    private int address, bank, depth;
+    private int address, depth;
     private java.util.function.Consumer<Boolean> activityChanged = active -> {};
 
     public DebugProbe(String processor, MemoryContext<?> memory, Disassembler disassembler) {
@@ -108,26 +108,21 @@ public final class DebugProbe implements DebugCPU {
     }
 
     public boolean begin(int pc) {
-        return begin(pc, memory.getBank(pc));
-    }
-
-    /** Begin execution in an explicit physical bank, e.g. a CPU using a raw bank-zero view. */
-    public boolean begin(int pc, int executionBank) {
         if (depth > 0) {
             depth++;
             return true;
         }
-        for (Listener l : listeners) if (l.beforeInstruction(pc, executionBank)) return false;
+        for (Listener l : listeners) if (l.beforeInstruction(pc)) return false;
         accesses.clear();
         before = snapshot();
         depth = 1;
-        captureInstruction(pc, executionBank, "");
+        captureInstruction(pc, "");
         return true;
     }
 
     public boolean end(boolean completed) {
         if (--depth > 0) return false;
-        Instruction event = new Instruction(++sequence, address, bank, mnemonic, opcodes, before, snapshot(), accesses, completed);
+        Instruction event = new Instruction(++sequence, address, mnemonic, opcodes, before, snapshot(), accesses, completed);
         boolean stop = false;
         for (Listener l : listeners) stop |= l.afterInstruction(event);
         before = null;
@@ -142,16 +137,11 @@ public final class DebugProbe implements DebugCPU {
     }
 
     /**
-     * Capture the actual instruction address and bank, including an ISR instruction after an
+     * Capture the actual CPU-visible instruction address, including an ISR instruction after an
      * acknowledge. The before-register snapshot remains the state at begin(), before the acknowledge.
      */
     public void captureInstruction(int pc, String prefix) {
-        captureInstruction(pc, memory.getBank(pc), prefix);
-    }
-
-    private void captureInstruction(int pc, int instructionBank, String prefix) {
         address = pc;
-        bank = instructionBank;
         try {
             DisassembledInstruction instruction = disassembler.disassemble(pc);
             mnemonic = prefix + instruction.mnemo;
@@ -169,33 +159,26 @@ public final class DebugProbe implements DebugCPU {
     }
 
     /** Report a guest access for CPUs whose memory cells are not bytes or use a raw execution view. */
-    public void access(int at, int selectedBank, int value, boolean write) {
-        if (depth > 0) accesses.add(new Access(at, selectedBank, value, write));
+    public void access(int at, int value, boolean write) {
+        if (depth > 0) accesses.add(new Access(at, value, write));
     }
 
     /**
-     * Read-only disassembler view using physical-bank inspection rather than guest bus reads.
-     * Memory providers must implement readBank without guest timing or device effects.
+     * Read-only disassembler view of the CPU's uninstrumented memory wiring.
      */
     public static <T> MemoryContext<T> inspectionMemory(MemoryContext<T> memory) {
         Objects.requireNonNull(memory);
         return new AbstractMemoryContext<T>() {
-            @Override public T read(int at) { return memory.readBank(at, memory.getBank(at)); }
+            @Override public T read(int at) { return memory.peek(at); }
             @Override @SuppressWarnings("unchecked") public T[] read(int at, int count) {
-                Objects.checkFromIndexSize(at, 0, memory.getAddressSpaceSize());
+                Objects.checkFromIndexSize(at, 0, memory.getSize());
                 if (count < 0) throw new IndexOutOfBoundsException("Negative count");
-                int length = Math.min(count, memory.getAddressSpaceSize() - at);
+                int length = Math.min(count, memory.getSize() - at);
                 T[] values = (T[]) Array.newInstance(memory.getCellTypeClass(), length);
                 for (int i = 0; i < length; i++) values[i] = read(at + i);
                 return values;
             }
-            @Override public T readBank(int at, int bank) { return memory.readBank(at, bank); }
-            @Override public int getBank(int at) { return memory.getBank(at); }
-            @Override public int getBanksCount() { return memory.getBanksCount(); }
-            @Override public int getSelectedBank() { return memory.getSelectedBank(); }
-            @Override public int getCommonBoundary() { return memory.getCommonBoundary(); }
             @Override public int getSize() { return memory.getSize(); }
-            @Override public int getAddressSpaceSize() { return memory.getAddressSpaceSize(); }
             @Override public Class<T> getCellTypeClass() { return memory.getCellTypeClass(); }
             @Override public MemoryContextAnnotations annotations() { return memory.annotations(); }
             @Override public void write(int at, T value) { throw new UnsupportedOperationException("Read-only inspection"); }
@@ -213,10 +196,14 @@ public final class DebugProbe implements DebugCPU {
         return new MemoryContext<Byte>() {
             @Override
             public Byte read(int at) {
-                int bank = depth > 0 ? byteMemory.getBank(at) : 0;
                 Byte value = byteMemory.read(at);
-                access(at, bank, value & 255, false);
+                access(at, value & 255, false);
                 return value;
+            }
+
+            @Override
+            public Byte peek(int at) {
+                return byteMemory.peek(at);
             }
 
             @Override
@@ -224,26 +211,23 @@ public final class DebugProbe implements DebugCPU {
                 Byte[] values = byteMemory.read(at, count);
                 if (depth > 0)
                     for (int i = 0; i < values.length; i++)
-                        access(at + i, byteMemory.getBank(at + i), values[i] & 255, false);
+                        access(at + i, values[i] & 255, false);
                 return values;
             }
 
             @Override
             public void write(int at, Byte value) {
-                int bank = depth > 0 ? byteMemory.getBank(at) : 0;
                 byteMemory.write(at, value);
-                access(at, bank, value & 255, true);
+                access(at, value & 255, true);
             }
 
             @Override
             public void write(int at, Byte[] values, int count) {
-                int bank = depth > 0 ? byteMemory.getSelectedBank() : 0;
                 byteMemory.write(at, values, count);
                 if (depth > 0)
                     for (int i = 0; i < count; i++)
                         access(
                                 at + i,
-                                at + i < byteMemory.getCommonBoundary() ? bank : 0,
                                 values[i] & 255,
                                 true);
             }
@@ -261,11 +245,6 @@ public final class DebugProbe implements DebugCPU {
             @Override
             public int getSize() {
                 return byteMemory.getSize();
-            }
-
-            @Override
-            public int getAddressSpaceSize() {
-                return byteMemory.getAddressSpaceSize();
             }
 
             @Override
@@ -293,25 +272,6 @@ public final class DebugProbe implements DebugCPU {
                 return byteMemory.areMemoryNotificationsEnabled();
             }
 
-            @Override
-            public int getBanksCount() {
-                return byteMemory.getBanksCount();
-            }
-
-            @Override
-            public int getSelectedBank() {
-                return byteMemory.getSelectedBank();
-            }
-
-            @Override
-            public int getCommonBoundary() {
-                return byteMemory.getCommonBoundary();
-            }
-
-            @Override
-            public Byte readBank(int at, int bank) {
-                return byteMemory.readBank(at, bank);
-            }
         };
     }
 

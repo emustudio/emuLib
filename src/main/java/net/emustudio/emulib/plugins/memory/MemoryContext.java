@@ -12,8 +12,7 @@ import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
  * It provides the basic memory functionality, such as reading/writing memory cells. The memory cell can be of any Java
  * type, thus a "byte", as the lowest addressable unit, is not enforced.
  * <p>
- * The memory context must be extended in a memory plugin in order to support additional functionality (e.g. bank-switching
- * or memory-mapped I/O).
+ * The memory context must be extended in a memory plugin in order to support additional functionality.
  * <p>
  * Memory context supports annotations - a possibility to annotate any memory cell with supplemental information. Usual
  * annotations are: breakpoints, text information, position in source code, or any custom annotation. Annotation API
@@ -24,25 +23,6 @@ import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 @SuppressWarnings("unused")
 @PluginContext
 public interface MemoryContext<CellType> extends Context {
-    /**
-     * Exclusive upper bound of valid cell addresses. Unlike getSize(), which some sparse
-     * providers use for loaded occupancy/high-water information, this describes the memory
-     * layout and remains stable across loading, writing, and clearing cells. Dense providers
-     * normally use getSize(); sparse providers must override it with their address capacity.
-     */
-    default int getAddressSpaceSize() { return getSize(); }
-
-    /** Optional bank inspection. Defaults describe a single unbanked address space. */
-    default int getBanksCount() { return 1; }
-    default int getSelectedBank() { return 0; }
-    default int getCommonBoundary() { return 0; }
-    default int getBank(int address) { return address < getCommonBoundary() ? getSelectedBank() : 0; }
-    /** Inspect a bank without selecting it. Implementations should avoid guest timing/I/O effects. */
-    default CellType readBank(int address, int bank) {
-        if (bank != 0) throw new IllegalArgumentException("Bank inspection unsupported");
-        return read(address);
-    }
-
     /**
      * A listener for receiving memory related events.
      * <p>
@@ -71,6 +51,16 @@ public interface MemoryContext<CellType> extends Context {
      * @return cell at given location
      */
     CellType read(int location);
+
+    /**
+     * Inspect a CPU-visible cell without guest timing, device effects, or access events.
+     * Pure memory uses its ordinary read; providers with execution side effects must override this operation.
+     * The provider resolves the same address mapping as {@link #read(int)}.
+     *
+     * @param location CPU-visible cell address
+     * @return currently mapped cell
+     */
+    default CellType peek(int location) { return read(location); }
 
     /**
      * Reads one or more adjacent cells from a memory.
@@ -150,8 +140,7 @@ public interface MemoryContext<CellType> extends Context {
      * <p>
      * A memory size is basically a number of cells.
      * <p>
-     * If the memory supports bank-switching, it is up to the implementing memory how this is interpreted. Usually
-     * it returns size of the active (alternatively the most "common") bank.
+     * Its interpretation is defined by the implementing memory.
      *
      * @return memory size (number of cells)
      */

@@ -65,15 +65,15 @@ public class DebugProbeTest {
         assertEquals(Long.valueOf(0), events.get(0).before.get("PC"));
         assertEquals(Long.valueOf(3), events.get(0).after.get("PC"));
         assertEquals(1, events.get(0).accesses.size());
-        assertEquals(1, events.get(0).accesses.get(0).bank);
+
         assertThrows(UnsupportedOperationException.class, () -> events.get(0).before.put("PC", 5L));
-        memory.readBank(1, 0);
+        memory.read(1);
         probe.memory().read(1);
         assertEquals(1, events.size());
         assertTrue(probe.begin(3));
         probe.instrumentedMemory().read(5);
         probe.end(false);
-        assertEquals(0, events.get(1).accesses.get(0).bank);
+
         assertFalse(events.get(1).completed);
         assertEquals(2, events.get(1).sequence);
         assertEquals(1, events.get(0).accesses.size());
@@ -95,7 +95,7 @@ public class DebugProbeTest {
         probe.addListener(
                 new DebugCPU.Listener() {
                     @Override
-                    public boolean beforeInstruction(int pc, int bank) {
+                    public boolean beforeInstruction(int pc) {
                         return true;
                     }
                 });
@@ -103,10 +103,9 @@ public class DebugProbeTest {
     }
 
     @Test
-    public void capturedCodeAndBankSurviveMemoryChanges() {
+    public void capturedCodeSurvivesMemoryChanges() {
         Memory memory = new Memory();
         memory.write(0, (byte) 0x3c);
-        memory.bytes[0][0] = 0;
         Disassembler decoder = new Disassembler() {
             @Override public DisassembledInstruction disassemble(int at) {
                 return new DisassembledInstruction(at, "opcode " + memory.read(at),
@@ -119,7 +118,7 @@ public class DebugProbeTest {
         assertTrue(probe.begin(0));
         probe.instrumentedMemory().write(0, (byte) 0);
         probe.end(true);
-        assertEquals(1, events.get(0).bank);
+
         assertEquals("3C", events.get(0).opcodes);
         assertEquals("opcode 60", events.get(0).mnemonic);
         assertEquals(1, events.get(0).accesses.size());
@@ -159,7 +158,7 @@ public class DebugProbeTest {
         probe.writeRegister("WIDE", Long.MIN_VALUE);
         List<DebugCPU.Instruction> events = collect(probe);
         assertTrue(probe.begin(0));
-        probe.access(2, 1, Integer.MIN_VALUE, true);
+        probe.access(2, Integer.MIN_VALUE, true);
         probe.end(true);
         assertEquals(Integer.MIN_VALUE, events.get(0).accesses.get(0).value);
         assertEquals(Long.valueOf(Long.MIN_VALUE), events.get(0).before.get("WIDE"));
@@ -168,58 +167,57 @@ public class DebugProbeTest {
     }
 
     @Test
-    public void inspectionReadsPhysicalBanksWithoutGuestReadEffects() {
+    public void inspectionUsesProviderPeekAndRejectsWrites() {
         Memory memory = new Memory() {
             @Override public Byte read(int at) { throw new AssertionError("Guest read"); }
-            @Override public Byte[] read(int at, int count) { throw new AssertionError("Guest read"); }
+            @Override public Byte peek(int at) { return bytes[at]; }
         };
-        memory.bytes[1][0] = 42;
-        memory.bytes[0][0] = 7;
+        memory.bytes[0] = 42;
         net.emustudio.emulib.plugins.memory.MemoryContext<Byte> view = DebugProbe.inspectionMemory(memory);
         assertEquals(Byte.valueOf((byte) 42), view.read(0));
         assertArrayEquals(new Byte[] {42, 0}, view.read(0, 2));
-        assertEquals(Byte.valueOf((byte) 7), view.readBank(0, 0));
         assertThrows(UnsupportedOperationException.class, () -> view.write(0, (byte) 3));
     }
 
     @Test
-    public void memoryAdaptersPreserveAddressCapacityIndependentlyOfLoadedOccupancy() {
+    public void memoryAdaptersPreserveProviderSize() {
+        int[] size = {0};
         Memory memory = new Memory() {
-            @Override public int getSize() { return 0; }
-            @Override public int getAddressSpaceSize() { return Integer.MAX_VALUE; }
+            @Override public int getSize() { return size[0]; }
         };
         net.emustudio.emulib.plugins.memory.MemoryContext<Byte> inspection = DebugProbe.inspectionMemory(memory);
         net.emustudio.emulib.plugins.memory.MemoryContext<Byte> instrumented =
                 new DebugProbe("sparse", memory, disassembler()).instrumentedMemory();
         assertEquals(0, inspection.getSize());
-        assertEquals(Integer.MAX_VALUE, inspection.getAddressSpaceSize());
         assertEquals(0, instrumented.getSize());
-        assertEquals(Integer.MAX_VALUE, instrumented.getAddressSpaceSize());
+        assertEquals(0, inspection.read(0, 1).length);
+        size[0] = 1;
+        assertEquals(1, inspection.getSize());
+        assertEquals(1, instrumented.getSize());
         assertArrayEquals(new Byte[] {0}, inspection.read(0, 1));
     }
 
     @Test
-    public void explicitExecutionBankAndIsrRecaptureUseTruthfulLocations() {
-        DebugProbe probe = new DebugProbe("banked", new Memory(), disassembler());
+    public void isrRecaptureUsesActualInstructionAddress() {
+        DebugProbe probe = new DebugProbe("test", new Memory(), disassembler());
         probe.register("PC", 16, () -> 0, value -> {});
-        int[] observedBank = {-1};
+        List<Integer> observedAddresses = new ArrayList<>();
         probe.addListener(new DebugCPU.Listener() {
-            @Override public boolean beforeInstruction(int pc, int bank) {
-                observedBank[0] = bank;
+            @Override public boolean beforeInstruction(int pc) {
+                observedAddresses.add(pc);
                 return false;
             }
         });
         List<DebugCPU.Instruction> events = collect(probe);
-        assertTrue(probe.begin(0, 0));
+        assertTrue(probe.begin(0));
         probe.end(true);
-        assertEquals(0, observedBank[0]);
-        assertEquals(0, events.get(0).bank);
+
         assertTrue(probe.begin(0));
         probe.captureInstruction(5, "INT acknowledge; ");
         probe.end(true);
-        assertEquals(1, observedBank[0]);
+        assertEquals(List.of(0, 0), observedAddresses);
         assertEquals(5, events.get(1).address);
-        assertEquals(0, events.get(1).bank);
+
         assertEquals(Long.valueOf(0), events.get(1).before.get("PC"));
     }
 
@@ -244,16 +242,11 @@ public class DebugProbeTest {
     }
 
     private static class Memory extends AbstractMemoryContext<Byte> {
-        final byte[][] bytes = new byte[2][8];
+        final byte[] bytes = new byte[8];
 
         @Override
         public Byte read(int at) {
-            return readBank(at, 1);
-        }
-
-        @Override
-        public Byte readBank(int at, int bank) {
-            return bytes[at < 4 ? bank : 0][at];
+            return bytes[at];
         }
 
         @Override
@@ -265,27 +258,12 @@ public class DebugProbeTest {
 
         @Override
         public void write(int at, Byte value) {
-            bytes[getBank(at)][at] = value;
+            bytes[at] = value;
         }
 
         @Override
         public void write(int at, Byte[] values, int count) {
             for (int i = 0; i < count; i++) write(at + i, values[i]);
-        }
-
-        @Override
-        public int getSelectedBank() {
-            return 1;
-        }
-
-        @Override
-        public int getBanksCount() {
-            return 2;
-        }
-
-        @Override
-        public int getCommonBoundary() {
-            return 4;
         }
 
         @Override
