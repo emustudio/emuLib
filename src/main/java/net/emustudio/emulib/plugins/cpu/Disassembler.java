@@ -3,18 +3,12 @@
 package net.emustudio.emulib.plugins.cpu;
 
 /**
- * An instruction disassembler interface.
+ * An instruction disassembler interface. The CPU plugin supplies the memory wiring used for
+ * decoding; addresses belong to that logical address space. Memory mapping and bank switching
+ * remain implementation details of the connected plugins.
  */
 @SuppressWarnings("unused")
 public interface Disassembler {
-    /**
-     * Create a live decoder for one explicit inspection bank, independent of the selected bank.
-     * Empty means explicit-bank decoding is unsupported. No memory is copied or frozen.
-     * Callers must hold execution paused and reject results if the memory/layout revision changes
-     * while decoding; this operation does not coordinate external memory writers.
-     */
-    default java.util.Optional<Disassembler> forBank(int bank) { return java.util.Optional.empty(); }
-
     /** Optional structured flow information; providers must not infer it by parsing rendered mnemonics. */
     default java.util.Optional<InstructionFlow> getFlow(int address) { return java.util.Optional.empty(); }
 
