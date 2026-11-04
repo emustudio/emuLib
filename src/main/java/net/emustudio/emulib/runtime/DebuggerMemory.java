@@ -10,9 +10,6 @@ public interface DebuggerMemory {
     /** Returns the label at this location, or an empty string when none exists. */
     String label(int address);
 
-    /** Returns the comment at this location, or an empty string when none exists. */
-    String comment(int address);
-
     /** Returns whether this location is the current instruction. */
     boolean isCurrentInstruction(int address);
 
