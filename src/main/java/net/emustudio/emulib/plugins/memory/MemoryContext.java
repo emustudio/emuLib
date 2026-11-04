@@ -6,6 +6,8 @@ import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.memory.annotations.MemoryContextAnnotations;
 
+import java.lang.reflect.Array;
+
 /**
  * Memory context
  * <p>
@@ -43,6 +45,57 @@ public interface MemoryContext<CellType> extends Context {
         return read(address);
     }
 
+    /**
+     * Read-only live context for an explicit inspection bank. Shared cells resolve to bank zero.
+     * Does not select a CPU bank, copy cells, or freeze memory. Callers coordinate paused reads
+     * and revision checks; later cell changes are visible through the returned context.
+     *
+     * @param bank inspection bank in [0, getBanksCount())
+     * @return a context whose logical reads use the specified bank
+     */
+    default MemoryContext<CellType> forBank(int bank) {
+        if (bank < 0 || bank >= getBanksCount()) throw new IllegalArgumentException("Bank outside memory");
+        MemoryContext<CellType> memory = this;
+        return new MemoryContext<CellType>() {
+            @Override public CellType read(int address) { return readBank(address, bank); }
+            @Override public CellType readBank(int address, int requestedBank) {
+                validateBank(requestedBank);
+                if (address < 0 || address >= getAddressSpaceSize()) throw new IndexOutOfBoundsException();
+                return memory.readBank(address, address < getCommonBoundary() ? requestedBank : 0);
+            }
+            @Override public CellType[] read(int address, int count) {
+                int size = getAddressSpaceSize();
+                if (address < 0 || address > size || count < 0) throw new IndexOutOfBoundsException();
+                int length = Math.min(count, size - address);
+                @SuppressWarnings("unchecked") CellType[] values = (CellType[]) Array.newInstance(getCellTypeClass(), length);
+                for (int i = 0; i < length; i++) values[i] = read(address + i);
+                return values;
+            }
+            @Override public int getSize() { return memory.getSize(); }
+            @Override public int getAddressSpaceSize() { return memory.getAddressSpaceSize(); }
+            @Override public Class<CellType> getCellTypeClass() { return memory.getCellTypeClass(); }
+            @Override public int getBanksCount() { return memory.getBanksCount(); }
+            @Override public int getSelectedBank() { return bank; }
+            @Override public int getCommonBoundary() { return memory.getCommonBoundary(); }
+            @Override public boolean areMemoryNotificationsEnabled() { return memory.areMemoryNotificationsEnabled(); }
+            @Override public void addMemoryListener(MemoryListener listener) { memory.addMemoryListener(listener); }
+            @Override public void removeMemoryListener(MemoryListener listener) { memory.removeMemoryListener(listener); }
+            @Override public void setMemoryNotificationsEnabled(boolean enabled) { throw readOnly(); }
+            @Override public MemoryContextAnnotations annotations() { throw readOnly(); }
+            @Override public void write(int address, CellType value) { throw readOnly(); }
+            @Override public void write(int address, CellType[] values, int count) { throw readOnly(); }
+            @Override public void clear() { throw readOnly(); }
+
+            private void validateBank(int requestedBank) {
+                if (requestedBank < 0 || requestedBank >= memory.getBanksCount())
+                    throw new IllegalArgumentException("Bank outside memory");
+            }
+
+            private UnsupportedOperationException readOnly() {
+                return new UnsupportedOperationException("Explicit-bank decoder memory is read-only");
+            }
+        };
+    }
 
     /**
      * A listener for receiving memory related events.
