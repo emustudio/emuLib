@@ -11,6 +11,8 @@ import java.util.Objects;
  */
 @Immutable
 public class SourceCodePosition {
+    /** Column units for compiler source mappings; adapters translate to UTF-16 using captured text. */
+    public enum ColumnUnit { UNKNOWN, UTF16, CODE_POINT }
 
     /**
      * Line

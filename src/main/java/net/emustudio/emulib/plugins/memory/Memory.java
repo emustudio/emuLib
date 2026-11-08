@@ -3,7 +3,6 @@
 package net.emustudio.emulib.plugins.memory;
 
 import net.emustudio.emulib.plugins.Plugin;
-import net.emustudio.emulib.plugins.memory.annotations.MemoryAnnotations;
 
 /**
  * Memory plugin root interface.
@@ -20,13 +19,6 @@ public interface Memory extends Plugin {
     default boolean isAutomationSupported() {
         return true;
     }
-
-    /**
-     * Get memory annotations
-     *
-     * @return memory annotations
-     */
-    MemoryAnnotations getAnnotations();
 
     /**
      * Get memory size

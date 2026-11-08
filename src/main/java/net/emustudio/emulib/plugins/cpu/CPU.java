@@ -176,48 +176,6 @@ public interface CPU extends Plugin {
     JPanel getStatusPanel();
 
     /**
-     * Determine whether breakpoints are supported by CPU.
-     *
-     * @return true if breakpoints are supported, false otherwise
-     */
-    boolean isBreakpointSupported();
-
-    /** Immutable snapshot of ordinary execution breakpoints; empty when enumeration is unsupported. */
-    default java.util.Set<Integer> getBreakpoints() { return java.util.Set.of(); }
-
-    /**
-     * Set a breakpoint at a memory location.
-     * <p>
-     * Does nothing if breakpoints are not supported.
-     *
-     * @param location memory location where the breakpoint will be set
-     * @throws IndexOutOfBoundsException if the memLocation is out of bounds
-     * @see CPU#isBreakpointSupported
-     */
-    void setBreakpoint(int location);
-
-    /**
-     * Unset a breakpoint at a memory location.
-     * <p>
-     * Does nothing if breakpoints are not supported.
-     *
-     * @param location memory location from where the breakpoint will be unset
-     * @throws IndexOutOfBoundsException if the memLocation is out of bounds
-     * @see CPU#isBreakpointSupported
-     */
-    void unsetBreakpoint(int location);
-
-    /**
-     * Determine if a breakpoint is set at a memory location.
-     *
-     * @param location memory location, from where the breakpoint will be determined
-     * @return true if breakpoint is set in the location, false otherwise or if breakpoints are not supported.
-     * @throws IndexOutOfBoundsException if the memLocation is out of bounds
-     * @see CPU#isBreakpointSupported
-     */
-    boolean isBreakpointSet(int location);
-
-    /**
      * Resets the CPU and sets instruction position to given program location.
      *
      * @param location Program location in memory

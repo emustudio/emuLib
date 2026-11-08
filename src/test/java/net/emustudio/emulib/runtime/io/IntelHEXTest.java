@@ -3,7 +3,6 @@
 package net.emustudio.emulib.runtime.io;
 
 import net.emustudio.emulib.plugins.memory.MemoryContext;
-import net.emustudio.emulib.plugins.memory.annotations.Annotations;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -334,11 +333,6 @@ public class IntelHEXTest {
         @Override
         public boolean areMemoryNotificationsEnabled() {
             return false;
-        }
-
-        @Override
-        public Annotations annotations() {
-            return null;
         }
 
         @Override

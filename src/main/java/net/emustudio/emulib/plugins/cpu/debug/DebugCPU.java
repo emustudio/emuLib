@@ -30,8 +30,11 @@ public interface DebugCPU {
     void removeListener(Listener listener);
 
     interface Listener {
-        /** Return true to stop before executing this instruction. */
-        default boolean beforeInstruction(int address, int bank) {
+        /**
+         * Return true to stop before executing this instruction. Breakpoint state and policy
+         * belong to the application; the CPU invokes this hook and honors the stop decision.
+         */
+        default boolean beforeInstruction(int address) {
             return false;
         }
 
@@ -52,12 +55,11 @@ public interface DebugCPU {
     }
 
     final class Access {
-        public final int address, bank, value;
+        public final int address, value;
         public final boolean write;
 
-        public Access(int address, int bank, int value, boolean write) {
+        public Access(int address, int value, boolean write) {
             this.address = address;
-            this.bank = bank;
             this.value = value;
             this.write = write;
         }
@@ -70,7 +72,7 @@ public interface DebugCPU {
          * Executed instruction location (interrupted location for acknowledge-only events).
          * A composite interrupt/ISR event's before snapshot may precede interrupt acknowledgement.
          */
-        public final int address, bank;
+        public final int address;
         /** Captured before execution; opcode bytes are represented as a hexadecimal sequence. */
         public final String mnemonic, opcodes;
         public final Map<String, Long> before, after;
@@ -80,7 +82,6 @@ public interface DebugCPU {
         public Instruction(
                 long sequence,
                 int address,
-                int bank,
                 String mnemonic,
                 String opcodes,
                 Map<String, Long> before,
@@ -89,7 +90,6 @@ public interface DebugCPU {
                 boolean completed) {
             this.sequence = sequence;
             this.address = address;
-            this.bank = bank;
             this.mnemonic = Objects.requireNonNull(mnemonic);
             this.opcodes = Objects.requireNonNull(opcodes);
             this.before = Map.copyOf(before);
