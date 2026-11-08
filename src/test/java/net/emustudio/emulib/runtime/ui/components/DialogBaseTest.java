@@ -14,8 +14,36 @@ import java.awt.event.KeyEvent;
 import static org.junit.Assert.*;
 
 public class DialogBaseTest {
+    private TestDialog dialog;
 
-    private DialogBase dialog;
+    private static class TestDialog extends DialogBase {
+        private final JComponent content;
+        private final boolean closeOnEscape;
+        private int disposeCount;
+
+        TestDialog(Window parent, boolean modal, JComponent content, boolean closeOnEscape) {
+            super(parent, "Test Dialog", modal);
+            this.content = content;
+            this.closeOnEscape = closeOnEscape;
+            buildContent();
+        }
+
+        @Override
+        protected JComponent initializeComponents() {
+            return content;
+        }
+
+        @Override
+        protected boolean shouldCloseOnEscape() {
+            return closeOnEscape;
+        }
+
+        @Override
+        public void dispose() {
+            disposeCount++;
+            super.dispose();
+        }
+    }
 
     @Before
     public void setUp() {
@@ -26,340 +54,138 @@ public class DialogBaseTest {
     public void tearDown() {
         if (dialog != null) {
             dialog.dispose();
-            dialog = null;
         }
     }
 
-    private DialogBase createDialog(JComponent content, boolean modal) {
-        return new DialogBase((Frame) null, "Test Dialog", modal) {
-            @Override
-            protected JComponent initializeComponents() {
-                return content;
-            }
-        };
-    }
-
-    private DialogBase createDialog(JComponent content) {
-        return createDialog(content, false);
-    }
-
-    private DialogBase createDialogWithParentDialog(JComponent content) {
-        return new DialogBase(new JDialog(), "Test Dialog", false) {
-            @Override
-            protected JComponent initializeComponents() {
-                return content;
-            }
-        };
+    private TestDialog createDialog(JComponent content) {
+        return dialog = new TestDialog(null, false, content, true);
     }
 
     @Test
-    public void testDialogIsCreatedWithFrameParent() {
-        dialog = createDialog(new JPanel());
-        dialog.buildContent();
+    public void testNullParentUsesSharedOwnerFrame() {
+        createDialog(new JPanel());
 
+        assertSame(JOptionPane.getRootFrame(), dialog.getOwner());
         assertEquals("Test Dialog", dialog.getTitle());
         assertEquals(JDialog.DISPOSE_ON_CLOSE, dialog.getDefaultCloseOperation());
     }
 
     @Test
-    public void testDialogIsCreatedWithDialogParent() {
-        dialog = createDialogWithParentDialog(new JPanel());
-        dialog.buildContent();
+    public void testDialogParentIsOwner() {
+        JDialog parent = new JDialog();
+        dialog = new TestDialog(parent, false, new JPanel(), true);
 
-        assertEquals("Test Dialog", dialog.getTitle());
-        assertEquals(JDialog.DISPOSE_ON_CLOSE, dialog.getDefaultCloseOperation());
+        assertSame(parent, dialog.getOwner());
+        parent.dispose();
     }
 
     @Test
-    public void testModalDialog() {
-        dialog = createDialog(new JPanel(), true);
-        dialog.buildContent();
-
-        assertTrue(dialog.isModal());
+    public void testModality() {
+        assertTrue(new TestDialog(null, true, null, true).isModal());
+        assertFalse(createDialog(null).isModal());
     }
 
     @Test
-    public void testNonModalDialog() {
-        dialog = createDialog(new JPanel(), false);
-        dialog.buildContent();
-
-        assertFalse(dialog.isModal());
-    }
-
-    @Test
-    public void testBuildContentAddsContentToDialog() {
+    public void testBuildContentAddsFocusableContentAndPacks() {
         JPanel content = new JPanel();
-        dialog = createDialog(content);
-        dialog.buildContent();
+        content.setFocusable(false);
+        content.setPreferredSize(new Dimension(300, 200));
+        createDialog(content);
 
         Container contentPane = dialog.getContentPane();
         assertTrue(contentPane.getLayout() instanceof BorderLayout);
         assertEquals(1, contentPane.getComponentCount());
         assertSame(content, contentPane.getComponent(0));
-    }
-
-    @Test
-    public void testBuildContentMakesContentFocusable() {
-        JPanel content = new JPanel();
-        content.setFocusable(false);
-
-        dialog = createDialog(content);
-        dialog.buildContent();
-
         assertTrue(content.isFocusable());
+        assertTrue(dialog.getWidth() >= 300 && dialog.getHeight() >= 200);
     }
 
     @Test
-    public void testBuildContentWithNullContent() {
-        dialog = new DialogBase((Frame) null, "Test", false) {
-            @Override
-            protected JComponent initializeComponents() {
-                return null;
-            }
-        };
-
-        // Should not throw
-        dialog.buildContent();
-    }
-
-    @Test
-    public void testBuildContentWithNullContentDoesNotAddComponent() {
-        dialog = new DialogBase((Frame) null, "Test", false) {
-            @Override
-            protected JComponent initializeComponents() {
-                return null;
-            }
-        };
-        dialog.buildContent();
+    public void testNullContentAddsNothing() {
+        createDialog(null);
 
         assertEquals(0, dialog.getContentPane().getComponentCount());
     }
 
     @Test
-    public void testBuildContentPacksDialog() {
-        JPanel content = new JPanel();
-        content.setPreferredSize(new Dimension(300, 200));
-        dialog = createDialog(content);
-        dialog.buildContent();
-
-        // After pack(), the dialog size should accommodate the content
-        assertTrue(dialog.getWidth() > 0);
-        assertTrue(dialog.getHeight() > 0);
-    }
-
-    @Test
-    public void testEscKeyListenerIsRegisteredOnContent() {
-        JButton button = new JButton("Test");
-        JPanel content = new JPanel();
-        content.add(button);
-        dialog = createDialog(content);
-        dialog.buildContent();
-
-        assertTrue(keyListenerCount(button) > 0);
-        assertTrue(keyListenerCount(content) > 0);
-    }
-
-    @Test
-    public void testDisposeRemovesKeyListeners() {
-        JButton button = new JButton("Test");
-        JPanel content = new JPanel();
-        content.add(button);
-        dialog = createDialog(content);
-        dialog.buildContent();
-
-        int buttonListenersBefore = keyListenerCount(button);
-        assertTrue(buttonListenersBefore > 0);
-
-        dialog.dispose();
-
-        assertTrue(keyListenerCount(button) < buttonListenersBefore);
-        dialog = null; // prevent double dispose in tearDown
-    }
-
-    @Test
-    public void testSetVisibleTrueReRegistersKeyListeners() {
-        JButton button = new JButton("Test");
-        JPanel content = new JPanel();
-        content.add(button);
-        dialog = createDialog(content);
-        dialog.buildContent();
-
-        int initialCount = keyListenerCount(button);
-
-        dialog.dispose();
-        int afterDisposeCount = keyListenerCount(button);
-        assertTrue(afterDisposeCount < initialCount);
-
-        // setVisible(true) re-registers them (duplicate check prevents double-registration)
-        dialog.setVisible(true);
-        int afterShowCount = keyListenerCount(button);
-        assertEquals(initialCount, afterShowCount);
-
-        dialog.setVisible(false);
-    }
-
-    @Test
-    public void testSetVisibleFalseDoesNotReRegisterKeyListeners() {
-        JButton button = new JButton("Test");
-        JPanel content = new JPanel();
-        content.add(button);
-        dialog = createDialog(content);
-        dialog.buildContent();
-
-        dialog.dispose();
-        int afterDisposeCount = keyListenerCount(button);
-
-        dialog.setVisible(false);
-        assertEquals(afterDisposeCount, keyListenerCount(button));
-        dialog = null;
-    }
-
-    @Test
-    public void testShouldCloseOnEscapeDefaultsToTrue() {
-        dialog = createDialog(new JPanel());
-        dialog.buildContent();
-
-        assertTrue(dialog.shouldCloseOnEscape());
-    }
-
-    @Test
-    public void testShouldCloseOnEscapeCanBeOverridden() {
-        dialog = new DialogBase((Frame) null, "Test", false) {
-            @Override
-            protected boolean shouldCloseOnEscape() {
-                return false;
-            }
-
-            @Override
-            protected JComponent initializeComponents() {
-                return new JPanel();
-            }
-        };
-        dialog.buildContent();
-
-        assertFalse(dialog.shouldCloseOnEscape());
-    }
-
-    @Test
-    public void testEscapeKeyViaRootPaneBinding() {
-        dialog = createDialog(new JPanel());
-        dialog.buildContent();
-
-        InputMap inputMap = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        KeyStroke escStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-        Object binding = inputMap.get(escStroke);
-        assertNotNull("ESC key should be bound in WHEN_IN_FOCUSED_WINDOW input map", binding);
-
-        ActionMap actionMap = dialog.getRootPane().getActionMap();
-        assertNotNull("Action for ESC binding should exist", actionMap.get(binding));
-    }
-
-    @Test
-    public void testEscapeDoesNotCloseWhenShouldCloseOnEscapeReturnsFalse() {
-        boolean[] disposed = {false};
-        dialog = new DialogBase((Frame) null, "Test", false) {
-            @Override
-            protected boolean shouldCloseOnEscape() {
-                return false;
-            }
-
-            @Override
-            protected JComponent initializeComponents() {
-                return new JPanel();
-            }
-
-            @Override
-            public void dispose() {
-                disposed[0] = true;
-                super.dispose();
-            }
-        };
-        dialog.buildContent();
-
-        // Simulate ESC via root pane action
-        KeyStroke escStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-        InputMap inputMap = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        Object binding = inputMap.get(escStroke);
-        ActionMap actionMap = dialog.getRootPane().getActionMap();
-        Action action = actionMap.get(binding);
-        action.actionPerformed(null);
-
-        assertFalse("Dialog should not be disposed when shouldCloseOnEscape returns false", disposed[0]);
-    }
-
-    @Test
-    public void testEscapeClosesDialogWhenShouldCloseOnEscapeReturnsTrue() {
-        boolean[] disposed = {false};
-        dialog = new DialogBase((Frame) null, "Test", false) {
-            @Override
-            protected JComponent initializeComponents() {
-                return new JPanel();
-            }
-
-            @Override
-            public void dispose() {
-                disposed[0] = true;
-                super.dispose();
-            }
-        };
-        dialog.buildContent();
-
-        // Simulate ESC via root pane action
-        KeyStroke escStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-        InputMap inputMap = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
-        Object binding = inputMap.get(escStroke);
-        ActionMap actionMap = dialog.getRootPane().getActionMap();
-        Action action = actionMap.get(binding);
-        action.actionPerformed(null);
-
-        assertTrue("Dialog should be disposed when shouldCloseOnEscape returns true", disposed[0]);
-        dialog = null; // already disposed
-    }
-
-    @Test
-    public void testDefaultCloseOperationIsDisposeOnClose() {
-        dialog = createDialog(new JPanel());
-
-        assertEquals(JDialog.DISPOSE_ON_CLOSE, dialog.getDefaultCloseOperation());
-    }
-
-    @Test
-    public void testBuildContentWithComplexComponentHierarchy() {
+    public void testEscKeyListenerIsRegisteredOnWholeHierarchyOnce() {
         JPanel content = new JPanel();
         JPanel nested = new JPanel();
         JButton button = new JButton("Click");
-        JTextField textField = new JTextField("text");
         nested.add(button);
-        nested.add(textField);
         content.add(nested);
+        createDialog(content);
+        int count = keyListenerCount(button);
 
-        dialog = createDialog(content);
         dialog.buildContent();
 
         assertTrue(keyListenerCount(content) > 0);
         assertTrue(keyListenerCount(nested) > 0);
-        assertTrue(keyListenerCount(button) > 0);
-        assertTrue(keyListenerCount(textField) > 0);
+        assertTrue(count > 0);
+        assertEquals(count, keyListenerCount(button));
     }
 
     @Test
-    public void testDuplicateBuildContentDoesNotDoubleRegisterListeners() {
+    public void testDisposeRemovesAndShowingRestoresKeyListeners() {
         JButton button = new JButton("Test");
         JPanel content = new JPanel();
         content.add(button);
-        dialog = createDialog(content);
-        dialog.buildContent();
+        createDialog(content);
+        int initialCount = keyListenerCount(button);
 
-        int countAfterFirstBuild = keyListenerCount(button);
+        dialog.dispose();
+        int afterDispose = keyListenerCount(button);
+        assertTrue(afterDispose < initialCount);
 
-        // Call buildContent again (simulating accidental double-call)
-        dialog.buildContent();
+        dialog.setVisible(false);
+        assertEquals(afterDispose, keyListenerCount(button));
 
-        // Duplicate check in addKeyListenerRecursively should prevent double-registration
-        assertEquals(countAfterFirstBuild, keyListenerCount(button));
+        dialog.setVisible(true);
+        assertEquals(initialCount, keyListenerCount(button));
+        dialog.setVisible(false);
     }
 
-    private int keyListenerCount(Component component) {
+    @Test
+    public void testEscapeKeyListenerClosesDialog() {
+        JButton button = new JButton("Test");
+        JPanel content = new JPanel();
+        content.add(button);
+        createDialog(content);
+        KeyEvent esc = new KeyEvent(button, KeyEvent.KEY_PRESSED, 0, 0, KeyEvent.VK_ESCAPE, KeyEvent.CHAR_UNDEFINED);
+
+        for (var listener : button.getKeyListeners()) {
+            listener.keyPressed(esc);
+        }
+
+        assertTrue(esc.isConsumed());
+        assertEquals(1, dialog.disposeCount);
+    }
+
+    @Test
+    public void testEscapeRootPaneBindingClosesDialog() {
+        createDialog(new JPanel());
+
+        escapeAction(dialog).actionPerformed(null);
+
+        assertEquals(1, dialog.disposeCount);
+    }
+
+    @Test
+    public void testEscapeDoesNotCloseWhenDisabled() {
+        dialog = new TestDialog(null, false, new JPanel(), false);
+
+        escapeAction(dialog).actionPerformed(null);
+
+        assertEquals(0, dialog.disposeCount);
+    }
+
+    private static Action escapeAction(JDialog dialog) {
+        Object binding = dialog.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .get(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0));
+        return dialog.getRootPane().getActionMap().get(binding);
+    }
+
+    private static int keyListenerCount(Component component) {
         return component.getKeyListeners().length;
     }
 }

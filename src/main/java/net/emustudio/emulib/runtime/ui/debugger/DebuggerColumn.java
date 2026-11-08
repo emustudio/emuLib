@@ -2,35 +2,40 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui.debugger;
 
+import net.emustudio.emulib.plugins.cpu.CPU;
+import net.emustudio.emulib.plugins.cpu.Disassembler;
+import net.emustudio.emulib.plugins.cpu.InvalidInstructionException;
+
+import java.util.Objects;
+import java.util.function.IntFunction;
 
 /**
- * Column in the debugger table.
+ * Column in the debugger table. CPUs provide custom columns with {@link CPU#getDebuggerColumns()}.
  *
  * @param <T> Java type of this column
- * @see DebuggerTable
  */
-@SuppressWarnings("unused")
 public interface DebuggerColumn<T> {
 
     /**
-     * Gets class type of the column.
-     *
      * @return Java type of this column
      */
     Class<T> getClassType();
 
     /**
-     * Gets title of the column.
-     *
      * @return title of this column
      */
     String getTitle();
 
     /**
-     * Determines whether this column is editable by user.
-     * <p>
-     * For example, a "mnemo" column shouldn't be editable, but "breakpoint" column can (and should).
-     * Note that the returned value holds to all cells in the column. Columns are read-only by default.
+     * Gets a value from the column cell.
+     *
+     * @param location Cell index (usually memory address). It is not a "row number" in the debugger table.
+     * @return cell value
+     */
+    T getValue(int location);
+
+    /**
+     * Determines whether cells of this column are editable by user. Columns are read-only by default.
      *
      * @return true if the column is editable, false otherwise
      */
@@ -39,39 +44,94 @@ public interface DebuggerColumn<T> {
     }
 
     /**
-     * Set a value to a column cell.
-     * <p>
-     * It is called by emuStudio when user sets a value to a cell in the debugger table. It is used only if
-     * the column is editable (see {@link #isEditable() isEditable} method).
-     * <p>
-     * NOTE: This method should ensure proper changes in CPU's internal state, if necessary.
-     * The default implementation has no effect; editable columns must override it.
+     * Set a value to a column cell of an editable column.
      *
      * @param location Cell index (usually memory address). It is not a "row number" in the debugger table.
      * @param value    new value assigned to the cell
-     * @throws CannotSetDebuggerValueException if the value cannot be assigned, for any reason
+     * @throws IllegalArgumentException if the value cannot be assigned
      */
-    default void setValue(int location, Object value) throws CannotSetDebuggerValueException {
+    default void setValue(int location, Object value) {
     }
 
     /**
-     * Gets a value from the column cell.
-     * <p>
-     * It is called by emuStudio when rendering the debugger table.
-     *
-     * @param location Cell index (usually memory address). It is not a "row number" in the debugger table.
-     * @return cell value
-     */
-    T getValue(int location);
-
-    /**
-     * Get default width of the column in pixels.
-     * <p>
-     * If it is not known, this method should return -1.
-     *
      * @return default width of the column in pixels or -1 if it is not known
      */
     default int getDefaultWidth() {
         return -1;
+    }
+
+    /**
+     * Creates read-only text column.
+     *
+     * @param title  column title
+     * @param values cell value by location
+     * @return new column
+     */
+    static DebuggerColumn<String> text(String title, IntFunction<String> values) {
+        Objects.requireNonNull(title);
+        Objects.requireNonNull(values);
+        return new DebuggerColumn<>() {
+            @Override
+            public Class<String> getClassType() {
+                return String.class;
+            }
+
+            @Override
+            public String getTitle() {
+                return title;
+            }
+
+            @Override
+            public String getValue(int location) {
+                return values.apply(location);
+            }
+        };
+    }
+
+    /**
+     * Creates "address" column.
+     *
+     * @param format address format for {@link String#format(String, Object...)}, e.g. {@code "%04X"}
+     * @return new column
+     */
+    static DebuggerColumn<String> address(String format) {
+        Objects.requireNonNull(format);
+        return text("address", location -> String.format(format, location));
+    }
+
+    /**
+     * Creates "instruction" column showing instruction mnemonics.
+     *
+     * @param disassembler the disassembler
+     * @return new column
+     */
+    static DebuggerColumn<String> mnemo(Disassembler disassembler) {
+        Objects.requireNonNull(disassembler);
+        return text("instruction", location -> {
+            try {
+                return disassembler.disassemble(location).mnemo;
+            } catch (InvalidInstructionException e) {
+                return "[invalid]";
+            } catch (IndexOutOfBoundsException e) {
+                return "[incomplete]";
+            }
+        });
+    }
+
+    /**
+     * Creates "opcode" column showing formatted binary representation of instructions.
+     *
+     * @param disassembler the disassembler
+     * @return new column
+     */
+    static DebuggerColumn<String> opcode(Disassembler disassembler) {
+        Objects.requireNonNull(disassembler);
+        return text("opcode", location -> {
+            try {
+                return disassembler.disassemble(location).opCode;
+            } catch (InvalidInstructionException | IndexOutOfBoundsException e) {
+                return "";
+            }
+        });
     }
 }

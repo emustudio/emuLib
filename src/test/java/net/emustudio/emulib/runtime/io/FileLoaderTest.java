@@ -6,6 +6,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.ByteBuffer;
@@ -13,196 +14,158 @@ import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.easymock.EasyMock.*;
+import static net.emustudio.emulib.runtime.io.FileLoader.Format.*;
 import static org.junit.Assert.*;
 
 public class FileLoaderTest {
-    @Rule public TemporaryFolder tmp = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder tmp = new TemporaryFolder();
 
     @Test
-    public void recognizesAliasesWithoutApplyingFallback() {
+    public void recognizesFormatsByExtension() {
         for (String extension : List.of("bin", "com", "out", "rom", "BIN")) {
-            assertEquals(FileLoader.Format.BIN, FileLoader.forPath(Path.of("x." + extension)).orElseThrow().getFormat());
+            assertEquals(BIN, FileLoader.Format.fromPath(Path.of("x." + extension)).orElseThrow());
         }
-        assertEquals(FileLoader.Format.HEX, FileLoader.forPath(Path.of("x.HeX")).orElseThrow().getFormat());
-        assertFalse(FileLoader.forPath(Path.of("x.unknown")).isPresent());
-        assertFalse(FileLoader.forPath(Path.of("directory.tap/no-extension")).isPresent());
-        assertFalse(FileLoader.Format.BIN.isTape());
-        assertTrue(FileLoader.Format.TAP.isTape());
+        assertEquals(HEX, FileLoader.Format.fromPath(Path.of("x.HeX")).orElseThrow());
+        assertEquals(TZX, FileLoader.Format.fromPath(Path.of("a.b.tzx")).orElseThrow());
+        assertTrue(FileLoader.Format.fromPath(Path.of("x.unknown")).isEmpty());
+        assertTrue(FileLoader.Format.fromPath(Path.of("directory.tap/tap")).isEmpty());
+        assertFalse(BIN.isTape());
+        assertTrue(TAP.isTape());
+        assertEquals(List.of("tzx"), TZX.getExtensions());
     }
 
     @Test
-    public void binaryIsUnaddressedAndBlocksOwnTheirBytes() throws IOException {
-        Path path = file("image.bin", new byte[]{1, 2, 3});
-        List<FileLoader.Block> blocks = new ArrayList<>();
-        FileLoader.forFormat(FileLoader.Format.BIN).load(path, blocks::add, FileLoader.Options.fileOrder());
+    public void binaryIsOneUnaddressedBlockOwningItsBytes() throws IOException {
+        List<FileLoader.Block> blocks = load(file("image.bin", new byte[]{1, 2, 3}), BIN);
+        assertEquals(1, blocks.size());
         FileLoader.Block block = blocks.get(0);
         assertTrue(block.getAddress().isEmpty());
-        byte[] bytes = block.getData();
-        bytes[0] = 99;
+        assertEquals(-1, block.getId());
+        block.getData()[0] = 99;
         assertArrayEquals(new byte[]{1, 2, 3}, block.getData());
+        assertTrue(block.getSpectrumHeader().isEmpty());
+        assertThrows(IOException.class, block::hasValidChecksum);
     }
 
     @Test
-    public void hexKeepsSparseAddressesAndLastOverlappingRecord() throws IOException {
+    public void hexIsSplitIntoContiguousRangesWithLastOverlappingRecord() throws IOException {
         Path path = tmp.newFile("sparse.hex").toPath();
-        Files.writeString(path, ":020010001122BB\n:0100200033AC\n:0100110044AA\n:00000001FF\n");
-        Map<Integer, Byte> bytes = new HashMap<>();
-        FileLoader.forFormat(FileLoader.Format.HEX).load(path, block -> bytes.put(block.getAddress().orElseThrow(), block.getData()[0]), FileLoader.Options.fileOrder());
-        assertEquals(Map.of(0x10, (byte) 0x11, 0x11, (byte) 0x44, 0x20, (byte) 0x33), bytes);
+        Files.writeString(path, ":020010001122BB\n:0100200033AC\n:0100110044AA\n:010012005598\n:00000001FF\n");
+        Map<Integer, String> ranges = new TreeMap<>();
+        for (FileLoader.Block block : load(path, HEX)) {
+            ranges.put(block.getAddress().orElseThrow(), hex(block.getData()));
+        }
+        assertEquals(Map.of(0x10, "114455", 0x20, "33"), ranges);
     }
 
     @Test
-    public void spectrumHeadersExposeMetadataWithoutPlacingBytes() throws IOException {
-        List<FileLoader.Block> blocks = new ArrayList<>();
-        Path path = file("code.tap", tap(header(3, 0x1234, 3), packet(255, new byte[]{0x55, 0x66})));
-        FileLoader.forFormat(FileLoader.Format.TAP).load(path, blocks::add, FileLoader.Options.fileOrder());
+    public void tapBlocksExposePacketsAndSpectrumHeaders() throws IOException {
+        byte[] data = packet(255, 0x55, 0x66);
+        List<FileLoader.Block> blocks = load(file("code.tap", tap(header(3, 0x1234, 2), data)), TAP);
+        assertEquals(2, blocks.size());
         FileLoader.SpectrumHeader header = blocks.get(0).getSpectrumHeader().orElseThrow();
         assertEquals(3, header.getType());
+        assertEquals("name      ", header.getFileName());
+        assertEquals(2, header.getDataLength());
         assertEquals(0x1234, header.getParameter1());
-        assertEquals(3, header.getDataLength());
+        assertEquals(0x8000, header.getParameter2());
+        assertEquals(0x10, blocks.get(0).getId());
         assertEquals(8, blocks.get(0).getUsedBitsInLastByte());
         assertTrue(blocks.get(0).getAddress().isEmpty());
         assertTrue(blocks.get(1).getSpectrumHeader().isEmpty());
-        assertArrayEquals(packet(255, new byte[]{0x55, 0x66}), blocks.get(1).getData());
+        assertArrayEquals(data, blocks.get(1).getData());
+        assertTrue(blocks.get(1).hasValidChecksum());
+
+        data[data.length - 1] ^= 1;
+        assertFalse(load(file("corrupt.tap", tap(data)), TAP).get(0).hasValidChecksum());
     }
 
     @Test
-    public void corruptTapeBytesRemainAvailableAndPlayable() throws IOException {
-        byte[] corrupt = packet(255, new byte[]{0x42});
-        corrupt[corrupt.length - 1] ^= 1;
-        Path path = file("corrupt.tap", tap(corrupt));
-        FileLoader loader = FileLoader.forFormat(FileLoader.Format.TAP);
-        TapeListener listener = createStrictMock(TapeListener.class);
-        listener.onFileStart();
-        listener.onDataStart();
-        listener.onBlockFlag(255);
-        listener.onBlockData(aryEq(new byte[]{0x42}));
-        listener.onBlockChecksum(corrupt[corrupt.length - 1]);
-        listener.onFileEnd();
-        replay(listener);
-        loader.load(path, new FileLoader.Listener() {
-            @Override public void onFileStart() { listener.onFileStart(); }
-            @Override public void onBlock(FileLoader.Block block) throws IOException { TapeReader.emit(block, listener); }
-            @Override public void onFileEnd() { listener.onFileEnd(); }
-        }, FileLoader.Options.playback());
-        verify(listener);
-
-        List<FileLoader.Block> blocks = new ArrayList<>();
-        loader.load(path, blocks::add, FileLoader.Options.fileOrder());
-        FileLoader.Block block = blocks.get(0);
-        assertFalse(block.hasValidChecksum());
-        byte[] body = block.getBytes();
-        body[0] = 0;
-        assertArrayEquals(corrupt, block.getBytes());
+    public void tzxDataBlocksExposePacketsAndOtherBlocksDoNot() throws IOException {
+        byte[] packet = packet(255, 1, 2);
+        Path path = file("data.tzx", tzx(new Tape()
+                .b(0x10).w(1000).w(packet.length).b(packet)
+                .b(0x11).w(1, 2, 3, 4, 5, 6).b(6).w(0).t(packet.length).b(packet)
+                .b(0x12).w(2168, 10)));
+        List<FileLoader.Block> blocks = load(path, TZX);
+        assertArrayEquals(packet, blocks.get(0).getData());
+        assertEquals(8, blocks.get(0).getUsedBitsInLastByte());
+        assertArrayEquals(packet, blocks.get(1).getData());
+        assertEquals(6, blocks.get(1).getUsedBitsInLastByte());
+        assertEquals(0x12, blocks.get(2).getId());
+        assertThrows(IOException.class, () -> blocks.get(2).getData());
+        assertThrows(IOException.class, () -> blocks.get(2).getUsedBitsInLastByte());
     }
 
     @Test
-    public void tapeListenerWorksDirectlyWithGenericLoader() throws IOException {
-        List<String> events = new ArrayList<>();
-        TapeListener listener = new TapeListener() {
-            @Override public void onFileStart() { events.add("start"); }
-            @Override public void onHeaderStart() { }
-            @Override public void onDataStart() { events.add("data"); }
-            @Override public void onBlockFlag(int flag) { events.add("flag:" + flag); }
-            @Override public void onBlockData(byte[] data) { events.add("bytes:" + data[0]); }
-            @Override public void onBlockChecksum(byte checksum) { events.add("checksum:" + checksum); }
-            @Override public void onFileEnd() { events.add("end"); }
-            @Override public void onProgram(String name, int length, int autoStart, int programLength) { }
-            @Override public void onNumberArray(String name, int length, char variable) { }
-            @Override public void onStringArray(String name, int length, char variable) { }
-            @Override public void onMemoryBlock(String name, int length, int address) { }
-        };
-        FileLoader.forFormat(FileLoader.Format.TAP).load(
-                file("direct.tap", tap(packet(255, new byte[]{0x42}))), listener, FileLoader.Options.playback());
-        assertEquals(List.of("start", "data", "flag:255", "bytes:66", "checksum:-67", "end"), events);
-    }
-
-    @Test
-    public void malformedLengthsAndUnknownBlocksBecomeIoExceptions() throws IOException {
+    public void malformedFilesFailWithIoException() throws IOException {
         for (byte[] content : List.of(new byte[]{1}, new byte[]{1, 0, 0}, new byte[]{5, 0, 0, 1})) {
             Path path = file("bad" + tmp.getRoot().list().length + ".tap", content);
-            assertThrows(IOException.class, () -> FileLoader.forFormat(FileLoader.Format.TAP)
-                    .load(path, block -> { }, FileLoader.Options.fileOrder()));
+            assertThrows(IOException.class, () -> load(path, TAP));
         }
-        Path unknown = file("unknown.tzx", tzx(new byte[]{0x7F}));
-        Path truncated = file("truncated.tzx", tzx(new byte[]{0x11, 0}));
-        Path negative = file("negative.tzx", tzx(new byte[]{0x35, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, -1, -1}));
-        for (Path path : List.of(unknown, truncated, negative)) {
-            assertThrows(IOException.class, () -> FileLoader.forFormat(FileLoader.Format.TZX)
-                    .load(path, block -> { }, FileLoader.Options.fileOrder()));
+        List<byte[]> tzxFiles = List.of(
+                "INVALID\u001A\u0001\u0014".getBytes(), // signature
+                "ZXTape!\u0000\u0001\u0014".getBytes(), // end-of-text marker
+                "ZXTape!\u001A\u0001".getBytes(), // truncated version
+                tzx(new Tape().b(0x7F)), // unknown block
+                tzx(new Tape().b(0x11, 0)), // truncated block
+                tzx(new Tape().b(0x35).b(new byte[16]).d(-1)), // negative length
+                tzx(new Tape().b(0x23).w(0)), // jump to itself
+                tzx(new Tape().b(0x23).w(5)), // jump outside the tape
+                tzx(new Tape().b(0x25)), // loop end without start
+                tzx(new Tape().b(0x24).w(0).b(0x25))); // zero loop count
+        for (byte[] content : tzxFiles) {
+            Path path = file("bad" + tmp.getRoot().list().length + ".tzx", content);
+            assertThrows(IOException.class, () -> load(path, TZX));
         }
+        assertThrows(IOException.class, () -> load(tmp.getRoot().toPath().resolve("missing.tzx"), TZX));
+        assertThrows(NullPointerException.class, () -> load(null, TZX));
     }
 
     @Test
-    public void fileOrderAndPlaybackOrderHaveDistinctControlFlow() throws IOException {
-        Path path = file("jump.tzx", tzx(new byte[]{0x23, 2, 0, 0x12, 1, 0, 1, 0, 0x12, 2, 0, 1, 0}));
-        List<Integer> physical = new ArrayList<>();
-        List<Integer> playback = new ArrayList<>();
-        FileLoader loader = FileLoader.forFormat(FileLoader.Format.TZX);
-        loader.load(path, block -> {
-            assertTrue(block.getSpectrumHeader().isEmpty());
-            physical.add(block.getId());
-        }, FileLoader.Options.fileOrder());
-        loader.load(path, block -> playback.add(block.getId()), FileLoader.Options.playback());
-        assertEquals(List.of(0x23, 0x12, 0x12), physical);
-        assertEquals(List.of(0x23, 0x12), playback);
+    public void emptyTzxHasNoBlocks() throws IOException {
+        assertTrue(load(file("empty.tzx", tzx(new Tape())), TZX).isEmpty());
     }
 
     @Test
-    public void nestedLoopsAndCallSequencesTraverseWithoutLosingReturnAddress() throws IOException {
-        Path loops = file("loops.tzx", tzx(new byte[]{0x24, 2, 0, 0x24, 3, 0, 0x12, 1, 0, 1, 0, 0x25, 0x25}));
-        AtomicInteger tones = new AtomicInteger();
-        FileLoader loader = FileLoader.forFormat(FileLoader.Format.TZX);
-        loader.load(loops, b -> { if (b.getId() == 0x12) tones.incrementAndGet(); }, FileLoader.Options.playback());
-        assertEquals(6, tones.get());
+    public void tzxJumpsLoopsAndCallSequencesAreFollowed() throws IOException {
+        Path jump = file("jump.tzx", tzx(new Tape().b(0x23).w(2).b(0x12).w(1, 1).b(0x12).w(2, 1)));
+        assertEquals(List.of("23", "12:2"), trace(jump));
+
+        Path loops = file("loops.tzx", tzx(new Tape().b(0x24).w(2).b(0x24).w(3).b(0x12).w(1, 1).b(0x25).b(0x25)));
+        assertEquals(6, trace(loops).stream().filter(s -> s.startsWith("12")).count());
 
         // Call blocks 2 and 4, return after each; main path then jumps to EOF.
-        Path calls = file("calls.tzx", tzx(new byte[]{0x26, 2, 0, 2, 0, 4, 0, 0x23, 5, 0,
-                0x12, 1, 0, 1, 0, 0x27, 0x12, 2, 0, 1, 0, 0x27}));
-        List<Integer> lengths = new ArrayList<>();
-        loader.load(calls, b -> {
-            FileLoader.Block block = b;
-            if (block.getId() == 0x12) lengths.add(block.buffer().getShort() & 0xFFFF);
-        }, FileLoader.Options.playback());
-        assertEquals(List.of(1, 2), lengths);
-    }
-
-    @Test
-    public void cancellationTerminatesBackwardJumpAndOmitsCompletion() throws IOException {
-        Path path = file("loop.tzx", tzx(new byte[]{0x23, 0, 0}));
-        AtomicInteger visits = new AtomicInteger();
-        AtomicBoolean completed = new AtomicBoolean();
-        FileLoader.Listener listener = new FileLoader.Listener() {
-            @Override public void onBlock(FileLoader.Block block) { visits.incrementAndGet(); }
-            @Override public void onFileEnd() { completed.set(true); }
-        };
-        assertThrows(InterruptedIOException.class, () -> FileLoader.forFormat(FileLoader.Format.TZX)
-                .load(path, listener, FileLoader.Options.playback().withCancellation(() -> visits.get() >= 4)));
-        assertEquals(4, visits.get());
-        assertFalse(completed.get());
+        Path calls = file("calls.tzx", tzx(new Tape().b(0x26).w(2, 2, 4).b(0x23).w(5)
+                .b(0x12).w(1, 1).b(0x27).b(0x12).w(2, 1).b(0x27)));
+        assertEquals(List.of("26", "12:1", "27", "12:2", "27", "23"), trace(calls));
     }
 
     @Test
     public void interruptionAndListenerFailuresOmitCompletion() throws IOException {
         Path path = file("file.bin", new byte[]{1});
         AtomicBoolean completed = new AtomicBoolean();
-        FileLoader.Listener listener = new FileLoader.Listener() {
-            @Override public void onBlock(FileLoader.Block block) throws IOException { throw new IOException("Listener failed"); }
-            @Override public void onFileEnd() { completed.set(true); }
+        FileLoader.Listener failing = new FileLoader.Listener() {
+            @Override
+            public void onBlock(FileLoader.Block block) throws IOException {
+                throw new IOException("Listener failed");
+            }
+
+            @Override
+            public void onFileEnd() {
+                completed.set(true);
+            }
         };
-        FileLoader loader = FileLoader.forFormat(FileLoader.Format.BIN);
-        assertThrows(IOException.class, () -> loader.load(path, listener, FileLoader.Options.fileOrder()));
+        assertThrows(IOException.class, () -> FileLoader.load(path, BIN, failing));
         Thread.currentThread().interrupt();
         try {
-            assertThrows(InterruptedIOException.class, () -> loader.load(path, listener, FileLoader.Options.fileOrder()));
+            assertThrows(InterruptedIOException.class, () -> FileLoader.load(path, BIN, b -> completed.set(true)));
             assertTrue(Thread.currentThread().isInterrupted());
         } finally {
             Thread.interrupted();
@@ -210,35 +173,124 @@ public class FileLoaderTest {
         assertFalse(completed.get());
     }
 
-    private Path file(String name, byte[] content) throws IOException {
-        Path path = tmp.newFile(name).toPath();
-        return Files.write(path, content);
+    @Test
+    public void interruptionCancelsEndlessTape() throws IOException {
+        Path path = file("endless.tzx", tzx(new Tape().b(0x12).w(1, 1).b(0x23).w(-1)));
+        List<Integer> visits = new ArrayList<>();
+        assertThrows(InterruptedIOException.class, () -> FileLoader.load(path, TZX, block -> {
+            visits.add(block.getId());
+            if (visits.size() == 4) Thread.currentThread().interrupt();
+        }));
+        Thread.interrupted();
+        assertEquals(List.of(0x12, 0x23, 0x12, 0x23), visits);
     }
 
-    private static byte[] packet(int flag, byte[] data) {
+    private List<String> trace(Path path) throws IOException {
+        List<String> trace = new ArrayList<>();
+        FileLoader.load(path, TZX, block -> trace.add(String.format("%02X", block.getId())
+                + (block.getId() == 0x12 ? ":" + block.buffer().getShort() : "")));
+        return trace;
+    }
+
+    private static List<FileLoader.Block> load(Path path, FileLoader.Format format) throws IOException {
+        List<FileLoader.Block> blocks = new ArrayList<>();
+        AtomicBoolean started = new AtomicBoolean();
+        AtomicBoolean ended = new AtomicBoolean();
+        FileLoader.load(path, format, new FileLoader.Listener() {
+            @Override
+            public void onFileStart() {
+                started.set(true);
+            }
+
+            @Override
+            public void onBlock(FileLoader.Block block) {
+                assertTrue(started.get());
+                blocks.add(block);
+            }
+
+            @Override
+            public void onFileEnd() {
+                ended.set(true);
+            }
+        });
+        assertTrue(ended.get());
+        return blocks;
+    }
+
+    private Path file(String name, byte[] content) throws IOException {
+        return Files.write(tmp.newFile(name).toPath(), content);
+    }
+
+    static String hex(byte[] data) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : data) result.append(String.format("%02X", b));
+        return result.toString();
+    }
+
+    static byte[] packet(int flag, int... data) {
         byte[] packet = new byte[data.length + 2];
         packet[0] = (byte) flag;
-        System.arraycopy(data, 0, packet, 1, data.length);
+        for (int i = 0; i < data.length; i++) packet[i + 1] = (byte) data[i];
         byte checksum = 0;
         for (byte value : packet) checksum ^= value;
         packet[packet.length - 1] = checksum;
         return packet;
     }
 
-    private static byte[] header(int type, int address, int length) {
+    static byte[] header(int type, int parameter1, int length) {
         ByteBuffer header = ByteBuffer.allocate(17).order(ByteOrder.LITTLE_ENDIAN);
-        header.put((byte) type).put(new byte[10]).putShort((short) length).putShort((short) address).putShort((short) 0);
-        return packet(0, header.array());
+        header.put((byte) type).put("name      ".getBytes()).putShort((short) length)
+                .putShort((short) parameter1).putShort((short) 0x8000);
+        int[] data = new int[17];
+        for (int i = 0; i < 17; i++) data[i] = header.get(i);
+        return packet(0, data);
     }
 
-    private static byte[] tap(byte[]... packets) {
-        int size = Arrays.stream(packets).mapToInt(p -> p.length + 2).sum();
-        ByteBuffer tape = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
-        for (byte[] packet : packets) tape.putShort((short) packet.length).put(packet);
-        return tape.array();
+    static byte[] tap(byte[]... packets) {
+        Tape tape = new Tape();
+        for (byte[] packet : packets) tape.w(packet.length).b(packet);
+        return tape.bytes();
     }
 
-    private static byte[] tzx(byte[] body) {
-        return ByteBuffer.allocate(10 + body.length).put(new byte[]{'Z', 'X', 'T', 'a', 'p', 'e', '!', 0x1A, 1, 20}).put(body).array();
+    static byte[] tzx(Tape blocks) {
+        return new Tape().b("ZXTape!".getBytes()).b(0x1A, 1, 20).b(blocks.bytes()).bytes();
+    }
+
+    /**
+     * Little-endian tape content builder.
+     */
+    static final class Tape {
+        private final ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        Tape b(int... values) {
+            for (int v : values) out.write(v);
+            return this;
+        }
+
+        Tape b(byte[] values) {
+            out.writeBytes(values);
+            return this;
+        }
+
+        Tape w(int... words) {
+            for (int v : words) b(v, v >> 8);
+            return this;
+        }
+
+        Tape t(int value) {
+            return b(value, value >> 8, value >> 16);
+        }
+
+        Tape d(int value) {
+            return w(value, value >> 16);
+        }
+
+        Tape s(String text) {
+            return b(text.getBytes());
+        }
+
+        byte[] bytes() {
+            return out.toByteArray();
+        }
     }
 }

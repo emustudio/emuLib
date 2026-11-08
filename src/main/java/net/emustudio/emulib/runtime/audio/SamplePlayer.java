@@ -8,10 +8,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Loads and plays independent samples identified by caller-defined keys.
@@ -23,9 +21,7 @@ import java.util.Set;
 public final class SamplePlayer<K> implements AutoCloseable {
     private final AudioFormat format;
     private final ClipFactory clipFactory;
-    private final Map<K, Clip> clips = new HashMap<>();
-    private final Map<K, short[]> samples = new HashMap<>();
-    private final Set<K> looping = new HashSet<>();
+    private final Map<K, Sample> samples = new HashMap<>();
     private int volumePercent = 100;
 
     /**
@@ -45,28 +41,20 @@ public final class SamplePlayer<K> implements AutoCloseable {
         this.clipFactory = Objects.requireNonNull(clipFactory);
     }
 
-    SamplePlayer(int sampleRate, Map<K, Clip> clips, Map<K, short[]> samples) {
-        this(sampleRate);
-        this.clips.putAll(clips);
-        this.samples.putAll(samples);
-        this.clips.values().forEach(this::applyVolume);
-    }
-
     /**
      * Loads or replaces a sample. A failed load keeps any previously loaded sample.
      * Callers decide how to report missing files or unavailable audio devices.
      *
-     * @param key sample identifier
+     * @param key  sample identifier
      * @param path audio file
-     * @throws IOException if the file cannot be read
+     * @throws IOException                   if the file cannot be read
      * @throws UnsupportedAudioFileException if the file is not a supported audio format
-     * @throws LineUnavailableException if the audio device cannot open the sample
-     * @throws IllegalArgumentException if conversion to the playback format is unsupported
+     * @throws LineUnavailableException      if the audio device cannot open the sample
+     * @throws IllegalArgumentException      if conversion to the playback format is unsupported
      */
     public synchronized void load(K key, Path path)
             throws IOException, UnsupportedAudioFileException, LineUnavailableException {
         Objects.requireNonNull(key);
-        Objects.requireNonNull(path);
         try (AudioInputStream stream = AudioSystem.getAudioInputStream(path.toFile());
              AudioInputStream pcm = AudioSystem.getAudioInputStream(format, stream)) {
             byte[] data = pcm.readAllBytes();
@@ -75,18 +63,21 @@ public final class SamplePlayer<K> implements AutoCloseable {
             Clip clip = clipFactory.create();
             try {
                 clip.open(format, data, 0, data.length);
-                applyVolume(clip);
+                put(key, clip, sampleData);
             } catch (LineUnavailableException | RuntimeException | Error e) {
                 clip.close();
                 throw e;
             }
-            Clip previous = clips.put(key, clip);
-            samples.put(key, sampleData);
-            looping.remove(key);
-            if (previous != null) {
-                previous.stop();
-                previous.close();
-            }
+        }
+    }
+
+    // Installs an opened clip, replacing (and closing) a previous one
+    synchronized void put(K key, Clip clip, short[] data) {
+        applyVolume(clip);
+        Sample previous = samples.put(key, new Sample(clip, data));
+        if (previous != null) {
+            previous.clip.stop();
+            previous.clip.close();
         }
     }
 
@@ -94,48 +85,58 @@ public final class SamplePlayer<K> implements AutoCloseable {
      * Restarts the identified sample, optionally looping it until stopped.
      * Unknown sample identifiers are silent.
      *
-     * @param key sample identifier
+     * @param key  sample identifier
      * @param loop whether to repeat continuously
      */
     public synchronized void play(K key, boolean loop) {
-        Clip clip = clips.get(key);
-        if (clip != null) {
-            clip.stop();
-            clip.setFramePosition(0);
+        Sample sample = samples.get(key);
+        if (sample != null) {
+            sample.clip.stop();
+            sample.clip.setFramePosition(0);
+            sample.looping = loop;
             if (loop) {
-                looping.add(key);
-                clip.loop(Clip.LOOP_CONTINUOUSLY);
+                sample.clip.loop(Clip.LOOP_CONTINUOUSLY);
             } else {
-                looping.remove(key);
-                clip.start();
+                sample.clip.start();
             }
         }
     }
 
-    /** Stops one sample; unknown identifiers are ignored. */
+    /**
+     * Stops one sample; unknown identifiers are ignored.
+     *
+     * @param key sample identifier
+     */
     public synchronized void stop(K key) {
-        looping.remove(key);
-        Clip clip = clips.get(key);
-        if (clip != null) {
-            clip.stop();
+        Sample sample = samples.get(key);
+        if (sample != null) {
+            sample.looping = false;
+            sample.clip.stop();
         }
     }
 
-    /** Stops all effects without unloading them. */
+    /**
+     * Stops all samples without unloading them.
+     */
     public synchronized void stopAll() {
-        looping.clear();
-        clips.values().forEach(Clip::stop);
+        samples.keySet().forEach(this::stop);
     }
 
-    /** Returns the current volume, from 0 to 100. */
+    /**
+     * @return the current volume, from 0 to 100
+     */
     public synchronized int getVolumePercent() {
         return volumePercent;
     }
 
-    /** Sets the volume for loaded and future samples, clamped to 0..100. */
+    /**
+     * Sets the volume for loaded and future samples, clamped to 0..100.
+     *
+     * @param volumePercent volume in percent
+     */
     public synchronized void setVolumePercent(int volumePercent) {
         this.volumePercent = Math.max(0, Math.min(100, volumePercent));
-        clips.values().forEach(this::applyVolume);
+        samples.values().forEach(sample -> applyVolume(sample.clip));
     }
 
     private void applyVolume(Clip clip) {
@@ -152,9 +153,9 @@ public final class SamplePlayer<K> implements AutoCloseable {
     }
 
     /**
-     * Mixes effects at their current playback positions for recording.
+     * Mixes samples at their current playback positions for recording.
      * Returns signed 16-bit little-endian stereo PCM with identical left/right channels,
-     * applying the current volume and saturating overlapping effects. Missing or stopped samples
+     * applying the current volume and saturating overlapping samples. Missing or stopped samples
      * contribute silence. This reads playback positions; it does not advance them.
      *
      * @param frameCount number of stereo frames to capture
@@ -165,17 +166,15 @@ public final class SamplePlayer<K> implements AutoCloseable {
             throw new IllegalArgumentException("Invalid audio frame count");
         }
         long[] mixed = new long[frameCount];
-        for (Map.Entry<K, Clip> entry : clips.entrySet()) {
-            short[] data = samples.get(entry.getKey());
-            Clip clip = entry.getValue();
-            if (data == null || data.length == 0 || !clip.isRunning()) {
+        for (Sample sample : samples.values()) {
+            short[] data = sample.data;
+            if (data.length == 0 || !sample.clip.isRunning()) {
                 continue;
             }
-            long position = clip.getLongFramePosition();
-            boolean loop = looping.contains(entry.getKey());
+            long position = sample.clip.getLongFramePosition();
             for (int frame = 0; frame < frameCount; frame++) {
                 long index = position + frame;
-                if (loop || index < data.length) {
+                if (sample.looping || index < data.length) {
                     mixed[frame] += data[(int) (index % data.length)];
                 }
             }
@@ -194,17 +193,26 @@ public final class SamplePlayer<K> implements AutoCloseable {
      */
     @Override
     public synchronized void close() {
-        clips.values().forEach(clip -> {
-            clip.stop();
-            clip.close();
+        samples.values().forEach(sample -> {
+            sample.clip.stop();
+            sample.clip.close();
         });
-        clips.clear();
         samples.clear();
-        looping.clear();
     }
 
     @FunctionalInterface
     interface ClipFactory {
         Clip create() throws LineUnavailableException;
+    }
+
+    private static final class Sample {
+        final Clip clip;
+        final short[] data;
+        boolean looping;
+
+        Sample(Clip clip, short[] data) {
+            this.clip = clip;
+            this.data = data;
+        }
     }
 }

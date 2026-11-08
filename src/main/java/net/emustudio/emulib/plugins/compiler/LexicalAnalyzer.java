@@ -5,7 +5,6 @@ package net.emustudio.emulib.plugins.compiler;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -16,7 +15,7 @@ import java.util.List;
  */
 @SuppressWarnings("unused")
 @NotThreadSafe
-public interface LexicalAnalyzer extends Iterable<Token> {
+public interface LexicalAnalyzer {
 
     /**
      * Parse next token.
@@ -90,12 +89,4 @@ public interface LexicalAnalyzer extends Iterable<Token> {
         throw new UnsupportedOperationException("Source extraction is unavailable for this language");
     }
 
-    @Override
-    default Iterator<Token> iterator() {
-        List<Token> tokens = new ArrayList<>();
-        while (hasNext()) {
-            tokens.add(next());
-        }
-        return tokens.iterator();
-    }
 }

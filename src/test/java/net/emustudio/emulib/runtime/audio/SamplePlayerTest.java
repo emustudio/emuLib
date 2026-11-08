@@ -40,7 +40,8 @@ public class SamplePlayerTest {
     }
 
     private static SamplePlayer<String> player(Map<String, Clip> clips, Map<String, short[]> samples) {
-        SamplePlayer<String> player = new SamplePlayer<>(48000, clips, samples);
+        SamplePlayer<String> player = new SamplePlayer<>(48000);
+        clips.forEach((key, clip) -> player.put(key, clip, samples.getOrDefault(key, new short[0])));
         return player;
     }
 

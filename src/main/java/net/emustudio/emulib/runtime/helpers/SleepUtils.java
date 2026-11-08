@@ -6,75 +6,58 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Sleeping and time measurement utilities.
+ * Precise sleeping.
  */
-public class SleepUtils {
+public final class SleepUtils {
     private final static Logger LOGGER = LoggerFactory.getLogger(SleepUtils.class);
 
     /**
-     * Constructs a new SleepUtils instance.
-     */
-    private SleepUtils() {
-    }
-
-    /**
-     * Sleep precision in nanoseconds (determined automatically).
+     * Average duration of {@code Thread.sleep(1)} in nanoseconds (measured when the class is loaded).
      */
     public final static long SLEEP_PRECISION;
-    /**
-     * Spin yield precision in nanoseconds (half of sleep precision).
-     */
-    public final static long SPIN_YIELD_PRECISION;
 
     static {
-        // determine sleep precision
         int count = 600;
         long time = 0;
         for (int i = 0; i < count; i++) {
             long start = System.nanoTime();
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            sleepMillisecond();
             time += (System.nanoTime() - start);
         }
         SLEEP_PRECISION = time / count;
-        SPIN_YIELD_PRECISION = SLEEP_PRECISION / 2;
-
         LOGGER.debug("Sleep precision: {} ns", SLEEP_PRECISION);
-        LOGGER.debug("Spin yield precision: {} ns", SPIN_YIELD_PRECISION);
     }
 
+    private SleepUtils() {
+    }
 
     /**
-     * Accurately sleeps on all platforms (Linux, Win, Mac).
-     * Sleep precision: SLEEP_PRECISION (determined automatically)
+     * Accurately sleeps on all platforms (Linux, Win, Mac); more precise than {@code LockSupport.parkNanos}.
      * <p>
-     * It is more precise than LockSupport::sleepNanos
-     * <p>
-     * See:
-     * - <a href="https://stackoverflow.com/questions/824110/accurate-sleep-for-java-on-windows">accurate sleep for java</a>
-     * - <a href="https://andy-malakov.blogspot.com/2010/06/alternative-to-threadsleep.html">alternative to Thread.sleep</a>
+     * Sleeps while the remaining time exceeds {@link #SLEEP_PRECISION}, then spin-waits. Returns early if the
+     * thread is interrupted (the interrupt flag is kept). See
+     * <a href="https://andy-malakov.blogspot.com/2010/06/alternative-to-threadsleep.html">alternative to Thread.sleep</a>.
      *
      * @param nanoDuration nanoseconds
      */
-    @SuppressWarnings("BusyWait")
     public static void preciseSleepNanos(long nanoDuration) {
         final long end = System.nanoTime() + nanoDuration;
         long timeLeft = nanoDuration;
-
         do {
             if (timeLeft > SLEEP_PRECISION) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            } else if (timeLeft > SPIN_YIELD_PRECISION) {
+                sleepMillisecond();
+            } else if (timeLeft > SLEEP_PRECISION / 2) {
                 Thread.onSpinWait();
             }
             timeLeft = end - System.nanoTime();
         } while (!Thread.currentThread().isInterrupted() && timeLeft > 0);
+    }
+
+    private static void sleepMillisecond() {
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

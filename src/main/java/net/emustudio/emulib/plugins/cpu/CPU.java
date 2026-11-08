@@ -4,7 +4,10 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.Plugin;
 
+import net.emustudio.emulib.runtime.ui.debugger.DebuggerColumn;
+
 import javax.swing.JPanel;
+import java.util.List;
 
 /**
  * CPU plugin root interface.
@@ -129,6 +132,15 @@ public interface CPU extends Plugin {
      * @return disassembler of CPU instructions
      */
     Disassembler getDisassembler();
+
+    /**
+     * Get custom columns of the debugger table.
+     *
+     * @return debugger columns; empty list means default columns (address, mnemo, opcode)
+     */
+    default List<DebuggerColumn<?>> getDebuggerColumns() {
+        return List.of();
+    }
 
     @Override
     default boolean isAutomationSupported() {

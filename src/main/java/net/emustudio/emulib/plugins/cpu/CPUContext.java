@@ -2,7 +2,6 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.emustudio.emulib.plugins.Context;
 
 /**
@@ -12,7 +11,6 @@ import net.emustudio.emulib.plugins.Context;
  * CPU contexts, should declare a dependency on the CPU plugin.
  */
 @SuppressWarnings("unused")
-@PluginContext
 public interface CPUContext extends Context {
 
     /**

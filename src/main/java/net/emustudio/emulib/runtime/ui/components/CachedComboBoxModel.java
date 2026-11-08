@@ -2,55 +2,51 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui.components;
 
-import net.emustudio.emulib.runtime.ui.MaxItemsCache;
+import net.jcip.annotations.NotThreadSafe;
 
 import javax.swing.*;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
- * Cached ComboBox model. Saves up to 10 items
+ * Combo box model keeping the 10 most recently added items, most recent first.
+ * <p>
+ * The first added item becomes selected; later additions do not change the selection.
  *
- * @param <T> type of items in the combo box
+ * @param <T> item type
  */
-@SuppressWarnings("unused")
+@NotThreadSafe
 public class CachedComboBoxModel<T> extends AbstractListModel<T> implements ComboBoxModel<T> {
-    /**
-     * Cache of items.
-     */
-    private final MaxItemsCache<T> cache = new MaxItemsCache<>(10);
-    /**
-     * Currently selected item.
-     */
+    private static final int LIMIT = 10;
+    private final List<T> items = new ArrayList<>();
     private Object selected;
 
     /**
-     * Constructs a new CachedComboBoxModel.
-     */
-    public CachedComboBoxModel() {
-    }
-
-    /**
-     * Adds an item to the combo box model.
+     * Adds an item to the front. An already present item is moved to the front; the oldest item is dropped
+     * when the limit is exceeded.
      *
      * @param item item to add
+     * @throws NullPointerException if the item is null
      */
     public void add(T item) {
-        int origSize = cache.getSize();
-        cache.put(item);
+        boolean known = items.remove(Objects.requireNonNull(item));
+        items.add(0, item);
+        if (items.size() > LIMIT) {
+            items.remove(LIMIT);
+        } else if (!known) {
+            fireIntervalAdded(this, items.size() - 1, items.size() - 1);
+        }
         if (selected == null) {
-            cache.first().ifPresent(this::setSelectedItem);
+            setSelectedItem(item);
         }
-        if (origSize < cache.getSize()) {
-            fireIntervalAdded(this, cache.getSize() - 1, cache.getSize() - 1);
-        }
-        fireContentsChanged(this, 0, cache.getSize() - 1);
+        fireContentsChanged(this, 0, items.size() - 1);
     }
 
     @Override
     public void setSelectedItem(Object item) {
         if (!Objects.equals(selected, item)) {
-            this.selected = item;
+            selected = item;
             fireContentsChanged(this, -1, -1);
         }
     }
@@ -62,19 +58,11 @@ public class CachedComboBoxModel<T> extends AbstractListModel<T> implements Comb
 
     @Override
     public int getSize() {
-        return cache.getSize();
+        return items.size();
     }
 
     @Override
     public T getElementAt(int index) {
-        int i = 0;
-        Iterator<T> it = cache.iterator();
-        while (it.hasNext()) {
-            T item = it.next();
-            if (i++ == index) {
-                return item;
-            }
-        }
-        return null;
+        return index >= 0 && index < items.size() ? items.get(index) : null;
     }
 }

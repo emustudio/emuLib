@@ -26,6 +26,13 @@ public @interface PluginRoot {
     String title();
 
     /**
+     * Short description of the plugin.
+     *
+     * @return plugin description
+     */
+    String description() default "";
+
+    /**
      * Type of the plugin.
      *
      * @return plugin type

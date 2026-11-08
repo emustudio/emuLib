@@ -3,7 +3,6 @@
 package net.emustudio.emulib.plugins.memory;
 
 import net.emustudio.emulib.plugins.Context;
-import net.emustudio.emulib.plugins.annotations.PluginContext;
 
 /**
  * Memory context
@@ -16,7 +15,6 @@ import net.emustudio.emulib.plugins.annotations.PluginContext;
  * @param <CellType> memory cell type
  */
 @SuppressWarnings("unused")
-@PluginContext
 public interface MemoryContext<CellType> extends Context {
     /**
      * A listener for receiving memory related events.

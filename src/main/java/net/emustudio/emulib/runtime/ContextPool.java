@@ -4,254 +4,101 @@ package net.emustudio.emulib.runtime;
 
 import net.emustudio.emulib.plugins.Context;
 import net.emustudio.emulib.plugins.Plugin;
-import net.emustudio.emulib.plugins.compiler.CompilerContext;
-import net.emustudio.emulib.plugins.cpu.CPUContext;
 import net.emustudio.emulib.plugins.device.DeviceContext;
 import net.emustudio.emulib.plugins.memory.MemoryContext;
 
 /**
  * Context pool manages contexts of all plugins.
  * <p>
- * Plugin context must be first registered by a plugin during its construction. Obtaining plugin contexts is reliable
- * only during plugin initialization, performed after the construction.
- * <p>
- * Context pool does not have to be thread safe.
+ * A plugin registers its contexts in its constructor and obtains contexts of other (connected) plugins in
+ * {@link Plugin#initialize()}.
  */
-@SuppressWarnings("unused")
 public interface ContextPool {
 
     /**
      * Register plugin context.
      * <p>
-     * Method should be called during plugin construction, not later.
-     * <p>
-     * There are several requirements for plugin contexts, for more information {@link Context} documentation.
-     * <p>
-     * Context interface is used as "key" under which the context object will be registered. In later time, the context
-     * can be obtained by this context interface "key". A plugin can register multiple context objects under the same
-     * context interface. In that case, each context will have assigned an index, starting from 0, in order of
-     * context registration.
+     * Context interface is the "key" under which the context object is registered. Lookup is by exact interface, so
+     * memory and device contexts should be registered also under {@link MemoryContext} or {@link DeviceContext}.
+     * Contexts registered under the same interface (by any plugin) are indexed from 0 in registration order.
      *
      * @param pluginID         owner plugin ID
-     * @param context          The context object that the plugin want to register
-     * @param contextInterface plugin context interface
-     * @throws ContextAlreadyRegisteredException Raised when given plugin context is already registered.
-     * @throws InvalidContextException           Raised when given plugin context and its interface does not fulfill
-     *                                           the requirements.
+     * @param context          the context object
+     * @param contextInterface context interface implemented by the context object
+     * @throws IllegalArgumentException if contextInterface is not an interface or context does not implement it
+     * @throws IllegalStateException    if the context is already registered
      */
-    void register(long pluginID, Context context, Class<? extends Context> contextInterface)
-        throws ContextAlreadyRegisteredException, InvalidContextException;
+    void register(long pluginID, Context context, Class<? extends Context> contextInterface);
 
     /**
-     * Unregisters all contexts registered under given context interface.
-     * <p>
-     * It will do it only if the plugin has the permission. The permission is approved if and only if the contexts are
-     * implemented inside the plugin.
+     * Unregisters all contexts of the plugin registered under given context interface.
      *
      * @param pluginID         owner plugin ID
-     * @param contextInterface context interface class
-     * @return true if all plugin contexts registered under provided context interface were unregistered successfully,
-     * false otherwise.
-     * @throws InvalidContextException Raised when given plugin context interface does not fulfill the requirements.
+     * @param contextInterface context interface
+     * @return true if contexts were unregistered, false if there was nothing to unregister
      */
-    boolean unregister(long pluginID, Class<? extends Context> contextInterface) throws InvalidContextException;
+    boolean unregister(long pluginID, Class<? extends Context> contextInterface);
 
     /**
-     * Get registered plugin context.
-     * <p>
-     * NOTE: it can be reliably called in {@link Plugin#initialize()}.
+     * Get registered context of a plugin connected to the requesting plugin.
      *
-     * @param <T>              Specific context type
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @param index            0-based index of the context object.
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
+     * @param <T>              context type
+     * @param pluginID         requesting plugin ID
+     * @param contextInterface context interface
+     * @param index            0-based index of the context object, or -1 for the first accessible one
+     * @return plugin context
+     * @throws ContextNotFoundException if the context does not exist or the plugin is not allowed to get it
      */
-    <T extends Context> T getContext(long pluginID, Class<T> contextInterface, int index)
-        throws InvalidContextException, ContextNotFoundException;
+    <T extends Context> T get(long pluginID, Class<T> contextInterface, int index) throws ContextNotFoundException;
 
     /**
-     * Get registered CPU context.
-     * <p>
-     * If the plugin has registered more than one {@link CPUContext}, the first one is returned.
-     * This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
+     * Get first accessible registered context. Same as {@code get(pluginID, contextInterface, -1)}.
      *
-     * @param pluginID plugin ID
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
+     * @param <T>              context type
+     * @param pluginID         requesting plugin ID
+     * @param contextInterface context interface
+     * @return plugin context
+     * @throws ContextNotFoundException if the context does not exist or the plugin is not allowed to get it
      */
-    CPUContext getCPUContext(long pluginID) throws InvalidContextException, ContextNotFoundException;
+    default <T extends Context> T get(long pluginID, Class<T> contextInterface) throws ContextNotFoundException {
+        return get(pluginID, contextInterface, -1);
+    }
 
     /**
-     * Get registered CPU context.
-     * <p>
-     * If the plugin has registered more than one {@link CPUContext}, the first one is returned.
-     * This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
+     * Get first accessible memory context with given cell type.
      *
-     * @param <T>              Specific CPU context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
+     * @param <C>      memory cell type
+     * @param pluginID requesting plugin ID
+     * @param cellType expected memory cell type
+     * @return memory context
+     * @throws ContextNotFoundException if the memory does not exist, is not accessible or has different cell type
      */
-    <T extends CPUContext> T getCPUContext(long pluginID, Class<T> contextInterface) throws InvalidContextException, ContextNotFoundException;
+    @SuppressWarnings("unchecked")
+    default <C> MemoryContext<C> getMemory(long pluginID, Class<C> cellType) throws ContextNotFoundException {
+        MemoryContext<?> memory = get(pluginID, MemoryContext.class);
+        if (memory.getCellTypeClass() != cellType) {
+            throw new ContextNotFoundException(
+                    "Unexpected memory cell type. Expected " + cellType + " but was: " + memory.getCellTypeClass());
+        }
+        return (MemoryContext<C>) memory;
+    }
 
     /**
-     * Get registered CPU context.
-     * <p>
-     * If the plugin has registered more than one {@link CPUContext}, the index specifies the one in order as they were
-     * registered. This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
+     * Get first accessible device context with given data type.
      *
-     * @param <T>              Specific CPU Context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @param index            0-based index of the context object.
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
+     * @param <D>      device data type
+     * @param pluginID requesting plugin ID
+     * @param dataType expected device data type
+     * @return device context
+     * @throws ContextNotFoundException if the device does not exist, is not accessible or has different data type
      */
-    <T extends CPUContext> T getCPUContext(long pluginID, Class<T> contextInterface, int index)
-        throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered Compiler context.
-     * <p>
-     * If the plugin has registered more than one {@link CompilerContext}, the first one is returned.
-     * This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param pluginID plugin ID
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    CompilerContext getCompilerContext(long pluginID) throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered Compiler context.
-     * <p>
-     * If the plugin has registered more than one {@link CompilerContext}, the first one is returned.
-     * This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param <T>              Specific compiler context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    <T extends CompilerContext> T getCompilerContext(long pluginID, Class<T> contextInterface)
-        throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered compiler context.
-     * <p>
-     * If the plugin has registered more than one {@link CompilerContext}, the index specifies the one in order as they were
-     * registered. This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param <T>              Specific compiler context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @param index            0-based index of the context object.
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    <T extends CompilerContext> T getCompilerContext(long pluginID, Class<T> contextInterface, int index)
-        throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered Memory context.
-     * <p>
-     * If the plugin has registered more than one {@link MemoryContext}, the first one is returned.
-     * This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param <CellType>       Cell type
-     * @param <T>              Specific memory context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    <CellType, T extends MemoryContext<CellType>> T getMemoryContext(long pluginID, Class<T> contextInterface)
-        throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered memory context.
-     * <p>
-     * If the plugin has registered more than one {@link MemoryContext}, the index specifies the one in order as they were
-     * registered. This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param <CellType>       Cell type
-     * @param <T>              Specific memory context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @param index            0-based index of the context object.
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    <CellType, T extends MemoryContext<CellType>> T getMemoryContext(long pluginID, Class<T> contextInterface, int index)
-        throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered Device context.
-     * <p>
-     * If the plugin has registered more than one {@link DeviceContext}, the first one is returned.
-     * This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param <DataType>       Data type
-     * @param <T>              Specific device context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    <DataType, T extends DeviceContext<DataType>> T getDeviceContext(long pluginID, Class<T> contextInterface)
-        throws InvalidContextException, ContextNotFoundException;
-
-    /**
-     * Get registered Device context.
-     * <p>
-     * If the plugin has registered more than one {@link DeviceContext}, the index specifies the one in order as they were
-     * registered. This method can be reliably called in the implementation of {@link Plugin#initialize()} method.
-     *
-     * @param <DataType>       Data type
-     * @param <T>              Specific device context
-     * @param pluginID         plugin ID
-     * @param contextInterface context interface class
-     * @param index            0-based index of the context object.
-     * @return plugin context object
-     * @throws InvalidContextException  Raised when given plugin context and its interface does not fulfill
-     *                                  the requirements.
-     * @throws ContextNotFoundException Raised when requested plugin context does not exist or if the plugin is not
-     *                                  allowed to get it
-     */
-    <DataType, T extends DeviceContext<DataType>> T getDeviceContext(long pluginID, Class<T> contextInterface, int index)
-        throws InvalidContextException, ContextNotFoundException;
+    @SuppressWarnings("unchecked")
+    default <D> DeviceContext<D> getDevice(long pluginID, Class<D> dataType) throws ContextNotFoundException {
+        DeviceContext<?> device = get(pluginID, DeviceContext.class);
+        if (device.getDataType() != dataType) {
+            throw new ContextNotFoundException(
+                    "Unexpected device data type. Expected " + dataType + " but was: " + device.getDataType());
+        }
+        return (DeviceContext<D>) device;
+    }
 }

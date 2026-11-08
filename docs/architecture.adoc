@@ -87,7 +87,7 @@ Rel(dev, emulib, "Compiles against the API, uses utilities")
 Rel(dev, plugins, "Develops")
 
 Rel(plugins, emulib, "Implement Plugin / Context interfaces; use helpers, settings, UI helpers")
-Rel(emustudio, emulib, "Implements ApplicationApi, ContextPool, PluginSettings, Dialogs, GUI, DebuggerTable; drives plugin lifecycle")
+Rel(emustudio, emulib, "Implements ApplicationApi, ContextPool, PluginSettings, Dialogs, GUI; drives plugin lifecycle")
 Rel(emustudio, plugins, "Instantiates, configures and controls (reset/step/run/stop)")
 
 Rel(plugins, plugins, "Communicate via typed contexts obtained from the ContextPool")
@@ -101,14 +101,14 @@ Rel(emulib, maven, "Published to", "Gradle / maven-publish")
 * *Plugin Developer → emuLib.* Developers compile their plugin root class against a
   plugin interface (`CPU`, `Memory`, `Compiler`, `Device`) or extend an
   `Abstract*` base class, and reuse helpers such as `NumberUtils`, `RadixUtils`,
-  `IntelHEX`, and the debugger UI components.
+  `IntelHEX`, and the `DebuggerColumn` factories.
 * *emuStudio → emuLib.* emuLib declares the host services as _interfaces_
-  (`ApplicationApi`, `ContextPool`, `PluginSettings`, `Dialogs`, `GUI`,
-  `DebuggerTable`). emuStudio provides the concrete implementations and injects them
+  (`ApplicationApi`, `ContextPool`, `PluginSettings`, `Dialogs`, `GUI`).
+  emuStudio provides the concrete implementations and injects them
   into every plugin through the plugin constructor.
 * *Plugins ↔ Plugins.* Direct plugin-to-plugin coupling is avoided. Instead a plugin
   _registers_ a `Context` and other plugins _obtain_ it from the `ContextPool`,
-  keyed by a `@PluginContext`-annotated interface.
+  keyed by the context interface.
 
 == Level 2 — Container
 
@@ -178,18 +178,18 @@ title Component — packages inside emulib.jar
 Container_Boundary(emulib, "emuLib (emulib.jar)") {
 
   Component(pluginApi, "Plugin API", "net.emustudio.emulib.plugins(.cpu/.memory/.compiler/.device)", "Plugin & Context contracts, plugin-type interfaces, abstract base classes")
-  Component(annotations, "Plugin Annotations", "net.emustudio.emulib.plugins.annotations", "@PluginRoot, @PluginContext, PLUGIN_TYPE — plugin discovery metadata")
+  Component(annotations, "Plugin Annotations", "net.emustudio.emulib.plugins.annotations", "@PluginRoot, PLUGIN_TYPE — plugin discovery metadata")
   Component(memAnno, "Memory Annotations", "net.emustudio.emulib.plugins.memory.annotations", "Per-cell annotations: breakpoints, source-code positions, text/data markers")
 
   Component(runtime, "Runtime Services", "net.emustudio.emulib.runtime", "ApplicationApi (host facade) + ContextPool (context registry) + context exceptions")
-  Component(settings, "Settings", "net.emustudio.emulib.runtime.settings", "BasicSettings / PluginSettings — typed read/write of plugin configuration")
+  Component(settings, "Settings", "net.emustudio.emulib.runtime.settings", "PluginSettings — typed read/write of plugin configuration")
 
-  Component(helpers, "Helpers / Utilities", "net.emustudio.emulib.runtime.helpers", "Bits, NumberUtils, RadixUtils, StringUtils, SleepUtils, ReadWriteLockSupport, Unchecked")
-  Component(io, "I/O", "net.emustudio.emulib.runtime.io", "IntelHEX — Intel HEX import/export")
+  Component(helpers, "Helpers / Utilities", "net.emustudio.emulib.runtime.helpers", "Bits, NumberUtils, RadixUtils, SleepUtils, ReadWriteLockSupport, Unchecked")
+  Component(io, "I/O", "net.emustudio.emulib.runtime.io", "FileType, IntelHEX, tape loading (TAP/TZX)")
 
-  Component(ui, "UI Helpers", "net.emustudio.emulib.runtime.ui", "Dialogs, GUI factory, Constants, ShortenedString")
-  Component(uiComp, "UI Components", "net.emustudio.emulib.runtime.ui.components", "Reusable Swing widgets (dialogs base, combo model, file filters)")
-  Component(debugger, "Debugger UI", "net.emustudio.emulib.runtime.ui.debugger", "DebuggerTable + columns (address, mnemo, opcode, breakpoint)")
+  Component(ui, "UI Helpers", "net.emustudio.emulib.runtime.ui", "Dialogs, GUI factory, Constants")
+  Component(uiComp, "UI Components", "net.emustudio.emulib.runtime.ui.components", "Reusable Swing widgets (dialog base, combo model)")
+  Component(debugger, "Debugger UI", "net.emustudio.emulib.runtime.ui.debugger", "DebuggerColumn + factories (address, mnemo, opcode, text)")
 }
 
 System_Ext(emustudio, "emuStudio Application", "Implements the service interfaces")
@@ -205,10 +205,8 @@ Rel(pluginApi, memAnno, "Memory exposes")
 ' Runtime wiring
 Rel(runtime, pluginApi, "Registers/looks up Context objects")
 Rel(runtime, ui, "ApplicationApi exposes Dialogs / GUI")
-Rel(runtime, debugger, "ApplicationApi exposes DebuggerTable")
 
 Rel(io, helpers, "Uses number/radix utilities")
-Rel(debugger, uiComp, "Built from")
 Rel(ui, uiComp, "Uses")
 
 ' External
@@ -218,7 +216,7 @@ Rel(plugin, io, "Uses (compilers load code)")
 Rel(emustudio, runtime, "Implements ApplicationApi & ContextPool")
 Rel(emustudio, settings, "Implements PluginSettings")
 Rel(emustudio, ui, "Implements Dialogs & GUI")
-Rel(emustudio, debugger, "Implements DebuggerTable")
+Rel(emustudio, debugger, "Shows CPU debugger columns")
 
 @enduml
 ....
@@ -233,13 +231,15 @@ Rel(emustudio, debugger, "Implements DebuggerTable")
 | `plugins`, `plugins.cpu`, `plugins.memory`, `plugins.compiler`, `plugins.device`
 | Core contracts: `Plugin` and its derivatives `CPU`, `Memory`, `Compiler`,
   `Device`; the `Context` marker and the per-type contexts; and `Abstract*` base
-  classes (`AbstractCPU`, `AbstractMemory`, `AbstractDevice`, `AbstractCompiler`,
+  classes (`AbstractPlugin`, `AbstractCPU`, `AbstractCompiler`,
   `AbstractMemoryContext`, `AbstractCPUContext`) that implement common behaviour.
+  `Plugin` lifecycle methods are no-op defaults and title/description come from `@PluginRoot`.
+  `AbstractCompiler` owns the compilation workflow; shared ANTLR glue lives in `plugins.compiler.antlr`.
 
 | Plugin Annotations
 | `plugins.annotations`
-| `@PluginRoot(title, type)` marks a plugin's root class; `@PluginContext` marks
-  context interfaces; `PLUGIN_TYPE` enumerates `COMPILER/CPU/MEMORY/DEVICE`.
+| `@PluginRoot(title, description, type)` marks a plugin's root class;
+  `PLUGIN_TYPE` enumerates `COMPILER/CPU/MEMORY/DEVICE`.
 
 | Memory Annotations
 | `plugins.memory.annotations`
@@ -249,35 +249,34 @@ Rel(emustudio, debugger, "Implements DebuggerTable")
 | Runtime Services
 | `runtime`
 | `ApplicationApi` — the host facade handed to every plugin; `ContextPool` — the
-  registry that lets plugins publish and discover contexts; context exceptions
-  (`ContextNotFoundException`, `ContextAlreadyRegisteredException`,
-  `InvalidContextException`).
+  registry that lets plugins publish and discover contexts (`get`, and type-checked
+  `getMemory`/`getDevice`); `ContextNotFoundException`.
 
 | Settings
 | `runtime.settings`
-| `BasicSettings` / `PluginSettings` — typed (`String/boolean/int/long/double/array`)
-  configuration access, sub-settings, and reserved `emustudio.` keys.
+| `PluginSettings` — `Optional` typed getters, a single `set(key, value)` (null removes),
+  sub-settings, and reserved `emustudio.` keys.
 
 | Helpers / Utilities
 | `runtime.helpers`
-| Bit/number/radix/string utilities (`Bits`, `NumberUtils`, `RadixUtils`,
-  `StringUtils`), timing (`SleepUtils`), concurrency (`ReadWriteLockSupport`) and
+| Bit/number/radix utilities (`Bits`, `NumberUtils`, `RadixUtils`), timing (`SleepUtils`), concurrency (`ReadWriteLockSupport`) and
   functional glue (`Unchecked`).
 
 | I/O
 | `runtime.io`
-| `IntelHEX` — reading and writing Intel HEX files (used by compilers to emit code
-  and by the runtime to load it into memory).
+| `FileType` (file description + extensions, used by compilers and file dialogs),
+  `IntelHEX` (used by compilers to emit code and load it into memory), and
+  `FileLoader`/`TapeListener` for TAP/TZX tape images.
 
 | UI Helpers
 | `runtime.ui`, `runtime.ui.components`
-| `Dialogs` (message/confirm/input, headless-aware), `GUI` factory, reusable Swing
-  widgets, file-extension filters, and text helpers.
+| `Dialogs` (message/confirm/input, headless-aware), `GUI` factory and reusable Swing
+  widgets.
 
 | Debugger UI
 | `runtime.ui.debugger`
-| `DebuggerTable` abstraction and its pluggable `DebuggerColumn` implementations
-  (address, mnemonic, opcode, breakpoint) that CPUs feed via their `Disassembler`.
+| `DebuggerColumn` and its factories (address, mnemonic, opcode, text). CPUs may
+  return custom columns from `CPU.getDebuggerColumns()`; otherwise the host uses defaults.
 |===
 
 == Level 4 — Code
@@ -315,18 +314,19 @@ Plugin <|-- Memory
 Plugin <|-- Compiler
 Plugin <|-- Device
 
+abstract class AbstractPlugin
 abstract class AbstractCPU
-abstract class AbstractMemory
-abstract class AbstractDevice
 abstract class AbstractCompiler
 
+Plugin <|.. AbstractPlugin
+AbstractPlugin <|-- AbstractCPU
+AbstractPlugin <|-- AbstractCompiler
 CPU <|.. AbstractCPU
-Memory <|.. AbstractMemory
-Device <|.. AbstractDevice
 Compiler <|.. AbstractCompiler
 
 annotation PluginRoot {
   +title : String
+  +description : String
   +type : PLUGIN_TYPE
 }
 enum PLUGIN_TYPE {
@@ -337,7 +337,7 @@ enum PLUGIN_TYPE {
 }
 PluginRoot ..> PLUGIN_TYPE
 
-note bottom of AbstractCPU
+note bottom of AbstractPlugin
   Constructor contract for every root class:
   (long pluginId, ApplicationApi api, PluginSettings settings)
 end note
@@ -366,36 +366,31 @@ interface ApplicationApi {
   +getContextPool() : ContextPool
   +getDialogs() : Dialogs
   +getGUI() : GUI
-  +getDebuggerTable() : DebuggerTable
   +get/setProgramLocation()
 }
 
 interface ContextPool {
   +register(pluginID, Context, Class)
   +unregister(pluginID, Class) : boolean
-  +getContext(pluginID, Class, index) : T
-  +getCPUContext(...)
-  +getMemoryContext(...)
-  +getDeviceContext(...)
-  +getCompilerContext(...)
+  +get(pluginID, Class, index) : T
+  +getMemory(pluginID, Class cellType)
+  +getDevice(pluginID, Class dataType)
 }
 
-interface Context <<@PluginContext>>
+interface Context
 interface CPUContext
 interface "MemoryContext<CellType>" as MemoryContext
 interface "DeviceContext<DataType>" as DeviceContext
-interface CompilerContext
 
 Context <|-- CPUContext
 Context <|-- MemoryContext
 Context <|-- DeviceContext
-Context <|-- CompilerContext
 
 ApplicationApi --> ContextPool : exposes
 ContextPool o--> "*" Context : registers / resolves
 
 note right of ContextPool
-  Keyed by the @PluginContext interface.
+  Keyed by the context interface.
   Multiple contexts per interface are
   addressed by a 0-based index.
 end note
@@ -429,9 +424,9 @@ CPU -> POOL : register(CPUContext)
 
 == Initialization (resolve contexts) ==
 emuStudio -> CPU : initialize()
-CPU -> POOL : getMemoryContext(pluginId, ...)
+CPU -> POOL : getMemory(pluginId, Byte.class)
 POOL --> CPU : MemoryContext
-CPU -> POOL : getDeviceContext(pluginId, ...)
+CPU -> POOL : getDevice(pluginId, Byte.class)
 POOL --> CPU : DeviceContext
 
 == Emulation ==
@@ -460,8 +455,7 @@ without emuStudio (e.g. a command-line tool), and `Dialogs` degrades to logging 
 GUI is disabled. Plugins advertise `isAutomationSupported()`.
 
 Extensibility::
-New capabilities are added by *extending context interfaces* (each annotated
-`@PluginContext`) rather than by changing core contracts, keeping the plugin ABI
+New capabilities are added by *extending context interfaces* rather than by changing core contracts, keeping the plugin ABI
 stable. Memory cell type and device data type are generic
 (`MemoryContext<CellType>`, `DeviceContext<DataType>`).
 

@@ -3,24 +3,27 @@
 package net.emustudio.emulib.plugins.compiler;
 
 /**
- * This is an interface that should be implemented by the emuStudio,
- * and/or other plugins that want to process the output of the compiler.
+ * Compiler listener. Only {@link #onMessage(CompilerMessage)} is mandatory.
  */
+@FunctionalInterface
 public interface CompilerListener {
-    /**
-     * This method is called whenever a compiler begins to work.
-     */
-    void onStart();
 
     /**
-     * Method will be invoked when compiler would like to print info message.
+     * Called when a compilation begins.
+     */
+    default void onStart() {
+    }
+
+    /**
+     * Called when the compiler emits a message.
      *
-     * @param compilerMessage Message from the compiler
+     * @param message message from the compiler
      */
-    void onMessage(CompilerMessage compilerMessage);
+    void onMessage(CompilerMessage message);
 
     /**
-     * This method is called whenever the compiler finishes the compilation.
+     * Called when a compilation finishes (successfully or not).
      */
-    void onFinish();
+    default void onFinish() {
+    }
 }
