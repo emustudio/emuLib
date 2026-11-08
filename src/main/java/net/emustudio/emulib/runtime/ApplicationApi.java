@@ -3,7 +3,7 @@
 package net.emustudio.emulib.runtime;
 
 import net.emustudio.emulib.runtime.ui.Dialogs;
-import net.emustudio.emulib.runtime.annotations.AnnotationEngine;
+import net.emustudio.emulib.runtime.annotations.MemoryAnnotations;
 import net.emustudio.emulib.runtime.ui.GUI;
 import net.emustudio.emulib.runtime.ui.debugger.DebuggerTable;
 import net.jcip.annotations.ThreadSafe;
@@ -18,7 +18,7 @@ import net.jcip.annotations.ThreadSafe;
 public interface ApplicationApi {
 
     /** Returns the active computer's live annotations, or null when unavailable. */
-    AnnotationEngine getAnnotations();
+    MemoryAnnotations getAnnotations();
 
     /**
      * Get debugger table.
@@ -90,7 +90,7 @@ public interface ApplicationApi {
      */
     ApplicationApi UNAVAILABLE = new ApplicationApi() {
         @Override
-        public AnnotationEngine getAnnotations() {
+        public MemoryAnnotations getAnnotations() {
             return null;
         }
 

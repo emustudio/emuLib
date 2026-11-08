@@ -3,7 +3,6 @@
 package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.runtime.ApplicationApi;
-import net.emustudio.emulib.runtime.ExecutionState;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
 import org.junit.Test;
 
@@ -35,23 +34,16 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void destructionReleasesHostObserversExactlyOnce() {
+    public void destructionRunsOnceWithoutExecutionInfrastructure() {
         ApplicationApi application = createMock(ApplicationApi.class);
-        ExecutionState execution = createMock(ExecutionState.class);
-        CPU.CPUListener observer = createNiceMock(CPU.CPUListener.class);
-        expect(application.getExecutionState()).andReturn(execution).times(2);
-        execution.addCPUListener(observer);
-        execution.removeCPUListener(observer);
-        replay(application, execution);
+        replay(application);
         AbstractCPUStub cpu = new AbstractCPUStub(application, createNiceMock(PluginSettings.class));
-        cpu.observe(observer);
 
         cpu.destroy();
         cpu.destroy();
 
         assertEquals(1, cpu.destroyed);
-        assertThrows(IllegalStateException.class, () -> cpu.observe(observer));
-        verify(application, execution);
+        verify(application);
     }
 
     @Test

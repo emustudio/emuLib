@@ -18,7 +18,6 @@ public class AbstractCPUStub extends AbstractCPU {
         super(44, applicationApi, settings);
     }
 
-    void observe(CPUListener listener) { observeExecution(listener); }
     @Override protected void destroyInternal() { destroyed++; }
     @Override public RunState execute() { executionThread = Thread.currentThread(); return RunState.STATE_STOPPED_NORMAL; }
     @Override public RunState step() { executionThread = Thread.currentThread(); return RunState.STATE_STOPPED_BREAK; }

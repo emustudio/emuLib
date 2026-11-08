@@ -4,8 +4,6 @@ package net.emustudio.emulib.plugins.cpu;
 
 import org.junit.Test;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import static org.junit.Assert.*;
 
 public class FrequencyCalculatorTest {
@@ -13,26 +11,20 @@ public class FrequencyCalculatorTest {
     public void hostSamplingMeasuresAverageAcrossElapsedRunTime() {
         AtomicLong clock = new AtomicLong();
         FrequencyCalculator calculator = new FrequencyCalculator(clock::get);
-        AtomicReference<Float> frequency = new AtomicReference<>();
-        calculator.addListener(frequency::set);
         calculator.start();
         calculator.passedCycles(2_000_000);
 
         clock.set(1_000_000_000L);
-        calculator.sample();
-        assertEquals(2000f, frequency.get(), 0.001f);
+        assertEquals(2000f, calculator.sample(), 0.001f);
 
         clock.set(2_000_000_000L);
-        calculator.sample();
-        assertEquals(1000f, frequency.get(), 0.001f);
+        assertEquals(1000f, calculator.sample(), 0.001f);
     }
 
     @Test
     public void stopPublishesPartialBatchAndFreezesMeasurementTime() {
         AtomicLong clock = new AtomicLong();
         FrequencyCalculator calculator = new FrequencyCalculator(clock::get);
-        AtomicReference<Float> frequency = new AtomicReference<>();
-        calculator.addListener(frequency::set);
         calculator.start();
         calculator.passedCycles(200);
         clock.set(1_000_000_000L);
@@ -40,17 +32,13 @@ public class FrequencyCalculatorTest {
         calculator.stop();
         calculator.passedCycles(999999);
         clock.set(10_000_000_000L);
-        calculator.sample();
-
-        assertEquals(0.2f, frequency.get(), 0.001f);
+        assertEquals(0.2f, calculator.sample(), 0.001f);
     }
 
     @Test
     public void restartDoesNotCarryEarlierRunCycles() {
         AtomicLong clock = new AtomicLong();
         FrequencyCalculator calculator = new FrequencyCalculator(clock::get);
-        AtomicReference<Float> frequency = new AtomicReference<>();
-        calculator.addListener(frequency::set);
         calculator.start();
         calculator.passedCycles(2_000_000);
         clock.set(1_000_000_000L);
@@ -59,27 +47,16 @@ public class FrequencyCalculatorTest {
         calculator.start();
         calculator.passedCycles(1_000_000);
         clock.set(2_000_000_000L);
-        calculator.sample();
-
-        assertEquals(1000f, frequency.get(), 0.001f);
+        assertEquals(1000f, calculator.sample(), 0.001f);
     }
 
     @Test
-    public void removedListenerAndZeroCyclesProduceNoNotification() {
+    public void emptyMeasurementReturnsUnavailableFrequency() {
         AtomicLong clock = new AtomicLong();
         FrequencyCalculator calculator = new FrequencyCalculator(clock::get);
-        AtomicReference<Float> frequency = new AtomicReference<>();
-        Consumer<Float> listener = frequency::set;
-        calculator.addListener(listener);
         calculator.start();
         clock.set(1_000_000_000L);
-        calculator.sample();
-        assertNull(frequency.get());
 
-        calculator.removeListener(listener);
-        calculator.passedCycles(1_000_000);
-        calculator.sample();
-
-        assertNull(frequency.get());
+        assertTrue(Float.isNaN(calculator.sample()));
     }
 }

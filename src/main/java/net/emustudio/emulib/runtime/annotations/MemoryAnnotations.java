@@ -21,8 +21,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /** Thread-safe live annotations at CPU-visible addresses. */
 @ThreadSafe
-public final class AnnotationEngine {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AnnotationEngine.class);
+public final class MemoryAnnotations {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MemoryAnnotations.class);
     private static final int PAGE_SHIFT = 8;
     private static final int MAX_INDEXED_PAGES = 1024;
     /** An annotation covers the half-open address range [start, end). */

@@ -10,18 +10,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 
-public class AnnotationEngineTest {
-    private AnnotationEngine.Entry entry(long owner, long id, int start, int end) {
-        return new AnnotationEngine.Entry(owner, id, start, end, "label", "test", null);
+public class MemoryAnnotationsTest {
+    private MemoryAnnotations.Entry entry(long owner, long id, int start, int end) {
+        return new MemoryAnnotations.Entry(owner, id, start, end, "label", "test", null);
     }
 
     @Test
     public void replaceOwnerPreservesOtherOwnersAndFindsCoveredAddresses() {
-        AnnotationEngine engine = new AnnotationEngine();
-        AnnotationEngine.Entry user = entry(1, 1, 10, 12);
+        MemoryAnnotations engine = new MemoryAnnotations();
+        MemoryAnnotations.Entry user = entry(1, 1, 10, 12);
         engine.put(user);
         engine.put(entry(2, 1, 10, 11));
-        AnnotationEngine.Entry mapping = entry(2, 2, 11, 14);
+        MemoryAnnotations.Entry mapping = entry(2, 2, 11, 14);
 
         engine.replaceOwner(2, Collections.singletonList(mapping));
 
@@ -34,8 +34,8 @@ public class AnnotationEngineTest {
 
     @Test
     public void invalidReplacementDoesNotChangeEntriesOrRevision() {
-        AnnotationEngine engine = new AnnotationEngine();
-        AnnotationEngine.Entry previous = entry(1, 1, 1, 2);
+        MemoryAnnotations engine = new MemoryAnnotations();
+        MemoryAnnotations.Entry previous = entry(1, 1, 1, 2);
         engine.put(previous);
         long revision = engine.revision();
 
@@ -50,7 +50,7 @@ public class AnnotationEngineTest {
 
     @Test
     public void listenerSeesCurrentStateAndGuardRejectsStaleRevision() {
-        AnnotationEngine engine = new AnnotationEngine();
+        MemoryAnnotations engine = new MemoryAnnotations();
         AtomicInteger notifications = new AtomicInteger();
         engine.addListener(() -> {
             assertNotNull(engine.get(1, 1));
@@ -69,9 +69,9 @@ public class AnnotationEngineTest {
 
     @Test
     public void compareAndReplaceRejectsStaleRevisionWithoutChangingEntries() {
-        AnnotationEngine engine = new AnnotationEngine();
+        MemoryAnnotations engine = new MemoryAnnotations();
         long revision = engine.revision();
-        AnnotationEngine.Entry current = entry(1, 1, 1, 2);
+        MemoryAnnotations.Entry current = entry(1, 1, 1, 2);
         engine.put(current);
 
         boolean replaced = engine.compareAndReplaceOwner(revision, 1, Collections.emptyList());
@@ -84,8 +84,8 @@ public class AnnotationEngineTest {
 
     @Test
     public void listenerFailureDoesNotPreventOtherListenersFromSeeingCommittedChange() {
-        AnnotationEngine engine = new AnnotationEngine();
-        AnnotationEngine.Entry value = entry(1, 1, 4, 5);
+        MemoryAnnotations engine = new MemoryAnnotations();
+        MemoryAnnotations.Entry value = entry(1, 1, 4, 5);
         AtomicInteger notifications = new AtomicInteger();
         engine.addListener(() -> { throw new IllegalStateException("failure"); });
         engine.addListener(() -> {
@@ -101,10 +101,10 @@ public class AnnotationEngineTest {
 
     @Test
     public void overlappingRangesAndWideRangesTrackReplacementsAndRemoval() {
-        AnnotationEngine engine = new AnnotationEngine();
-        AnnotationEngine.Entry crossingPage = entry(1, 1, 255, 258);
-        AnnotationEngine.Entry overlap = entry(2, 1, 256, 300);
-        AnnotationEngine.Entry wide = entry(3, 1, 0, Integer.MAX_VALUE);
+        MemoryAnnotations engine = new MemoryAnnotations();
+        MemoryAnnotations.Entry crossingPage = entry(1, 1, 255, 258);
+        MemoryAnnotations.Entry overlap = entry(2, 1, 256, 300);
+        MemoryAnnotations.Entry wide = entry(3, 1, 0, Integer.MAX_VALUE);
         engine.put(crossingPage);
         engine.put(overlap);
         engine.put(wide);
@@ -115,7 +115,7 @@ public class AnnotationEngineTest {
         assertEquals(Collections.singletonList(wide), engine.at(Integer.MAX_VALUE - 1));
         assertTrue(engine.at(Integer.MAX_VALUE).isEmpty());
 
-        AnnotationEngine.Entry moved = entry(1, 1, 700, 701);
+        MemoryAnnotations.Entry moved = entry(1, 1, 700, 701);
         engine.put(moved);
         engine.replaceOwner(2, Collections.singletonList(entry(2, 2, 700, 702)));
         engine.clearOwner(3);

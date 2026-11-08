@@ -18,12 +18,6 @@ import javax.swing.JPanel;
  */
 @SuppressWarnings("unused")
 public interface CPU extends Plugin {
-    /** Optional portable debugging capabilities. Unsupported plugins keep the empty default. */
-    default java.util.Optional<net.emustudio.emulib.plugins.cpu.debug.DebugCPU> getDebugger() {
-        return java.util.Optional.empty();
-    }
-
-
     /**
      * The run state of the CPU.
      */
@@ -63,37 +57,6 @@ public interface CPU extends Plugin {
 
     }
 
-    /**
-     * Interface for receiving host-owned CPU execution events. Register observers through
-     * {@link net.emustudio.emulib.runtime.ExecutionState#addCPUListener(CPUListener)}.
-     * When the CPU event occurs, that:
-     * <ul>
-     *     <li>if the event is CPU's state change, then object's <code>internalStateChanged()</code>
-     *         method is invoked.</li>
-     *     <li>if the event is CPU's run state change, then object's <code>runStateChanged()</code>
-     *         method is invoked.</li>
-     * </ul>
-     * <p>
-     * CONTRACT: Callbacks must not execute CPU primitives or wait for another machine command.
-     */
-    @SuppressWarnings("unused")
-    interface CPUListener {
-
-        /**
-         * Invoked when an CPU's run state changes.
-         *
-         * @param runState new run state of the CPU
-         */
-        void runStateChanged(RunState runState);
-
-        /**
-         * Invoked when an CPU's internal state changes. The state can be register change,
-         * flags change, or other CPU's internal state change.
-         */
-        void internalStateChanged();
-
-    }
-
     /** Executes one instruction synchronously on the host's CPU worker and returns its result. */
     RunState step() throws Exception;
 
@@ -106,7 +69,7 @@ public interface CPU extends Plugin {
     RunState execute() throws Exception;
 
     /** Optional host-scheduled frequency observation. Must not execute instructions or create threads. */
-    default void sampleFrequency() { }
+    default float sampleFrequency() { return Float.NaN; }
 
     /**
      * Get CPU status panel.

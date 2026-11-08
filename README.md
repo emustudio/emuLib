@@ -123,10 +123,17 @@ Example:
 emuStudio/lib/emulib.jar
 ```
 
-## Optional CPU debugging
+## Optional machine debugging
 
-`DebugCPU` and `DebugProbe` expose portable register access and immutable instruction events for the host debugger.
-Events include sequence numbers, execution-time opcode/disassembly text, before/after registers, CPU-visible addresses,
-guest memory accesses and completion status. The 8080 and Z80 plugins implement these hooks; emuStudio owns recent
-history, continuous recording files, headless recording and offline inspection. Disabled probes preserve the original
-execution-memory path. Listeners run on the execution thread; register edits and listener changes require a paused CPU.
+CPU plugins may additionally implement `net.emustudio.emulib.plugins.debugger.Debugging`. Its small interface compiles
+machine-defined expressions and observes semantic execution steps. Live changes use the existing host execution
+service. `CPU` defines no universal registers or state schema.
+
+Plugins supply immutable `ValueView` and `StepView` presentation. The host owns rules, watches, history and bounded
+recording files; saved rows, search tags and navigation links work offline without loading a CPU plugin.
+Observation/formatting failures never pause emulation. Recording failures disable only the recorder and do not override
+the emulation result. Invalid expressions remain saved but inactive until corrected.
+
+`DebuggingSupport` shares observation mechanics; `ExpressionParser` shares optional syntax. Machine value names,
+inspection, guest accesses and edits remain inside plugins. Use `ExecutionState.update` for edits and drain
+`processUpdates` at every outer semantic step, including when observation is inactive.
