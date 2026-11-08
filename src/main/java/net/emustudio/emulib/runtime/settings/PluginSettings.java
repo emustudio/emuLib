@@ -2,247 +2,85 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.settings;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * The class provides methods for reading/writing plugin settings.
+ * Plugin settings (hierarchical key-value store).
  * <p>
  * It is implemented by emuStudio. Plugins obtain this object in the constructor.
+ * Getters return empty Optional if the key is missing or the value has a different type.
+ * Use {@code orElse(default)} for default values. Keys are case-sensitive.
  * <p>
- * NOTE: Keys are case-sensitive.
- * <p>
- * Keys which are put into settings must not start with {@link PluginSettings#EMUSTUDIO_PREFIX}. This prefix is
- * reserved for emuStudio settings and might be overridden by emuStudio.
- * However, there are some emuStudio settings obtainable by plugins.
+ * Keys must not start with {@link #EMUSTUDIO_PREFIX}. This prefix is reserved for emuStudio settings, some of which
+ * are readable by plugins.
  */
-@SuppressWarnings("unused")
-public interface PluginSettings extends BasicSettings {
-
-    /**
-     * EmuStudio key prefix.
-     */
+public interface PluginSettings {
     String EMUSTUDIO_PREFIX = "emustudio.";
 
     /**
-     * Setting key defining if emuStudio runs in "No GUI" mode.
+     * Boolean: emuStudio runs without GUI.
      */
     String EMUSTUDIO_NO_GUI = EMUSTUDIO_PREFIX + "nogui";
 
     /**
-     * Setting key defining if emuStudio runs in "Auto" (non-interactive) mode.
+     * Boolean: emuStudio runs automatic emulation.
      */
     String EMUSTUDIO_AUTO = EMUSTUDIO_PREFIX + "auto";
 
     /**
-     * "Unavailable" instance of PluginSettings.
-     * <p>
-     * It means that all methods return dummy or null values.
-     * <p>
-     * The instance might be useful when creating plugin object without emuStudio (e.g. a plugin wants to support
-     * command-line interface).
+     * Settings which contain nothing and ignore updates. Used when emuStudio is not available (e.g. in tests).
      */
     PluginSettings UNAVAILABLE = new PluginSettings() {
-        /**
-         * Returns false.
-         * @return false
-         */
-        @Override
-        public boolean contains(String key) {
-            return false;
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void remove(String key) {
-
-        }
-
-        /**
-         * Returns Optional.empty().
-         * @return Optional.empty()
-         */
-        @Override
-        public Optional<String> getString(String key) {
-            return Optional.empty();
-        }
-
-        /**
-         * Returns default value.
-         *
-         * @param key          settings key
-         * @param defaultValue default value
-         * @return defaultValue
-         */
-        @Override
-        public String getString(String key, String defaultValue) {
-            return defaultValue;
-        }
-
-        /**
-         * Returns Optional.empty().
-         * @return Optional.empty()
-         */
-        @Override
-        public Optional<Boolean> getBoolean(String key) {
-            return Optional.empty();
-        }
-
-        /**
-         * Returns default value.
-         *
-         * @param key          settings key
-         * @param defaultValue default value
-         * @return defaultValue
-         */
-        @Override
-        public boolean getBoolean(String key, boolean defaultValue) {
-            return defaultValue;
-        }
-
-        /**
-         * Returns Optional.empty().
-         * @return Optional.empty()
-         */
-        @Override
-        public Optional<Integer> getInt(String key) {
-            return Optional.empty();
-        }
-
-        /**
-         * Returns default value.
-         *
-         * @param key          settings key
-         * @param defaultValue default value
-         * @return defaultValue
-         */
-        @Override
-        public int getInt(String key, int defaultValue) {
-            return defaultValue;
-        }
-
-        /**
-         * Returns Optional.empty().
-         * @return Optional.empty()
-         */
-        @Override
-        public Optional<Long> getLong(String key) {
-            return Optional.empty();
-        }
-
-        /**
-         * Returns default value.
-         *
-         * @param key          settings key
-         * @param defaultValue default value
-         * @return defaultValue
-         */
-        @Override
-        public long getLong(String key, long defaultValue) {
-            return defaultValue;
-        }
-
-        /**
-         * Returns Optional.empty().
-         * @return Optional.empty()
-         */
-        @Override
-        public Optional<Double> getDouble(String key) {
-            return Optional.empty();
-        }
-
-        /**
-         * Returns default value.
-         *
-         * @param key          settings key
-         * @param defaultValue default value
-         * @return defaultValue
-         */
-        @Override
-        public double getDouble(String key, double defaultValue) {
-            return defaultValue;
-        }
-
-        /**
-         * Returns empty list.
-         * @return empty list
-         */
-        @Override
-        public List<String> getArray(String key) {
-            return Collections.emptyList();
-        }
-
-        /**
-         * Returns default value.
-         *
-         * @param key          settings key
-         * @param defaultValue default value
-         * @return defaultValue
-         */
-        @Override
-        public List<String> getArray(String key, List<String> defaultValue) {
-            return defaultValue;
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void setString(String key, String value) {
-
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void setBoolean(String key, boolean value) {
-
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void setInt(String key, int value) {
-
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void setLong(String key, long value) {
-
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void setDouble(String key, double value) {
-
-        }
-
-        /**
-         * Does nothing.
-         */
-        @Override
-        public void setArray(String key, List<String> array) {
-
-        }
-
-        @Override
-        public Optional<BasicSettings> getSubSettings(String key) {
-            return Optional.empty();
-        }
-
-        @Override
-        public BasicSettings setSubSettings(String key) throws CannotUpdateSettingException {
-            return this;
-        }
+        public Optional<String> getString(String key) { return Optional.empty(); }
+        public Optional<Boolean> getBoolean(String key) { return Optional.empty(); }
+        public Optional<Integer> getInt(String key) { return Optional.empty(); }
+        public Optional<Long> getLong(String key) { return Optional.empty(); }
+        public Optional<Double> getDouble(String key) { return Optional.empty(); }
+        public List<String> getArray(String key) { return List.of(); }
+        public Optional<PluginSettings> getSubSettings(String key) { return Optional.empty(); }
+        public PluginSettings setSubSettings(String key) { return this; }
+        public void set(String key, Object value) { }
     };
+
+    Optional<String> getString(String key);
+
+    Optional<Boolean> getBoolean(String key);
+
+    Optional<Integer> getInt(String key);
+
+    Optional<Long> getLong(String key);
+
+    Optional<Double> getDouble(String key);
+
+    /**
+     * @param key setting key
+     * @return list of strings, empty if the key is missing
+     */
+    List<String> getArray(String key);
+
+    /**
+     * @param key setting key
+     * @return nested settings, if present
+     */
+    Optional<PluginSettings> getSubSettings(String key);
+
+    /**
+     * Creates (or replaces) nested settings.
+     *
+     * @param key setting key
+     * @return new empty nested settings
+     * @throws CannotUpdateSettingException if the settings cannot be updated
+     */
+    PluginSettings setSubSettings(String key);
+
+    /**
+     * Sets or removes a setting.
+     *
+     * @param key   setting key
+     * @param value String, Boolean, Integer, Long, Double, or List of Strings; null removes the setting
+     * @throws CannotUpdateSettingException if the settings cannot be updated
+     * @throws IllegalArgumentException     if the value type is not supported
+     */
+    void set(String key, Object value);
 }

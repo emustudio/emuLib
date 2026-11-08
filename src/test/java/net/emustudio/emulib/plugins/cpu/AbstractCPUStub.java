@@ -6,125 +6,27 @@ import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
 import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
+import javax.swing.JPanel;
 
-import javax.swing.*;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.LockSupport;
-
-@PluginRoot(
-        type = PLUGIN_TYPE.CPU,
-        title = "title"
-)
+@PluginRoot(type = PLUGIN_TYPE.CPU, title = "title")
 public class AbstractCPUStub extends AbstractCPU {
-    private volatile boolean runCalled = false;
-    private final CountDownLatch latch = new CountDownLatch(1);
-    private volatile boolean shouldStop = false;
+    int destroyed;
+    int location;
+    Thread executionThread;
 
-    private RunState runStateToReturn = RunState.STATE_STOPPED_NORMAL;
-    private RuntimeException exceptionToThrow;
-
-    public AbstractCPUStub(long id, ApplicationApi emustudio, PluginSettings settngs) {
-        super(id, emustudio, settngs);
+    public AbstractCPUStub(ApplicationApi applicationApi, PluginSettings settings) {
+        super(44, applicationApi, settings);
     }
 
-    @Override
-    protected void destroyInternal() {
-    }
-
-    public void setRunStateToReturn(RunState runStateToReturn) {
-        this.runStateToReturn = runStateToReturn;
-    }
-
-    public void setExceptionToThrow(RuntimeException exceptionToThrow) {
-        this.exceptionToThrow = exceptionToThrow;
-    }
-
-    @Override
-    protected RunState stepInternal() {
-        throwIfSet();
-        return runStateToReturn;
-    }
-
-    private void throwIfSet() {
-        if (exceptionToThrow != null) {
-            throw exceptionToThrow;
-        }
-    }
-
-    @Override
-    public JPanel getStatusPanel() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getInstructionLocation() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean setInstructionLocation(int location) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public int getAddressSpaceSize() {
-        return 256;
-    }
-
-    @Override
-    public Disassembler getDisassembler() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void initialize() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    protected void resetInternal(int startPos) { }
-
-    @Override
-    public String getVersion() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getCopyright() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getDescription() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isAutomationSupported() {
-        return false;
-    }
-
-    @Override
-    public RunState call() {
-        runCalled = true;
-        shouldStop = false;
-        latch.countDown();
-        throwIfSet();
-
-        while (!Thread.currentThread().isInterrupted() && !shouldStop) {
-            LockSupport.parkNanos(10000);
-        }
-
-        return runStateToReturn;
-    }
-
-    public boolean wasRunCalled() throws InterruptedException {
-        latch.await(10, TimeUnit.SECONDS);
-        return runCalled;
-    }
-
-    public void stopSpontaneously() {
-        this.shouldStop = true;
-    }
+    @Override protected void destroyInternal() { destroyed++; }
+    @Override public RunState execute() { executionThread = Thread.currentThread(); return RunState.STATE_STOPPED_NORMAL; }
+    @Override public RunState step() { executionThread = Thread.currentThread(); return RunState.STATE_STOPPED_BREAK; }
+    @Override public void reset(int location) { this.location = location; }
+    @Override public JPanel getStatusPanel() { return null; }
+    @Override public int getInstructionLocation() { return location; }
+    @Override public boolean setInstructionLocation(int location) { this.location = location; return true; }
+    @Override public int getAddressSpaceSize() { return 256; }
+    @Override public Disassembler getDisassembler() { return null; }
+    @Override public void initialize() { }
+    @Override public String getDescription() { return "CPU stub"; }
 }

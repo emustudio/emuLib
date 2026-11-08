@@ -2,6 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins;
 
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
 import net.emustudio.emulib.runtime.ApplicationApi;
 
 import javax.swing.*;
@@ -49,72 +50,68 @@ import java.util.ResourceBundle;
 public interface Plugin {
 
     /**
-     * Reset plugin.
-     * <p>
-     * "Reset" means to bring the plugin to its "initial state", as it was after calling {@link Plugin#initialize()}.
-     */
-    void reset();
-
-    /**
      * Initialize plugin.
      * <p>
-     * This method is called just once, after emuStudio creates the new instance of the plugin. Here the plugin can
-     * request already registered contexts from the {@link ApplicationApi#getContextPool()}, or read its settings using
-     * provided settingManager.
+     * Called once, after all plugins were created. Here the plugin can request already registered contexts from the
+     * {@link ApplicationApi#getContextPool()}.
      *
      * @throws PluginInitializationException thrown when initialization process was not successful
      */
-    void initialize() throws PluginInitializationException;
+    default void initialize() throws PluginInitializationException {
+    }
 
     /**
-     * Destroys all plugin resources.
-     * <p>
-     * This method is called immediately after user closes the emulator.
-     * <p>
-     * Inside the method, the plugin should:
-     * - unregister all registered contexts for this plugin
-     * - execute clean-up/destroy code for used resources (timers, threads, sockets, memory, etc).
-     * - dispose all GUIs
-     * <p>
-     * NOTE: If not all resources are properly cleared, emuStudio will forcibly exit anyway, which may cause unexpected
-     * damage.
+     * Reset plugin to its "initial state", as it was after calling {@link Plugin#initialize()}.
      */
-    void destroy();
+    default void reset() {
+    }
 
     /**
-     * Show GUI of plugin settings, if it is provided.
+     * Destroys all plugin resources (unregister contexts, stop threads, dispose windows).
      * <p>
-     * Each plugin can have a nice GUI for settings manipulation. plugins should display the GUI, if they support it.
-     * Note that each window should be properly disposed when method {@link Plugin#destroy()} is called.
-     * <p>
-     * In the case of memory plugin, show GUI of a memory. Each memory plugin should have a GUI, but it is not a must.
+     * Called when the user closes the emulator.
+     */
+    default void destroy() {
+    }
+
+    /**
+     * Show GUI of plugin settings. Called only if {@link #isShowSettingsSupported()} returns true.
      *
-     * @param parent emuStudio main window (if plugin wants to show a dialog which has a parent)
+     * @param parent emuStudio main window
      */
-    void showSettings(JFrame parent);
+    default void showSettings(JFrame parent) {
+    }
 
     /**
-     * Check if showSettings() is supported by this plugin.
+     * Check if {@link #showSettings(JFrame)} is supported by this plugin.
      *
      * @return true if the plugin has a GUI for settings; false otherwise
      */
-    boolean isShowSettingsSupported();
+    default boolean isShowSettingsSupported() {
+        return false;
+    }
 
     /**
-     * Get run-time title of this plugin.
-     * <p>
-     * The title is a matter of change during runtime - for example there might exist a device instantiated more than
-     * once, and each instance can have different title assigned at runtime.
+     * Get run-time title of this plugin. Defaults to {@link PluginRoot#title()}.
      *
      * @return run-time title of the plugin
      */
-    String getTitle();
+    default String getTitle() {
+        return getClass().getAnnotation(PluginRoot.class).title();
+    }
 
     /**
-     * Get version of the plugin.
-     * <p>
-     * By default, reads {@code version} from a {@code version.properties} resource in the concrete plugin class's
-     * package, using that class's own classloader. A missing bundle or key returns {@code "(unknown)"}.
+     * Get plugin short description. Defaults to {@link PluginRoot#description()}.
+     *
+     * @return plugin description
+     */
+    default String getDescription() {
+        return getClass().getAnnotation(PluginRoot.class).description();
+    }
+
+    /**
+     * Get version of the plugin, read as {@code version} key from a {@code version.properties} resource bundle in the
+     * plugin class's package. A missing bundle or key returns {@code "(unknown)"}.
      *
      * @return version string
      */
@@ -123,10 +120,7 @@ public interface Plugin {
     }
 
     /**
-     * Get copyright string.
-     * <p>
-     * By default, reads {@code copyright} from the same resource bundle as {@link #getVersion()}.
-     * A missing bundle or key returns {@code "(unknown)"}.
+     * Get copyright string, read as {@code copyright} key from the same resource bundle as {@link #getVersion()}.
      *
      * @return copyright string
      */
@@ -146,17 +140,11 @@ public interface Plugin {
     }
 
     /**
-     * Get plugin short description.
-     *
-     * @return plugin description
-     */
-    String getDescription();
-
-    /**
-     * Determines if this plugin supports emulation automation
+     * Determines if this plugin supports emulation automation.
      *
      * @return true if the plugin supports emulation automation; false otherwise
      */
-    boolean isAutomationSupported();
+    default boolean isAutomationSupported() {
+        return false;
+    }
 }
-

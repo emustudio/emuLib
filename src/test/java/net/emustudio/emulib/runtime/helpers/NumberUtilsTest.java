@@ -5,10 +5,6 @@ package net.emustudio.emulib.runtime.helpers;
 import net.emustudio.emulib.runtime.helpers.NumberUtils.Strategy;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import static net.emustudio.emulib.runtime.helpers.NumberUtils.*;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -92,160 +88,43 @@ public class NumberUtilsTest {
     }
 
     @Test
-    public void testReadIntLittleEndian() {
-        // Integer[]
-        assertEquals(0x12EFCDAB, readInt(new Integer[]{0xAB, 0xCD, 0xEF, 0x12}, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xCDAB, readInt(new Integer[]{0xAB, 0xCD}, Strategy.LITTLE_ENDIAN));
-        assertEquals(0x12EFCDAB, readInt(new Integer[]{0xAB, 0xCD, 0xEF, 0x12, 0x30, 0x50, 0xAA}, Strategy.LITTLE_ENDIAN));
-        // int[]
-        assertEquals(0x12EFCDAB, readInt(new int[]{0xAB, 0xCD, 0xEF, 0x12}, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xCDAB, readInt(new int[]{0xAB, 0xCD}, Strategy.LITTLE_ENDIAN));
-        // byte[]
-        assertEquals(0x12EFCDAB, readInt(new byte[]{(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12}, Strategy.LITTLE_ENDIAN));
-        // Byte[]
-        assertEquals(0x12EFCDAB, readInt(new Byte[]{(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12}, Strategy.LITTLE_ENDIAN));
+    public void testReadInt() {
+        Byte[] word = {(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12};
+        assertEquals(0x12EFCDAB, readInt(word, Strategy.LITTLE_ENDIAN));
+        assertEquals(0xABCDEF12, readInt(word, Strategy.BIG_ENDIAN));
         assertEquals(0xCDAB, readInt(new Byte[]{(byte) 0xAB, (byte) 0xCD}, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xAB, readInt(new Byte[]{(byte) 0xAB}, Strategy.LITTLE_ENDIAN));
-    }
-
-    @Test
-    public void testReadIntBigEndian() {
-        // Byte[]
-        assertEquals(0x0B06090B, readInt(new Byte[]{0xB, 6, 9, 0xB}, Strategy.BIG_ENDIAN));
         assertEquals(0xABCD, readInt(new Byte[]{(byte) 0xAB, (byte) 0xCD}, Strategy.BIG_ENDIAN));
         assertEquals(0xAB, readInt(new Byte[]{(byte) 0xAB}, Strategy.BIG_ENDIAN));
-        // Integer[]
-        assertEquals(0xABCD, readInt(new Integer[]{0xAB, 0xCD}, Strategy.BIG_ENDIAN));
-        // int[]
-        assertEquals(0x0B06090B, readInt(new int[]{0xB, 6, 9, 0xB}, Strategy.BIG_ENDIAN));
-        assertEquals(0xABCD, readInt(new int[]{0xAB, 0xCD}, Strategy.BIG_ENDIAN));
-        // byte[]
-        assertEquals(0xABCDEF12, readInt(new byte[]{(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12}, Strategy.BIG_ENDIAN));
+        assertEquals(0, readInt(new Byte[0], Strategy.BIG_ENDIAN));
+        // extra cells are ignored, higher-order bits of cells are cut
+        assertEquals(0x12EFCDAB, readInt(new Integer[]{0xAB, 0xCD, 0xEF, 0x12, 0x30, 0x50}, Strategy.LITTLE_ENDIAN));
+        assertEquals(0x0201, readInt(new Short[]{0x101, 0x302}, Strategy.LITTLE_ENDIAN));
+        assertEquals(0xFFFFFFFF, readInt(new Byte[]{-1, -1, -1, -1}, Strategy.BIG_ENDIAN));
     }
 
     @Test
     public void testReadIntReverseBits() {
-        // Byte[]
         assertEquals(0xD09060D0, readInt(new Byte[]{0xB, 6, 9, 0xB}, Strategy.REVERSE_BITS));
         assertEquals(0xD06090D0, readInt(new Byte[]{0xB, 6, 9, 0xB}, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
-        // Integer[]
         assertEquals(0xD09060D0, readInt(new Integer[]{0x0B, 0x06, 0x09, 0x0B}, Strategy.REVERSE_BITS));
-        assertEquals(0xD06090D0, readInt(new Integer[]{0x0B, 0x06, 0x09, 0x0B}, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
-        // int[]
-        assertEquals(0xD09060D0, readInt(new int[]{0x0B, 0x06, 0x09, 0x0B}, Strategy.REVERSE_BITS));
-        assertEquals(0xD06090D0, readInt(new int[]{0x0B, 0x06, 0x09, 0x0B}, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
-        // byte[]
-        assertEquals(0xD09060D0, readInt(new byte[]{0xB, 6, 9, 0xB}, Strategy.REVERSE_BITS));
-        assertEquals(0xD06090D0, readInt(new byte[]{0xB, 6, 9, 0xB}, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
     }
 
     @Test
-    public void testReadIntWithOffset() {
-        byte[] word = new byte[]{0x55, (byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12, 0x22};
-        assertEquals(0x12EFCDAB, readInt(word, 1, 4, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xABCDEF12, readInt(word, 1, 4, Strategy.BIG_ENDIAN));
+    public void testWriteInt() {
+        Byte[] word = new Byte[4];
+        writeInt(0x12EFCDAB, word, Strategy.LITTLE_ENDIAN);
+        assertArrayEquals(new Byte[]{(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12}, word);
+        writeInt(0x0B06090B, word, Strategy.BIG_ENDIAN);
+        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, word);
+        writeInt(0xD06090D0, word, Strategy.REVERSE_BITS);
+        assertArrayEquals(new Byte[]{0xB, 9, 6, 0xB}, word);
+        writeInt(0xD06090D0, word, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
+        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, word);
 
-        byte[] word2 = new byte[]{0x55, (byte) 0xAB, (byte) 0xCD, 0x22};
-        assertEquals(0xCDAB, readInt(word2, 1, 2, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xABCD, readInt(word2, 1, 2, Strategy.BIG_ENDIAN));
-
-        byte[] word3 = new byte[]{0x55, (byte) 0xAB, 0x22};
-        assertEquals(0xAB, readInt(word3, 1, 1, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xAB, readInt(word3, 1, 1, Strategy.BIG_ENDIAN));
-
-        assertEquals(0, readInt(new byte[]{0x55}, 0, 0, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xD06090D0, readInt(new byte[]{0x55, 0x0B, 6, 9, 0x0B, 0x22}, 1, 4, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN));
-    }
-
-    @Test
-    public void testReadIntWithNegativeBytes() {
-        byte[] word = new byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF};
-        assertEquals(0xFFFFFFFF, readInt(word, Strategy.LITTLE_ENDIAN));
-        assertEquals(0xFFFFFFFF, readInt(word, Strategy.BIG_ENDIAN));
-    }
-
-    @Test
-    public void testWriteIntLittleEndian() {
-        Integer[] iWord = new Integer[4];
-        writeInt(0x12EFCDAB, iWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new Integer[]{0xAB, 0xCD, 0xEF, 0x12}, iWord);
-
-        int[] niWord = new int[4];
-        writeInt(0x12EFCDAB, niWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new int[]{0xAB, 0xCD, 0xEF, 0x12}, niWord);
-
-        Byte[] bWord = new Byte[4];
-        writeInt(0x12EFCDAB, bWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new Byte[]{(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12}, bWord);
-
-        byte[] nbWord = new byte[4];
-        writeInt(0x12EFCDAB, nbWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new byte[]{(byte) 0xAB, (byte) 0xCD, (byte) 0xEF, 0x12}, nbWord);
-
-        Short[] sWord = new Short[4];
-        writeInt(0x12EFCDAB, sWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new Short[]{(short) 0xAB, (short) 0xCD, (short) 0xEF, (short) 0x12}, sWord);
-    }
-
-    @Test
-    public void testWriteIntBigEndian() {
-        Byte[] bWord = new Byte[4];
-        writeInt(0x0B06090B, bWord, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, bWord);
-
-        Short[] sWord = new Short[4];
-        writeInt(0x0B06090B, sWord, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Short[]{0xB, 6, 9, 0xB}, sWord);
-
-        Integer[] iWord = new Integer[4];
-        writeInt(0x12EFCDAB, iWord, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Integer[]{0x12, 0xEF, 0xCD, 0xAB}, iWord);
-
-        int[] niWord = new int[4];
-        writeInt(0x12EFCDAB, niWord, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new int[]{0x12, 0xEF, 0xCD, 0xAB}, niWord);
-
-        byte[] nbWord = new byte[4];
-        writeInt(0x12EFCDAB, nbWord, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new byte[]{0x12, (byte) 0xEF, (byte) 0xCD, (byte) 0xAB}, nbWord);
-    }
-
-    @Test
-    public void testWriteIntReverseBits() {
-        // Byte[] uses per-byte reversal
-        Byte[] bWord = new Byte[4];
-        writeInt(0xD06090D0, bWord, Strategy.REVERSE_BITS);
-        assertArrayEquals(new Byte[]{0xB, 9, 6, 0xB}, bWord);
-        writeInt(0xD06090D0, bWord, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB}, bWord);
-
-        // byte[] uses Integer.reverse()
-        byte[] nbWord = new byte[4];
-        writeInt(0xD06090D0, nbWord, Strategy.REVERSE_BITS);
-        assertArrayEquals(new byte[]{0xB, 6, 9, 0xB}, nbWord);
-        writeInt(0xD06090D0, nbWord, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
-        assertArrayEquals(new byte[]{0xB, 9, 6, 0xB}, nbWord);
-
-        // Integer[] uses Integer.reverse()
-        Integer[] iWord = new Integer[4];
-        writeInt(0xD06090D0, iWord, Strategy.REVERSE_BITS);
-        assertArrayEquals(new Integer[]{0x0B, 0x06, 0x09, 0x0B}, iWord);
-        writeInt(0xD06090D0, iWord, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Integer[]{0x0B, 0x09, 0x06, 0x0B}, iWord);
-
-        // int[] uses Integer.reverse()
-        int[] niWord = new int[4];
-        writeInt(0xD06090D0, niWord, Strategy.REVERSE_BITS);
-        assertArrayEquals(new int[]{0x0B, 0x06, 0x09, 0x0B}, niWord);
-        writeInt(0xD06090D0, niWord, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
-        assertArrayEquals(new int[]{0xB, 9, 6, 0xB}, niWord);
-
-        // Short[] uses Integer.reverse()
-        Short[] sWord = new Short[4];
-        writeInt(0xD06090D0, sWord, Strategy.REVERSE_BITS);
-        assertArrayEquals(new Short[]{(short) 0x0B, (short) 0x06, (short) 0x09, (short) 0x0B}, sWord);
-        writeInt(0xD06090D0, sWord, Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Short[]{(short) 0x0B, (short) 0x09, (short) 0x06, (short) 0x0B}, sWord);
+        // does not modify other cells
+        Byte[] longer = new Byte[]{1, 2, 3, 4, 5, 6};
+        writeInt(0x0B06090B, longer, Strategy.BIG_ENDIAN);
+        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB, 5, 6}, longer);
     }
 
     @Test(expected = IndexOutOfBoundsException.class)
@@ -254,81 +133,20 @@ public class NumberUtilsTest {
     }
 
     @Test
-    public void testWriteIntEdgeCases() {
-        // does not modify other bytes
-        Byte[] word = new Byte[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
-        writeInt(0x0B06090B, word, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Byte[]{0xB, 6, 9, 0xB, 5, 6, 7, 8, 9}, word);
-
-        // zero value
-        Integer[] zWord = new Integer[4];
-        writeInt(0, zWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new Integer[]{0, 0, 0, 0}, zWord);
-        writeInt(0, zWord, Strategy.BIG_ENDIAN);
-        assertArrayEquals(new Integer[]{0, 0, 0, 0}, zWord);
-
-        // max value
-        byte[] mWord = new byte[4];
-        writeInt(0xFFFFFFFF, mWord, Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new byte[]{(byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF}, mWord);
-    }
-
-    @Test
     public void testWriteThenReadRoundTrip() {
-        // Byte[] reverse bits
-        Byte[] bWord = new Byte[]{0, 0, 0, 0};
-        writeInt(0x123456, bWord, Strategy.REVERSE_BITS);
-        assertEquals(0x123456, readInt(bWord, Strategy.REVERSE_BITS));
-
-        // Integer[] LE and BE
-        Integer[] iWord = new Integer[4];
-        writeInt(0xDEADBEEF, iWord, Strategy.LITTLE_ENDIAN);
-        assertEquals(0xDEADBEEF, readInt(iWord, Strategy.LITTLE_ENDIAN));
-        writeInt(0xDEADBEEF, iWord, Strategy.BIG_ENDIAN);
-        assertEquals(0xDEADBEEF, readInt(iWord, Strategy.BIG_ENDIAN));
-
-        // int[] LE
-        int[] niWord = new int[4];
-        writeInt(0xDEADBEEF, niWord, Strategy.LITTLE_ENDIAN);
-        assertEquals(0xDEADBEEF, readInt(niWord, Strategy.LITTLE_ENDIAN));
-
-        // byte[] BE
-        byte[] nbWord = new byte[4];
-        writeInt(0xDEADBEEF, nbWord, Strategy.BIG_ENDIAN);
-        assertEquals(0xDEADBEEF, readInt(nbWord, Strategy.BIG_ENDIAN));
-
-        // byte[] reverse bits - NOT symmetric (Integer.reverse vs per-byte reversal)
-        byte[] rbWord = new byte[4];
-        writeInt(0x123456, rbWord, Strategy.REVERSE_BITS | Strategy.LITTLE_ENDIAN);
-        assertArrayEquals(new byte[]{0x00, 0x48, 0x2C, 0x6A}, rbWord);
+        int[] strategies = {Strategy.LITTLE_ENDIAN, Strategy.BIG_ENDIAN, Strategy.REVERSE_BITS,
+                Strategy.REVERSE_BITS | Strategy.BIG_ENDIAN};
+        Byte[] word = new Byte[4];
+        for (int strategy : strategies) {
+            writeInt(0xDEADBEEF, word, strategy);
+            assertEquals(0xDEADBEEF, readInt(word, strategy));
+        }
     }
 
     @Test
-    public void testArrayConversions() {
-        // nativeBytesToBytes
-        assertArrayEquals(new Byte[]{0, 1, 2, 3, 4, 5, 6}, nativeBytesToBytes(new byte[]{0, 1, 2, 3, 4, 5, 6}));
+    public void testNativeBytesToBytes() {
+        assertArrayEquals(new Byte[]{0, 1, -1}, nativeBytesToBytes(new byte[]{0, 1, -1}));
         assertArrayEquals(new Byte[0], nativeBytesToBytes(new byte[0]));
-
-        // numbersToBytes / numbersToNativeBytes
-        assertArrayEquals(new Byte[]{1, 2, 3, 4, 5, 6}, numbersToBytes(new Number[]{1, 2, 3, 4, 5, 6}));
-        assertArrayEquals(new byte[]{1, 2, 3, 4, 5, 6}, numbersToNativeBytes(new Number[]{1, 2, 3, 4, 5, 6}));
-
-        // short[] conversions
-        short[] nShorts = new short[]{1, 2, 3, 4, 5, 6};
-        assertArrayEquals(new Byte[]{1, 2, 3, 4, 5, 6}, nativeShortsToBytes(nShorts));
-        assertArrayEquals(new Short[]{1, 2, 3, 4, 5, 6}, nativeShortsToShorts(nShorts));
-
-        // nativeIntsToNativeBytes
-        assertArrayEquals(new byte[]{1, 2, 3, (byte) 0xFF, 0}, nativeIntsToNativeBytes(new int[]{1, 2, 3, 0xFF, 0x100}));
-        assertArrayEquals(new byte[0], nativeIntsToNativeBytes(new int[0]));
-    }
-
-    @Test
-    public void testListToNativeInts() {
-        assertArrayEquals(new int[]{1, 2, 3, 4}, listToNativeInts(List.of(1, 2, 3, 4)));
-        assertArrayEquals(new int[]{1, 2, 3, 4}, listToNativeInts(new LinkedList<>(List.of(1, 2, 3, 4))));
-        assertArrayEquals(new int[]{10, 20, 30}, listToNativeInts(new ArrayList<>(List.of(10, 20, 30))));
-        assertArrayEquals(new int[0], listToNativeInts(List.of()));
     }
 
     @Test

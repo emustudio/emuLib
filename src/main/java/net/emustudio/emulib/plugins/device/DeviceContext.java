@@ -3,7 +3,6 @@
 package net.emustudio.emulib.plugins.device;
 
 import net.emustudio.emulib.plugins.Context;
-import net.emustudio.emulib.plugins.annotations.PluginContext;
 
 /**
  * Device context of the device plugin. If the device supports more functionality, it can be extended. Device plugins
@@ -13,7 +12,6 @@ import net.emustudio.emulib.plugins.annotations.PluginContext;
  * @param <DataType> Type of data which can be transferred from/to this device
  */
 @SuppressWarnings("unused")
-@PluginContext
 public interface DeviceContext<DataType> extends Context {
 
     /**

@@ -4,7 +4,10 @@ package net.emustudio.emulib.plugins.cpu;
 
 import net.emustudio.emulib.plugins.Plugin;
 
+import net.emustudio.emulib.runtime.ui.debugger.DebuggerColumn;
+
 import javax.swing.JPanel;
+import java.util.List;
 
 /**
  * CPU plugin root interface.
@@ -18,12 +21,6 @@ import javax.swing.JPanel;
  */
 @SuppressWarnings("unused")
 public interface CPU extends Plugin {
-    /** Optional portable debugging capabilities. Unsupported plugins keep the empty default. */
-    default java.util.Optional<net.emustudio.emulib.plugins.cpu.debug.DebugCPU> getDebugger() {
-        return java.util.Optional.empty();
-    }
-
-
     /**
      * The run state of the CPU.
      */
@@ -63,102 +60,19 @@ public interface CPU extends Plugin {
 
     }
 
-    /**
-     * Interface for receiving CPU events. The class which is interested in processing CPU events implements this
-     * interface, and the object created with that class is registered with a CPU, using the CPU's addCPUListener method.
-     * When the CPU event occurs, that:
-     * <ul>
-     *     <li>if the event is CPU's state change, then object's <code>internalStateChanged()</code>
-     *         method is invoked.</li>
-     *     <li>if the event is CPU's run state change, then object's <code>runStateChanged()</code>
-     *         method is invoked.</li>
-     * </ul>
-     * <p>
-     * CONTRACT: Never call further actions on CPU (start,stop,step,reset) from the same thread as from which these
-     * methods are called.
-     */
-    @SuppressWarnings("unused")
-    interface CPUListener {
-
-        /**
-         * Invoked when an CPU's run state changes.
-         *
-         * @param runState new run state of the CPU
-         */
-        void runStateChanged(RunState runState);
-
-        /**
-         * Invoked when an CPU's internal state changes. The state can be register change,
-         * flags change, or other CPU's internal state change.
-         */
-        void internalStateChanged();
-
-    }
+    /** Executes one instruction synchronously on the host's CPU worker and returns its result. */
+    RunState step() throws Exception;
 
     /**
-     * Adds the specified CPU listener to receive CPU events from this CPU.
-     * <p>
-     * CPU events occur when CPU changes its state, or run state. CPU state
-     * events don't occur if CPU is running, only happens with run state changes.
-     * If listener is <code>null</code>, no exception is thrown and no action is
-     * performed.
-     *
-     * @param listener the CPU listener
+     * Runs the instruction loop synchronously until natural completion or cooperative interruption.
+     * The host supplies the worker thread, serializes CPU mutations, and publishes lifecycle events.
+     * Return STATE_RUNNING when interrupted without another terminal reason; the host applies the requested
+     * pause/stop state. Natural halt, breakpoint, and failures must retain their actual result.
      */
-    void addCPUListener(CPUListener listener);
+    RunState execute() throws Exception;
 
-    /**
-     * Removes the specified CPU listener so that it no longer receives CPU
-     * events from this CPU.
-     * <p>
-     * CPU events occur when CPU changes its state, or run
-     * state. CPU state events don't occur if CPU is running, only happens with
-     * run state changes. If listener is <code>null</code>, no exception is
-     * thrown and no action is performed.
-     *
-     * @param listener the CPU listener to be removed
-     */
-    void removeCPUListener(CPUListener listener);
-
-    /**
-     * Perform one step of CPU emulation. It means that one instruction should
-     * be executed. CPU state changes to state "running", then it executes one
-     * instruction, and then it should return to state "breakpoint" or "stopped".
-     * Correct timing of executed instruction isn't so important.
-     */
-    void step();
-
-    /**
-     * Runs CPU emulation. Change state of CPU to "running" and start
-     * instruction fetch/decode/execute loop.
-     * <p>
-     * The emuStudio creates separate thread for this purpose.
-     * <p>
-     * While CPU is running, the emuStudio will not allow to call method
-     * <code>step()</code>.
-     * <p>
-     * A good CPU should perform right timing for instructions here.
-     * Debug window should not be updated after each instruction execution,
-     * in order to the execution loop would be faster.
-     */
-    void execute();
-
-    /**
-     * Pauses the CPU emulation. If a thread was used for CPU execution
-     * and is running, then it should be stopped (destroyed) but the CPU state
-     * has to be saved for future run. CPU changes it state to "breakpoint".
-     */
-    void pause();
-
-    /**
-     * Stops the CPU emulation. If a thread was used for CPU execution
-     * and is running, then it should be stopped (destroyed) but the CPU state
-     * can be saved. CPU changes its state to "stopped" and main module should
-     * now forbid execution any of methods <code>step()</code>, <code>pause()</code>,
-     * <code>execute()</code> until user resets the CPU. Debug window in main
-     * module should be updated with saved CPU state.
-     */
-    void stop();
+    /** Optional host-scheduled frequency observation. Must not execute instructions or create threads. */
+    default float sampleFrequency() { return Float.NaN; }
 
     /**
      * Get CPU status panel.
@@ -176,7 +90,7 @@ public interface CPU extends Plugin {
     JPanel getStatusPanel();
 
     /**
-     * Resets the CPU and sets instruction position to given program location.
+     * Resets the CPU synchronously after the host has acknowledged actual execution exit.
      *
      * @param location Program location in memory
      */
@@ -218,6 +132,15 @@ public interface CPU extends Plugin {
      * @return disassembler of CPU instructions
      */
     Disassembler getDisassembler();
+
+    /**
+     * Get custom columns of the debugger table.
+     *
+     * @return debugger columns; empty list means default columns (address, mnemo, opcode)
+     */
+    default List<DebuggerColumn<?>> getDebuggerColumns() {
+        return List.of();
+    }
 
     @Override
     default boolean isAutomationSupported() {

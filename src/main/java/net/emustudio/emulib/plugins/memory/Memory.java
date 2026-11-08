@@ -19,12 +19,5 @@ public interface Memory extends Plugin {
     default boolean isAutomationSupported() {
         return true;
     }
-
-    /**
-     * Get memory size
-     *
-     * @return memory size
-     */
-    int getSize();
 }
 

@@ -2,7 +2,6 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins;
 
-import net.emustudio.emulib.plugins.annotations.PluginContext;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -17,12 +16,8 @@ import net.jcip.annotations.ThreadSafe;
  * Each plugin can implement none, one or more contexts. Implementing the same interface multiple times is allowed.
  * A plugin can also extend this context interface (directly or indirectly).
  * <p>
- * Another requirement is to annotate custom context interfaces with {@link PluginContext} annotation.
- * <p>
  * Contexts should be thread-safe, since there's no guarantee in which threads plugins communicate.
  */
-@PluginContext
 @ThreadSafe
 public interface Context {
-
 }

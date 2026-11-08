@@ -192,4 +192,9 @@ public class CachedComboBoxModelTest {
         assertEquals(List.of("item1"), selections);
         assertEquals("item1", comboBox.getSelectedItem());
     }
+
+    @Test(expected = NullPointerException.class)
+    public void testAddNullThrows() {
+        model.add(null);
+    }
 }

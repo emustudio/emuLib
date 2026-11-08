@@ -4,10 +4,9 @@ package net.emustudio.emulib.runtime.ui;
 
 /**
  * Resource paths of icons shared by emuStudio and its plugins.
- * {@code ICON_*} icons are 22x22 with {@code @2x} variants; load them with {@link GUI#loadIcon(String)}
- * or pass them to {@link GUI} factory methods. File names follow constant names.
+ * {@code ICON_*} icons are 22x22 with {@code @2x} variants; load them with {@link GUI#loadIcon(String, Class)}.
+ * File names follow constant names.
  */
-@SuppressWarnings("unused")
 public final class StandardIcons {
     private static final String PATH = "/net/emustudio/emulib/runtime/ui/icons/";
 
@@ -23,7 +22,6 @@ public final class StandardIcons {
     public static final String ICON_CONNECTION = PATH + "connection.png";
     public static final String ICON_COPY = PATH + "copy.png";
     public static final String ICON_CPU = PATH + "cpu.png";
-    public static final String ICON_CUT = PATH + "cut.png";
     public static final String ICON_DELETE = PATH + "delete.png";
     public static final String ICON_DEVICE = PATH + "device.png";
     public static final String ICON_DISK_EMPTY = PATH + "disk-empty.png";
@@ -50,7 +48,6 @@ public final class StandardIcons {
     public static final String ICON_PAGE_FIRST = PATH + "page-first.png";
     public static final String ICON_PAGE_SEEK_BACKWARD = PATH + "page-seek-backward.png";
     public static final String ICON_PAGE_SEEK_FORWARD = PATH + "page-seek-forward.png";
-    public static final String ICON_PASTE = PATH + "paste.png";
     public static final String ICON_PAUSE = PATH + "pause.png";
     public static final String ICON_RECORD = PATH + "record.png";
     public static final String ICON_REDO = PATH + "redo.png";

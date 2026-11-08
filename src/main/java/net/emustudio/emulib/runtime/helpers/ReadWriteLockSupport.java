@@ -4,83 +4,64 @@ package net.emustudio.emulib.runtime.helpers;
 
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Read/write lock support for more comfortable work with a ReentrantReadWriteLock.
+ * Runs actions under a {@link ReentrantReadWriteLock}.
  * <p>
- * Runnables/callables can throw any exceptions.
+ * Actions can throw checked exceptions; they are rethrown unchanged (see {@link Unchecked}).
  */
-@SuppressWarnings("unused")
 @ThreadSafe
-public class ReadWriteLockSupport {
+public final class ReadWriteLockSupport {
+    private final ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 
     /**
-     * Constructs a new ReadWriteLockSupport.
-     */
-    public ReadWriteLockSupport() {
-    }
-
-    private final ReadWriteLock rwl = new ReentrantReadWriteLock();
-
-    /**
-     * Acquires write lock and runs the given runnable.
+     * Runs the action under the write lock.
      *
-     * @param r the runnable to run under write lock
+     * @param r the action
      */
     public void lockWrite(Unchecked.RunnableWhichCanThrow r) {
-        rwl.writeLock().lock();
-        try {
-            Unchecked.run(r);
-        } finally {
-            rwl.writeLock().unlock();
-        }
+        locked(rwl.writeLock(), Unchecked.callable(r));
     }
 
     /**
-     * Acquires write lock and calls the given callable.
+     * Calls the action under the write lock.
      *
-     * @param r   the callable to call under write lock
-     * @param <T> the return type
-     * @return the result of the callable
+     * @param c   the action
+     * @param <T> the result type
+     * @return the action result
      */
-    public <T> T lockWrite(Unchecked.CallableWithCanThrow<T> r) {
-        rwl.writeLock().lock();
-        try {
-            return Unchecked.call(r);
-        } finally {
-            rwl.writeLock().unlock();
-        }
+    public <T> T lockWrite(Unchecked.CallableWithCanThrow<T> c) {
+        return locked(rwl.writeLock(), c);
     }
 
     /**
-     * Acquires read lock and runs the given runnable.
+     * Runs the action under the read lock.
      *
-     * @param r the runnable to run under read lock
+     * @param r the action
      */
     public void lockRead(Unchecked.RunnableWhichCanThrow r) {
-        rwl.readLock().lock();
-        try {
-            Unchecked.run(r);
-        } finally {
-            rwl.readLock().unlock();
-        }
+        locked(rwl.readLock(), Unchecked.callable(r));
     }
 
     /**
-     * Acquires read lock and calls the given callable.
+     * Calls the action under the read lock.
      *
-     * @param r   the callable to call under read lock
-     * @param <T> the return type
-     * @return the result of the callable
+     * @param c   the action
+     * @param <T> the result type
+     * @return the action result
      */
-    public <T> T lockRead(Unchecked.CallableWithCanThrow<T> r) {
-        rwl.readLock().lock();
+    public <T> T lockRead(Unchecked.CallableWithCanThrow<T> c) {
+        return locked(rwl.readLock(), c);
+    }
+
+    private static <T> T locked(Lock lock, Unchecked.CallableWithCanThrow<T> c) {
+        lock.lock();
         try {
-            return Unchecked.call(r);
+            return Unchecked.call(c);
         } finally {
-            rwl.readLock().unlock();
+            lock.unlock();
         }
     }
 }

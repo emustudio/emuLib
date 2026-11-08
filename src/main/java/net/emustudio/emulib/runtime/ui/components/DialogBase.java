@@ -19,50 +19,38 @@ import java.awt.event.KeyListener;
  */
 public abstract class DialogBase extends JDialog {
 
+    // Primary ESC handler: key listeners run before component key bindings, so ESC is caught before
+    // e.g. JTable's "cancel" or JSpinner's "reset-field-edit" consumes it.
     private final KeyListener escapeKeyListener = new KeyAdapter() {
         @Override
         public void keyPressed(KeyEvent e) {
-            if (e.getKeyCode() == KeyEvent.VK_ESCAPE && shouldCloseOnEscape()) {
+            if (e.getKeyCode() == KeyEvent.VK_ESCAPE && closeOnEscape()) {
                 e.consume();
-                dispose();
             }
         }
     };
 
     /**
-     * @param parent parent frame, or {@code null}
+     * @param parent parent window; {@code null} uses the shared Swing owner frame
      * @param title  dialog title
-     * @param modal  whether the dialog is modal
+     * @param modal  whether the dialog is application-modal
      */
-    protected DialogBase(Frame parent, String title, boolean modal) {
-        super(parent, title, modal);
-        initDialog();
-    }
-
-    /**
-     * @param parent parent dialog
-     * @param title  dialog title
-     * @param modal  whether the dialog is modal
-     */
-    protected DialogBase(Dialog parent, String title, boolean modal) {
-        super(parent, title, modal);
-        initDialog();
-    }
-
-    private void initDialog() {
+    protected DialogBase(Window parent, String title, boolean modal) {
+        super(parent == null ? JOptionPane.getRootFrame() : parent, title,
+                modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-        // Fallback: WHEN_IN_FOCUSED_WINDOW handles ESC for dialogs with no focusable components (e.g. AboutDialog).
-        // It fires via postProcessKeyEvent even when no component has focus.
-        getRootPane().registerKeyboardAction(
-                e -> {
-                    if (shouldCloseOnEscape()) {
-                        dispose();
-                    }
-                },
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-                JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        // Fallback ESC handler for dialogs without focusable components; fires even when nothing has focus.
+        getRootPane().registerKeyboardAction(e -> closeOnEscape(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
+    }
+
+    private boolean closeOnEscape() {
+        boolean close = shouldCloseOnEscape();
+        if (close) {
+            dispose();
+        }
+        return close;
     }
 
     /**
@@ -103,19 +91,13 @@ public abstract class DialogBase extends JDialog {
     protected void buildContent() {
         JComponent content = initializeComponents();
         if (content != null) {
-            // Ensure there's always a focusable component in the dialog so that key events
-            // are delivered. Without this, dialogs with only non-focusable components (e.g.
-            // JLabels) would never receive keyboard input.
+            // A focusable component is needed for key events to be delivered at all.
             content.setFocusable(true);
             getContentPane().setLayout(new BorderLayout());
             getContentPane().add(content, BorderLayout.CENTER);
             pack();
         }
         setLocationRelativeTo(getParent());
-
-        // Primary: KeyListener fires before component-level key bindings, catching ESC before
-        // JTable's "cancel" or JSpinner's "reset-field-edit" can consume it. If consumed here,
-        // the WHEN_IN_FOCUSED_WINDOW fallback above won't double-fire.
         GUI.addKeyListenerRecursively(this, escapeKeyListener);
     }
 

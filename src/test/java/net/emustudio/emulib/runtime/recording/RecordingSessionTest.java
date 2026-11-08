@@ -2,6 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.recording;
 
+import org.jcodec.api.awt.AWTFrameGrab;
 import org.jcodec.common.io.NIOUtils;
 import org.jcodec.containers.mp4.demuxer.MP4Demuxer;
 import org.junit.Rule;
@@ -11,40 +12,44 @@ import org.junit.rules.TemporaryFolder;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.Field;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPInputStream;
 
 import static org.junit.Assert.*;
 
 public class RecordingSessionTest {
     @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Test
-    public void stopDrainsFramesAndExportsMatchingVideoAndAudioDurations() throws Exception {
-        RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
+    public void exportsVideoAndAudioWithMatchingDurations() throws Exception {
+        Path output = folder.getRoot().toPath().resolve("nested/dir/capture.mp4");
         byte[] audio = new byte[(48000 / 60) * 4];
         ByteBuffer.wrap(audio).order(ByteOrder.LITTLE_ENDIAN).putShort((short) 2000).putShort((short) 2000);
+        RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
+        assertFalse(session.captureVideo(null));
+        assertTrue(session.captureAudio(new byte[0], 0));
         for (int i = 0; i < 60; i++) {
-            session.capture(frame(32), audio);
+            assertTrue(session.captureVideo(frame(Color.GREEN)));
+            assertTrue(session.captureAudio(audio, audio.length));
         }
-        Path output = temporaryFolder.getRoot().toPath().resolve("capture.mp4");
         session.stop(output);
+        assertTempFilesDeleted(session);
+        assertFalse(session.captureVideo(frame(Color.RED)));
+        assertFalse(session.captureAudio(audio, audio.length));
+        session.stop(null);
+        session.close();
         try (var channel = NIOUtils.readableChannel(output.toFile());
              var demuxer = MP4Demuxer.createMP4Demuxer(channel)) {
-            assertEquals(1, demuxer.getVideoTracks().size());
-            assertEquals(1, demuxer.getAudioTracks().size());
             var video = demuxer.getVideoTrack().getMeta();
             var sound = demuxer.getAudioTracks().get(0).getMeta();
+            assertEquals(1, demuxer.getAudioTracks().size());
             assertEquals(60, video.getTotalFrames());
             assertEquals(1.0, video.getTotalDuration(), 0.001);
             assertEquals(1.0, sound.getTotalDuration(), 0.001);
@@ -52,131 +57,201 @@ public class RecordingSessionTest {
             assertEquals(2, sound.getAudioCodecMeta().getChannelCount());
             assertEquals(32, video.getVideoCodecMeta().getSize().getWidth());
         }
-        session.capture(frame(32), audio);
-        session.stop(null);
-        assertTrue(Files.exists(output));
     }
 
     @Test
-    public void discardDeletesTemporaryVideoAndAudio() throws Exception {
-        RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
-        Field recorderField = RecordingSession.class.getDeclaredField("recorder");
-        recorderField.setAccessible(true);
-        VideoRecorder recorder = (VideoRecorder) recorderField.get(session);
-        Path video = temporaryFile(recorder, "tempVideoFile");
-        Path audio = temporaryFile(recorder, "tempAudioFile");
-        session.capture(frame(32), new byte[3200]);
-        session.stop(null);
-        assertFalse(Files.exists(video));
-        assertFalse(Files.exists(audio));
-    }
-
-    @Test
-    public void brokenCaptureDiscardsFilesAndReportsExportFailure() throws Exception {
-        VideoRecorder recorder = new VideoRecorder(32, 32, 1, 60, 48000);
-        Path video = temporaryFile(recorder, "tempVideoFile");
-        Path audio = temporaryFile(recorder, "tempAudioFile");
-        recorder.captureVideo(frame(34));
-        Path output = temporaryFolder.getRoot().toPath().resolve("broken.mp4");
-        assertThrows(IOException.class, () -> recorder.stop(output));
-        assertFalse(Files.exists(output));
-        assertFalse(Files.exists(video));
-        assertFalse(Files.exists(audio));
-    }
-
-    @Test
-    public void videoIsEncodedBeforeStopAndTemporaryAudioRemainsSmallAndLossless() throws Exception {
-        int width = 224;
-        int height = 256;
-        int frames = 120;
-        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        byte[] pcm = new byte[(48000 / 60) * 4];
-        Arrays.fill(pcm, (byte) 7);
-        VideoRecorder recorder = new VideoRecorder(width, height, 1, 60, 48000);
-        Path video = temporaryFile(recorder, "tempVideoFile");
-        Path audio = temporaryFile(recorder, "tempAudioFile");
-        try {
-            for (int i = 0; i < frames; i++) {
-                image.setRGB(i, 0, Color.GREEN.getRGB());
-                recorder.captureVideo(image);
-                recorder.captureAudio(pcm);
+    public void preservesFractionalVideoRateAndStereoSamples() throws Exception {
+        Path output = folder.getRoot().toPath().resolve("fractional.mp4");
+        int scale = 69_888;
+        int rate = 3_500_000;
+        byte[] audio = new byte[44100 * 4];
+        ByteBuffer.wrap(audio).order(ByteOrder.LITTLE_ENDIAN).putShort((short) 1234).putShort((short) -5678);
+        try (RecordingSession session = new RecordingSession(32, 32, scale, rate, 44100)) {
+            for (int i = 0; i < 50; i++) {
+                assertTrue(session.captureVideo(frame(Color.BLUE)));
             }
-            // Video packets already exist before Stop; Save must not encode the frames again.
-            assertTrue(Files.size(video) > 100);
-            assertEquals(0x66747970, ByteBuffer.wrap(Files.readAllBytes(video)).getInt(4)); // MP4 ftyp
-            closeTemporaryOutput(recorder, "tempAudioFileOutputStream");
-            assertTrue(Files.size(video) < (long) width * height * Integer.BYTES * frames / 100);
-            assertTrue(Files.size(audio) < (long) pcm.length * frames / 10);
-            try (var audioInput = new GZIPInputStream(Files.newInputStream(audio))) {
-                for (int i = 0; i < frames; i++) {
-                    assertArrayEquals(pcm, audioInput.readNBytes(pcm.length));
-                }
-                assertEquals(-1, audioInput.read());
-            }
-            Path output = temporaryFolder.getRoot().toPath().resolve("already-encoded.mp4");
-            recorder.stop(output);
-            try (var channel = NIOUtils.readableChannel(output.toFile());
-                 var demuxer = MP4Demuxer.createMP4Demuxer(channel)) {
-                assertEquals(frames, demuxer.getVideoTrack().getMeta().getTotalFrames());
-                assertEquals(2.0, demuxer.getAudioTracks().get(0).getMeta().getTotalDuration(), 0.001);
-            }
-        } finally {
-            recorder.stop(null);
+            assertTrue(session.captureAudio(audio, audio.length));
+            session.stop(output);
         }
-        assertFalse(Files.exists(video));
-        assertFalse(Files.exists(audio));
+        try (var channel = NIOUtils.readableChannel(output.toFile());
+             var demuxer = MP4Demuxer.createMP4Demuxer(channel)) {
+            assertEquals(50, demuxer.getVideoTrack().getMeta().getTotalFrames());
+            assertEquals(50.0 * scale / rate, demuxer.getVideoTrack().getMeta().getTotalDuration(), 0.000001);
+            var sound = demuxer.getAudioTracks().get(0);
+            assertEquals(44100, sound.getMeta().getAudioCodecMeta().getSampleRate());
+            assertEquals(1.0, sound.getMeta().getTotalDuration(), 0.000001);
+            ByteBuffer samples = sound.nextFrame().getData().order(ByteOrder.LITTLE_ENDIAN);
+            assertEquals(1234, samples.getShort());
+            assertEquals(-5678, samples.getShort());
+        }
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void fullQueueRejectsFramesWithoutBlockingAndDiscardsFailedRecording() throws Exception {
-        RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
-        CountDownLatch entered = new CountDownLatch(1);
-        CountDownLatch release = new CountDownLatch(1);
-        Field queueField = RecordingSession.class.getDeclaredField("queue");
-        queueField.setAccessible(true);
-        BlockingQueue<Runnable> queue = (BlockingQueue<Runnable>) queueField.get(session);
-        queue.put(() -> {
-            entered.countDown();
+    public void videoWithoutAudioHasNoAudioTrack() throws Exception {
+        Path output = folder.getRoot().toPath().resolve("silent.mp4");
+        try (RecordingSession session = new RecordingSession(32, 32, 1, 50, 48000)) {
+            for (int i = 0; i < 5; i++) assertTrue(session.captureVideo(frame(Color.GREEN)));
+            session.stop(output);
+        }
+        try (var channel = NIOUtils.readableChannel(output.toFile());
+             var demuxer = MP4Demuxer.createMP4Demuxer(channel)) {
+            assertEquals(5, demuxer.getVideoTrack().getMeta().getTotalFrames());
+            assertTrue(demuxer.getAudioTracks().isEmpty());
+        }
+    }
+
+    @Test
+    public void copiesProducerBuffersBeforeReturning() throws Exception {
+        Path output = folder.getRoot().toPath().resolve("copied.mp4");
+        BufferedImage image = frame(Color.BLUE);
+        byte[] audio = new byte[3200];
+        ByteBuffer.wrap(audio).order(ByteOrder.LITTLE_ENDIAN).putShort((short) 1234).putShort((short) -5678);
+        try (RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000)) {
+            CountDownLatch release = blockWorker(session);
             try {
-                release.await();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                assertTrue(session.captureVideo(image));
+                assertTrue(session.captureAudio(audio, audio.length));
+                Arrays.fill(audio, (byte) 0);
+                image.setRGB(16, 16, Color.RED.getRGB());
+            } finally {
+                release.countDown();
             }
-        });
-        Path output = temporaryFolder.getRoot().toPath().resolve("overloaded.mp4");
+            session.stop(output);
+        }
+        Color pixel = new Color(AWTFrameGrab.getFrame(output.toFile(), 0).getRGB(16, 16));
+        assertTrue(pixel.getBlue() > 200);
+        assertTrue(pixel.getRed() < 50);
+        try (var channel = NIOUtils.readableChannel(output.toFile());
+             var demuxer = MP4Demuxer.createMP4Demuxer(channel)) {
+            ByteBuffer samples = demuxer.getAudioTracks().get(0).nextFrame().getData().order(ByteOrder.LITTLE_ENDIAN);
+            assertEquals(1234, samples.getShort());
+            assertEquals(-5678, samples.getShort());
+        }
+    }
+
+    @Test
+    public void invalidCaptureFailsRecordingWithoutCreatingOutput() throws Exception {
+        Path output = folder.getRoot().toPath().resolve("invalid.mp4");
+        for (int variant = 0; variant < 2; variant++) {
+            RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
+            assertTrue(session.captureVideo(frame(Color.GREEN)));
+            if (variant == 0) {
+                assertFalse(session.captureAudio(new byte[3], 3));
+            } else {
+                assertFalse(session.captureVideo(new BufferedImage(34, 32, BufferedImage.TYPE_INT_RGB)));
+            }
+            assertNotNull(session.getFailure());
+            assertFalse(session.captureVideo(frame(Color.GREEN)));
+            assertThrows(IOException.class, () -> session.stop(output));
+            assertFalse(Files.exists(output));
+            assertTempFilesDeleted(session);
+        }
+    }
+
+    @Test
+    public void rejectsInvalidArguments() throws Exception {
+        for (int[] args : new int[][]{{31, 32, 1, 60, 48000}, {0, 32, 1, 60, 48000}, {32, -1, 1, 60, 48000},
+                {32, 32, 0, 60, 48000}, {32, 32, 1, -1, 48000}, {32, 32, 1, 60, 0}}) {
+            assertThrows(IllegalArgumentException.class, () -> new RecordingSession(args[0], args[1], args[2], args[3], args[4]));
+        }
+        try (RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000)) {
+            assertThrows(IndexOutOfBoundsException.class, () -> session.captureAudio(new byte[4], 8));
+            assertThrows(NullPointerException.class, () -> session.captureAudio(null, 4));
+            assertNull(session.getFailure());
+        }
+    }
+
+    @Test
+    public void discardOrEmptyRecordingDeletesTemporaryFiles() throws Exception {
+        RecordingSession discarded = new RecordingSession(32, 32, 1, 60, 48000);
+        assertTrue(discarded.captureVideo(frame(Color.GREEN)));
+        assertTrue(discarded.captureAudio(new byte[3200], 3200));
+        discarded.stop(null);
+        assertTempFilesDeleted(discarded);
+
+        RecordingSession empty = new RecordingSession(32, 32, 1, 60, 48000);
+        Path output = folder.getRoot().toPath().resolve("empty.mp4");
+        assertThrows(IOException.class, () -> empty.stop(output));
+        assertFalse(Files.exists(output));
+        assertTempFilesDeleted(empty);
+    }
+
+    @Test
+    public void fullQueueRejectsFramesWithoutBlockingAndFailsRecording() throws Exception {
+        RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
+        CountDownLatch release = blockWorker(session);
+        Path output = folder.getRoot().toPath().resolve("overloaded.mp4");
         try {
-            assertTrue(entered.await(5, TimeUnit.SECONDS));
-            int capacity = queue.remainingCapacity();
+            int capacity = session.queue.remainingCapacity();
             for (int i = 0; i < capacity; i++) {
-                assertTrue(session.capture(frame(32), new byte[3200]));
+                assertTrue(session.captureVideo(frame(Color.GREEN)));
             }
-            assertFalse(session.capture(frame(32), new byte[3200]));
+            assertFalse(session.captureVideo(frame(Color.GREEN)));
             assertNotNull(session.getFailure());
             release.countDown();
             assertThrows(IOException.class, () -> session.stop(output));
             assertFalse(Files.exists(output));
         } finally {
             release.countDown();
-            session.stop(null);
+            session.close();
         }
     }
 
-    private static void closeTemporaryOutput(VideoRecorder recorder, String name) throws Exception {
-        Field field = VideoRecorder.class.getDeclaredField(name);
-        field.setAccessible(true);
-        ((OutputStream) field.get(recorder)).close();
+    @Test
+    public void interruptedStopDiscardsFilesAndPreservesCallerInterrupt() throws Exception {
+        RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000);
+        Thread.currentThread().interrupt();
+        try {
+            assertThrows(IOException.class, () -> session.stop(folder.getRoot().toPath().resolve("interrupted.mp4")));
+            assertTrue(Thread.currentThread().isInterrupted());
+            assertTempFilesDeleted(session);
+        } finally {
+            Thread.interrupted();
+            session.close();
+        }
     }
 
-    private static Path temporaryFile(VideoRecorder recorder, String name) throws Exception {
-        Field field = VideoRecorder.class.getDeclaredField(name);
-        field.setAccessible(true);
-        return (Path) field.get(recorder);
+    @Test
+    public void failedExportReleasesCaptureFilesAndPreservesExistingDestination() throws Exception {
+        Path destination = folder.newFolder("occupied").toPath();
+        Path existing = destination.resolve("keep.txt");
+        Files.writeString(existing, "keep");
+        try (RecordingSession session = new RecordingSession(32, 32, 1, 60, 48000)) {
+            assertTrue(session.captureVideo(frame(Color.BLUE)));
+            assertTrue(session.captureAudio(new byte[3200], 3200));
+            assertThrows(IOException.class, () -> session.stop(destination));
+            assertTempFilesDeleted(session);
+            assertEquals("keep", Files.readString(existing));
+        }
     }
 
-    private static BufferedImage frame(int size) {
-        BufferedImage frame = new BufferedImage(size, size, BufferedImage.TYPE_INT_RGB);
-        frame.setRGB(0, 0, Color.GREEN.getRGB());
+    private static CountDownLatch blockWorker(RecordingSession session) throws Exception {
+        CountDownLatch entered = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        session.queue.put(() -> {
+            entered.countDown();
+            try {
+                release.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new UncheckedIOException(new IOException(e));
+            }
+        });
+        assertTrue(entered.await(5, TimeUnit.SECONDS));
+        return release;
+    }
+
+    private static void assertTempFilesDeleted(RecordingSession session) {
+        assertFalse(Files.exists(session.videoFile));
+        assertFalse(Files.exists(session.audioFile));
+    }
+
+    private static BufferedImage frame(Color color) {
+        BufferedImage frame = new BufferedImage(32, 32, BufferedImage.TYPE_INT_RGB);
+        var graphics = frame.createGraphics();
+        graphics.setColor(color);
+        graphics.fillRect(0, 0, 32, 32);
+        graphics.dispose();
         return frame;
     }
 }

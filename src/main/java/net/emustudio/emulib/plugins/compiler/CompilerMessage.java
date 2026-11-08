@@ -8,107 +8,53 @@ import java.util.Optional;
 /**
  * Messages are passed to compiler listeners when the compiler wishes to say something.
  */
-public class CompilerMessage {
+public final class CompilerMessage {
 
-    /**
-     * Message type.
-     */
-    public enum MessageType {
-        /**
-         * The message represents a warning.
-         */
-        TYPE_WARNING,
-        /**
-         * The message represents an error.
-         */
-        TYPE_ERROR,
-        /**
-         * The message represents an information.
-         */
-        TYPE_INFO,
-        /**
-         * The message is of unknown type.
-         */
-        TYPE_UNKNOWN
+    public enum Type {
+        ERROR, WARNING, INFO
     }
 
-    private final MessageType messageType;
+    private final Type type;
     private final String message;
-    private final Optional<SourceCodePosition> position;
+    private final SourceCodePosition position;
 
     /**
-     * This constructor creates the Message object. Messages are created by
-     * compiler.
-     *
-     * @param messageType Type of the message
-     * @param message     Text of the message
-     * @param position    Source code position (nullable)
+     * @param type     message type
+     * @param message  message text
+     * @param position source position, or null if the message is not related to a source position
      */
-    public CompilerMessage(MessageType messageType, String message, SourceCodePosition position) {
-        this.messageType = Objects.requireNonNull(messageType);
+    public CompilerMessage(Type type, String message, SourceCodePosition position) {
+        this.type = Objects.requireNonNull(type);
         this.message = Objects.requireNonNull(message);
-        this.position = Optional.ofNullable(position);
+        this.position = position;
     }
 
     /**
-     * This constructor creates the Message object. Messages are created by
-     * compiler.
-     *
-     * @param message Text of the message
-     */
-    public CompilerMessage(String message) {
-        this(MessageType.TYPE_UNKNOWN, message, null);
-    }
-
-    /**
-     * This constructor creates the Message object. Messages are created by
-     * compiler.
-     *
-     * @param type    Type of the message.
-     * @param message Text of the message
-     */
-    public CompilerMessage(MessageType type, String message) {
-        this(type, message, null);
-    }
-
-    /**
-     * Return formatted string that represents this Message object.
-     *
-     * @return formatted message
+     * @return message text prefixed with the source position, if present
      */
     public String getFormattedMessage() {
-        StringBuilder mes = new StringBuilder();
-        position.ifPresent(mes::append);
-        position.ifPresent(x -> mes.append(" "));
-        mes.append(message);
-        return mes.toString();
+        return position == null ? message : position + " " + message;
     }
 
     /**
-     * Get source code position
-     *
-     * @return position in the source code
+     * @return source position, if present
      */
     public Optional<SourceCodePosition> getPosition() {
-        return position;
+        return Optional.ofNullable(position);
     }
 
     /**
-     * Get the text of the message.
-     *
-     * @return text of the message
+     * @return message text
      */
     public String getMessage() {
         return message;
     }
 
     /**
-     * Get the type of the message.
-     *
-     * @return the message type
+     * @return message type
      */
-    public MessageType getMessageType() {
-        return messageType;
+    public Type getType() {
+        return type;
     }
 
     @Override

@@ -3,59 +3,53 @@
 package net.emustudio.emulib.runtime.helpers;
 
 /**
- * Unchecked running/ calling.
- * Unchecked means Runnable or Callable can throw exceptions (which don't need to extend RuntimeException).
- * <p>
- * This code was borrowed from:
- * <p>
- * <a href="http://stackoverflow.com/questions/19757300/java-8-lambda-streams-filter-by-method-with-exception">exceptions in lambda</a>
+ * Runs actions which can throw checked exceptions, rethrowing them unchanged without declaring them ("sneaky throw").
  */
-public class Unchecked {
+public final class Unchecked {
 
-    /**
-     * Constructs a new Unchecked instance.
-     */
     private Unchecked() {
     }
 
     /**
-     * Runs a runnable that can throw checked exceptions.
+     * Runs the action; checked exceptions are rethrown unchanged.
      *
-     * @param r the runnable
+     * @param r the action
      */
     public static void run(RunnableWhichCanThrow r) {
-        try {
-            r.run();
-        } catch (Exception e) {
-            sneakyThrow(e);
-        }
+        call(callable(r));
     }
 
     /**
-     * Calls a callable that can throw checked exceptions.
+     * Calls the action; checked exceptions are rethrown unchanged.
      *
-     * @param c   the callable
-     * @param <T> the return type
-     * @return the result of the callable
+     * @param c   the action
+     * @param <T> the result type
+     * @return the action result
      */
     public static <T> T call(CallableWithCanThrow<T> c) {
         try {
             return c.call();
         } catch (Exception e) {
-            sneakyThrow(e);
+            return sneakyThrow(e);
         }
-        return null; // never called
     }
 
     /**
-     * Throws a checked exception as an unchecked one.
+     * Throws any exception without declaring it.
      *
      * @param e   the exception
-     * @param <T> the return type
-     * @return never returns, always throws
+     * @param <T> the "return" type, allowing {@code return sneakyThrow(e);}
+     * @return never returns
      */
     public static <T> T sneakyThrow(Throwable e) {
         return Unchecked.<RuntimeException, T>sneakyThrow0(e);
+    }
+
+    static CallableWithCanThrow<Void> callable(RunnableWhichCanThrow r) {
+        return () -> {
+            r.run();
+            return null;
+        };
     }
 
     @SuppressWarnings("unchecked")
@@ -64,7 +58,7 @@ public class Unchecked {
     }
 
     /**
-     * A runnable that can throw checked exceptions.
+     * An action which can throw checked exceptions.
      */
     @FunctionalInterface
     public interface RunnableWhichCanThrow {
@@ -77,9 +71,9 @@ public class Unchecked {
     }
 
     /**
-     * A callable that can throw checked exceptions.
+     * An action with a result which can throw checked exceptions.
      *
-     * @param <T> the return type
+     * @param <T> the result type
      */
     @FunctionalInterface
     public interface CallableWithCanThrow<T> {

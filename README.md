@@ -66,38 +66,26 @@ If Gradle fails with a JVM version error, point `JAVA_HOME` to a JDK 17+ install
 - `net.emustudio.emulib.runtime.settings`
   Shared settings interfaces for plugins and runtime code
 - `net.emustudio.emulib.runtime.helpers`
-  Helper utilities such as `Bits`, `NumberUtils`, `RadixUtils`, and
-  `StringUtils`
+  Helper utilities such as `Bits`, `NumberUtils`, `RadixUtils`, and `SleepUtils`
 - `net.emustudio.emulib.runtime.io`
-  Intel HEX import and export support
+  `FileType`, Intel HEX, and TAP/TZX tape loading
 - `net.emustudio.emulib.runtime.ui`
-  Swing helpers, formatter interfaces, and debugger UI components
+  Dialogs, Swing helpers, and debugger columns
 
 ## Performance Considerations
 
-The table below groups methods by asymptotic cost.
+The table below groups helper methods by asymptotic cost.
 
-- `n` = input array or list length
-- `L` = emitted binary string length
-- `p` = registered radix pattern count
+- `n` = input array length
+- `L` = emitted string length
 - `s` = input string length
-- `b` = input byte count
-- `m` = arbitrary-precision numeric magnitude size
-
-For the `O(m^2)` rows, the practical cost is dominated by `BigInteger`
-parsing and formatting, so exact constants depend on the JDK implementation.
 
 | Methods | Time complexity |
 | --- | --- |
-| `Bits(int, int)`, `Bits.toBytes()`, `Bits.reverseBytes()`, `Bits.reverseBits()`, `Bits.absolute()`, `Bits.shiftLeft()`, `Bits.shiftRight()`<br>`NumberUtils.reverseBits(...)`, `NumberUtils.readBits(...)`, all `NumberUtils.readInt(...)` overloads, all `NumberUtils.writeInt(...)` overloads, `NumberUtils.bcd2bin(...)`, `NumberUtils.bin2bcd(...)`<br>`RadixUtils.getInstance()`, `RadixUtils.addNumberPattern(...)`, `RadixUtils.formatByteHexString(...)`, both `RadixUtils.formatWordHexString(...)` overloads, `RadixUtils.formatDwordHexString(...)` | `O(1)` |
-| `NumberUtils.numbersToBytes(...)`, `NumberUtils.numbersToNativeBytes(...)`, `NumberUtils.shortsToBytes(...)`, `NumberUtils.shortsToNativeBytes(...)`, `NumberUtils.shortsToNativeShorts(...)`, `NumberUtils.nativeShortsToNativeBytes(...)`, `NumberUtils.nativeIntsToNativeBytes(...)`, `NumberUtils.nativeShortsToBytes(...)`, `NumberUtils.nativeShortsToShorts(...)`, `NumberUtils.nativeBytesToBytes(...)`, `NumberUtils.nativeBytesToIntegers(...)`, `NumberUtils.nativeBytesToShorts(...)`, `NumberUtils.nativeBytesToInts(...)`, `NumberUtils.listToNativeInts(...)` | `O(n)` |
-| `RadixUtils.formatBinaryString(int, int, int, boolean)`, `RadixUtils.formatBinaryString(int, int)` | `O(L)` |
-| `RadixUtils.setDefaults()` | `O(p)` |
-| `RadixUtils.parseRadix(String)`, `RadixUtils.parseRadix(String, int)` | `O(p * s)` |
-| `RadixUtils.convertToRadix(byte[], 16, boolean)` | `O(b)` |
-| `RadixUtils.convertToRadix(byte[], toRadix != 16, boolean)`, `RadixUtils.convertToRadix(String, int, int)` | `O(m^2)` |
-| `RadixUtils.convertToNumber(String, int)`, `RadixUtils.convertToNumber(String, int, int)` | `O(m^2 + b)` |
-| `RadixUtils.convertToRadix(String, int)` | `O(p * s + m^2)` |
+| `Bits(int, int)`, `Bits.toBytes()`, `Bits.reverseBytes()`, `Bits.reverseBits()`, `Bits.absolute()`, `Bits.shiftLeft()`, `Bits.shiftRight()`<br>`NumberUtils.reverseBits(...)`, `NumberUtils.readBits(...)`, `NumberUtils.readInt(...)`, `NumberUtils.writeInt(...)`, `NumberUtils.bcd2bin(...)`, `NumberUtils.bin2bcd(...)` | `O(1)` |
+| `NumberUtils.nativeBytesToBytes(...)` | `O(n)` |
+| `RadixUtils.formatHex(...)`, `RadixUtils.formatBinary(...)` | `O(L)` |
+| `RadixUtils.parseRadix(...)`, `ParsingUtils.parseNumber(...)` | `O(s)` |
 
 ## Getting Started With Plugin Development
 
@@ -110,8 +98,14 @@ At a high level:
   derived interfaces such as `CPU`, `Memory`, `Compiler`, or `Device`.
 - Plugins can expose contexts for inter-plugin communication by implementing interfaces derived from
   `net.emustudio.emulib.plugins.Context`.
+- Plugins usually extend `AbstractPlugin` (or `AbstractCPU`, `AbstractCompiler`). Lifecycle methods are no-op defaults;
+  title and description come from `@PluginRoot`.
+- Plugins obtain contexts of other plugins via `ContextPool.get(...)`, or the type-checked
+  `getMemory(pluginID, Byte.class)` / `getDevice(pluginID, Byte.class)`.
+- Compilers implement `compile(Path input, Path output)`; `AbstractCompiler` drives the workflow and reports
+  `CompileException`s. ANTLR-based compilers reuse `AntlrLexicalAnalyzer` and `ParserErrorListener`.
 - Plugins can communicate with the host application through `net.emustudio.emulib.runtime.ApplicationApi`.
-- Shared configuration is exposed through the settings interfaces in `net.emustudio.emulib.runtime.settings`.
+- Configuration is exposed through `net.emustudio.emulib.runtime.settings.PluginSettings`.
 
 ## Deployment
 
@@ -123,10 +117,17 @@ Example:
 emuStudio/lib/emulib.jar
 ```
 
-## Optional CPU debugging
+## Optional machine debugging
 
-`DebugCPU` and `DebugProbe` expose portable register access and immutable instruction events for the host debugger.
-Events include sequence numbers, execution-time opcode/disassembly text, before/after registers, CPU-visible addresses,
-guest memory accesses and completion status. The 8080 and Z80 plugins implement these hooks; emuStudio owns recent
-history, continuous recording files, headless recording and offline inspection. Disabled probes preserve the original
-execution-memory path. Listeners run on the execution thread; register edits and listener changes require a paused CPU.
+CPU plugins may additionally implement `net.emustudio.emulib.plugins.debugger.Debugging`. Its small interface compiles
+machine-defined expressions and observes semantic execution steps. Live changes use the existing host execution
+service. `CPU` defines no universal registers or state schema.
+
+Plugins supply immutable `ValueView` and `StepView` presentation. The host owns rules, watches, history and bounded
+recording files; saved rows, search tags and navigation links work offline without loading a CPU plugin.
+Observation/formatting failures never pause emulation. Recording failures disable only the recorder and do not override
+the emulation result. Invalid expressions remain saved but inactive until corrected.
+
+`DebuggingSupport` shares observation mechanics; `ExpressionParser` shares optional syntax. Machine value names,
+inspection, guest accesses and edits remain inside plugins. Use `ExecutionState.update` for edits and drain
+`processUpdates` at every outer semantic step, including when observation is inactive.

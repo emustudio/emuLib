@@ -2,116 +2,145 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.compiler;
 
-import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
-import org.easymock.Capture;
-import org.junit.Before;
+import net.emustudio.emulib.plugins.annotations.PluginRoot;
+import net.emustudio.emulib.plugins.annotations.PLUGIN_TYPE;
+import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.io.FileType;
+import net.emustudio.emulib.runtime.settings.PluginSettings;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.Assert.assertEquals;
 
 public class AbstractCompilerTest {
-    private AbstractCompilerStub compiler;
 
-    @Before
-    public void setUp() {
-        compiler = new AbstractCompilerStub();
+    @PluginRoot(type = PLUGIN_TYPE.COMPILER, title = "title")
+    static class TestCompiler extends AbstractCompiler {
+        Exception toThrow;
+        Path output;
+
+        TestCompiler(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
+            super(pluginID, applicationApi, settings);
+        }
+
+        @Override
+        protected void compile(Path input, Path output) throws Exception {
+            this.output = output;
+            warning("warn");
+            if (toThrow != null) throw toThrow;
+        }
+
+        @Override
+        protected String getOutputExtension() {
+            return "hex";
+        }
+
+        @Override
+        public LexicalAnalyzer createLexer() {
+            return null;
+        }
+
+        @Override
+        public List<FileType> getSourceFileTypes() {
+            return List.of(new FileType("Assembler", "asm"));
+        }
+
+        @Override
+        public String getVersion() {
+            return "1.0";
+        }
+
+        @Override
+        public String getCopyright() {
+            return "";
+        }
+    }
+
+    private final TestCompiler compiler = new TestCompiler(0, ApplicationApi.UNAVAILABLE, PluginSettings.UNAVAILABLE);
+    private final List<String> events = new ArrayList<>();
+
+    {
+        compiler.addCompilerListener(new CompilerListener() {
+            @Override
+            public void onStart() {
+                events.add("start");
+            }
+
+            @Override
+            public void onMessage(CompilerMessage message) {
+                events.add(message.getType() + ":" + message.getFormattedMessage());
+            }
+
+            @Override
+            public void onFinish() {
+                events.add("finish");
+            }
+        });
     }
 
     @Test
-    public void testGetTitle() {
-        assertEquals("title", compiler.getTitle());
+    public void testSuccessfulWorkflowDerivesOutputPath() {
+        compiler.compile(Path.of("dir/program.asm"), Optional.empty());
+
+        assertEquals(Path.of("dir/program.hex"), compiler.output);
+        assertEquals(List.of("start", "INFO:title, version 1.0", "WARNING:warn", "finish"), events);
     }
 
     @Test
-    public void testNotifyCompilerStart() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        listener.onStart();
-        expectLastCall().once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.notifyCompileStart();
-        verify(listener);
+    public void testGivenOutputPathIsUsed() {
+        compiler.compile(Path.of("program.asm"), Optional.of(Path.of("out.bin")));
+        assertEquals(Path.of("out.bin"), compiler.output);
     }
 
     @Test
-    public void testNotifyCompilerFinish() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        listener.onFinish();
-        expectLastCall().once();
-        replay(listener);
+    public void testCompileExceptionIsReportedWithPosition() {
+        compiler.toThrow = new CompileException(new SourceCodePosition(1, 2, "f.asm"), "bad");
+        compiler.compile(Path.of("program.asm"), Optional.empty());
 
-        compiler.addCompilerListener(listener);
-        compiler.notifyCompileFinish();
-        verify(listener);
+        assertEquals("ERROR:" + new SourceCodePosition(1, 2, "f.asm") + " bad", events.get(3));
+        assertEquals("finish", events.get(4));
     }
 
     @Test
-    public void testNotifyOnMessage() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        listener.onMessage(anyObject(CompilerMessage.class));
-        expectLastCall().once();
-        replay(listener);
+    public void testOtherExceptionIsReportedAsError() {
+        compiler.toThrow = new IOException("io");
+        compiler.compile(Path.of("program.asm"), Optional.empty());
 
-        compiler.addCompilerListener(listener);
-        compiler.notifyOnMessage(createMock(CompilerMessage.class));
-
-        verify(listener);
+        assertEquals("ERROR:Compilation error: java.io.IOException: io", events.get(3));
     }
 
     @Test
-    public void testNotifyInfo() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        Capture<CompilerMessage> captured = Capture.newInstance();
-        listener.onMessage(and(
-                isA(CompilerMessage.class),
-                capture(captured))
-        );
-        expectLastCall().once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.testInfo();
-
-        assertEquals(MessageType.TYPE_INFO, captured.getValue().getMessageType());
-        verify(listener);
+    public void testRemovedListenerIsNotNotified() {
+        TestCompiler other = new TestCompiler(0, ApplicationApi.UNAVAILABLE, PluginSettings.UNAVAILABLE);
+        CompilerListener listener = m -> events.add("message");
+        other.addCompilerListener(listener);
+        other.removeCompilerListener(listener);
+        other.compile(Path.of("program.asm"), Optional.empty());
+        assertEquals(List.of(), events);
     }
 
     @Test
-    public void testNotifyError() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        Capture<CompilerMessage> captured = Capture.newInstance();
-        listener.onMessage(and(
-                isA(CompilerMessage.class),
-                capture(captured))
-        );
-        expectLastCall().once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.testError();
-
-        assertEquals(MessageType.TYPE_ERROR, captured.getValue().getMessageType());
-        verify(listener);
+    public void testCommandLineReturnsErrorExitCodeWithoutInput() {
+        assertEquals(1, AbstractCompiler.runCommandLine("test", new String[0], TestCompiler::new));
     }
 
     @Test
-    public void testNotifyWarning() {
-        CompilerListener listener = createMock(CompilerListener.class);
-        Capture<CompilerMessage> captured = Capture.newInstance();
-        listener.onMessage(and(
-                isA(CompilerMessage.class),
-                capture(captured))
-        );
-        expectLastCall().once();
-        replay(listener);
-
-        compiler.addCompilerListener(listener);
-        compiler.testWarning();
-
-        assertEquals(MessageType.TYPE_WARNING, captured.getValue().getMessageType());
-        verify(listener);
+    public void testCommandLineReturnsErrorExitCodeOnCompileError() {
+        assertEquals(1, AbstractCompiler.runCommandLine("test", new String[]{"nonexistent.asm"},
+                (id, api, settings) -> {
+                    TestCompiler c = new TestCompiler(id, api, settings);
+                    c.toThrow = new IOException("io");
+                    return c;
+                }));
     }
 
+    @Test
+    public void testCommandLineSucceeds() {
+        assertEquals(0, AbstractCompiler.runCommandLine("test", new String[]{"-o", "x.bin", "a.asm"}, TestCompiler::new));
+    }
 }

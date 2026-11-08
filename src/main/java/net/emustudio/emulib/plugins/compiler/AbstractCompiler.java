@@ -2,46 +2,28 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.compiler;
 
-import net.emustudio.emulib.plugins.PluginInitializationException;
-import net.emustudio.emulib.plugins.annotations.PluginRoot;
-import net.emustudio.emulib.plugins.compiler.CompilerMessage.MessageType;
+import net.emustudio.emulib.plugins.AbstractPlugin;
 import net.emustudio.emulib.runtime.ApplicationApi;
+import net.emustudio.emulib.runtime.io.FileType;
 import net.emustudio.emulib.runtime.settings.PluginSettings;
-import net.jcip.annotations.NotThreadSafe;
 
-import javax.swing.*;
-import java.util.Objects;
+import java.nio.file.Path;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
- * Implements fundamental functionality useful for most of the compiler plugins.
+ * Compiler base. Implements listeners and the compilation workflow:
+ * <ol>
+ *     <li>listeners are notified about the start; title and version are reported</li>
+ *     <li>output path is resolved (replacing source file extension by {@link #getOutputExtension()})</li>
+ *     <li>{@link #compile(Path, Path)} is called; {@link CompileException} or any other exception is reported
+ *     as an error</li>
+ *     <li>listeners are notified about the finish</li>
+ * </ol>
  */
-@SuppressWarnings("unused")
-@NotThreadSafe
-public abstract class AbstractCompiler implements Compiler {
-    /**
-     * Plugin ID assigned by emuStudio
-     */
-    protected final long pluginID;
-
-    /**
-     * emuStudio API.
-     */
-    protected final ApplicationApi applicationApi;
-
-    /**
-     * Compiler custom settings.
-     */
-    protected final PluginSettings settings;
-
-    /**
-     * List of all compiler compilerListeners. The compilerListeners are objects implementing
-     * the CompilerListener interface. Methods within the compilerListeners are called
-     * if the compiler wants to print something out on the screen (info, warning
-     * or error message).
-     */
-    private final Set<CompilerListener> compilerListeners = new CopyOnWriteArraySet<>();
+public abstract class AbstractCompiler extends AbstractPlugin implements Compiler {
+    private final Set<CompilerListener> listeners = new CopyOnWriteArraySet<>();
 
     /**
      * Creates new instance.
@@ -51,171 +33,125 @@ public abstract class AbstractCompiler implements Compiler {
      * @param settings       plugin custom settings
      */
     public AbstractCompiler(long pluginID, ApplicationApi applicationApi, PluginSettings settings) {
-        this.pluginID = pluginID;
-        this.applicationApi = Objects.requireNonNull(applicationApi);
-        this.settings = Objects.requireNonNull(settings);
+        super(pluginID, applicationApi, settings);
     }
 
     /**
-     * Does nothing. Should be overridden.
-     */
-    @Override
-    public void initialize() throws PluginInitializationException {
-
-    }
-
-    /**
-     * Does nothing. Should be overridden.
-     */
-    @Override
-    public void destroy() {
-
-    }
-
-    /**
-     * Get plugin title
+     * Compiles the input file into the output file.
+     * <p>
+     * Errors can be reported either by {@link #error(SourceCodePosition, String)} or by throwing an exception.
      *
-     * @return title from the {@link PluginRoot} annotation
+     * @param input  input file path (source code)
+     * @param output output file path
+     * @throws Exception on compilation error
      */
-    @Override
-    public String getTitle() {
-        return getClass().getAnnotation(PluginRoot.class).title();
-    }
+    protected abstract void compile(Path input, Path output) throws Exception;
 
     /**
-     * Does nothing. Should be overridden.
-     */
-    @Override
-    public void showSettings(JFrame parent) {
-
-    }
-
-    /**
-     * Return false. Should be overridden.
+     * Output file extension (without dot), used when output path is not given.
      *
-     * @return false
+     * @return output file extension, e.g. "hex"
      */
+    protected abstract String getOutputExtension();
+
     @Override
-    public boolean isShowSettingsSupported() {
-        return false;
+    public final void compile(Path inputPath, Optional<Path> outputPath) {
+        listeners.forEach(CompilerListener::onStart);
+        try {
+            info(getTitle() + ", version " + getVersion());
+            compile(inputPath, outputPath.orElseGet(
+                    () -> FileType.replaceExtension(inputPath, getSourceFileTypes(), getOutputExtension())));
+        } catch (CompileException e) {
+            error(e.position, e.getMessage());
+        } catch (Exception e) {
+            error("Compilation error: " + e);
+        } finally {
+            listeners.forEach(CompilerListener::onFinish);
+        }
     }
 
-    /**
-     * Adds a listener onto compilerListeners list
-     *
-     * @param listener listener object
-     */
     @Override
     public void addCompilerListener(CompilerListener listener) {
-        compilerListeners.add(listener);
+        listeners.add(listener);
     }
 
-    /**
-     * Removes the listener from compilerListeners list
-     *
-     * @param listener listener object
-     */
     @Override
     public void removeCompilerListener(CompilerListener listener) {
-        compilerListeners.remove(listener);
+        listeners.remove(listener);
+    }
+
+    protected void error(String message) {
+        error(null, message);
     }
 
     /**
-     * This method notifies all compilerListeners that the compiler is starting
-     * the compile process.
-     * <p>
-     * This method should be called whenever the compiler begins to run.
+     * @param position source position, or null
+     * @param message  message
      */
-    protected void notifyCompileStart() {
-        compilerListeners.forEach(CompilerListener::onStart);
+    protected void error(SourceCodePosition position, String message) {
+        report(new CompilerMessage(CompilerMessage.Type.ERROR, message, position));
+    }
+
+    protected void warning(String message) {
+        report(new CompilerMessage(CompilerMessage.Type.WARNING, message, null));
+    }
+
+    protected void info(String message) {
+        report(new CompilerMessage(CompilerMessage.Type.INFO, message, null));
+    }
+
+    private void report(CompilerMessage message) {
+        listeners.forEach(listener -> listener.onMessage(message));
     }
 
     /**
-     * This method notifies all compilerListeners that the compiler finished
-     * the compile process right now.
-     * <p>
-     * This method should be called whenever the compiler ends the execution.
+     * Compiler plugin constructor.
      */
-    protected void notifyCompileFinish() {
-        compilerListeners.forEach(CompilerListener::onFinish);
+    @FunctionalInterface
+    public interface Factory {
+        Compiler create(long pluginID, ApplicationApi applicationApi, PluginSettings settings);
     }
 
     /**
-     * This method notifies all compilerListeners that the compiler wants to print
-     * something out (a message).
-     * <p>
-     * This method should be called when the compiler wants to notify the user
-     * about some warning or error during compilation; or wants to inform the
-     * user of something else (e.g. copyright information).
+     * Command-line runner for compilers. Usage: {@code [-o outputFile] inputFile}, {@code --version}, {@code --help}.
+     * Messages are printed to standard error output.
      *
-     * @param compilerMessage The message
+     * @param jarName jar file name used in help
+     * @param args    command-line arguments
+     * @param factory compiler constructor, e.g. {@code MyCompiler::new}
+     * @return exit code: 0 if successful, 1 if there were errors
      */
-    public void notifyOnMessage(CompilerMessage compilerMessage) {
-        compilerListeners.forEach(listener -> listener.onMessage(compilerMessage));
-    }
-
-    /**
-     * Notifies the error message.
-     *
-     * @param msg text of the message
-     */
-    public void notifyError(String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, msg));
-    }
-
-    /**
-     * Notifies the error message.
-     *
-     * @param position position in the source code
-     * @param msg      text of the message
-     */
-    public void notifyError(SourceCodePosition position, String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_ERROR, msg, position));
-    }
-
-    /**
-     * Notifies information message
-     *
-     * @param msg text of the message
-     */
-    public void notifyInfo(String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, msg));
-    }
-
-    /**
-     * Notifies information message
-     *
-     * @param position position in the source code
-     * @param msg      text of the message
-     */
-    public void notifyInfo(SourceCodePosition position, String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_INFO, msg, position));
-    }
-
-    /**
-     * Fires warning message
-     *
-     * @param msg text of the message
-     */
-    public void notifyWarning(String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg));
-    }
-
-    /**
-     * Fires warning message
-     *
-     * @param position position in the source code
-     * @param msg      text of the message
-     */
-    public void notifyWarning(SourceCodePosition position, String msg) {
-        notifyOnMessage(new CompilerMessage(MessageType.TYPE_WARNING, msg, position));
-    }
-
-    /**
-     * Does nothing.
-     */
-    @Override
-    public void reset() {
-
+    public static int runCommandLine(String jarName, String[] args, Factory factory) {
+        Compiler compiler = factory.create(0L, ApplicationApi.UNAVAILABLE, PluginSettings.UNAVAILABLE);
+        String outputFile = null;
+        int i = 0;
+        for (; i < args.length; i++) {
+            String arg = args[i].toLowerCase();
+            if ((arg.equals("--output") || arg.equals("-o")) && i + 1 < args.length) {
+                outputFile = args[++i];
+            } else if (arg.equals("--help") || arg.equals("-h")) {
+                System.out.println("Syntax: java -jar " + jarName + ".jar [-o outputFile] inputFile\nOptions:\n" +
+                        "\t--output, -o\tfile: name of the output file\n" +
+                        "\t--version, -v\t: print version\n" +
+                        "\t--help, -h\t: this help");
+                return 0;
+            } else if (arg.equals("--version") || arg.equals("-v")) {
+                System.out.println(compiler.getVersion());
+                return 0;
+            } else {
+                break;
+            }
+        }
+        if (i >= args.length) {
+            System.err.println("Error: expected input file name");
+            return 1;
+        }
+        boolean[] failed = new boolean[1];
+        compiler.addCompilerListener(message -> {
+            failed[0] |= message.getType() == CompilerMessage.Type.ERROR;
+            System.err.println(message.getFormattedMessage());
+        });
+        compiler.compile(Path.of(args[i]), Optional.ofNullable(outputFile).map(Path::of));
+        return failed[0] ? 1 : 0;
     }
 }

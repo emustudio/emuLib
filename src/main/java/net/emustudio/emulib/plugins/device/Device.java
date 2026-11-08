@@ -20,18 +20,20 @@ public interface Device extends Plugin {
 
     /**
      * Shows GUI of the device.
-     * <p>
-     * In case GUI is not supported, it should do nothing.
+     * Called only if {@link #isGuiSupported()} returns true.
      *
      * @param parent emuStudio main window
      */
-    void showGUI(JFrame parent);
+    default void showGUI(JFrame parent) {
+    }
 
     /**
      * Returns true if this device has GUI.
      *
      * @return true if GUI is supported; false otherwise
      */
-    boolean isGuiSupported();
+    default boolean isGuiSupported() {
+        return false;
+    }
 }
 

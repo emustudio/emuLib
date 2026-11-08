@@ -2,71 +2,38 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.ui;
 
-import net.emustudio.emulib.runtime.helpers.Unchecked;
-import net.emustudio.emulib.runtime.ui.components.FileExtensionsFilter;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
-import java.awt.event.ItemEvent;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
 import java.awt.image.BaseMultiResolutionImage;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Path;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ExecutionException;
-import java.util.function.Consumer;
-
-import static java.lang.StackWalker.Option.RETAIN_CLASS_REFERENCE;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * GUI interface providing factory methods for common Swing components.
+ * Factory of host-styled Swing components for plugins, plus static Swing helpers.
  * <p>
- * Implementations are provided by the host application (e.g., emuStudio) and made available to plugins via
- * {@link net.emustudio.emulib.runtime.ApplicationApi#getGUI()}.
- * <p>
- * Static utility methods ({@link #loadIcon(String)}, {@link #loadFontResource}, {@link #addKeyListenerRecursively},
- * {@link #removeKeyListenerRecursively}) are provided directly on this interface and do not depend on any
- * external layout or look-and-feel libraries.
- * Toolbar factories provide accessible names from their tooltip or action name; callers can override them.
+ * The host application (e.g., emuStudio) implements the factory methods and provides the instance via
+ * {@link net.emustudio.emulib.runtime.ApplicationApi#getGUI()}. Panel layout constraints are MigLayout strings.
  */
-@SuppressWarnings("unused")
 public interface GUI {
 
     /**
-     * Loads an icon from a resource, using the caller's class for resource lookup.
-     * <p>
-     * Uses {@link StackWalker} to determine the caller's class so that the correct classloader is used
-     * for plugin resources.
-     * If present, a matching resource with {@code @2x} before the file extension (e.g.,
-     * {@code icon@2x.png} for {@code icon.png}) is used for high-resolution rendering.
+     * Loads an icon from a resource. If a matching resource with {@code @2x} before the file extension exists
+     * (e.g. {@code icon@2x.png} for {@code icon.png}), it is used for high-resolution rendering.
      *
-     * @param resource resource path
-     * @return loaded icon, or null if the icon could not be loaded
-     */
-    static ImageIcon loadIcon(String resource) {
-        Class<?> klass = StackWalker.getInstance(RETAIN_CLASS_REFERENCE).getCallerClass();
-        return loadIcon(resource, klass);
-    }
-
-    /**
-     * Loads an icon from a resource using the given class for resource lookup.
-     * If present, a matching resource with {@code @2x} before the file extension is combined
-     * with the base image in a {@link BaseMultiResolutionImage}. Otherwise, only the base image is used.
-     *
-     * @param resource    resource path
-     * @param callerClass the class whose classloader should be used for resource lookup
+     * @param resource      resource path; relative paths are resolved against {@code resourceClass}
+     * @param resourceClass class whose classloader is used for resource lookup
      * @return loaded icon, or null if the base resource could not be found
      */
-    static ImageIcon loadIcon(String resource, Class<?> callerClass) {
-        Class<?> resourceClass = callerClass == null ? GUI.class : callerClass;
+    static ImageIcon loadIcon(String resource, Class<?> resourceClass) {
         URL url = resourceClass.getResource(resource);
         if (url == null) {
             return null;
@@ -76,27 +43,23 @@ public interface GUI {
         if (extension <= resource.lastIndexOf('/')) {
             extension = resource.length();
         }
-        String resource2x = resource.substring(0, extension) + "@2x" + resource.substring(extension);
-        URL url2x = resourceClass.getResource(resource2x);
+        URL url2x = resourceClass.getResource(resource.substring(0, extension) + "@2x" + resource.substring(extension));
         return url2x == null ? icon : new ImageIcon(new BaseMultiResolutionImage(
                 icon.getImage(), new ImageIcon(url2x).getImage()), icon.getDescription());
     }
 
     /**
-     * Loads a true-type font from a resource. The font is derived true-type, plain with given size and kerning enabled.
+     * Loads and registers a plain true-type font with kerning enabled.
      *
-     * @param path          Resource path
-     * @param resourceClass class where to look for resources
-     * @param size          Default font size
-     * @return loaded font, or {@code Font.MONOSPACED} if the font could not be loaded
+     * @param path          resource path; relative paths are resolved against {@code resourceClass}
+     * @param resourceClass class whose classloader is used for resource lookup
+     * @param size          font size
+     * @return loaded font, or a plain {@code Font.MONOSPACED} font if the font could not be loaded
      */
     static Font loadFontResource(String path, Class<?> resourceClass, int size) {
-        Map<TextAttribute, Object> attrs = new HashMap<>();
-        attrs.put(TextAttribute.KERNING, TextAttribute.KERNING_ON);
-
         try (InputStream fin = resourceClass.getResourceAsStream(path)) {
             Font font = Font.createFont(Font.TRUETYPE_FONT, Objects.requireNonNull(fin))
-                    .deriveFont(Font.PLAIN, size).deriveFont(attrs);
+                    .deriveFont(Font.PLAIN, size).deriveFont(Map.of(TextAttribute.KERNING, TextAttribute.KERNING_ON));
             GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(font);
             return font;
         } catch (Exception e) {
@@ -105,89 +68,83 @@ public interface GUI {
     }
 
     /**
-     * Runs a (potentially long-running, exception-throwing) task off the Event Dispatch Thread using a
-     * {@link SwingWorker}, with a consistent enable/disable and error-handling policy.
+     * Shortens text to fit the given width when rendered with the component's font.
      * <p>
-     * The given action is disabled before the task starts and re-enabled when it finishes (whether it
-     * succeeds or fails). On success {@code onSuccess} is invoked on the EDT; on failure {@code onError}
-     * is invoked on the EDT with the unwrapped cause.
-     * Calls from other threads are queued on the EDT. Calls while the action is disabled are ignored.
+     * The text is cut in the middle, keeping a prefix and suffix around "..."; Unicode characters (grapheme
+     * clusters) are kept intact. If even "..." does not fit, only the dots that fit are returned.
      *
-     * @param action    the action to disable while the task runs (e.g. the invoking {@code AbstractAction})
-     * @param task      the work to perform on a background thread
-     * @param onSuccess callback invoked on the EDT after the task completes successfully
-     * @param onError   callback invoked on the EDT with the unwrapped cause if the task fails
+     * @param text      text to shorten
+     * @param component component whose font is used for measuring
+     * @param width     available width in pixels; non-positive widths produce an empty string
+     * @return text, or its shortened form that fits the width
      */
-    static void runInBackground(Action action, Unchecked.RunnableWhichCanThrow task,
-                                Runnable onSuccess, Consumer<Throwable> onError) {
-        Objects.requireNonNull(action);
-        Objects.requireNonNull(task);
-        Objects.requireNonNull(onSuccess);
-        Objects.requireNonNull(onError);
-
-        if (!SwingUtilities.isEventDispatchThread()) {
-            SwingUtilities.invokeLater(() -> runInBackground(action, task, onSuccess, onError));
-            return;
+    static String shortenToFit(String text, Component component, int width) {
+        FontMetrics metrics = component.getFontMetrics(component.getFont());
+        if (metrics.stringWidth(text) <= width) {
+            return text;
         }
-        if (!action.isEnabled()) {
-            return;
+        String best = "";
+        int low = 0;
+        int high = text.length() - 1;
+        while (low <= high) {
+            int length = low + (high - low) / 2;
+            String candidate = shorten(text, length);
+            if (metrics.stringWidth(candidate) <= width) {
+                best = candidate;
+                low = length + 1;
+            } else {
+                high = length - 1;
+            }
         }
-        action.setEnabled(false);
-        new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() throws Exception {
-                task.run();
-                return null;
-            }
+        return best;
+    }
 
-            @Override
-            protected void done() {
-                try {
-                    get();
-                    onSuccess.run();
-                } catch (Exception ex) {
-                    Throwable cause = ex instanceof ExecutionException ? ex.getCause() : ex;
-                    onError.accept(cause);
-                } finally {
-                    action.setEnabled(true);
-                }
+    private static String shorten(String text, int maxLength) {
+        if (maxLength < 3) {
+            return "...".substring(0, maxLength);
+        }
+        int visible = maxLength - 3;
+        int prefixBudget = visible / 2;
+        int suffixBoundary = text.length() - (visible - prefixBudget);
+        int prefixEnd = 0;
+        int suffixStart = text.length();
+        Matcher characters = Pattern.compile("\\X").matcher(text);
+        while (characters.find()) {
+            if (characters.end() <= prefixBudget) {
+                prefixEnd = characters.end();
             }
-        }.execute();
+            if (characters.start() >= suffixBoundary) {
+                suffixStart = characters.start();
+                break;
+            }
+        }
+        return text.substring(0, prefixEnd) + "..." + text.substring(suffixStart);
     }
 
     /**
-     * Adds a KeyListener to given component recursively.
-     * Also installs a ContainerListener so that dynamically added children automatically get the KeyListener.
+     * Adds a KeyListener to the component and all its descendants, including children added later.
+     * Adding the same listener twice has no effect.
      *
      * @param component GUI component
      * @param listener  KeyListener object
      */
     static void addKeyListenerRecursively(Component component, KeyListener listener) {
-        if (!hasKeyListener(component, listener)) {
+        if (!Arrays.asList(component.getKeyListeners()).contains(listener)) {
             component.addKeyListener(listener);
         }
         if (component instanceof Container) {
-            Container cont = (Container) component;
-            for (Component child : cont.getComponents()) {
+            Container container = (Container) component;
+            for (Component child : container.getComponents()) {
                 addKeyListenerRecursively(child, listener);
             }
-            boolean hasAdapter = false;
-            for (ContainerListener cl : cont.getContainerListeners()) {
-                if (cl instanceof KeyListenerContainerAdapter
-                        && ((KeyListenerContainerAdapter) cl).keyListener == listener) {
-                    hasAdapter = true;
-                    break;
-                }
-            }
-            if (!hasAdapter) {
-                cont.addContainerListener(new KeyListenerContainerAdapter(listener));
+            if (findAdapter(container, listener) == null) {
+                container.addContainerListener(new KeyListenerContainerAdapter(listener));
             }
         }
     }
 
     /**
-     * Removes given KeyListener from a component recursively.
-     * Also removes the ContainerListener that was installed by {@link #addKeyListenerRecursively}.
+     * Removes a KeyListener added by {@link #addKeyListenerRecursively} from the component and its descendants.
      *
      * @param component GUI component
      * @param listener  KeyListener object
@@ -195,32 +152,26 @@ public interface GUI {
     static void removeKeyListenerRecursively(Component component, KeyListener listener) {
         component.removeKeyListener(listener);
         if (component instanceof Container) {
-            Container cont = (Container) component;
-            for (ContainerListener cl : cont.getContainerListeners()) {
-                if (cl instanceof KeyListenerContainerAdapter
-                        && ((KeyListenerContainerAdapter) cl).keyListener == listener) {
-                    cont.removeContainerListener(cl);
-                    break;
-                }
-            }
-            for (Component child : cont.getComponents()) {
+            Container container = (Container) component;
+            container.removeContainerListener(findAdapter(container, listener));
+            for (Component child : container.getComponents()) {
                 removeKeyListenerRecursively(child, listener);
             }
         }
     }
 
-    /**
-     * Toolbar button - a JButton ready to add to a toolbar.
-     *
-     * @param action       button action
-     * @param iconResource icon resource path
-     * @param tooltipText  tooltip text
-     * @return the toolbar button
-     */
-    JButton toolbarButton(Consumer<ActionEvent> action, String iconResource, String tooltipText);
+    private static ContainerListener findAdapter(Container container, KeyListener listener) {
+        for (ContainerListener cl : container.getContainerListeners()) {
+            if (cl instanceof KeyListenerContainerAdapter && ((KeyListenerContainerAdapter) cl).keyListener == listener) {
+                return cl;
+            }
+        }
+        return null;
+    }
 
     /**
-     * Toolbar button - a JButton ready to add to a toolbar.
+     * Creates a toolbar button from an action. The action provides the icon ({@link Action#SMALL_ICON}),
+     * tooltip and accessible name ({@link Action#SHORT_DESCRIPTION}) and enabled state; the text is hidden.
      *
      * @param action button action
      * @return the toolbar button
@@ -228,272 +179,112 @@ public interface GUI {
     JButton toolbarButton(Action action);
 
     /**
-     * Toolbar button - a JButton ready to add to a toolbar.
-     *
-     * @param action       button action
-     * @param iconResource icon resource path
-     * @param tooltipText  tooltip text
-     * @return the toolbar button
-     */
-    JButton toolbarButton(Action action, String iconResource, String tooltipText);
-
-    /**
-     * Toolbar toggle button - a JToggleButton ready to add to a toolbar.
-     *
-     * @param action       button action
-     * @param itemAction   item state change action
-     * @param iconResource icon resource path
-     * @param tooltipText  tooltip text
-     * @return the toolbar toggle button
-     */
-    JToggleButton toolbarToggleButton(Consumer<ActionEvent> action, Consumer<ItemEvent> itemAction,
-                                      String iconResource, String tooltipText);
-
-    /**
-     * Toolbar toggle button - a JToggleButton ready to add to a toolbar.
-     *
-     * @param action       button action
-     * @param iconResource icon resource path
-     * @param tooltipText  tooltip text
-     * @return the toolbar toggle button
-     */
-    JToggleButton toolbarToggleButton(Consumer<ActionEvent> action, String iconResource, String tooltipText);
-
-    /**
-     * Creates a JLabel with given text.
+     * Creates a plain label.
      *
      * @param text label text
-     * @return the JLabel
+     * @return the label
      */
     JLabel label(String text);
 
     /**
-     * Creates a bold JLabel with given text.
+     * Creates a bold label.
      *
      * @param text label text
-     * @return the bold JLabel
+     * @return the bold label
      */
     JLabel labelBold(String text);
 
     /**
-     * Creates a title JLabel with given text (bold, larger font).
-     *
-     * @param text label text
-     * @return the title JLabel
-     */
-    JLabel labelTitle(String text);
-
-    /**
-     * Creates a JLabel with given text and padding (empty border).
-     *
-     * @param text   label text
-     * @param top    top padding in pixels
-     * @param left   left padding in pixels
-     * @param bottom bottom padding in pixels
-     * @param right  right padding in pixels
-     * @return the padded JLabel
-     */
-    JLabel labelPadded(String text, int top, int left, int bottom, int right);
-
-    /**
-     * Makes a JButton look like a primary button.
-     *
-     * @param button the JButton
-     * @return the same JButton with modified properties
-     */
-    JButton buttonMakePrimary(JButton button);
-
-    /**
-     * Creates a JButton with given text.
+     * Creates a button; add listeners with {@link JButton#addActionListener}.
      *
      * @param text button text
-     * @return the JButton
+     * @return the button
      */
     JButton button(String text);
 
     /**
-     * Creates a JButton with given text and action.
+     * Styles a button as the primary (default) button of a dialog.
      *
-     * @param text   button text
-     * @param action button action
-     * @return the JButton
+     * @param button the button
+     * @return the same button
      */
-    JButton button(String text, Runnable action);
+    JButton buttonMakePrimary(JButton button);
 
     /**
-     * Creates a JButton with given icon, text and action.
-     *
-     * @param iconResource icon resource path
-     * @param text         button text
-     * @param action       button action
-     * @return the JButton
-     */
-    JButton button(String iconResource, String text, Runnable action);
-
-    /**
-     * Creates a JButton with given text and action.
-     *
-     * @param text   button text
-     * @param action button action
-     * @return the JButton
-     */
-    JButton button(String text, ActionListener action);
-
-    /**
-     * Creates a browse button for directory selection.
-     *
-     * @param dialogs           emuStudio dialogs
-     * @param dialogTitle       Open/Save dialog title
-     * @param approveButtonText Approve button text
-     * @param onApprove         Approved path consumer
-     * @return the browse button
-     */
-    JButton buttonBrowseDirectories(Dialogs dialogs, String dialogTitle, String approveButtonText,
-                                    Consumer<Path> onApprove);
-
-    /**
-     * Creates a browse button for file selection.
-     *
-     * @param dialogs                 emuStudio dialogs
-     * @param dialogTitle             Open/Save dialog title
-     * @param approveButtonText       Approve button text
-     * @param appendMissingExtensions Append extension to selected file if it doesn't have it
-     * @param onApprove               Approved path consumer
-     * @param filters                 list of file filters
-     * @return the browse button
-     */
-    JButton buttonBrowseFiles(Dialogs dialogs, String dialogTitle, String approveButtonText,
-                              boolean appendMissingExtensions, Consumer<Path> onApprove,
-                              FileExtensionsFilter... filters);
-
-    /**
-     * Creates a JMenuItem from a Swing Action.
-     *
-     * @param action the action for the menu item
-     * @return the JMenuItem
-     */
-    JMenuItem menuItem(Action action);
-
-    /**
-     * Creates a JTextField with given text. The columns count is set to 20.
-     *
-     * @param text initial text
-     * @return the JTextField
-     */
-    JTextField textField(String text);
-
-    /**
-     * Creates a JTextField with given text.
+     * Creates a text field.
      *
      * @param text    initial text
      * @param columns number of columns
-     * @return the JTextField
+     * @return the text field
      */
     JTextField textField(String text, int columns);
 
     /**
-     * Creates a non-editable JTextArea with given columns and rows.
+     * Creates a non-editable text area.
      *
-     * @param columns number of columns
      * @param rows    number of rows
-     * @return the non-editable JTextArea
+     * @param columns number of columns
+     * @return the text area
      */
-    JTextArea textAreaReadOnly(int columns, int rows);
+    JTextArea textAreaReadOnly(int rows, int columns);
 
     /**
-     * Creates a non-floatable, rollover JToolBar with no border painted.
+     * Creates a horizontal, non-floatable toolbar. Use {@link JToolBar#setOrientation} for a vertical one.
      *
-     * @return the JToolBar
+     * @return the toolbar
      */
     JToolBar toolBar();
 
     /**
-     * Creates a vertical JToolBar.
+     * Creates a split pane.
      *
-     * @return the vertical JToolBar
+     * @param orientation  {@link JSplitPane#HORIZONTAL_SPLIT} (left to right) or
+     *                     {@link JSplitPane#VERTICAL_SPLIT} (top to bottom)
+     * @param first        left or top component
+     * @param second       right or bottom component
+     * @param resizeWeight how extra space is distributed (0 = all to second, 1 = all to first)
+     * @return the split pane
      */
-    JToolBar toolBarVertical();
+    JSplitPane splitPane(int orientation, Component first, Component second, double resizeWeight);
 
     /**
-     * Creates a JSplitPane with no border, one-touch expandable and continuous layout.
+     * Creates a borderless scroll pane.
      *
-     * @return the JSplitPane
-     */
-    JSplitPane splitPane();
-
-    /**
-     * Creates a horizontal JSplitPane with left and right components.
-     *
-     * @param left         left component
-     * @param right        right component
-     * @param resizeWeight resize weight
-     * @return the JSplitPane
-     */
-    JSplitPane splitPaneLeftToRight(Component left, Component right, Double resizeWeight);
-
-    /**
-     * Creates a vertical JSplitPane with top and bottom components.
-     *
-     * @param top          top component
-     * @param bottom       bottom component
-     * @param resizeWeight resize weight
-     * @return the JSplitPane
-     */
-    JSplitPane splitPaneTopToBottom(Component top, Component bottom, Double resizeWeight);
-
-    /**
-     * Creates a JScrollPane with no border around the viewport.
-     *
-     * @param view the component to be displayed in the scroll pane
-     * @return the JScrollPane
+     * @param view the scrolled component
+     * @return the scroll pane
      */
     JScrollPane scrollPane(Component view);
 
     /**
-     * Creates a JPanel with custom layout constraints.
+     * Creates a panel with MigLayout.
      *
      * @param layoutConstraints layout constraints
      * @param colConstraints    column constraints
      * @param rowConstraints    row constraints
-     * @return the JPanel
+     * @return the panel
      */
     JPanel panel(String layoutConstraints, String colConstraints, String rowConstraints);
 
     /**
-     * Creates a JPanel in a horizontal arrangement.
-     *
-     * @return the JPanel in a horizontal arrangement
-     */
-    JPanel panelHorizontal();
-
-    /**
-     * Applies the host's table styling, preserving larger row heights and accommodating the current font.
-     * Reapplying the style must not keep increasing row heights.
-     *
-     * @param table the JTable
-     */
-    void styleTable(JTable table);
-
-    /**
-     * Makes a JList look modern.
-     *
-     * @param list the JList
-     */
-    void styleList(JList<?> list);
-
-    /**
-     * Creates a titled section panel.
+     * Creates a panel with MigLayout and a titled border.
      *
      * @param title             section title
      * @param layoutConstraints layout constraints
      * @param colConstraints    column constraints
      * @param rowConstraints    row constraints
-     * @return JPanel with a titled border
+     * @return the titled panel
      */
     JPanel section(String title, String layoutConstraints, String colConstraints, String rowConstraints);
 
     /**
-     * ContainerListener that automatically adds/removes a KeyListener to/from dynamically added/removed children.
+     * Applies the host's table styling. Reapplying the style must not keep increasing row heights.
+     *
+     * @param table the table
+     */
+    void styleTable(JTable table);
+
+    /**
+     * Container listener propagating a key listener to added children and removing it from removed ones.
      */
     class KeyListenerContainerAdapter implements ContainerListener {
         final KeyListener keyListener;
@@ -511,17 +302,5 @@ public interface GUI {
         public void componentRemoved(ContainerEvent e) {
             removeKeyListenerRecursively(e.getChild(), keyListener);
         }
-    }
-
-    /**
-     * Checks if a component already has a given key listener.
-     */
-    private static boolean hasKeyListener(Component component, KeyListener listener) {
-        for (KeyListener kl : component.getKeyListeners()) {
-            if (kl == listener) {
-                return true;
-            }
-        }
-        return false;
     }
 }

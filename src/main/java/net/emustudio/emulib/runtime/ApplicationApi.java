@@ -3,9 +3,8 @@
 package net.emustudio.emulib.runtime;
 
 import net.emustudio.emulib.runtime.ui.Dialogs;
-import net.emustudio.emulib.runtime.annotations.AnnotationEngine;
+import net.emustudio.emulib.runtime.annotations.MemoryAnnotations;
 import net.emustudio.emulib.runtime.ui.GUI;
-import net.emustudio.emulib.runtime.ui.debugger.DebuggerTable;
 import net.jcip.annotations.ThreadSafe;
 
 /**
@@ -18,14 +17,7 @@ import net.jcip.annotations.ThreadSafe;
 public interface ApplicationApi {
 
     /** Returns the active computer's live annotations, or null when unavailable. */
-    AnnotationEngine getAnnotations();
-
-    /**
-     * Get debugger table.
-     *
-     * @return debugger table in emuStudio.
-     */
-    DebuggerTable getDebuggerTable();
+    MemoryAnnotations getAnnotations();
 
     /** Returns current execution state, or null when unavailable. */
     ExecutionState getExecutionState();
@@ -81,76 +73,17 @@ public interface ApplicationApi {
     int getProgramLocation();
 
     /**
-     * "Unavailable" instance of ApplicationApi.
-     * <p>
-     * It means that all methods return dummy or null values.
-     * <p>
-     * The instance might be useful when creating plugin object without emuStudio (e.g. a plugin wants to support
-     * command-line interface).
+     * Unavailable API; all services are null. Useful for creating plugins outside emuStudio (e.g. tests, listing).
      */
     ApplicationApi UNAVAILABLE = new ApplicationApi() {
-        @Override
-        public AnnotationEngine getAnnotations() {
-            return null;
-        }
-
-        @Override
-        public ExecutionState getExecutionState() {
-            return null;
-        }
-
-        /**
-         * Returns null.
-         * @return null
-         */
-        @Override
-        public DebuggerTable getDebuggerTable() {
-            return null;
-        }
-
-        /**
-         * Returns null.
-         * @return null
-         */
-        @Override
-        public ContextPool getContextPool() {
-            return null;
-        }
-
-        /**
-         * Returns null.
-         * @return null
-         */
-        @Override
-        public Dialogs getDialogs() {
-            return null;
-        }
-
-        /**
-         * Returns null.
-         * @return null
-         */
-        @Override
-        public GUI getGUI() {
-            return null;
-        }
-
-        /**
-         * Does nothing.
-         * @param location program start location (usually a memory address)
-         */
-        @Override
-        public void setProgramLocation(int location) {
-
-        }
-
-        /**
-         * Returns 0
-         * @return 0
-         */
-        @Override
-        public int getProgramLocation() {
-            return 0;
-        }
+        // @formatter:off
+        @Override public MemoryAnnotations getAnnotations() { return null; }
+        @Override public ExecutionState getExecutionState() { return null; }
+        @Override public ContextPool getContextPool() { return null; }
+        @Override public Dialogs getDialogs() { return null; }
+        @Override public GUI getGUI() { return null; }
+        @Override public void setProgramLocation(int location) { }
+        @Override public int getProgramLocation() { return 0; }
+        // @formatter:on
     };
 }

@@ -2,319 +2,94 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.runtime.helpers;
 
-import net.jcip.annotations.NotThreadSafe;
-
-import java.math.BigInteger;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import net.jcip.annotations.ThreadSafe;
 
 /**
- * The class contains several methods used for work with numbers in various
- * radixes.
- * <p>
- * Numbers represented in various radixes are used widely in system programming
- * in all times. This class tries to make parsing, converting and working with
- * various number radixes easier.
+ * Parsing and formatting of numbers in the radixes common in system programming.
  */
-@NotThreadSafe
-public class RadixUtils {
-    private static final RadixUtils INSTANCE = new RadixUtils();
+@ThreadSafe
+public final class RadixUtils {
     private static final char[] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
-
-    private final List<NumberPattern> patterns = List.of(
-            new NumberPattern("0x[0-9a-f]+", 16, 2, 0),
-            new NumberPattern("[0-9a-f]+h", 16, 0, 1),
-            new NumberPattern("[0-9]+", 10, 0, 0),
-            new NumberPattern("[0-9]+d", 10, 0, 1),
-            new NumberPattern("[0-7]+o", 8, 0, 1)
-    );
-
-    // Number syntax in one radix; prefix and suffix characters (e.g. "0x", "h") are cut before parsing.
-    private static final class NumberPattern {
-        private final Pattern pattern;
-        private final int radix;
-        private final int prefixLength;
-        private final int suffixLength;
-        private Matcher cachedMatcher;
-
-        NumberPattern(String regex, int radix, int prefixLength, int suffixLength) {
-            this.pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
-            this.radix = radix;
-            this.prefixLength = prefixLength;
-            this.suffixLength = suffixLength;
-        }
-
-        boolean matches(String number) {
-            if (cachedMatcher == null) {
-                cachedMatcher = pattern.matcher(number);
-            } else {
-                cachedMatcher.reset(number);
-            }
-            return cachedMatcher.matches();
-        }
-
-        int parse(String number) {
-            return Integer.parseInt(number.substring(prefixLength, number.length() - suffixLength), radix);
-        }
-    }
 
     private RadixUtils() {
     }
 
     /**
-     * Gets the singleton instance of RadixUtils.
-     *
-     * @return RadixUtils instance
-     */
-    public static RadixUtils getInstance() {
-        return INSTANCE;
-    }
-
-    /**
-     * Converts number in any length to a number with specified radix.
-     *
-     * @param number       any-length number. Array of number components stored in
-     *                     little endian.
-     * @param toRadix      the radix of converted number
-     * @param littleEndian If the number is in little endian (true), or big endian (false)
-     * @return String of a number in specified radix
-     */
-    public static String convertToRadix(byte[] number, int toRadix, boolean littleEndian) {
-        checkRadix(toRadix);
-        if (toRadix == 16) {
-            return toHexString(number, littleEndian);
-        }
-        // Fast path: if the byte array fits in a long (≤ 8 bytes), avoid BigInteger
-        if (number.length <= 8) {
-            long value = toLongValue(number, littleEndian);
-            return toRadixStringFast(value, toRadix);
-        }
-        return toRadixStringUnchecked(toBigInteger(number, littleEndian), toRadix);
-    }
-
-    /**
-     * Parses a number in known radix into integer.
-     *
-     * @param number number in some known radix
-     * @return parsed integer
-     * @throws NumberFormatException if the number is not in known format
-     */
-    public int parseRadix(String number) throws NumberFormatException {
-        for (NumberPattern pattern : patterns) {
-            if (pattern.matches(number)) {
-                return pattern.parse(number);
-            }
-        }
-        throw new NumberFormatException("Number not recognized");
-    }
-
-    /**
-     * Get formatted string of a byte.
+     * Parses an integer written in assembler-style notation.
      * <p>
-     * Formatting is using pattern "%02X".
+     * Accepted syntax (case-insensitive, no surrounding whitespace): optional sign {@code +}/{@code -}, followed by
+     * <ul>
+     *   <li>{@code 0x} prefix: hexadecimal ({@code 0x1F})</li>
+     *   <li>{@code h} suffix: hexadecimal ({@code 1Fh})</li>
+     *   <li>{@code b} suffix or {@code 0b} prefix: binary ({@code 101b}, {@code 0b101})</li>
+     *   <li>{@code o} or {@code q} suffix: octal ({@code 17o}, {@code 17q})</li>
+     *   <li>{@code d} suffix or no affix: decimal ({@code 12d}, {@code 12}; leading zeros are decimal too)</li>
+     * </ul>
+     * The result must fit into a signed 32-bit integer.
      *
-     * @param byteNumber a number, assumed size is a byte
-     * @return formatted string as a hexadecimal number, with string length=2
+     * @param number the number text
+     * @return parsed value
+     * @throws NumberFormatException if the text is not a number in a recognized format, or it overflows
      */
-    public static String formatByteHexString(int byteNumber) {
-        return formatHexString(byteNumber, 2);
-    }
-
-    /**
-     * Get formatted string of a word.
-     * <p>
-     * Formatting is using pattern "%04X".
-     *
-     * @param wordNumber a number, assumed size is a word (2 bytes)
-     * @return formatted string as a hexadecimal number, with string length=4
-     */
-    public static String formatWordHexString(int wordNumber) {
-        return formatHexString(wordNumber, 4);
-    }
-
-    /**
-     * Get formatted string of a word.
-     * <p>
-     * Formatting is using pattern "%04X".
-     *
-     * @param upper high order byte (high 8 bits)
-     * @param lower low order byte (low 8bits)
-     * @return formatted string as a hexadecimal number, with string length=4
-     */
-    public static String formatWordHexString(short upper, short lower) {
-        return formatHexString(((upper & 0xFF) << 8) | (lower & 0xFF), 4);
-    }
-
-    /**
-     * Get formatted string of a dword.
-     * <p>
-     * Formatting is using pattern "%08X".
-     *
-     * @param number a number, assumed size is a double word (4 bytes)
-     * @return formatted string as a hexadecimal number, with string length=8
-     */
-    public static String formatDwordHexString(int number) {
-        return formatHexString(number, 8);
-    }
-
-    /**
-     * Get formatted binary string of given number.
-     * <p>
-     * The formatted string is possibly prepended with zeroes to ensure that the string has given length.
-     * <p>
-     * Also, groups of some bits can be separated by single space. The number of space-separated bits is specified
-     * by the `spacesPerBits` parameter.
-     *
-     * @param number         number to format
-     * @param length         resulting string length (number of bits)
-     * @param spacePerBits   number of space-separated bits. If &lt;= 0 then bits are never separated with space.
-     * @param spacesFromLeft whether the group of bits to be space-separated should be counted from left or from right side
-     * @return formatted string as a binary number, with given string length
-     */
-    public static String formatBinaryString(int number, int length, int spacePerBits, boolean spacesFromLeft) {
-        int totalBits = Math.max(length, bitLength(number));
-        int spaces = (spacePerBits > 0) ? ((totalBits - 1) / spacePerBits) : 0;
-        char[] result = new char[totalBits + spaces];
-        int index = 0;
-
-        for (int bit = 0; bit < totalBits; bit++) {
-            if (spacePerBits > 0) {
-                if (spacesFromLeft) {
-                    if (bit > 0 && (bit % spacePerBits) == 0) {
-                        result[index++] = ' ';
-                    }
-                } else if (bit > 0 && ((totalBits - bit) % spacePerBits) == 0) {
-                    result[index++] = ' ';
-                }
-            }
-
-            int shift = totalBits - bit - 1;
-            result[index++] = (shift < Integer.SIZE && ((number >>> shift) & 1) != 0) ? '1' : '0';
+    public static int parseRadix(String number) throws NumberFormatException {
+        int start = 0;
+        int end = number.length();
+        boolean negative = false;
+        if (end > 0 && (number.charAt(0) == '-' || number.charAt(0) == '+')) {
+            negative = number.charAt(0) == '-';
+            start++;
         }
 
-        return new String(result);
-    }
-
-    /**
-     * Get formatted binary string of given number.
-     * <p>
-     * The formatted string is possibly prepended with zeroes to ensure that the string has given length.
-     * <p>
-     * Bits are not separated by spaces.
-     *
-     * @param number number to format
-     * @param length resulting string length (number of bits)
-     * @return formatted string as a binary number, with given string length
-     */
-    public static String formatBinaryString(int number, int length) {
-        return formatBinaryString(number, length, 0, false);
-    }
-
-    /**
-     * Convert a long value to a radix string, uppercasing a-f in-place (no extra String allocation).
-     */
-    private static String toRadixStringFast(long value, int radix) {
-        String result = Long.toUnsignedString(value, radix);
-        if (radix <= 10) {
-            return result;
-        }
-        // Uppercase in-place to avoid toUpperCase() allocation
-        char[] chars = result.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (c >= 'a' && c <= 'z') {
-                chars[i] = (char) (c - 32);
-            }
-        }
-        return new String(chars);
-    }
-
-    /**
-     * Convert BigInteger to radix string without checking radix (caller must have checked).
-     */
-    private static String toRadixStringUnchecked(BigInteger value, int radix) {
-        String result = value.toString(radix);
-        if (radix <= 10) {
-            return result;
-        }
-        // Uppercase in-place to avoid toUpperCase(Locale.ROOT) allocation
-        char[] chars = result.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (c >= 'a' && c <= 'z') {
-                chars[i] = (char) (c - 32);
-            }
-        }
-        return new String(chars);
-    }
-
-    /**
-     * Convert a byte array to a long value. Array must be ≤ 8 bytes.
-     */
-    private static long toLongValue(byte[] number, boolean littleEndian) {
-        long value = 0;
-        if (littleEndian) {
-            for (int i = number.length - 1; i >= 0; i--) {
-                value = (value << 8) | (number[i] & 0xFFL);
-            }
+        int radix;
+        if (hasPrefix(number, start, 'x')) {
+            radix = 16;
+            start += 2;
         } else {
-            for (byte b : number) {
-                value = (value << 8) | (b & 0xFFL);
+            radix = end > start ? suffixRadix(number.charAt(end - 1)) : 0;
+            if (radix != 0) {
+                end--;
+            } else if (hasPrefix(number, start, 'b')) {
+                radix = 2;
+                start += 2;
+            } else {
+                radix = 10;
             }
         }
-        return value;
+        if (start >= end) {
+            throw new NumberFormatException("Number not recognized: " + number);
+        }
+
+        long value = 0;
+        for (int i = start; i < end; i++) {
+            int digit = digit(number.charAt(i));
+            if (digit >= radix) {
+                throw new NumberFormatException("Number not recognized: " + number);
+            }
+            value = value * radix + digit;
+            if (value > 0x80000000L) {
+                throw new NumberFormatException("Number out of range: " + number);
+            }
+        }
+        if (negative) {
+            value = -value;
+        } else if (value > Integer.MAX_VALUE) {
+            throw new NumberFormatException("Number out of range: " + number);
+        }
+        return (int) value;
     }
 
-    private static BigInteger toBigInteger(byte[] number, boolean littleEndian) {
-        if (number.length == 0) {
-            return BigInteger.ZERO;
-        }
-        if (!littleEndian) {
-            return new BigInteger(1, number);
-        }
-
-        byte[] magnitude = new byte[number.length];
-        for (int i = 0, j = number.length - 1; i < number.length; i++, j--) {
-            magnitude[j] = number[i];
-        }
-        return new BigInteger(1, magnitude);
-    }
-
-    private static String toHexString(byte[] number, boolean littleEndian) {
-        int start = littleEndian ? number.length - 1 : 0;
-        int end = littleEndian ? -1 : number.length;
-        int step = littleEndian ? -1 : 1;
-
-        while (start != end && number[start] == 0) {
-            start += step;
-        }
-        if (start == end) {
-            return "0";
-        }
-
-        int significantBytes = littleEndian ? (start + 1) : (number.length - start);
-        int mostSignificantByte = number[start] & 0xFF;
-        char[] result = new char[(significantBytes << 1) - ((mostSignificantByte >>> 4) == 0 ? 1 : 0)];
-
-        int index = appendHexByte(result, 0, mostSignificantByte, true);
-        for (int i = start + step; i != end; i += step) {
-            index = appendHexByte(result, index, number[i] & 0xFF, false);
-        }
-        return new String(result);
-    }
-
-    private static int appendHexByte(char[] result, int index, int value, boolean trimLeadingNibble) {
-        int upperNibble = (value >>> 4) & 0xF;
-        if (!trimLeadingNibble || upperNibble != 0) {
-            result[index++] = HEX_DIGITS[upperNibble];
-        }
-        result[index++] = HEX_DIGITS[value & 0xF];
-        return index;
-    }
-
-    private static String formatHexString(int value, int digits) {
-        char[] result = new char[Math.max(digits, hexLength(value))];
+    /**
+     * Formats a value as an uppercase hexadecimal number, left-padded with zeros.
+     * <p>
+     * The result is never truncated: if the value needs more digits, all are emitted (negative values have 8 digits).
+     *
+     * @param value  the value
+     * @param digits minimal number of digits (e.g. 2 for a byte, 4 for a word, 8 for a dword)
+     * @return hexadecimal string without prefix or suffix
+     */
+    public static String formatHex(int value, int digits) {
+        int needed = (35 - Integer.numberOfLeadingZeros(value | 1)) >>> 2;
+        char[] result = new char[Math.max(digits, needed)];
         for (int i = result.length - 1; i >= 0; i--) {
             result[i] = HEX_DIGITS[value & 0xF];
             value >>>= 4;
@@ -322,27 +97,63 @@ public class RadixUtils {
         return new String(result);
     }
 
-    private static int hexLength(int value) {
-        if (value == 0) {
-            return 1;
-        }
-        if (value < 0) {
-            return Integer.SIZE / 4;
-        }
-        return (bitLength(value) + 3) / 4;
+    /**
+     * Formats a value as a binary number, left-padded with zeros.
+     * <p>
+     * The result is never truncated: if the value needs more bits, all are emitted (negative values have 32 bits).
+     *
+     * @param value the value
+     * @param bits  minimal number of bits
+     * @return binary string without prefix or suffix
+     */
+    public static String formatBinary(int value, int bits) {
+        return formatBinary(value, bits, 0);
     }
 
-    private static int bitLength(int number) {
-        if (number == 0) {
-            return 1;
+    /**
+     * Formats a value as a binary number, left-padded with zeros, with bit groups separated by a space.
+     * <p>
+     * Groups are counted from the least significant bit, e.g. {@code formatBinary(0x2F, 10, 4)} is
+     * {@code "00 0010 1111"}. The result is never truncated (negative values have 32 bits).
+     *
+     * @param value     the value
+     * @param bits      minimal number of bits
+     * @param groupBits number of bits in a space-separated group; if &lt;= 0, bits are not grouped
+     * @return binary string without prefix or suffix
+     */
+    public static String formatBinary(int value, int bits, int groupBits) {
+        int total = Math.max(bits, 32 - Integer.numberOfLeadingZeros(value | 1));
+        int spaces = groupBits > 0 ? (total - 1) / groupBits : 0;
+        char[] result = new char[total + spaces];
+        int index = result.length - 1;
+        for (int bit = 0; bit < total; bit++) {
+            if (bit > 0 && groupBits > 0 && bit % groupBits == 0) {
+                result[index--] = ' ';
+            }
+            result[index--] = (bit < 32 && ((value >>> bit) & 1) != 0) ? '1' : '0';
         }
-        return 32 - Integer.numberOfLeadingZeros(number);
+        return new String(result);
     }
 
+    private static boolean hasPrefix(String number, int start, char radixLetter) {
+        return number.length() > start + 2 && number.charAt(start) == '0'
+                && Character.toLowerCase(number.charAt(start + 1)) == radixLetter;
+    }
 
-    private static void checkRadix(int radix) {
-        if (radix < Character.MIN_RADIX || radix > Character.MAX_RADIX) {
-            throw new NumberFormatException("Radix out of range");
+    private static int suffixRadix(char suffix) {
+        switch (Character.toLowerCase(suffix)) {
+            case 'h': return 16;
+            case 'b': return 2;
+            case 'o': case 'q': return 8;
+            case 'd': return 10;
+            default: return 0;
         }
+    }
+
+    private static int digit(char c) {
+        if (c >= '0' && c <= '9') return c - '0';
+        if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+        return Integer.MAX_VALUE;
     }
 }

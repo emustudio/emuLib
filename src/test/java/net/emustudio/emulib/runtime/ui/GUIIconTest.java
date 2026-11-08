@@ -38,16 +38,10 @@ public class GUIIconTest {
     }
 
     @Test
-    public void testCallingClassIsUsedForRelativeResources() {
-        ImageIcon icon = GUI.loadIcon("icons/icon.png");
+    public void testRelativeResourceIsResolvedAgainstResourceClass() {
+        ImageIcon icon = GUI.loadIcon("icons/icon.png", GUIIconTest.class);
         assertTrue(icon.getImage() instanceof MultiResolutionImage);
         assertEquals(8, icon.getIconWidth());
-    }
-
-    @Test
-    public void testNullCallerUsesGuiClass() {
-        ImageIcon icon = GUI.loadIcon("icons/icon.png", null);
-        assertTrue(icon.getImage() instanceof MultiResolutionImage);
     }
 
     @Test

@@ -2,133 +2,66 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
-import net.jcip.annotations.ThreadSafe;
-
-import java.io.Closeable;
-import java.util.Set;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
+import java.util.Objects;
+import java.util.function.LongSupplier;
 
 /**
- * CPU real frequency calculator
- * <p>
- * Calculates frequency of CPU cycles in kHZ. Internally it is using a separate thread for cycles sampling,
- * running each second.
- * <p>
- * Over time, CPU executes instructions which take a few cycles. CPU notifies this calculator independently.
- * If we sample how many cycles were executed each second, we can compute cycles per second, which is the frequency in Hz.
- * <p>
- * In order to improve the accuracy, each second the executed cycles sample is added to "global" cycles counter, divided
- * by "global" time period (counted from frequency calculator start to now).
+ * Measures average CPU frequency in kHz without owning a thread. The CPU worker calls start,
+ * passedCycles, and stop; the host scheduler calls sample. Cycle publication is batched to keep
+ * atomic updates out of the instruction loop. Sampling returns a value; execution notifications belong to the host.
  */
-@ThreadSafe
-public class FrequencyCalculator implements CPUContext.PassedCyclesListener, Closeable {
+public final class FrequencyCalculator implements CPUContext.PassedCyclesListener {
+    private static final long PUBLICATION_CYCLES = 4096;
+    private final LongSupplier nanoTime;
+    private long cycles;
+    private long nextPublication;
+    private volatile long publishedCycles;
+    private long startedAt;
+    private long stoppedAt;
+    private boolean running;
 
-    /**
-     * Constructs a new FrequencyCalculator.
-     */
     public FrequencyCalculator() {
+        this(System::nanoTime);
     }
 
-    private final AtomicLong cycles = new AtomicLong();
-    private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-    private final AtomicReference<Future<Runnable>> frequencyUpdaterFuture = new AtomicReference<>();
-    private final Set<Consumer<Float>> frequencyChangedListeners = new CopyOnWriteArraySet<>();
-
-    private class Updater implements Runnable {
-        private final long startTime = System.nanoTime();
-        private float frequencyKhz;
-
-        public Updater() {
-            cycles.set(0);
-        }
-
-        @Override
-        public void run() {
-            boolean frequencyChanged = false;
-
-            synchronized (this) {
-                long endTime = System.nanoTime();
-                long time = endTime - startTime;
-                double executedCycles = cycles.get();
-
-                if (executedCycles > 0) {
-                    frequencyKhz = (float) (executedCycles / (time / 1000000.0)); // per millisecond = kHz
-                    frequencyChanged = true;
-                }
-            }
-
-            if (frequencyChanged) {
-                notifyListeners();
-            }
-        }
-
-        private void notifyListeners() {
-            float localFrequencyKhz = frequencyKhz;
-            for (Consumer<Float> listener : frequencyChangedListeners) {
-                listener.accept(localFrequencyKhz);
-            }
-        }
+    FrequencyCalculator(LongSupplier nanoTime) {
+        this.nanoTime = Objects.requireNonNull(nanoTime);
     }
 
+    /** Starts a measurement on the CPU worker. */
+    public synchronized void start() {
+        cycles = 0;
+        publishedCycles = 0;
+        nextPublication = PUBLICATION_CYCLES;
+        startedAt = nanoTime.getAsLong();
+        stoppedAt = startedAt;
+        running = true;
+    }
+
+    /** Called only by the CPU worker, including start/stop ordering. */
     @Override
     public void passedCycles(long cyclesDelta) {
-        if (frequencyUpdaterFuture.get() != null) {
-            this.cycles.addAndGet(cyclesDelta);
+        if (!running) return;
+        cycles += cyclesDelta;
+        if (cycles >= nextPublication) {
+            publishedCycles = cycles;
+            nextPublication = cycles + PUBLICATION_CYCLES;
         }
     }
 
-    /**
-     * Adds a listener for frequency changes.
-     *
-     * @param listener the listener
-     */
-    public void addListener(Consumer<Float> listener) {
-        frequencyChangedListeners.add(listener);
+    /** Publishes the final partial batch after actual execution exit. */
+    public synchronized void stop() {
+        if (!running) return;
+        publishedCycles = cycles;
+        stoppedAt = nanoTime.getAsLong();
+        running = false;
     }
 
-    /**
-     * Removes a listener for frequency changes.
-     *
-     * @param listener the listener
-     */
-    public void removeListener(Consumer<Float> listener) {
-        frequencyChangedListeners.remove(listener);
-    }
-
-    /**
-     * Stops the frequency calculator.
-     */
-    public void stop() {
-        Future<Runnable> tmpFuture;
-        do {
-            tmpFuture = frequencyUpdaterFuture.get();
-            if (tmpFuture != null) {
-                tmpFuture.cancel(false);
-            }
-        } while (!frequencyUpdaterFuture.compareAndSet(tmpFuture, null));
-    }
-
-    /**
-     * Starts the frequency calculator.
-     */
-    @SuppressWarnings("unchecked")
-    public void start() {
-        Future<Runnable> tmpFuture;
-        Future<Runnable> newFuture = (Future<Runnable>) executor.scheduleAtFixedRate(new Updater(), 0, 1, TimeUnit.SECONDS);
-
-        do {
-            tmpFuture = frequencyUpdaterFuture.get();
-            if (tmpFuture != null) {
-                tmpFuture.cancel(false);
-            }
-        } while (!frequencyUpdaterFuture.compareAndSet(tmpFuture, newFuture));
-    }
-
-    @Override
-    public void close() {
-        executor.shutdown();
+    /** Called by the host's existing scheduler; never schedules work itself. */
+    public synchronized float sample() {
+        long elapsed = (running ? nanoTime.getAsLong() : stoppedAt) - startedAt;
+        long count = publishedCycles;
+        if (count == 0 || elapsed <= 0) return Float.NaN;
+        return (float) (count / (elapsed / 1_000_000.0));
     }
 }

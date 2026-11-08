@@ -4,139 +4,81 @@ package net.emustudio.emulib.runtime.helpers;
 
 import org.junit.Test;
 
+import static net.emustudio.emulib.runtime.helpers.RadixUtils.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class RadixUtilsTest {
 
     @Test
-    public void testConvertToRadix10to16() {
-        assertEquals("CA0", RadixUtils.convertToRadix(new byte[]{(byte) 0xA0, 0xC}, 16, true));
-        assertEquals("F0F", RadixUtils.convertToRadix(new byte[]{0xF, 0xF}, 16, true));
-
-        // big endian
-        assertEquals("201", RadixUtils.convertToRadix(new byte[]{2, 1}, 16, false));
-    }
-
-    @Test
-    public void testConvertToRadix10to8() {
-        assertEquals("40", RadixUtils.convertToRadix(new byte[]{32}, 8, true));
-    }
-
-    @Test
-    public void testConvertToRadix10to3() {
-        assertEquals("1012", RadixUtils.convertToRadix(new byte[]{32}, 3, true));
-    }
-
-    @Test
-    public void testConvertToRadix10to10() {
-        assertEquals("300", RadixUtils.convertToRadix(new byte[]{0x2C, 1}, 10, true));
-    }
-
-    @Test
-    public void testConvertLargeNumberToHexRadix() {
-        byte[] value = new byte[]{
-            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
-            0x78, 0x56, 0x34, 0x12,
-            (byte) 0xF0, (byte) 0xDE, (byte) 0xBC, (byte) 0x9A,
-            0x78, 0x56, 0x34, 0x12
-        };
-
-        assertEquals("123456789ABCDEF0123456789ABCDEF0", RadixUtils.convertToRadix(value, 16, true));
-    }
-
-    @Test
     public void testParseRadix() {
-        String number = "0x20";
-        int expResult = 32;
-        RadixUtils instance = RadixUtils.getInstance();
-        int result = instance.parseRadix(number);
-        assertEquals(expResult, result);
-
-        number = "20h";
-        result = instance.parseRadix(number);
-        assertEquals(expResult, result);
+        assertEquals(32, parseRadix("0x20"));
+        assertEquals(0xAB, parseRadix("0XaB"));
+        assertEquals(32, parseRadix("20h"));
+        assertEquals(0xB, parseRadix("bH"));
+        assertEquals(0x0B1, parseRadix("0b1h"));
+        assertEquals(5, parseRadix("101b"));
+        assertEquals(5, parseRadix("0b101"));
+        assertEquals(0, parseRadix("0b"));
+        assertEquals(15, parseRadix("17o"));
+        assertEquals(15, parseRadix("17Q"));
+        assertEquals(12, parseRadix("12d"));
+        assertEquals(12, parseRadix("012"));
+        assertEquals(0, parseRadix("0"));
     }
 
     @Test
-    public void testGetDwordHexString() {
-        int number = 1;
-        assertEquals("00000001", RadixUtils.formatDwordHexString(number));
-
-        number = 0x0E5A231F;
-        assertEquals("0E5A231F", RadixUtils.formatDwordHexString(number));
-
-        number = 0xFE5A231F;
-        assertEquals("FE5A231F", RadixUtils.formatDwordHexString(number));
+    public void testParseRadixSign() {
+        assertEquals(-32, parseRadix("-0x20"));
+        assertEquals(32, parseRadix("+20h"));
+        assertEquals(-5, parseRadix("-101b"));
+        assertEquals(-12, parseRadix("-12"));
+        assertEquals(Integer.MIN_VALUE, parseRadix("-0x80000000"));
+        assertEquals(Integer.MAX_VALUE, parseRadix("2147483647"));
     }
 
     @Test
-    public void testGetWordHexString() {
-        int number = 1;
-        assertEquals("0001", RadixUtils.formatWordHexString(number));
-
-        number = 0x031F;
-        assertEquals("031F", RadixUtils.formatWordHexString(number));
-
-        number = 0x231F;
-        assertEquals("231F", RadixUtils.formatWordHexString(number));
+    public void testParseRadixInvalid() {
+        String[] invalid = {"", "-", "+", "ppp", "89o", "12b", "0x", "h", "d", "0x10h", "0x-1", "--1", " 1", "1 ",
+                "1F", "2147483648", "0x80000000", "-0x80000001", "0xFFFFFFFFFF", "١٢"};
+        for (String number : invalid) {
+            try {
+                parseRadix(number);
+                fail("Expected NumberFormatException for '" + number + "'");
+            } catch (NumberFormatException ignored) {
+            }
+        }
     }
 
     @Test
-    public void testGetWordHexStringUpperLower() {
-        short upper = 1;
-        short lower = 2;
-
-        assertEquals("0102", RadixUtils.formatWordHexString(upper, lower));
+    public void testFormatHex() {
+        assertEquals("01", formatHex(1, 2));
+        assertEquals("1F", formatHex(0x1F, 2));
+        assertEquals("0000", formatHex(0, 4));
+        assertEquals("031F", formatHex(0x031F, 4));
+        assertEquals("0E5A231F", formatHex(0x0E5A231F, 8));
+        assertEquals("FE5A231F", formatHex(0xFE5A231F, 8));
+        assertEquals("0", formatHex(0, 0));
+        // never truncated
+        assertEquals("123", formatHex(0x123, 2));
+        assertEquals("FFFFFFFF", formatHex(-1, 2));
     }
 
     @Test
-    public void testGetByteHexString() {
-        int number = 1;
-        assertEquals("01", RadixUtils.formatByteHexString(number));
-
-        number = 0x1F;
-        assertEquals("1F", RadixUtils.formatByteHexString(number));
+    public void testFormatBinary() {
+        assertEquals("00100000", formatBinary(32, 8));
+        assertEquals("00000000", formatBinary(0, 8));
+        assertEquals("0000101111", formatBinary(0x2F, 10));
+        assertEquals("101111", formatBinary(0x2F, 0));
+        assertEquals("11111111111111111111111111111111", formatBinary(-1, 8));
     }
 
     @Test
-    public void testHexFormattersDoNotTruncateWiderValues() {
-        assertEquals("123", RadixUtils.formatByteHexString(0x123));
-        assertEquals("12345", RadixUtils.formatWordHexString(0x12345));
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void testParseUnknownRadixThrows() {
-        RadixUtils.getInstance().parseRadix("ppp");
-    }
-
-    @Test
-    public void testFormatBinaryString() {
-        assertEquals("0010 0000", RadixUtils.formatBinaryString(32, 8, 4, true));
-        assertEquals("0000 0000", RadixUtils.formatBinaryString(0, 8, 4, true));
-        assertEquals("0000 1011 11", RadixUtils.formatBinaryString(0x2F, 10, 4, true));
-
-        assertEquals("00 0010 1111", RadixUtils.formatBinaryString(0x2F, 10, 4, false));
-        assertEquals("000 010 111 1", RadixUtils.formatBinaryString(0x2F, 10, 3, true));
-        assertEquals("0 000 101 111", RadixUtils.formatBinaryString(0x2F, 10, 3, false));
-
-        assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F, 10, 0, false));
-        assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F, 10, 0, true));
-    }
-
-    @Test
-    public void testParseOctalWithSuffix() {
-        assertEquals(15, RadixUtils.getInstance().parseRadix("17o"));
-    }
-
-    @Test(expected = NumberFormatException.class)
-    public void testParseInvalidOctalSuffixThrows() {
-        RadixUtils.getInstance().parseRadix("89o");
-    }
-
-    @Test
-    public void testFormatBinaryStringWithoutSpaces() {
-        assertEquals("00100000", RadixUtils.formatBinaryString(32, 8));
-        assertEquals("00000000", RadixUtils.formatBinaryString(0, 8));
-        assertEquals("0000101111", RadixUtils.formatBinaryString(0x2F, 10));
+    public void testFormatBinaryGrouped() {
+        assertEquals("0010 0000", formatBinary(32, 8, 4));
+        assertEquals("00 0010 1111", formatBinary(0x2F, 10, 4));
+        assertEquals("0 000 101 111", formatBinary(0x2F, 10, 3));
+        assertEquals("0000101111", formatBinary(0x2F, 10, 0));
+        assertEquals("1", formatBinary(1, 1, 4));
     }
 }
