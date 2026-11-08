@@ -24,7 +24,6 @@ public interface DebuggerTable {
      *
      * @param columns non-null debug columns
      * @see AddressColumn
-     * @see BreakpointColumn
      * @see MnemoColumn
      * @see OpcodeColumn
      */

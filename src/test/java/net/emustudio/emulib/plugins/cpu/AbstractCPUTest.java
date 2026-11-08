@@ -55,19 +55,6 @@ public class AbstractCPUTest {
     }
 
     @Test
-    public void testBreakpointIsSupported() {
-        assertTrue(cpu.isBreakpointSupported());
-    }
-
-    @Test
-    public void testAddGetBreakpoint() {
-        cpu.setBreakpoint(3);
-        assertTrue(cpu.isBreakpointSet(3));
-        cpu.unsetBreakpoint(3);
-        assertFalse(cpu.isBreakpointSet(3));
-    }
-
-    @Test
     public void testNotifyChange() {
         CPUListener listener = createCPUListenerMock(RunState.STATE_RUNNING);
 

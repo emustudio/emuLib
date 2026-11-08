@@ -30,7 +30,10 @@ public interface DebugCPU {
     void removeListener(Listener listener);
 
     interface Listener {
-        /** Return true to stop before executing this instruction. */
+        /**
+         * Return true to stop before executing this instruction. Breakpoint state and policy
+         * belong to the application; the CPU invokes this hook and honors the stop decision.
+         */
         default boolean beforeInstruction(int address) {
             return false;
         }

@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Implements fundamental functionality useful for most of the CPU plugins. Features include:
  * <p>
- * - support of breakpoints
  * - thread safe controlling of run states
  * - managing CPU listeners
  */
@@ -44,7 +42,6 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     private final ExecutorService cpuStoppedWatcher = Executors.newSingleThreadExecutor();
 
     private final Set<CPUListener> stateObservers = new CopyOnWriteArraySet<>();
-    private final Set<Integer> breakpoints = new ConcurrentSkipListSet<>();
 
     // ** CONTRACT: set only in "eventReceiver" or "cpuWatchTask" in a non-concurrent way **
     private volatile RunState runState = RunState.STATE_STOPPED_NORMAL;
@@ -146,34 +143,6 @@ public abstract class AbstractCPU implements CPU, Callable<CPU.RunState> {
     @Override
     public boolean isShowSettingsSupported() {
         return false;
-    }
-
-    /**
-     * This class support breakpoints.
-     *
-     * @return true
-     */
-    @Override
-    public Set<Integer> getBreakpoints() { return Set.copyOf(breakpoints); }
-
-    @Override
-    public boolean isBreakpointSupported() {
-        return true;
-    }
-
-    @Override
-    public void setBreakpoint(int location) {
-        breakpoints.add(location);
-    }
-
-    @Override
-    public void unsetBreakpoint(int location) {
-        breakpoints.remove(location);
-    }
-
-    @Override
-    public boolean isBreakpointSet(int location) {
-        return breakpoints.contains(location);
     }
 
     /**
