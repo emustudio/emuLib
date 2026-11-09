@@ -6,16 +6,10 @@ import java.util.Optional;
 
 /** Optional machine-specific debugging, implemented directly by the CPU plugin root. */
 public interface Debugging {
-    /**
-     * Installs the host's live-edit callback before execution starts. Invoke it on the CPU worker before
-     * every outer semantic step, including when no debugging observer is active.
-     */
-    void onBoundary(Runnable callback);
-
-    /** Compile/evaluate through the existing execution service or observer callbacks; inspection is read-only. */
+    /** Compiles a machine-specific expression; evaluation and inspection are read-only. */
     Expression compile(String source);
 
-    /** Install one observer and close its handle through the existing execution service. */
+    /** Installs one observer; closing its handle detaches it. */
     AutoCloseable observe(Observer observer, boolean capture);
 
     interface Expression {

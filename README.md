@@ -127,8 +127,8 @@ emuStudio/lib/emulib.jar
 ## Optional machine debugging
 
 CPU plugins may additionally implement `net.emustudio.emulib.plugin.debugger.Debugging`. Its small interface compiles
-machine-defined expressions and observes semantic execution steps. Live changes use the existing host execution
-service. `CPU` defines no universal registers or state schema.
+machine-defined expressions and observes semantic execution steps. Plugin editors apply live changes directly,
+including while the CPU runs. `CPU` defines no universal registers or state schema.
 
 Plugins supply immutable `ValueView` and `StepView` presentation. The host owns rules, watches, history and bounded
 recording files; saved rows, search tags and navigation links work offline without loading a CPU plugin.
@@ -136,5 +136,7 @@ Observation/formatting failures never pause emulation. Recording failures disabl
 the emulation result. Invalid expressions remain saved but inactive until corrected.
 
 `DebuggingSupport` shares observation mechanics; `ExpressionParser` shares optional syntax. Machine value names,
-inspection, guest accesses and edits remain inside plugins. Use `ExecutionState.update` for edits and drain
-`processUpdates` at every outer semantic step, including when observation is inactive.
+inspection, guest accesses and edits remain inside plugins. The host does not queue edits or coordinate them with CPU steps.
+
+`CPUContext` exposes read-only `CPUSnapshot` values and `CPUListener` registration. CPU plugins emit run-state and
+internal-state notifications through their implementation; observers cannot publish or replace CPU state through the context API.

@@ -12,6 +12,29 @@ import net.emustudio.emulib.plugin.Context;
  */
 @SuppressWarnings("unused")
 public interface CPUContext extends Context {
+    /**
+     * Current CPU execution details.
+     */
+    CPUSnapshot snapshot();
+
+    /**
+     * Registers execution notifications. Callbacks may run outside Swing.
+     */
+    void addCPUListener(CPUListener listener);
+
+    /**
+     * Removes a listener when its view or plugin is disposed.
+     */
+    void removeCPUListener(CPUListener listener);
+
+    /**
+     * Callbacks must not wait for machine commands. Dispatch Swing updates onto its event thread.
+     */
+    interface CPUListener {
+        void runStateChanged(CPU.RunState runState);
+
+        void internalStateChanged();
+    }
 
     /**
      * Determine whether this CPU supports interrupts.
@@ -88,4 +111,5 @@ public interface CPUContext extends Context {
             passedCycles((long) cycles);
         }
     }
+
 }

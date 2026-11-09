@@ -215,7 +215,7 @@ Rel(uiApi, applicationApi, "Implements UI extension types")
 | Application API
 | `application`, `application.annotations`, `application.settings`,
   `application.ui`, `application.ui.debugger`
-| `ApplicationApi`, `ContextPool`, `ExecutionState`, `MemoryAnnotations`,
+| `ApplicationApi`, `ContextPool`, `MemoryAnnotations`,
   `PluginSettings`, `Dialogs`, `GUI`, `DebuggerColumn`
 
 | UI API
@@ -312,7 +312,6 @@ interface ApplicationApi {
   +getDialogs() : Dialogs
   +getGUI() : GUI
   +getAnnotations() : MemoryAnnotations
-  +getExecutionState() : ExecutionState
   +getProgramLocation() : int
   +setProgramLocation(int)
 }
@@ -321,17 +320,11 @@ interface ContextPool
 interface PluginSettings
 interface Dialogs
 interface GUI
-interface ExecutionState {
-  +snapshot() : Snapshot
-  +subscribe(listener) : Subscription
-  +update(change) : CompletableFuture<Void>
-}
 class MemoryAnnotations
 
 ApplicationApi --> ContextPool
 ApplicationApi --> Dialogs
 ApplicationApi --> GUI
-ApplicationApi --> ExecutionState
 ApplicationApi --> MemoryAnnotations
 
 note right of ApplicationApi
@@ -341,12 +334,12 @@ end note
 @enduml
 ....
 
-`ExecutionState` keeps a stable host-owned publication stream available before a
-machine is initialized. Views read snapshots, subscribe to changes, and submit
-live edits with `update`. Paused-only command validation stays inside the host.
-The host installs a CPU boundary callback through `Debugging.onBoundary`; CPU
-engines invoke it before every outer semantic step even without an active debug
-observer. Queue draining therefore stays outside the view-facing state API.
+`CPUContext.snapshot()` returns an immutable `CPUSnapshot`. Views register a
+`CPUContext.CPUListener` with `runStateChanged` and `internalStateChanged`, then
+remove it when disposed. CPU plugins publish state changes internally; the
+context interface exposes no setters or notification methods. Plugin editors
+apply changes directly, including while the CPU runs. The host does not queue
+edits or coordinate them with CPU steps.
 
 === Context exchange
 
