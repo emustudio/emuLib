@@ -71,9 +71,6 @@ public interface CPU extends Plugin {
      */
     RunState execute() throws Exception;
 
-    /** Optional host-scheduled frequency observation. Must not execute instructions or create threads. */
-    default float sampleFrequency() { return Float.NaN; }
-
     /**
      * Get CPU status panel.
      * <p>
@@ -95,15 +92,6 @@ public interface CPU extends Plugin {
      * @param location Program location in memory
      */
     void reset(int location);
-
-    /**
-     * Get memory location of an instruction which will be emulated as next.
-     * <p>
-     * Instruction position is more "abstract" name for "program counter", which is mostly used in 8-bit architectures.
-     *
-     * @return memory location of an instruction which will be emulated as next
-     */
-    int getInstructionLocation();
 
     /**
      * Set memory location of an instruction which will be emulated as next.

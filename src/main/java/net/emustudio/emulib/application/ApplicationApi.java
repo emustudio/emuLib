@@ -19,9 +19,6 @@ public interface ApplicationApi {
     /** Returns the active computer's live annotations, or null when unavailable. */
     MemoryAnnotations getAnnotations();
 
-    /** Returns current execution state, or null when unavailable. */
-    ExecutionState getExecutionState();
-
     /**
      * Get context pool.
      * <p>
@@ -78,7 +75,6 @@ public interface ApplicationApi {
     ApplicationApi UNAVAILABLE = new ApplicationApi() {
         // @formatter:off
         @Override public MemoryAnnotations getAnnotations() { return null; }
-        @Override public ExecutionState getExecutionState() { return null; }
         @Override public ContextPool getContextPool() { return null; }
         @Override public Dialogs getDialogs() { return null; }
         @Override public GUI getGUI() { return null; }
