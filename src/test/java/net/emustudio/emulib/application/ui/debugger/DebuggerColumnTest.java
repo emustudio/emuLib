@@ -2,8 +2,8 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.application.ui.debugger;
 
-import net.emustudio.emulib.plugin.cpu.DisassembledInstruction;
-import net.emustudio.emulib.plugin.cpu.Disassembler;
+import net.emustudio.emulib.plugin.cpu.DecodedInstruction;
+import net.emustudio.emulib.plugin.cpu.Decoder;
 import net.emustudio.emulib.plugin.cpu.InvalidInstructionException;
 import org.junit.Test;
 
@@ -30,20 +30,20 @@ public class DebuggerColumnTest {
     }
 
     @Test(expected = NullPointerException.class)
-    public void testNullDisassemblerThrows() {
+    public void testNullInstructionLookupThrows() {
         DebuggerColumn.mnemo(null);
     }
 
     @Test
-    public void testDisassemblerColumns() throws Exception {
-        Disassembler disassembler = createMock(Disassembler.class);
-        expect(disassembler.disassemble(1)).andReturn(new DisassembledInstruction(1, "mnemo", "code")).times(2);
-        expect(disassembler.disassemble(2)).andThrow(new InvalidInstructionException()).times(2);
-        expect(disassembler.disassemble(3)).andThrow(new IndexOutOfBoundsException()).times(2);
-        replay(disassembler);
+    public void testCapturedInstructionColumns() throws Exception {
+        Decoder instructions = createMock(Decoder.class);
+        expect(instructions.decode(1)).andReturn(DecodedInstruction.of(1, 1, "mnemo", "code")).times(2);
+        expect(instructions.decode(2)).andThrow(new InvalidInstructionException()).times(2);
+        expect(instructions.decode(3)).andThrow(new IndexOutOfBoundsException()).times(2);
+        replay(instructions);
 
-        DebuggerColumn<String> mnemo = DebuggerColumn.mnemo(disassembler);
-        DebuggerColumn<String> opcode = DebuggerColumn.opcode(disassembler);
+        DebuggerColumn<String> mnemo = DebuggerColumn.mnemo(instructions);
+        DebuggerColumn<String> opcode = DebuggerColumn.opcode(instructions);
         assertEquals("instruction", mnemo.getTitle());
         assertEquals("opcode", opcode.getTitle());
         assertEquals("mnemo", mnemo.getValue(1));
@@ -52,6 +52,6 @@ public class DebuggerColumnTest {
         assertEquals("", opcode.getValue(2));
         assertEquals("[incomplete]", mnemo.getValue(3));
         assertEquals("", opcode.getValue(3));
-        verify(disassembler);
+        verify(instructions);
     }
 }

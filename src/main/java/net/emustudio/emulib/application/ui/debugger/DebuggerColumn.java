@@ -3,14 +3,14 @@
 package net.emustudio.emulib.application.ui.debugger;
 
 import net.emustudio.emulib.plugin.cpu.CPU;
-import net.emustudio.emulib.plugin.cpu.Disassembler;
+import net.emustudio.emulib.plugin.cpu.Decoder;
 import net.emustudio.emulib.plugin.cpu.InvalidInstructionException;
 
 import java.util.Objects;
 import java.util.function.IntFunction;
 
 /**
- * Column in the debugger table. CPUs provide custom columns with {@link CPU#getDebuggerColumns()}.
+ * Column in the debugger table. CPUs provide custom columns with {@link CPU#getDebuggerColumns(Decoder)}.
  *
  * @param <T> Java type of this column
  */
@@ -102,14 +102,14 @@ public interface DebuggerColumn<T> {
     /**
      * Creates "instruction" column showing instruction mnemonics.
      *
-     * @param disassembler the disassembler
+     * @param instructions caller-owned lookup of captured rows; share it across instruction columns
      * @return new column
      */
-    static DebuggerColumn<String> mnemo(Disassembler disassembler) {
-        Objects.requireNonNull(disassembler);
+    static DebuggerColumn<String> mnemo(Decoder instructions) {
+        Objects.requireNonNull(instructions);
         return text("instruction", location -> {
             try {
-                return disassembler.disassemble(location).mnemo;
+                return instructions.decode(location).mnemonic();
             } catch (InvalidInstructionException e) {
                 return "[invalid]";
             } catch (IndexOutOfBoundsException e) {
@@ -121,14 +121,14 @@ public interface DebuggerColumn<T> {
     /**
      * Creates "opcode" column showing formatted binary representation of instructions.
      *
-     * @param disassembler the disassembler
+     * @param instructions caller-owned lookup of captured rows; share it across instruction columns
      * @return new column
      */
-    static DebuggerColumn<String> opcode(Disassembler disassembler) {
-        Objects.requireNonNull(disassembler);
+    static DebuggerColumn<String> opcode(Decoder instructions) {
+        Objects.requireNonNull(instructions);
         return text("opcode", location -> {
             try {
-                return disassembler.disassemble(location).opCode;
+                return instructions.decode(location).encoding();
             } catch (InvalidInstructionException | IndexOutOfBoundsException e) {
                 return "";
             }
