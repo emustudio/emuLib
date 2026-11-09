@@ -321,7 +321,11 @@ interface ContextPool
 interface PluginSettings
 interface Dialogs
 interface GUI
-interface ExecutionState
+interface ExecutionState {
+  +snapshot() : Snapshot
+  +subscribe(listener) : Subscription
+  +update(change) : CompletableFuture<Void>
+}
 class MemoryAnnotations
 
 ApplicationApi --> ContextPool
@@ -336,6 +340,13 @@ note right of ApplicationApi
 end note
 @enduml
 ....
+
+`ExecutionState` keeps a stable host-owned publication stream available before a
+machine is initialized. Views read snapshots, subscribe to changes, and submit
+live edits with `update`. Paused-only command validation stays inside the host.
+The host installs a CPU boundary callback through `Debugging.onBoundary`; CPU
+engines invoke it before every outer semantic step even without an active debug
+observer. Queue draining therefore stays outside the view-facing state API.
 
 === Context exchange
 

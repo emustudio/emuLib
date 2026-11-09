@@ -7,21 +7,15 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-/** One host-owned execution snapshot and notification stream for application and plugin views. */
+/** Host-owned execution snapshots, notifications, and serialized edits for application and plugin views. */
 public interface ExecutionState {
     Snapshot snapshot();
 
     /** Notifications may run outside Swing. Close the subscription when its view is disposed. */
     Subscription subscribe(Consumer<Snapshot> listener);
 
-    /** Executes a paused edit on the machine worker; rejects running, busy, or stale requests. */
-    CompletableFuture<Void> mutate(Runnable mutation);
-
     /** Serializes a live change between semantic steps, or on the idle CPU worker. */
     CompletableFuture<Void> update(Runnable change);
-
-    /** CPU engines call at every semantic boundary, even with debugging inactive. */
-    void processUpdates();
 
     @FunctionalInterface
     interface Subscription extends AutoCloseable {
