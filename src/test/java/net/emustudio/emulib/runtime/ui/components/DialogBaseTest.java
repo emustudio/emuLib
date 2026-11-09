@@ -126,23 +126,25 @@ public class DialogBaseTest {
     }
 
     @Test
-    public void testDisposeRemovesAndShowingRestoresKeyListeners() {
-        JButton button = new JButton("Test");
-        JPanel content = new JPanel();
-        content.add(button);
-        createDialog(content);
-        int initialCount = keyListenerCount(button);
+    public void testDisposeRemovesAndShowingRestoresKeyListeners() throws Exception {
+        SwingUtilities.invokeAndWait(() -> {
+            JButton button = new JButton("Test");
+            JPanel content = new JPanel();
+            content.add(button);
+            createDialog(content);
+            int initialCount = keyListenerCount(button);
 
-        dialog.dispose();
-        int afterDispose = keyListenerCount(button);
-        assertTrue(afterDispose < initialCount);
+            dialog.dispose();
+            int afterDispose = keyListenerCount(button);
+            assertTrue(afterDispose < initialCount);
 
-        dialog.setVisible(false);
-        assertEquals(afterDispose, keyListenerCount(button));
+            dialog.setVisible(false);
+            assertEquals(afterDispose, keyListenerCount(button));
 
-        dialog.setVisible(true);
-        assertEquals(initialCount, keyListenerCount(button));
-        dialog.setVisible(false);
+            dialog.setVisible(true);
+            assertEquals(initialCount, keyListenerCount(button));
+            dialog.setVisible(false);
+        });
     }
 
     @Test

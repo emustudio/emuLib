@@ -39,27 +39,11 @@ public abstract class DialogBase extends JDialog {
         super(parent == null ? JOptionPane.getRootFrame() : parent, title,
                 modal ? DEFAULT_MODALITY_TYPE : ModalityType.MODELESS);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        GUI.relayoutOnShow(this);
 
         // Fallback ESC handler for dialogs without focusable components; fires even when nothing has focus.
         getRootPane().registerKeyboardAction(e -> closeOnEscape(),
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
-    }
-
-    private boolean closeOnEscape() {
-        boolean close = shouldCloseOnEscape();
-        if (close) {
-            dispose();
-        }
-        return close;
-    }
-
-    /**
-     * Checked on every ESC press; return {@code false} to let ESC propagate (e.g. to an emulated keyboard).
-     *
-     * @return whether ESC closes the dialog (default {@code true})
-     */
-    protected boolean shouldCloseOnEscape() {
-        return true;
     }
 
     /**
@@ -85,6 +69,15 @@ public abstract class DialogBase extends JDialog {
     }
 
     /**
+     * Checked on every ESC press; return {@code false} to let ESC propagate (e.g. to an emulated keyboard).
+     *
+     * @return whether ESC closes the dialog (default {@code true})
+     */
+    protected boolean shouldCloseOnEscape() {
+        return true;
+    }
+
+    /**
      * Adds content from {@link #initializeComponents()}, packs and centers the dialog, and installs ESC handling.
      * Must be the last statement of the subclass constructor.
      */
@@ -105,4 +98,12 @@ public abstract class DialogBase extends JDialog {
      * @return main content component, or {@code null} for an empty dialog
      */
     protected abstract JComponent initializeComponents();
+
+    private boolean closeOnEscape() {
+        boolean close = shouldCloseOnEscape();
+        if (close) {
+            dispose();
+        }
+        return close;
+    }
 }

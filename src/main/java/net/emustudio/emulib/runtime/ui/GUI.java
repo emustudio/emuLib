@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ContainerEvent;
 import java.awt.event.ContainerListener;
+import java.awt.event.HierarchyEvent;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
 import java.awt.image.BaseMultiResolutionImage;
@@ -24,6 +25,25 @@ import java.util.regex.Pattern;
  * {@link net.emustudio.emulib.runtime.ApplicationApi#getGUI()}. Panel layout constraints are MigLayout strings.
  */
 public interface GUI {
+
+    /**
+     * Relayouts a window using its actual native insets whenever it becomes showing.
+     * This prevents stale decoration spacing from the layout performed before native show.
+     * The hierarchy notification runs synchronously, including before a modal dialog's event loop.
+     * The listener remains installed when the window is hidden or disposed, so reopening is covered.
+     * <p>
+     * Call once on the Swing event-dispatch thread before the window is first shown.
+     *
+     * @param window window whose layout should be refreshed on show
+     */
+    static void relayoutOnShow(Window window) {
+        window.addHierarchyListener(event -> {
+            if ((event.getChangeFlags() & HierarchyEvent.SHOWING_CHANGED) != 0 && window.isShowing()) {
+                window.invalidate();
+                window.validate();
+            }
+        });
+    }
 
     /**
      * Loads an icon from a resource. If a matching resource with {@code @2x} before the file extension exists
