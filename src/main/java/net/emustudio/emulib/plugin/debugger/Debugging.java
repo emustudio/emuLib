@@ -2,15 +2,21 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugin.debugger;
 
+import net.emustudio.emulib.plugin.cpu.DecodedInstruction;
+
 import java.util.Optional;
+import java.util.OptionalInt;
 
 /** Optional machine-specific debugging, implemented directly by the CPU plugin root. */
 public interface Debugging {
+    /** Instruction observation, optional guest-access tracking, or full presentation capture. */
+    enum Capture { INSTRUCTION, ACCESSES, FULL }
+
     /** Compiles a machine-specific expression; evaluation and inspection are read-only. */
     Expression compile(String source);
 
-    /** Installs one observer; closing its handle detaches it. */
-    AutoCloseable observe(Observer observer, boolean capture);
+    /** Installs one observer with the requested observation detail; closing its handle detaches it. */
+    AutoCloseable observe(Observer observer, Capture capture);
 
     interface Expression {
         boolean test();
@@ -20,8 +26,13 @@ public interface Debugging {
     interface Observer {
         /** True requests an intentional stop before guest effects. */
         boolean beforeStep();
-        /** True requests an intentional stop after this truthful semantic step. */
-        boolean afterStep(boolean completed, Optional<StepView> capture);
+        /**
+         * True requests an intentional stop after this truthful semantic step.
+         * Instruction facts come from before execution; nextAddress is the actual resulting PC.
+         * Failed steps and interrupt-only boundaries must not invent decoded instructions or transitions.
+         */
+        boolean afterStep(boolean completed, Optional<DecodedInstruction> instruction,
+                          OptionalInt nextAddress, Optional<StepView> capture);
         /** Reports isolated instrumentation failures; never requests a CPU stop. */
         default void failed(String message) { }
     }

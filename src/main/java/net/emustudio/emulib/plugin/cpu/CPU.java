@@ -113,20 +113,21 @@ public interface CPU extends Plugin {
     int getAddressSpaceSize();
 
     /**
-     * Get disassembler.
+     * Get the instruction decoder.
      * <p>
-     * EmuStudio uses it for filling up the debugger table.
+     * EmuStudio shares captured instruction facts across listing and flow analysis.
      *
-     * @return disassembler of CPU instructions
+     * @return decoder of CPU instructions
      */
-    Disassembler getDisassembler();
+    Decoder getDecoder();
 
     /**
      * Get custom columns of the debugger table.
      *
+     * @param instructions host-owned lookup of captured instruction rows; use this for instruction columns
      * @return debugger columns; empty list means default columns (address, mnemo, opcode)
      */
-    default List<DebuggerColumn<?>> getDebuggerColumns() {
+    default List<DebuggerColumn<?>> getDebuggerColumns(Decoder instructions) {
         return List.of();
     }
 
