@@ -4,7 +4,9 @@ package net.emustudio.emulib.plugin.cpu;
 
 import java.util.Objects;
 
-/** Immutable CPU state and execution details. */
+/**
+ * Immutable CPU state and execution details.
+ */
 public final class CPUSnapshot {
     private final CPU.RunState runState;
     private final boolean busy, timedRunning;
@@ -20,14 +22,31 @@ public final class CPUSnapshot {
         this.frequencyKhz = frequencyKhz;
     }
 
-    public CPU.RunState runState() { return runState; }
-    public boolean isBusy() { return busy; }
-    public boolean isTimedRunning() { return timedRunning; }
-    public int currentInstruction() { return currentInstruction; }
-    /** NaN means this CPU does not provide a measurement yet. */
-    public float frequencyKhz() { return frequencyKhz; }
+    public CPU.RunState runState() {
+        return runState;
+    }
 
-    @Override public boolean equals(Object other) {
+    public boolean isBusy() {
+        return busy;
+    }
+
+    public boolean isTimedRunning() {
+        return timedRunning;
+    }
+
+    public int currentInstruction() {
+        return currentInstruction;
+    }
+
+    /**
+     * NaN means this CPU does not provide a measurement yet.
+     */
+    public float frequencyKhz() {
+        return frequencyKhz;
+    }
+
+    @Override
+    public boolean equals(Object other) {
         if (!(other instanceof CPUSnapshot)) return false;
         CPUSnapshot value = (CPUSnapshot) other;
         return runState == value.runState && busy == value.busy && timedRunning == value.timedRunning
@@ -35,7 +54,8 @@ public final class CPUSnapshot {
                 && Float.compare(frequencyKhz, value.frequencyKhz) == 0;
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         return Objects.hash(runState, busy, timedRunning, currentInstruction, frequencyKhz);
     }
 }
