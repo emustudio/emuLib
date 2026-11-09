@@ -215,7 +215,7 @@ Rel(uiApi, applicationApi, "Implements UI extension types")
 | Application API
 | `application`, `application.annotations`, `application.settings`,
   `application.ui`, `application.ui.debugger`
-| `ApplicationApi`, `ContextPool`, `ExecutionState`, `MemoryAnnotations`,
+| `ApplicationApi`, `ContextPool`, `MemoryAnnotations`,
   `PluginSettings`, `Dialogs`, `GUI`, `DebuggerColumn`
 
 | UI API
@@ -224,7 +224,7 @@ Rel(uiApi, applicationApi, "Implements UI extension types")
 
 | General API
 | `net.emustudio.emulib`
-| `Bits`, `NumberUtils`, `RadixUtils`, `ReadWriteLockSupport`, `SleepUtils`, `Unchecked`
+| `Bits`, `Numbers`, `ReadWriteLockSupport`, `SleepUtils`, `Unchecked`
 
 | I/O API
 | `io`
@@ -312,7 +312,6 @@ interface ApplicationApi {
   +getDialogs() : Dialogs
   +getGUI() : GUI
   +getAnnotations() : MemoryAnnotations
-  +getExecutionState() : ExecutionState
   +getProgramLocation() : int
   +setProgramLocation(int)
 }
@@ -321,13 +320,11 @@ interface ContextPool
 interface PluginSettings
 interface Dialogs
 interface GUI
-interface ExecutionState
 class MemoryAnnotations
 
 ApplicationApi --> ContextPool
 ApplicationApi --> Dialogs
 ApplicationApi --> GUI
-ApplicationApi --> ExecutionState
 ApplicationApi --> MemoryAnnotations
 
 note right of ApplicationApi
@@ -336,6 +333,14 @@ note right of ApplicationApi
 end note
 @enduml
 ....
+
+`CPUContext` exposes `getRunState()`, `getInstructionLocation()` and
+`getCpuFrequencyKhz()` directly. Views register a
+`CPUContext.CPUListener` with `runStateChanged` and `internalStateChanged`, then
+remove it when disposed. CPU plugins publish state changes internally; the
+context interface exposes no setters or notification methods. Plugin editors
+apply changes directly, including while the CPU runs. The host does not queue
+edits or coordinate them with CPU steps.
 
 === Context exchange
 

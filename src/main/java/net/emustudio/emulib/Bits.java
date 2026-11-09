@@ -65,7 +65,7 @@ public class Bits {
      * @return a new {@link Bits} instance with reversed bits within each byte
      */
     public Bits reverseBits() {
-        return new Bits(NumberUtils.reverseBits(number, length), length);
+        return new Bits(Numbers.reverseBits(number, length), length);
     }
 
     /**

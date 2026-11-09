@@ -12,10 +12,10 @@ public interface Debugging {
     /** Instruction observation, optional guest-access tracking, or full presentation capture. */
     enum Capture { INSTRUCTION, ACCESSES, FULL }
 
-    /** Compile/evaluate through the existing execution service or observer callbacks; inspection is read-only. */
+    /** Compiles a machine-specific expression; evaluation and inspection are read-only. */
     Expression compile(String source);
 
-    /** Install one observer and close its handle through the existing execution service. */
+    /** Installs one observer with the requested observation detail; closing its handle detaches it. */
     AutoCloseable observe(Observer observer, Capture capture);
 
     interface Expression {

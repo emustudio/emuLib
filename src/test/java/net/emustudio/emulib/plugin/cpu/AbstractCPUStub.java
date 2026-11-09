@@ -23,7 +23,6 @@ public class AbstractCPUStub extends AbstractCPU {
     @Override public RunState step() { executionThread = Thread.currentThread(); return RunState.STATE_STOPPED_BREAK; }
     @Override public void reset(int location) { this.location = location; }
     @Override public JPanel getStatusPanel() { return null; }
-    @Override public int getInstructionLocation() { return location; }
     @Override public boolean setInstructionLocation(int location) { this.location = location; return true; }
     @Override public int getAddressSpaceSize() { return 256; }
     @Override public Decoder getDecoder() { return null; }

@@ -2,7 +2,7 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugin.compiler.antlr;
 
-import net.emustudio.emulib.RadixUtils;
+import net.emustudio.emulib.Numbers;
 import org.antlr.v4.runtime.Token;
 
 import java.util.Locale;
@@ -21,10 +21,10 @@ public final class ParsingUtils {
      *
      * @param token number token
      * @return parsed value
-     * @throws NumberFormatException if the token is not a number; see {@link RadixUtils#parseRadix(String)}
+     * @throws NumberFormatException if the token is not a number; see {@link Numbers#parseRadix(String)}
      */
     public static int parseNumber(Token token) {
-        return RadixUtils.parseRadix(token.getText());
+        return Numbers.parseRadix(token.getText());
     }
 
     /**
