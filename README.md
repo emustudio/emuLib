@@ -138,5 +138,6 @@ the emulation result. Invalid expressions remain saved but inactive until correc
 `DebuggingSupport` shares observation mechanics; `ExpressionParser` shares optional syntax. Machine value names,
 inspection, guest accesses and edits remain inside plugins. The host does not queue edits or coordinate them with CPU steps.
 
-`CPUContext` exposes read-only `CPUSnapshot` values and `CPUListener` registration. CPU plugins emit run-state and
+`CPUContext` exposes direct getters for run state, instruction location and measured frequency, plus `CPUListener`
+registration. CPU plugins emit run-state and
 internal-state notifications through their implementation; observers cannot publish or replace CPU state through the context API.

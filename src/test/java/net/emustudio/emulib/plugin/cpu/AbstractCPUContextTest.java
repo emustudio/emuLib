@@ -13,17 +13,16 @@ public class AbstractCPUContextTest {
     };
 
     @Test
-    public void snapshotsRemainImmutableWhenCurrentStateChanges() {
-        CPUSnapshot first = new CPUSnapshot(CPU.RunState.STATE_STOPPED_BREAK, false, false, 4, 1000);
-        context.publishSnapshot(first);
+    public void gettersExposeLatestCPUState() {
+        assertEquals(-1, context.getInstructionLocation());
+        assertTrue(Float.isNaN(context.getMeasuredFrequencyKhz()));
 
-        context.publishSnapshot(new CPUSnapshot(CPU.RunState.STATE_RUNNING, false, false, 20, 2000));
+        context.fireStateChanged(CPU.RunState.STATE_RUNNING, 20, 2000);
 
-        assertEquals(4, first.currentInstruction());
-        assertEquals(CPU.RunState.STATE_STOPPED_BREAK, first.runState());
-        assertEquals(20, context.snapshot().currentInstruction());
-        assertEquals(CPU.RunState.STATE_RUNNING, context.snapshot().runState());
-        assertThrows(NullPointerException.class, () -> context.publishSnapshot(null));
+        assertEquals(20, context.getInstructionLocation());
+        assertEquals(CPU.RunState.STATE_RUNNING, context.getRunState());
+        assertEquals(2000, context.getMeasuredFrequencyKhz(), 0);
+        assertThrows(NullPointerException.class, () -> context.fireStateChanged(null, 0, Float.NaN));
     }
 
     @Test
@@ -31,8 +30,8 @@ public class AbstractCPUContextTest {
         Listener listener = new Listener();
         context.addCPUListener(listener);
 
-        context.publishSnapshot(context.snapshot());
-        context.publishSnapshot(context.snapshot());
+        context.fireStateChanged(CPU.RunState.STATE_STOPPED_BREAK, 0, Float.NaN);
+        context.fireStateChanged(CPU.RunState.STATE_STOPPED_BREAK, 0, Float.NaN);
 
         assertEquals(2, listener.internalChanges);
         assertSame(Thread.currentThread(), listener.thread);
@@ -44,8 +43,8 @@ public class AbstractCPUContextTest {
         Listener listener = new Listener();
         context.addCPUListener(listener);
 
-        context.publishSnapshot(new CPUSnapshot(CPU.RunState.STATE_RUNNING, false, false, 0, Float.NaN));
-        context.publishSnapshot(new CPUSnapshot(CPU.RunState.STATE_STOPPED_BREAK, false, false, 0, Float.NaN));
+        context.fireStateChanged(CPU.RunState.STATE_RUNNING, 0, Float.NaN);
+        context.fireStateChanged(CPU.RunState.STATE_STOPPED_BREAK, 0, Float.NaN);
 
         assertEquals(List.of(CPU.RunState.STATE_RUNNING, CPU.RunState.STATE_STOPPED_BREAK), listener.states);
         assertEquals(2, listener.internalChanges);
@@ -55,11 +54,11 @@ public class AbstractCPUContextTest {
     public void removedListenerReceivesNoMoreEvents() {
         Listener listener = new Listener();
         context.addCPUListener(listener);
-        context.publishSnapshot(context.snapshot());
+        context.fireStateChanged(CPU.RunState.STATE_STOPPED_BREAK, 0, Float.NaN);
 
         context.removeCPUListener(listener);
-        context.publishSnapshot(context.snapshot());
-        context.publishSnapshot(new CPUSnapshot(CPU.RunState.STATE_RUNNING, false, false, 0, Float.NaN));
+        context.fireStateChanged(CPU.RunState.STATE_STOPPED_BREAK, 0, Float.NaN);
+        context.fireStateChanged(CPU.RunState.STATE_RUNNING, 0, Float.NaN);
 
         assertEquals(1, listener.internalChanges);
         assertTrue(listener.states.isEmpty());
@@ -74,7 +73,7 @@ public class AbstractCPUContextTest {
         Listener listener = new Listener();
         context.addCPUListener(listener);
 
-        context.publishSnapshot(new CPUSnapshot(CPU.RunState.STATE_RUNNING, false, false, 0, Float.NaN));
+        context.fireStateChanged(CPU.RunState.STATE_RUNNING, 0, Float.NaN);
 
         assertEquals(List.of(CPU.RunState.STATE_RUNNING), listener.states);
         assertEquals(1, listener.internalChanges);

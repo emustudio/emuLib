@@ -17,12 +17,30 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public abstract class AbstractCPUContext implements CPUContext {
 
     private final Set<PassedCyclesListener> passedCyclesListenerSet = new CopyOnWriteArraySet<>();
-    private volatile CPUSnapshot snapshot = new CPUSnapshot(CPU.RunState.STATE_STOPPED_BREAK, false, false, -1, Float.NaN);
+    private volatile CPU.RunState runState = CPU.RunState.STATE_STOPPED_BREAK;
+    private volatile int instructionLocation = -1;
+    private volatile float measuredFrequencyKhz = Float.NaN;
     private final Set<CPUListener> cpuListeners = new CopyOnWriteArraySet<>();
 
+    /**
+     * Constructs new abstract CPU context.
+     */
+    protected AbstractCPUContext() {
+    }
+
     @Override
-    public CPUSnapshot snapshot() {
-        return snapshot;
+    public CPU.RunState getRunState() {
+        return runState;
+    }
+
+    @Override
+    public int getInstructionLocation() {
+        return instructionLocation;
+    }
+
+    @Override
+    public float getMeasuredFrequencyKhz() {
+        return measuredFrequencyKhz;
     }
 
     @Override
@@ -33,33 +51,6 @@ public abstract class AbstractCPUContext implements CPUContext {
     @Override
     public void removeCPUListener(CPUListener listener) {
         cpuListeners.remove(listener);
-    }
-
-    /**
-     * CPU implementations publish their own state; this is not part of the context interface.
-     */
-    protected final void publishSnapshot(CPUSnapshot next) {
-        CPUSnapshot previous = snapshot;
-        snapshot = Objects.requireNonNull(next);
-        for (CPUListener listener : cpuListeners) {
-            if (previous.runState() != next.runState()) notifyListener(() -> listener.runStateChanged(next.runState()));
-            notifyListener(listener::internalStateChanged);
-        }
-    }
-
-    private void notifyListener(Runnable notification) {
-        try {
-            notification.run();
-        } catch (RuntimeException failure) {
-            java.util.logging.Logger.getLogger(AbstractCPUContext.class.getName())
-                    .log(java.util.logging.Level.WARNING, "CPU listener failed", failure);
-        }
-    }
-
-    /**
-     * Constructs new abstract CPU context.
-     */
-    protected AbstractCPUContext() {
     }
 
     @Override
@@ -81,5 +72,29 @@ public abstract class AbstractCPUContext implements CPUContext {
      */
     public void passedCycles(long cycles) {
         passedCyclesListenerSet.forEach(c -> c.passedCycles(cycles));
+    }
+
+    /**
+     * CPU implementations publish their own state; this is not part of the context interface.
+     */
+    protected final void fireStateChanged(CPU.RunState next, int instructionLocation, float measuredFrequencyKhz) {
+        Objects.requireNonNull(next);
+        CPU.RunState previous = runState;
+        this.instructionLocation = instructionLocation;
+        this.measuredFrequencyKhz = measuredFrequencyKhz;
+        runState = next;
+        for (CPUListener listener : cpuListeners) {
+            if (previous != next) notifyListener(() -> listener.runStateChanged(next));
+            notifyListener(listener::internalStateChanged);
+        }
+    }
+
+    private void notifyListener(Runnable notification) {
+        try {
+            notification.run();
+        } catch (RuntimeException failure) {
+            java.util.logging.Logger.getLogger(AbstractCPUContext.class.getName())
+                    .log(java.util.logging.Level.WARNING, "CPU listener failed", failure);
+        }
     }
 }

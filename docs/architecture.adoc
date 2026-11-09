@@ -334,7 +334,8 @@ end note
 @enduml
 ....
 
-`CPUContext.snapshot()` returns an immutable `CPUSnapshot`. Views register a
+`CPUContext` exposes `getRunState()`, `getInstructionLocation()` and
+`getMeasuredFrequencyKhz()` directly. Views register a
 `CPUContext.CPUListener` with `runStateChanged` and `internalStateChanged`, then
 remove it when disposed. CPU plugins publish state changes internally; the
 context interface exposes no setters or notification methods. Plugin editors

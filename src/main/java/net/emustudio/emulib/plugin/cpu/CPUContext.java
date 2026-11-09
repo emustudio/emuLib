@@ -12,10 +12,14 @@ import net.emustudio.emulib.plugin.Context;
  */
 @SuppressWarnings("unused")
 public interface CPUContext extends Context {
-    /**
-     * Current CPU execution details.
-     */
-    CPUSnapshot snapshot();
+    /** Current CPU run state. */
+    CPU.RunState getRunState();
+
+    /** Current instruction address, or -1 when unavailable. */
+    int getInstructionLocation();
+
+    /** Measured execution frequency in kHz, or NaN when unavailable. */
+    float getMeasuredFrequencyKhz();
 
     /**
      * Registers execution notifications. Callbacks may run outside Swing.
