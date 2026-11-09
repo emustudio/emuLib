@@ -7,467 +7,423 @@
 :source-highlighter: rouge
 :experimental:
 
-This document describes the software architecture of *emuLib* using the
-https://c4model.com/[C4 model] (Context, Containers, Components, Code).
+This document describes emuLib with the https://c4model.com/[C4 model] and
+defines its package boundaries. emuLib is one Java library used by two different
+consumer groups: the emuStudio main application and emuStudio plugins.
 
-emuLib is the shared runtime library used by
-https://github.com/emustudio/emuStudio[emuStudio] and its plugins. It defines the
-public plugin API (contracts and abstract base classes for CPU, memory, compiler
-and device plugins), runtime services for application integration and inter-plugin
-communication, settings interfaces, Swing UI helpers, and reusable utilities.
+== Architectural rules
+
+Packages under `net.emustudio.emulib` are public API by default. Packages named
+`internal` explicitly mark private API that must not be used by emuLib consumers,
+including plugins and the emuStudio application.
+
+The public API is divided by ownership and direction, not merely by technical
+topic:
+
+[cols="1,2,2",options="header"]
+|===
+| Namespace | Implemented or owned by | Used by
+
+| `plugin`
+| Plugins and emuLib
+| Plugins implement contracts and may reuse base classes; emuStudio loads and
+  drives plugin roots
+
+| `application`
+| emuStudio main application
+| Plugins call host services supplied through `ApplicationApi`
+
+| `net.emustudio.emulib`
+| emuLib
+| General-purpose types used by plugins, emuStudio, and other emuLib APIs
+
+| `io`, `ui`, `audio`, `recording`
+| emuLib
+| File-format, reusable Swing, audio playback, and recording APIs used where needed
+|===
+
+`plugin` and `application` are two sides of the same boundary. The
+former is the plugin SPI: plugins implement it and emuStudio calls it. The latter
+is the host API: emuStudio implements it and plugins call it. General-purpose,
+I/O, and UI types are public APIs without defining another lifecycle boundary.
 
 [NOTE]
 ====
-The diagrams below are written with
-https://github.com/plantuml-stdlib/C4-PlantUML[C4-PlantUML] (bundled in the
-PlantUML standard library). To render this document to HTML/PDF with the diagrams
-inlined, use https://asciidoctor.org/[Asciidoctor] together with
-https://github.com/asciidoctor/asciidoctor-diagram[asciidoctor-diagram] and a
-local PlantUML/Graphviz installation:
+The diagrams use https://github.com/plantuml-stdlib/C4-PlantUML[C4-PlantUML].
+Render the document with:
 
 [source,bash]
 ----
-asciidoctor -r asciidoctor-diagram docs/architecture.adoc
+bash ./gradlew doc
 ----
-
-If you do not have `asciidoctor-diagram`, the fenced diagram sources can still be
-copied into any PlantUML renderer.
 ====
 
-== Overview
+== Level 1 - System context
 
-emuLib is not a runnable application; it is a *Java library* (a single `emulib.jar`)
-that is loaded into the JVM of the emuStudio desktop application at runtime and
-compiled against by every plugin. Its architecture therefore centres on three
-responsibilities:
-
-* *Plugin contracts* — interfaces and abstract base classes that every plugin
-  (CPU, Memory, Compiler, Device) implements, so the host can load and control them
-  uniformly.
-* *Runtime services* — the `ApplicationApi` the host exposes to plugins, and the
-  `ContextPool` through which plugins discover and talk to each other via typed
-  _contexts_.
-* *Reusable building blocks* — number/radix/bit utilities, Intel HEX I/O, settings
-  abstractions, and Swing helpers (dialogs, debugger table).
-
-.C4 abstraction mapping for emuLib
-[cols="1,2,3",options="header"]
-|===
-| C4 level | In this document | Notes
-
-| Context (L1)   | emuLib within the emuStudio ecosystem | People and systems that use the library
-| Container (L2) | The `emulib.jar` artifact in the emuStudio JVM | A library has a single deployable container; consumers and 3rd-party deps shown around it
-| Component (L3) | Java packages inside `emulib.jar` | Plugin API, Runtime, Settings, Helpers, I/O, UI, Memory annotations
-| Code (L4)      | Key interfaces & class hierarchies | Plugin hierarchy, Context/ContextPool, CPU execution model
-|===
-
-== Level 1 — System Context
-
-At the highest level emuLib sits between the *emuStudio host application* and the
-*plugins* that extend it. Plugin developers write plugins against the emuLib API;
-emuStudio provides the concrete runtime implementations (context pool, settings,
-dialogs, GUI, debugger table) that emuLib only declares as interfaces.
+emuLib sits at the compile-time and runtime boundary between the emuStudio main
+application and independently developed plugins. It is a library, not a runnable
+system.
 
 [plantuml,c4-l1-context,svg]
 ....
 @startuml
 !include <C4/C4_Context>
 
-title System Context — emuLib
+title System Context - emuLib
 
-Person(dev, "Plugin Developer", "Builds emuStudio plugins (CPU, memory, compiler, device) against the emuLib API")
+Person(pluginDeveloper, "Plugin developer", "Builds CPU, memory, compiler, or device plugins")
+Person(appDeveloper, "emuStudio developer", "Builds the desktop host and runtime implementations")
 
-System(emulib, "emuLib", "Shared runtime library (emulib.jar): plugin contracts, runtime services, utilities and Swing UI helpers")
+System(emulib, "emuLib", "Public boundary contracts plus reusable APIs")
+System_Ext(emustudio, "emuStudio main application", "Loads plugins and implements host services")
+System_Ext(plugins, "emuStudio plugins", "Implement emulation capabilities and exchange contexts")
+System_Ext(maven, "Maven Central", "Distributes net.emustudio:emulib")
 
-System_Ext(emustudio, "emuStudio Application", "Desktop emulation platform. Loads plugins and provides concrete implementations of the runtime services declared by emuLib")
-System_Ext(plugins, "emuStudio Plugins", "CPU / Memory / Compiler / Device plugins that implement emuLib interfaces and communicate through contexts")
-System_Ext(maven, "Maven Central", "Distributes the published net.emustudio:emulib artifact")
-
-Rel(dev, emulib, "Compiles against the API, uses utilities")
-Rel(dev, plugins, "Develops")
-
-Rel(plugins, emulib, "Implement Plugin / Context interfaces; use helpers, settings, UI helpers")
-Rel(emustudio, emulib, "Implements ApplicationApi, ContextPool, PluginSettings, Dialogs, GUI; drives plugin lifecycle")
-Rel(emustudio, plugins, "Instantiates, configures and controls (reset/step/run/stop)")
-
-Rel(plugins, plugins, "Communicate via typed contexts obtained from the ContextPool")
-Rel(emulib, maven, "Published to", "Gradle / maven-publish")
+Rel(pluginDeveloper, emulib, "Uses plugin contracts and reusable implementations")
+Rel(appDeveloper, emulib, "Uses plugin SPI and implements application API")
+Rel(plugins, emulib, "Implement plugin; call application")
+Rel(emustudio, emulib, "Calls plugin; implements application")
+Rel(emustudio, plugins, "Loads, wires, and controls")
+Rel(plugins, plugins, "Communicate through typed contexts")
+Rel(maven, emulib, "Publishes")
 
 @enduml
 ....
 
-=== Key relationships
+=== Context responsibilities
 
-* *Plugin Developer → emuLib.* Developers compile their plugin root class against a
-  plugin interface (`CPU`, `Memory`, `Compiler`, `Device`) or extend an
-  `Abstract*` base class, and reuse helpers such as `NumberUtils`, `RadixUtils`,
-  `IntelHEX`, and the `DebuggerColumn` factories.
-* *emuStudio → emuLib.* emuLib declares the host services as _interfaces_
-  (`ApplicationApi`, `ContextPool`, `PluginSettings`, `Dialogs`, `GUI`).
-  emuStudio provides the concrete implementations and injects them
-  into every plugin through the plugin constructor.
-* *Plugins ↔ Plugins.* Direct plugin-to-plugin coupling is avoided. Instead a plugin
-  _registers_ a `Context` and other plugins _obtain_ it from the `ContextPool`,
-  keyed by the context interface.
+Plugin developers::
+Implement one plugin root type (`CPU`, `Memory`, `Compiler`, or `Device`), expose
+typed `Context` interfaces where needed, and optionally reuse base classes and
+helpers.
 
-== Level 2 — Container
+emuStudio developers::
+Discover and instantiate plugin roots, implement `ApplicationApi`,
+`ContextPool`, settings, dialogs, GUI, and execution services, then drive
+the plugin lifecycle.
 
-emuLib ships as one artifact, `emulib.jar` (Maven coordinates
-`net.emustudio:emulib`, Java 11 bytecode). At runtime it lives inside the emuStudio
-JVM next to the host application and the loaded plugin JARs. Its only third-party
-couplings are lightweight, `compileOnly` dependencies.
+emuLib::
+Defines the stable types crossing that boundary. It does not load plugins or
+provide the main application's service implementations.
+
+== Level 2 - Container
+
+emuLib is published as one `emulib.jar` (`net.emustudio:emulib`) targeting Java
+11 bytecode. It runs in the same JVM as the host application and loaded plugin
+JARs.
 
 [plantuml,c4-l2-container,svg]
 ....
 @startuml
 !include <C4/C4_Container>
 
-title Container — emuLib inside the emuStudio runtime (JVM)
+title Container - emuStudio JVM
 
-Person(dev, "Plugin Developer", "Builds plugins")
-
-System_Boundary(rt, "emuStudio Runtime (JVM)") {
-  Container(emustudioApp, "emuStudio Application", "Java desktop app (Swing)", "Host platform; implements the runtime service interfaces declared by emuLib")
-  Container(emulib, "emuLib", "Java library — emulib.jar", "Plugin API + runtime services + utilities + UI helpers")
-  Container(pluginJars, "Plugin JARs", "Java libraries", "CPU / Memory / Compiler / Device implementations")
+System_Boundary(jvm, "emuStudio runtime JVM") {
+  Container(app, "emuStudio main application", "Java / Swing", "Host implementations, plugin loading, lifecycle, persistence")
+  Container(emulib, "emuLib", "Java library / emulib.jar", "Boundary contracts and reusable APIs")
+  Container(pluginJars, "Plugin JARs", "Java libraries", "CPU, memory, compiler, and device implementations")
 }
 
-System_Ext(maven, "Maven Central", "Artifact distribution")
-Container_Ext(slf4j, "SLF4J API", "Java library (compileOnly)", "Logging facade used by abstract base classes")
-Container_Ext(jcip, "jcip-annotations", "Java library (compileOnly)", "@ThreadSafe / @GuardedBy documentation annotations")
+Container_Ext(slf4j, "SLF4J API", "compileOnly", "Logging facade")
+Container_Ext(jcip, "JCIP annotations", "compileOnly", "Concurrency documentation")
+Container_Ext(antlr, "ANTLR runtime", "compileOnly", "Compiler-plugin parsing integration")
+Container_Ext(jcodec, "JCodec", "implementation", "Video encoding and recording")
 
-Rel(dev, maven, "Resolves dependency from")
-Rel(maven, emulib, "Provides")
-
-Rel(pluginJars, emulib, "Compile & run against")
-Rel(emustudioApp, emulib, "Implements service interfaces; drives plugin lifecycle")
-Rel(emustudioApp, pluginJars, "Loads & controls")
-Rel(pluginJars, emustudioApp, "Call back via ApplicationApi (implemented by host)")
-
-Rel(emulib, slf4j, "Logs through", "compileOnly")
-Rel(emulib, jcip, "Annotated with", "compileOnly")
+Rel(app, emulib, "Implements application; consumes plugin")
+Rel(pluginJars, emulib, "Implements and reuses plugin; consumes application")
+Rel(app, pluginJars, "Loads and controls")
+Rel(emulib, slf4j, "Uses")
+Rel(emulib, jcip, "Uses")
+Rel(emulib, antlr, "Uses from compiler-plugin integration")
+Rel(emulib, jcodec, "Encodes recordings")
 
 @enduml
 ....
 
-=== Container notes
+=== Container constraints
 
-* *Single deployable.* There is exactly one container to deploy — `emulib.jar`.
-  When bundled manually it is placed under `emuStudio/lib/emulib.jar`.
-* *`compileOnly` dependencies.* `slf4j-api` and `jcip-annotations` are compile-time
-  only (see `build.gradle`). SLF4J is used by the abstract base classes for logging;
-  the host application supplies an SLF4J binding at runtime. jcip annotations
-  (`@ThreadSafe`) are purely documentary.
-* *No transitive runtime dependencies.* emuLib deliberately keeps its runtime
-  footprint minimal so it does not impose libraries on plugins or the host.
-* *Java compatibility.* Compiled to Java 11 bytecode; the Gradle 9 wrapper itself
-  requires JDK 17+ to build.
+* emuLib remains one artifact; the separation is expressed through packages.
+* SLF4J, JCIP annotations, and ANTLR are `compileOnly`. The consuming runtime
+  supplies them when the corresponding feature is used.
+* JCodec is an implementation dependency used for media recording.
+* The main application and plugins share the same public emuLib types at runtime.
 
-== Level 3 — Component
+== Level 3 - Components
 
-Inside `emulib.jar`, functionality is organised into cohesive Java packages. The
-component diagram groups them by responsibility and shows the main dependencies.
+The package structure is the component model. Public components are located in
+`net.emustudio.emulib` or its domain and role subpackages. Packages named `internal`
+mark private API and must not be used by plugins or the emuStudio application.
 
 [plantuml,c4-l3-component,svg]
 ....
 @startuml
 !include <C4/C4_Component>
 
-title Component — packages inside emulib.jar
+title Components - packages inside emulib.jar
 
-Container_Boundary(emulib, "emuLib (emulib.jar)") {
-
-  Component(pluginApi, "Plugin API", "net.emustudio.emulib.plugins(.cpu/.memory/.compiler/.device)", "Plugin & Context contracts, plugin-type interfaces, abstract base classes")
-  Component(annotations, "Plugin Annotations", "net.emustudio.emulib.plugins.annotations", "@PluginRoot, PLUGIN_TYPE — plugin discovery metadata")
-  Component(memAnno, "Memory Annotations", "net.emustudio.emulib.plugins.memory.annotations", "Per-cell annotations: breakpoints, source-code positions, text/data markers")
-
-  Component(runtime, "Runtime Services", "net.emustudio.emulib.runtime", "ApplicationApi (host facade) + ContextPool (context registry) + context exceptions")
-  Component(settings, "Settings", "net.emustudio.emulib.runtime.settings", "PluginSettings — typed read/write of plugin configuration")
-
-  Component(helpers, "Helpers / Utilities", "net.emustudio.emulib.runtime.helpers", "Bits, NumberUtils, RadixUtils, SleepUtils, ReadWriteLockSupport, Unchecked")
-  Component(io, "I/O", "net.emustudio.emulib.runtime.io", "FileType, IntelHEX, tape loading (TAP/TZX)")
-
-  Component(ui, "UI Helpers", "net.emustudio.emulib.runtime.ui", "Dialogs, GUI factory, Constants")
-  Component(uiComp, "UI Components", "net.emustudio.emulib.runtime.ui.components", "Reusable Swing widgets (dialog base, combo model)")
-  Component(debugger, "Debugger UI", "net.emustudio.emulib.runtime.ui.debugger", "DebuggerColumn + factories (address, mnemo, opcode, text)")
+Container_Boundary(emulib, "emuLib") {
+  Boundary(publicApi, "Public API - net.emustudio.emulib") {
+    Component(pluginApi, "Plugin API", "plugin", "Plugin contracts, base classes, contexts, annotations, exchanged data, focused helpers")
+    Component(applicationApi, "Application API", "application", "Host facade, context registry, execution state, live annotations, settings, UI contracts")
+    Component(generalApi, "General API", "net.emustudio.emulib", "Bits, numbers, radix, locking, sleep, unchecked calls")
+    Component(uiApi, "UI API", "ui", "Shared constants, icons, reusable Swing components")
+    Component(ioApi, "I/O API", "io", "File loading, Intel HEX and tape formats")
+    Component(audioApi, "Audio API", "audio", "PCM sinks and sample playback")
+    Component(recordingApi, "Recording API", "recording", "Video and audio recording")
+  }
 }
 
-System_Ext(emustudio, "emuStudio Application", "Implements the service interfaces")
-System_Ext(plugin, "A Plugin", "Implements Plugin API")
+System_Ext(app, "emuStudio main application", "Host")
+System_Ext(plugin, "Plugin", "Extension")
 
-' Plugin API wiring
-Rel(pluginApi, annotations, "Marked with")
-Rel(pluginApi, runtime, "Receives ApplicationApi; uses ContextPool")
-Rel(pluginApi, settings, "Reads/writes via PluginSettings")
-Rel(pluginApi, helpers, "Uses")
-Rel(pluginApi, memAnno, "Memory exposes")
-
-' Runtime wiring
-Rel(runtime, pluginApi, "Registers/looks up Context objects")
-Rel(runtime, ui, "ApplicationApi exposes Dialogs / GUI")
-
-Rel(io, helpers, "Uses number/radix utilities")
-Rel(ui, uiComp, "Uses")
-
-' External
-Rel(plugin, pluginApi, "Implements")
-Rel(plugin, helpers, "Uses")
-Rel(plugin, io, "Uses (compilers load code)")
-Rel(emustudio, runtime, "Implements ApplicationApi & ContextPool")
-Rel(emustudio, settings, "Implements PluginSettings")
-Rel(emustudio, ui, "Implements Dialogs & GUI")
-Rel(emustudio, debugger, "Shows CPU debugger columns")
+Rel(app, pluginApi, "Discovers and calls")
+Rel(app, applicationApi, "Implements")
+Rel(plugin, pluginApi, "Implements contracts, exchanges contexts, may reuse implementations")
+Rel(plugin, applicationApi, "Calls")
+Rel(plugin, generalApi, "Uses as needed")
+Rel(plugin, uiApi, "Uses as needed")
+Rel(plugin, ioApi, "Uses as needed")
+Rel(app, generalApi, "Uses as needed")
+Rel(app, uiApi, "Uses as needed")
+Rel(app, ioApi, "Uses as needed")
+Rel(plugin, audioApi, "Uses as needed")
+Rel(app, recordingApi, "Uses as needed")
+Rel(pluginApi, applicationApi, "Uses injected host services")
+Rel(applicationApi, pluginApi, "Uses context and lifecycle types")
+Rel(pluginApi, generalApi, "Uses general-purpose types")
+Rel(applicationApi, generalApi, "Uses general-purpose types")
+Rel(uiApi, applicationApi, "Implements UI extension types")
 
 @enduml
 ....
 
-=== Component responsibilities
+=== Component catalogue
 
 [cols="1,2,3",options="header"]
 |===
-| Component | Package(s) | Responsibility
+| Component | Packages | Main types
 
 | Plugin API
-| `plugins`, `plugins.cpu`, `plugins.memory`, `plugins.compiler`, `plugins.device`
-| Core contracts: `Plugin` and its derivatives `CPU`, `Memory`, `Compiler`,
-  `Device`; the `Context` marker and the per-type contexts; and `Abstract*` base
-  classes (`AbstractPlugin`, `AbstractCPU`, `AbstractCompiler`,
-  `AbstractMemoryContext`, `AbstractCPUContext`) that implement common behaviour.
-  `Plugin` lifecycle methods are no-op defaults and title/description come from `@PluginRoot`.
-  `AbstractCompiler` owns the compilation workflow; shared ANTLR glue lives in `plugins.compiler.antlr`.
+| `plugin`, `plugin.cpu`, `plugin.memory`,
+  `plugin.compiler`, `plugin.compiler.antlr`, `plugin.device`, `plugin.debugger`, and
+  their annotation packages
+| `Plugin`, `Context`, `CPU`, `Memory`, `Compiler`, `Device`, their context
+  interfaces, abstract bases, frequency helpers, decoder/disassembler contracts,
+  compiler messages and parsing helpers, optional debugging contracts and presentation types
 
-| Plugin Annotations
-| `plugins.annotations`
-| `@PluginRoot(title, description, type)` marks a plugin's root class;
-  `PLUGIN_TYPE` enumerates `COMPILER/CPU/MEMORY/DEVICE`.
+| Application API
+| `application`, `application.annotations`, `application.settings`,
+  `application.ui`, `application.ui.debugger`
+| `ApplicationApi`, `ContextPool`, `ExecutionState`, `MemoryAnnotations`,
+  `PluginSettings`, `Dialogs`, `GUI`, `DebuggerColumn`
 
-| Memory Annotations
-| `plugins.memory.annotations`
-| Rich per-cell metadata API (`MemoryContextAnnotations`, `Annotation`,
-  `BreakpointAnnotation`, `SourceCodeAnnotation`, …) attached to memory cells.
+| UI API
+| `ui...`
+| `DialogBase`, `CachedComboBoxModel`, `Constants`, `StandardIcons`
 
-| Runtime Services
-| `runtime`
-| `ApplicationApi` — the host facade handed to every plugin; `ContextPool` — the
-  registry that lets plugins publish and discover contexts (`get`, and type-checked
-  `getMemory`/`getDevice`); `ContextNotFoundException`.
+| General API
+| `net.emustudio.emulib`
+| `Bits`, `NumberUtils`, `RadixUtils`, `ReadWriteLockSupport`, `SleepUtils`, `Unchecked`
 
-| Settings
-| `runtime.settings`
-| `PluginSettings` — `Optional` typed getters, a single `set(key, value)` (null removes),
-  sub-settings, and reserved `emustudio.` keys.
+| I/O API
+| `io`
+| `FileLoader`, `FileType`, `IntelHEX`, `TapeListener`
 
-| Helpers / Utilities
-| `runtime.helpers`
-| Bit/number/radix utilities (`Bits`, `NumberUtils`, `RadixUtils`), timing (`SleepUtils`), concurrency (`ReadWriteLockSupport`) and
-  functional glue (`Unchecked`).
-
-| I/O
-| `runtime.io`
-| `FileType` (file description + extensions, used by compilers and file dialogs),
-  `IntelHEX` (used by compilers to emit code and load it into memory), and
-  `FileLoader`/`TapeListener` for TAP/TZX tape images.
-
-| UI Helpers
-| `runtime.ui`, `runtime.ui.components`
-| `Dialogs` (message/confirm/input, headless-aware), `GUI` factory and reusable Swing
-  widgets.
-
-| Debugger UI
-| `runtime.ui.debugger`
-| `DebuggerColumn` and its factories (address, mnemonic, opcode, text). CPUs may
-  return custom columns from `CPU.getDebuggerColumns()`; otherwise the host uses defaults.
+| Audio and recording APIs
+| `audio`, `recording`
+| `AudioSink`, `SamplePlayer`, `RecordingSession`
 |===
 
-== Level 4 — Code
+=== Allowed dependency direction
 
-The following class diagrams zoom into the most important contracts.
+[plantuml,c4-l3-dependencies,svg]
+....
+@startuml
+left to right direction
 
-=== Plugin type hierarchy
+package "Public API" {
+  [net.emustudio.emulib] as general
+  [plugin] as plugin
+  [application] as application
+  [io] as io
+  [ui] as ui
+}
 
-Every plugin's root class implements `Plugin` (usually through one of the four
-specialised interfaces) and is annotated with `@PluginRoot`. emuLib provides
-`Abstract*` base classes that implement the boilerplate.
+application --> plugin : context and lifecycle types
+plugin --> application : injected host services
+plugin --> general : general-purpose types
+application --> general : general-purpose types
+ui --> application : UI extension contracts
+@enduml
+....
+
+== Level 4 - Code
+
+=== Plugin side: implemented by plugins
 
 [plantuml,c4-l4-plugin,svg]
 ....
 @startuml
-title Code — Plugin hierarchy
+title Code - plugin API
 
-interface Plugin {
-  +initialize()
-  +reset()
-  +destroy()
-  +showSettings(JFrame)
-  +getTitle() : String
-  +getVersion() : String
-  +isAutomationSupported() : boolean
+package "plugin" {
+  interface Plugin
+  interface CPU
+  interface Memory
+  interface Compiler
+  interface Device
+  interface Context
+
+  Plugin <|-- CPU
+  Plugin <|-- Memory
+  Plugin <|-- Compiler
+  Plugin <|-- Device
+
+  abstract class AbstractCPU
+  abstract class AbstractCompiler
+  abstract class AbstractPlugin
+
+  CPU <|.. AbstractCPU
+  Compiler <|.. AbstractCompiler
+  Plugin <|.. AbstractPlugin
 }
 
-interface CPU
-interface Memory
-interface Compiler
-interface Device
-
-Plugin <|-- CPU
-Plugin <|-- Memory
-Plugin <|-- Compiler
-Plugin <|-- Device
-
-abstract class AbstractPlugin
-abstract class AbstractCPU
-abstract class AbstractCompiler
-
-Plugin <|.. AbstractPlugin
-AbstractPlugin <|-- AbstractCPU
-AbstractPlugin <|-- AbstractCompiler
-CPU <|.. AbstractCPU
-Compiler <|.. AbstractCompiler
-
-annotation PluginRoot {
-  +title : String
-  +description : String
-  +type : PLUGIN_TYPE
-}
-enum PLUGIN_TYPE {
-  COMPILER
-  CPU
-  MEMORY
-  DEVICE
-}
-PluginRoot ..> PLUGIN_TYPE
-
-note bottom of AbstractPlugin
-  Constructor contract for every root class:
+note bottom
+  Plugin root constructor:
   (long pluginId, ApplicationApi api, PluginSettings settings)
 end note
 @enduml
 ....
 
-* A plugin is a *single* root class implementing `Plugin` (or a derivative) and
-  annotated `@PluginRoot`.
-* The mandated constructor `(long pluginId, ApplicationApi, PluginSettings)` is how
-  the host injects the runtime services and the plugin's persisted configuration.
-* Lifecycle: `initialize()` (contexts may be obtained here) → `reset()` / run →
-  `destroy()` (unregister contexts, release resources).
+The main application discovers one root class per plugin and calls the `Plugin`
+lifecycle. Plugin implementations may implement the contracts directly or extend
+the optional abstract bases.
 
-=== Contexts and the ContextPool
+=== Application side: implemented by emuStudio
 
-Contexts are the inter-plugin communication mechanism. A plugin registers context
-objects during construction; consumers look them up (reliably) during
-`initialize()`.
-
-[plantuml,c4-l4-context,svg]
+[plantuml,c4-l4-application,svg]
 ....
 @startuml
-title Code — Context registry & inter-plugin communication
+title Code - application API exposed to plugins
 
 interface ApplicationApi {
   +getContextPool() : ContextPool
   +getDialogs() : Dialogs
   +getGUI() : GUI
-  +get/setProgramLocation()
+  +getAnnotations() : MemoryAnnotations
+  +getExecutionState() : ExecutionState
+  +getProgramLocation() : int
+  +setProgramLocation(int)
 }
 
-interface ContextPool {
-  +register(pluginID, Context, Class)
-  +unregister(pluginID, Class) : boolean
-  +get(pluginID, Class, index) : T
-  +getMemory(pluginID, Class cellType)
-  +getDevice(pluginID, Class dataType)
-}
+interface ContextPool
+interface PluginSettings
+interface Dialogs
+interface GUI
+interface ExecutionState
+class MemoryAnnotations
 
-interface Context
-interface CPUContext
-interface "MemoryContext<CellType>" as MemoryContext
-interface "DeviceContext<DataType>" as DeviceContext
+ApplicationApi --> ContextPool
+ApplicationApi --> Dialogs
+ApplicationApi --> GUI
+ApplicationApi --> ExecutionState
+ApplicationApi --> MemoryAnnotations
 
-Context <|-- CPUContext
-Context <|-- MemoryContext
-Context <|-- DeviceContext
-
-ApplicationApi --> ContextPool : exposes
-ContextPool o--> "*" Context : registers / resolves
-
-note right of ContextPool
-  Keyed by the context interface.
-  Multiple contexts per interface are
-  addressed by a 0-based index.
+note right of ApplicationApi
+  emuStudio implements these contracts.
+  Each plugin receives them through its constructor.
 end note
 @enduml
 ....
 
-=== Runtime scenario — plugin wiring & communication
+=== Context exchange
 
-The dynamic view below shows the typical startup and cross-plugin interaction:
-the host constructs plugins (they register contexts), initialises them (they resolve
-contexts), and then plugins talk to each other purely through those contexts.
+Contexts are the only plugin-to-plugin API. A plugin registers a context during
+construction; another plugin resolves it during `initialize()`. `ContextPool` is
+implemented by emuStudio but operates on plugin-owned context types.
+
+[plantuml,c4-l4-context,svg]
+....
+@startuml
+title Code - typed context exchange
+
+interface Context <<@PluginContext>>
+interface CPUContext
+interface "MemoryContext<CellType>" as MemoryContext
+interface "DeviceContext<DataType>" as DeviceContext
+interface ContextPool
+
+Context <|-- CPUContext
+Context <|-- MemoryContext
+Context <|-- DeviceContext
+ContextPool o--> "*" Context : registers and resolves
+
+note right of ContextPool
+  Registration key: context interface
+  Owner/permission key: plugin ID
+  Multiple implementations: 0-based index
+end note
+@enduml
+....
+
+=== Runtime sequence
 
 [plantuml,c4-l4-dynamic,svg]
 ....
 @startuml
-title Dynamic — startup wiring and inter-plugin communication
+title Dynamic - construction, initialization, and communication
 
-actor emuStudio
-participant "CPU plugin" as CPU
-participant "Memory plugin" as MEM
-participant "Device plugin" as DEV
-participant "ContextPool" as POOL
+actor "emuStudio" as app
+participant "Memory plugin" as memory
+participant "CPU plugin" as cpu
+participant "ContextPool implementation" as pool
 
-== Construction (register contexts) ==
-emuStudio -> MEM : new(pluginId, api, settings)
-MEM -> POOL : register(MemoryContext)
-emuStudio -> DEV : new(pluginId, api, settings)
-DEV -> POOL : register(DeviceContext)
-emuStudio -> CPU : new(pluginId, api, settings)
-CPU -> POOL : register(CPUContext)
+app -> memory : new(pluginId, applicationApi, settings)
+memory -> pool : register(pluginId, MemoryContext)
+app -> cpu : new(pluginId, applicationApi, settings)
+cpu -> pool : register(pluginId, CPUContext)
 
-== Initialization (resolve contexts) ==
-emuStudio -> CPU : initialize()
-CPU -> POOL : getMemory(pluginId, Byte.class)
-POOL --> CPU : MemoryContext
-CPU -> POOL : getDevice(pluginId, Byte.class)
-POOL --> CPU : DeviceContext
+app -> memory : initialize()
+app -> cpu : initialize()
+cpu -> pool : getMemory(pluginId, type)
+pool --> cpu : MemoryContext
 
-== Emulation ==
-emuStudio -> CPU : execute()
-CPU -> MEM : read(address)
-MEM --> CPU : cell
-CPU -> DEV : writeData(value)   // "OUT"
-DEV --> CPU : (ack)
-CPU -> CPU : signalInterrupt()?  // via CPUContext
+app -> cpu : execute()
+cpu -> memory : read(address)
+memory --> cpu : cell value
+
+app -> cpu : destroy()
+app -> memory : destroy()
 @enduml
 ....
 
 == Cross-cutting concerns
 
-Concurrency::
-Contexts must be thread-safe (`Context` is `@ThreadSafe`) because there is no
-guarantee about which thread performs plugin communication. `AbstractCPU` runs the
-fetch/decode/execute loop on its own single-thread executor and manages `RunState`
-transitions and listeners in a thread-safe way. `ReadWriteLockSupport` helps plugins
-guard shared state.
+API boundary::
+Packages are public API by default. Packages named `internal` explicitly mark
+private API that must not be used by emuLib consumers, including plugins and the
+emuStudio application.
 
-Headless / automation mode::
-The API is usable without a GUI. `ApplicationApi.UNAVAILABLE` and
-`PluginSettings.UNAVAILABLE` provide no-op implementations for embedding a plugin
-without emuStudio (e.g. a command-line tool), and `Dialogs` degrades to logging when
-GUI is disabled. Plugins advertise `isAutomationSupported()`.
+Concurrency::
+`Context` is documented as thread-safe. `AbstractCPU` serializes CPU execution
+and state transitions. `ReadWriteLockSupport` is a public utility for consumers
+that need guarded shared state.
+
+Headless operation::
+`ApplicationApi.UNAVAILABLE` and `PluginSettings.UNAVAILABLE` let plugin code run
+without a full emuStudio host where supported. GUI-related interfaces remain
+host-owned contracts.
 
 Extensibility::
-New capabilities are added by *extending context interfaces* rather than by changing core contracts, keeping the plugin ABI
-stable. Memory cell type and device data type are generic
-(`MemoryContext<CellType>`, `DeviceContext<DataType>`).
-
-Distribution & versioning::
-Published to Maven Central as `net.emustudio:emulib`. Group/artifact coordinates
-changed at 9.0.0 (`net.sf.emustudio:emuLib` → `net.emustudio:emulib` from 10.0.0).
+New inter-plugin capabilities should normally be expressed as typed context
+interfaces annotated with `@PluginContext`, avoiding direct plugin
+implementation dependencies.
 
 == References
 
-* Source packages: `src/main/java/net/emustudio/emulib/...`
+* Public packages: `src/main/java/net/emustudio/emulib/...`
 * Build: `build.gradle`, `settings.gradle`
-* Project README: `README.md`
+* Project overview: `README.md`
 * emuStudio developer guide: https://www.emustudio.net/documentation/developer/introduction/
 * C4 model: https://c4model.com/
-* C4-PlantUML: https://github.com/plantuml-stdlib/C4-PlantUML

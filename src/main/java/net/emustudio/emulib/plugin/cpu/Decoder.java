@@ -1,0 +1,19 @@
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
+package net.emustudio.emulib.plugin.cpu;
+
+/**
+ * An instruction decoder interface.
+ */
+@SuppressWarnings("unused")
+public interface Decoder {
+    /**
+     * Decodes an instruction.
+     *
+     * @param memoryPosition the address of the start of the instruction
+     * @return the decoded instruction object
+     * @throws InvalidInstructionException when decoding is not successful
+     */
+    DecodedInstruction decode(int memoryPosition) throws InvalidInstructionException;
+
+}

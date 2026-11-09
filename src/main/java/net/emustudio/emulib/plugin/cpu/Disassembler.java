@@ -1,0 +1,35 @@
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
+package net.emustudio.emulib.plugin.cpu;
+
+/**
+ * An instruction disassembler interface. The CPU plugin supplies the memory wiring used for
+ * decoding; addresses belong to that logical address space. The connected plugins implement memory mapping.
+ */
+@SuppressWarnings("unused")
+public interface Disassembler {
+    /** Optional structured flow information; providers must not infer it by parsing rendered mnemonics. */
+    default java.util.Optional<InstructionFlow> getFlow(int address) { return java.util.Optional.empty(); }
+
+
+    /**
+     * Disassemble one instruction at specific location.
+     *
+     * @param memoryPosition Memory address where to begin disassembling.
+     * @return Object that represents the disassembled instruction.
+     * @throws InvalidInstructionException when instruction coul not be disassembled
+     * @throws IndexOutOfBoundsException   when memory location exceeds the bounds
+     */
+    DisassembledInstruction disassemble(int memoryPosition) throws InvalidInstructionException, IndexOutOfBoundsException;
+
+    /**
+     * Returns an address in the memory of the next instruction, that is
+     * followed by specified location.
+     *
+     * @param memoryPosition The memory location of the instruction
+     * @return Memory position of next instruction
+     * @throws IndexOutOfBoundsException when memory location exceeds the bounds
+     */
+    int getNextInstructionPosition(int memoryPosition) throws IndexOutOfBoundsException;
+
+}

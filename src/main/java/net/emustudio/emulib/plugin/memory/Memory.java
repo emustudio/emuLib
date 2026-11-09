@@ -1,0 +1,23 @@
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
+package net.emustudio.emulib.plugin.memory;
+
+import net.emustudio.emulib.plugin.Plugin;
+
+/**
+ * Memory plugin root interface.
+ * <p>
+ * Memory can define a "memory context", which can enable additional non-standard functionality, which can be used
+ * by other plugins.
+ *
+ * @see MemoryContext
+ */
+@SuppressWarnings("unused")
+public interface Memory extends Plugin {
+
+    @Override
+    default boolean isAutomationSupported() {
+        return true;
+    }
+}
+

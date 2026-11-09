@@ -1,0 +1,41 @@
+/* SPDX-FileCopyrightText: 2006-2026 Peter Jakubčo
+   SPDX-License-Identifier: GPL-3.0-or-later */
+package net.emustudio.emulib.plugin.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Indicates that the class is a plugin's main class.
+ * <p>
+ * Besides, the main class must inherit from Plugin interface. This annotation
+ * must be used once and only once within the plugin. If this annotation is
+ * used more than once (together with the inheritance of Plugin interface), the
+ * first occurrence is used (in non-deterministic order).
+ */
+@Retention(value = RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface PluginRoot {
+    /**
+     * Title of the plugin.
+     *
+     * @return plugin title
+     */
+    String title();
+
+    /**
+     * Short description of the plugin.
+     *
+     * @return plugin description
+     */
+    String description() default "";
+
+    /**
+     * Type of the plugin.
+     *
+     * @return plugin type
+     */
+    PLUGIN_TYPE type();
+}

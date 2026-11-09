@@ -13,6 +13,8 @@ It provides the public plugin API, runtime services, UI helpers, and reusable ut
 - Utility classes for number conversion, radix formatting, Intel HEX handling, threading, and strings
 - Swing-oriented UI helpers and reusable debugger table components
 
+Packages under `net.emustudio.emulib` are public API by default. Packages named `internal` explicitly mark private API that must not be used by emuLib consumers, including plugins and the emuStudio application.
+
 ## Usage
 
 This repository currently builds version `12.1.0-SNAPSHOT`. For released builds, prefer a published version from Maven Central in consumer
@@ -59,18 +61,23 @@ If Gradle fails with a JVM version error, point `JAVA_HOME` to a JDK 17+ install
 
 ## Package Overview
 
-- `net.emustudio.emulib.plugins`
-  Plugin interfaces, annotations, and abstract base classes
-- `net.emustudio.emulib.runtime`
-  Application-facing runtime APIs and context management
-- `net.emustudio.emulib.runtime.settings`
-  Shared settings interfaces for plugins and runtime code
-- `net.emustudio.emulib.runtime.helpers`
-  Helper utilities such as `Bits`, `NumberUtils`, `RadixUtils`, and `SleepUtils`
-- `net.emustudio.emulib.runtime.io`
-  `FileType`, Intel HEX, and TAP/TZX tape loading
-- `net.emustudio.emulib.runtime.ui`
-  Dialogs, Swing helpers, and debugger columns
+- `net.emustudio.emulib.plugin`
+  Contracts, base classes, and implementation helpers for plugins
+- `net.emustudio.emulib.application`
+  Host services implemented by emuStudio and called by plugins
+- `net.emustudio.emulib.application.annotations`
+  Live annotations shared through the host application
+- `net.emustudio.emulib`
+  General-purpose bit, number, radix, locking, sleep, and unchecked-call utilities
+- `net.emustudio.emulib.io`
+  File-format and I/O APIs
+- `net.emustudio.emulib.ui`
+  Shared UI constants, icons, and reusable Swing components
+- `net.emustudio.emulib.audio`, `net.emustudio.emulib.recording`
+  Reusable audio playback and media recording APIs
+
+See the [C4 architecture documentation](docs/architecture.adoc) for ownership,
+dependency direction, and runtime interaction diagrams.
 
 ## Performance Considerations
 
@@ -94,18 +101,18 @@ For full plugin development documentation, see the emuStudio developer guide:
 
 At a high level:
 
-- A plugin is represented by a single root object implementing `net.emustudio.emulib.plugins.Plugin` or one of its
+- A plugin is represented by a single root object implementing `net.emustudio.emulib.plugin.Plugin` or one of its
   derived interfaces such as `CPU`, `Memory`, `Compiler`, or `Device`.
 - Plugins can expose contexts for inter-plugin communication by implementing interfaces derived from
-  `net.emustudio.emulib.plugins.Context`.
+  `net.emustudio.emulib.plugin.Context`.
 - Plugins usually extend `AbstractPlugin` (or `AbstractCPU`, `AbstractCompiler`). Lifecycle methods are no-op defaults;
   title and description come from `@PluginRoot`.
 - Plugins obtain contexts of other plugins via `ContextPool.get(...)`, or the type-checked
   `getMemory(pluginID, Byte.class)` / `getDevice(pluginID, Byte.class)`.
 - Compilers implement `compile(Path input, Path output)`; `AbstractCompiler` drives the workflow and reports
   `CompileException`s. ANTLR-based compilers reuse `AntlrLexicalAnalyzer` and `ParserErrorListener`.
-- Plugins can communicate with the host application through `net.emustudio.emulib.runtime.ApplicationApi`.
-- Configuration is exposed through `net.emustudio.emulib.runtime.settings.PluginSettings`.
+- Plugins can communicate with the host application through `net.emustudio.emulib.application.ApplicationApi`.
+- Configuration is exposed through `net.emustudio.emulib.application.settings.PluginSettings`.
 
 ## Deployment
 
@@ -119,7 +126,7 @@ emuStudio/lib/emulib.jar
 
 ## Optional machine debugging
 
-CPU plugins may additionally implement `net.emustudio.emulib.plugins.debugger.Debugging`. Its small interface compiles
+CPU plugins may additionally implement `net.emustudio.emulib.plugin.debugger.Debugging`. Its small interface compiles
 machine-defined expressions and observes semantic execution steps. Live changes use the existing host execution
 service. `CPU` defines no universal registers or state schema.
 
