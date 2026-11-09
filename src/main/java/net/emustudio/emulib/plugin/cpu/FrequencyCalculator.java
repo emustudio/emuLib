@@ -7,8 +7,8 @@ import java.util.function.LongSupplier;
 
 /**
  * Measures average CPU frequency in kHz without owning a thread. The CPU worker calls start,
- * passedCycles, and stop; the host scheduler calls sample. Cycle publication is batched to keep
- * atomic updates out of the instruction loop. Sampling returns a value; execution notifications belong to the host.
+ * passedCycles, and stop; observers call sample. Cycle publication is batched to keep
+ * atomic updates out of the instruction loop. Sampling returns a value without publishing execution notifications.
  */
 public final class FrequencyCalculator implements CPUContext.PassedCyclesListener {
     private static final long PUBLICATION_CYCLES = 4096;
@@ -57,7 +57,7 @@ public final class FrequencyCalculator implements CPUContext.PassedCyclesListene
         running = false;
     }
 
-    /** Called by the host's existing scheduler; never schedules work itself. */
+    /** Reads the current measurement; never schedules work itself. */
     public synchronized float sample() {
         long elapsed = (running ? nanoTime.getAsLong() : stoppedAt) - startedAt;
         long count = publishedCycles;

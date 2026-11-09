@@ -224,7 +224,7 @@ Rel(uiApi, applicationApi, "Implements UI extension types")
 
 | General API
 | `net.emustudio.emulib`
-| `Bits`, `NumberUtils`, `RadixUtils`, `ReadWriteLockSupport`, `SleepUtils`, `Unchecked`
+| `Bits`, `Numbers`, `ReadWriteLockSupport`, `SleepUtils`, `Unchecked`
 
 | I/O API
 | `io`
@@ -335,7 +335,7 @@ end note
 ....
 
 `CPUContext` exposes `getRunState()`, `getInstructionLocation()` and
-`getMeasuredFrequencyKhz()` directly. Views register a
+`getCpuFrequencyKhz()` directly. Views register a
 `CPUContext.CPUListener` with `runStateChanged` and `internalStateChanged`, then
 remove it when disposed. CPU plugins publish state changes internally; the
 context interface exposes no setters or notification methods. Plugin editors

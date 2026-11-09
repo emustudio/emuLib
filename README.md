@@ -89,10 +89,10 @@ The table below groups helper methods by asymptotic cost.
 
 | Methods | Time complexity |
 | --- | --- |
-| `Bits(int, int)`, `Bits.toBytes()`, `Bits.reverseBytes()`, `Bits.reverseBits()`, `Bits.absolute()`, `Bits.shiftLeft()`, `Bits.shiftRight()`<br>`NumberUtils.reverseBits(...)`, `NumberUtils.readBits(...)`, `NumberUtils.readInt(...)`, `NumberUtils.writeInt(...)`, `NumberUtils.bcd2bin(...)`, `NumberUtils.bin2bcd(...)` | `O(1)` |
-| `NumberUtils.nativeBytesToBytes(...)` | `O(n)` |
-| `RadixUtils.formatHex(...)`, `RadixUtils.formatBinary(...)` | `O(L)` |
-| `RadixUtils.parseRadix(...)`, `ParsingUtils.parseNumber(...)` | `O(s)` |
+| `Bits(int, int)`, `Bits.toBytes()`, `Bits.reverseBytes()`, `Bits.reverseBits()`, `Bits.absolute()`, `Bits.shiftLeft()`, `Bits.shiftRight()`<br>`Numbers.reverseBits(...)`, `Numbers.readBits(...)`, `Numbers.readInt(...)`, `Numbers.writeInt(...)`, `Numbers.bcd2bin(...)`, `Numbers.bin2bcd(...)` | `O(1)` |
+| `Numbers.nativeBytesToBytes(...)` | `O(n)` |
+| `Numbers.formatHex(...)`, `Numbers.formatBinary(...)` | `O(L)` |
+| `Numbers.parseRadix(...)`, `ParsingUtils.parseNumber(...)` | `O(s)` |
 
 ## Getting Started With Plugin Development
 

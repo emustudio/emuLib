@@ -19,7 +19,7 @@ public interface CPUContext extends Context {
     int getInstructionLocation();
 
     /** Measured execution frequency in kHz, or NaN when unavailable. */
-    float getMeasuredFrequencyKhz();
+    float getCpuFrequencyKhz();
 
     /**
      * Registers execution notifications. Callbacks may run outside Swing.

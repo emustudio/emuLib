@@ -39,7 +39,7 @@ public abstract class AbstractCPUContext implements CPUContext {
     }
 
     @Override
-    public float getMeasuredFrequencyKhz() {
+    public float getCpuFrequencyKhz() {
         return measuredFrequencyKhz;
     }
 

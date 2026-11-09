@@ -15,13 +15,13 @@ public class AbstractCPUContextTest {
     @Test
     public void gettersExposeLatestCPUState() {
         assertEquals(-1, context.getInstructionLocation());
-        assertTrue(Float.isNaN(context.getMeasuredFrequencyKhz()));
+        assertTrue(Float.isNaN(context.getCpuFrequencyKhz()));
 
         context.fireStateChanged(CPU.RunState.STATE_RUNNING, 20, 2000);
 
         assertEquals(20, context.getInstructionLocation());
         assertEquals(CPU.RunState.STATE_RUNNING, context.getRunState());
-        assertEquals(2000, context.getMeasuredFrequencyKhz(), 0);
+        assertEquals(2000, context.getCpuFrequencyKhz(), 0);
         assertThrows(NullPointerException.class, () -> context.fireStateChanged(null, 0, Float.NaN));
     }
 

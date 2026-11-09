@@ -19,7 +19,7 @@ public class AbstractCPUTest {
 
         cpu.reset();
 
-        assertEquals(123, cpu.getInstructionLocation());
+        assertEquals(123, cpu.location);
         verify(application);
     }
 
