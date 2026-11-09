@@ -2,78 +2,36 @@
    SPDX-License-Identifier: GPL-3.0-or-later */
 package net.emustudio.emulib.plugins.cpu;
 
-import net.emustudio.emulib.runtime.helpers.Bits;
-import net.jcip.annotations.Immutable;
-
-import java.util.*;
+import java.util.Objects;
 
 /**
- * A decoded, but not yet disassembled instruction.
- * Supposed to be immutable, although some fields (arrays) are not protected for performance reasons.
- * It is ready to be put in a hashed collections (implements equals() and hashCode()).
+ * Immutable facts about one successfully decoded instruction.
+ * Accessors describe captured input and never read live memory.
  */
-@Immutable
-public class DecodedInstruction {
-    // A rule key can carry raw operand bits returned by a subrule.
-    private static final byte HAS_BITS = 4;
+public interface DecodedInstruction {
+    /** Logical instruction start, in the CPU's address units. */
+    int address();
 
-    /**
-     * Constants
-     */
-    public final int[] constants;
+    /** Positive number of occupied addressable cells, not necessarily bytes. */
+    int length();
 
-    /**
-     * Strings
-     */
-    public final String[] strings;
+    /** Rendered mnemonic and operands from the captured instruction. */
+    String mnemonic();
 
-    /**
-     * Bits objects
-     */
-    public final Bits[] bits;
+    /** Captured encoding as display text, including non-byte representations. */
+    String encoding();
 
-    /**
-     * Number of keys. Keys go from 1..keyCount
-     */
-    public final int keyCount;
-
-    /**
-     * Instruction image
-     */
-    public final byte[] image;
-
-    /**
-     * Constructs a new DecodedInstruction.
-     */
-    public DecodedInstruction(byte[] image, int keyCount, byte[] keyStates, int[] constants, String[] strings,
-                              int[] bitValues, int[] bitLengths) {
-        this.image = Arrays.copyOf(image, image.length);
-        this.constants = Arrays.copyOf(constants, constants.length);
-        this.strings = Arrays.copyOf(strings, strings.length);
-        this.keyCount = keyCount;
-
-        this.bits = new Bits[keyStates.length];
-        for (int key = 0; key < keyStates.length; key++) {
-            if ((keyStates[key] & HAS_BITS) != 0) {
-                bits[key] = new Bits(bitValues[key], bitLengths[key]);
-            }
-        }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof DecodedInstruction)) return false;
-        DecodedInstruction that = (DecodedInstruction) o;
-        return Objects.deepEquals(image, that.image);
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.hashCode(image);
-    }
-
-    @Override
-    public String toString() {
-        return Arrays.toString(image);
+    /** Captures immutable instruction facts without reading or retaining machine state. */
+    static DecodedInstruction of(int address, int length, String mnemonic, String encoding) {
+        if (address < 0) throw new IllegalArgumentException("Negative instruction address");
+        if (length < 1) throw new IllegalArgumentException("Instruction length must be positive");
+        Objects.requireNonNull(mnemonic);
+        Objects.requireNonNull(encoding);
+        return new DecodedInstruction() {
+            @Override public int address() { return address; }
+            @Override public int length() { return length; }
+            @Override public String mnemonic() { return mnemonic; }
+            @Override public String encoding() { return encoding; }
+        };
     }
 }

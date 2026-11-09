@@ -10,10 +10,14 @@ public interface Decoder {
     /**
      * Decodes an instruction.
      *
-     * @param memoryPosition the address of the start of the instruction
+     * Callers must serialize access unless the implementation documents concurrent decoding.
+     * A returned instruction is immutable even after the memory changes.
+     *
+     * @param address the logical address of the start of the instruction
      * @return the decoded instruction object
      * @throws InvalidInstructionException when decoding is not successful
+     * @throws IndexOutOfBoundsException when required instruction cells are unavailable
      */
-    DecodedInstruction decode(int memoryPosition) throws InvalidInstructionException;
+    DecodedInstruction decode(int address) throws InvalidInstructionException, IndexOutOfBoundsException;
 
 }

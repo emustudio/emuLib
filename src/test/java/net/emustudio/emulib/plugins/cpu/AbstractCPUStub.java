@@ -26,7 +26,7 @@ public class AbstractCPUStub extends AbstractCPU {
     @Override public int getInstructionLocation() { return location; }
     @Override public boolean setInstructionLocation(int location) { this.location = location; return true; }
     @Override public int getAddressSpaceSize() { return 256; }
-    @Override public Disassembler getDisassembler() { return null; }
+    @Override public Decoder getDecoder() { return null; }
     @Override public void initialize() { }
     @Override public String getDescription() { return "CPU stub"; }
 }
