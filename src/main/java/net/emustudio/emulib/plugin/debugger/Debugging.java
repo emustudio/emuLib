@@ -33,6 +33,16 @@ public interface Debugging {
          */
         boolean afterStep(boolean completed, Optional<DecodedInstruction> instruction,
                           OptionalInt nextAddress, Optional<StepView> capture);
+        /**
+         * Whether instruction-only execution may report truthful block facts instead of individual step callbacks.
+         * Opt-in requires implementing {@link #afterBlock(ExecutedBlock)} and retaining any stop policy at boundaries.
+         * Access tracking and full presentation capture always retain individual steps.
+         */
+        default boolean canBatchInstructions() { return false; }
+        /** Receives an executed block authorized before its guest effects; never represents a rich step capture. */
+        default void afterBlock(ExecutedBlock block) {
+            throw new UnsupportedOperationException("Instruction batching is not supported");
+        }
         /** Reports isolated instrumentation failures; never requests a CPU stop. */
         default void failed(String message) { }
     }

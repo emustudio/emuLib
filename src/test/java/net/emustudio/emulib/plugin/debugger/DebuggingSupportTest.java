@@ -20,6 +20,173 @@ import static org.junit.Assert.*;
 
 public class DebuggingSupportTest {
     private static final DecodedInstruction INSTRUCTION = DecodedInstruction.of(7, 1, "jump", "C3");
+    private static final ExecutedBlock BLOCK = new ExecutedBlock(List.of(INSTRUCTION),
+            List.of(new ExecutedBlock.Transition(7, 100)), 7, 100);
+
+    @Test
+    public void batchingRequiresExplicitObserverOptIn() {
+        Observer observer = new Observer();
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+        support.observe(observer, Debugging.Capture.INSTRUCTION);
+
+        assertFalse(observer.canBatchInstructions());
+        assertThrows(UnsupportedOperationException.class, () -> observer.afterBlock(BLOCK));
+        assertFalse(support.canBatchInstructions());
+        assertTrue(support.begin());
+        assertFalse(support.canBatchInstructions());
+        assertFalse(end(support, true, 100));
+        assertEquals(List.of(true), observer.completions);
+    }
+
+    @Test
+    public void batchingOnlyAcceptsCapturedInstructionModeAndEndsTheStepOnce() throws Exception {
+        for (Debugging.Capture mode : Debugging.Capture.values()) {
+            DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+            BatchObserver observer = new BatchObserver();
+            AutoCloseable handle = support.observe(observer, mode);
+
+            assertTrue(support.begin());
+            if (mode == Debugging.Capture.INSTRUCTION) {
+                assertTrue(support.canBatchInstructions());
+                support.endBlock(BLOCK);
+                support.endBlock(BLOCK);
+                assertEquals(List.of(BLOCK), observer.blocks);
+                assertTrue(observer.completions.isEmpty());
+                assertFalse(end(support, true, 100));
+            } else {
+                assertFalse(support.canBatchInstructions());
+                assertTrue(observer.blocks.isEmpty());
+                assertFalse(end(support, true, 100));
+                assertEquals(List.of(true), observer.completions);
+            }
+            assertEquals(mode == Debugging.Capture.INSTRUCTION ? 1 : 0, observer.batchQueries);
+            assertEquals(1, observer.beforeCalls);
+            assertFalse(support.canBatchInstructions());
+            handle.close();
+        }
+    }
+
+    @Test
+    public void refusedOrUncapturedInstructionCannotAuthorizeABlock() {
+        for (boolean stopBefore : List.of(false, true)) {
+            BatchObserver observer = new BatchObserver();
+            observer.stopBefore = stopBefore;
+            DebuggingSupport support = new DebuggingSupport(() -> { throw new IllegalStateException("Missing instruction"); },
+                    () -> {}, DebuggingSupportTest::view, active -> {});
+            support.observe(observer, Debugging.Capture.INSTRUCTION);
+
+            assertEquals(!stopBefore, support.begin());
+            assertFalse(support.canBatchInstructions());
+            support.endBlock(BLOCK);
+            assertTrue(observer.blocks.isEmpty());
+            assertEquals(0, observer.batchQueries);
+        }
+    }
+
+    @Test
+    public void batchingQueryFailureFallsBackToIndividualInstructionObservation() {
+        BatchObserver observer = new BatchObserver() {
+            @Override public boolean canBatchInstructions() { throw new IllegalStateException("Broken batching query"); }
+        };
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+        support.observe(observer, Debugging.Capture.INSTRUCTION);
+
+        assertTrue(support.begin());
+        assertFalse(support.canBatchInstructions());
+        assertTrue(support.isActive());
+        assertFalse(end(support, true, 100));
+        assertEquals(List.of(true), observer.completions);
+        assertSame(INSTRUCTION, observer.instructions.get(0).orElseThrow());
+        assertEquals(1, observer.failures.size());
+        assertTrue(observer.failures.get(0).contains("Broken batching query"));
+    }
+
+    @Test
+    public void authorizedBlockSurvivesSameObserverModeHandoffWithoutRichCapture() throws Exception {
+        BatchObserver observer = new BatchObserver();
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> fail("Block has no before-state capture"),
+                () -> { throw new AssertionError("Block has no rich presentation"); }, active -> {});
+        AutoCloseable old = support.observe(observer, Debugging.Capture.INSTRUCTION);
+        assertTrue(support.begin());
+        assertTrue(support.canBatchInstructions());
+        old.close();
+        AutoCloseable handle = support.observe(observer, Debugging.Capture.FULL);
+
+        support.endBlock(BLOCK);
+        assertEquals(List.of(BLOCK), observer.blocks);
+        assertEquals(1, observer.batchQueries);
+        assertTrue(observer.views.isEmpty());
+        assertTrue(support.isCapturing());
+        old.close();
+        assertTrue(support.isActive());
+        handle.close();
+    }
+
+    @Test
+    public void currentFullModeOrDifferentObserverForbidsBlockAuthorization() throws Exception {
+        for (boolean same : List.of(false, true)) {
+            BatchObserver observer = new BatchObserver(), replacement = same ? observer : new BatchObserver();
+            DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+            AutoCloseable old = support.observe(observer, Debugging.Capture.INSTRUCTION);
+            assertTrue(support.begin());
+            old.close();
+            AutoCloseable handle = support.observe(replacement, same ? Debugging.Capture.FULL : Debugging.Capture.INSTRUCTION);
+
+            assertFalse(support.canBatchInstructions());
+            assertEquals(0, observer.batchQueries);
+            assertEquals(0, replacement.batchQueries);
+            end(support, true, 100);
+            assertEquals(same ? List.of(true) : List.of(), observer.completions);
+            handle.close();
+        }
+    }
+
+    @Test
+    public void replacementObserverNeverReceivesAnAlreadyAuthorizedBlock() throws Exception {
+        BatchObserver first = new BatchObserver(), replacement = new BatchObserver();
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+        AutoCloseable old = support.observe(first, Debugging.Capture.INSTRUCTION);
+        assertTrue(support.begin());
+        assertTrue(support.canBatchInstructions());
+        old.close();
+        AutoCloseable handle = support.observe(replacement, Debugging.Capture.INSTRUCTION);
+
+        support.endBlock(BLOCK);
+        assertTrue(first.blocks.isEmpty());
+        assertTrue(replacement.blocks.isEmpty());
+        assertTrue(support.begin());
+        assertTrue(support.canBatchInstructions());
+        support.endBlock(BLOCK);
+        assertEquals(List.of(BLOCK), replacement.blocks);
+        handle.close();
+    }
+
+    @Test
+    public void blockCallbackFailureIsIsolatedAndDetachesOnlyItsOwnRegistration() throws Exception {
+        for (boolean replace : List.of(false, true)) {
+            DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+            AutoCloseable[] old = new AutoCloseable[1], handle = new AutoCloseable[1];
+            BatchObserver replacement = new BatchObserver();
+            BatchObserver first = new BatchObserver() {
+                @Override public void afterBlock(ExecutedBlock block) {
+                    if (replace) {
+                        close(old[0]);
+                        handle[0] = support.observe(replacement, Debugging.Capture.INSTRUCTION);
+                    }
+                    throw new IllegalStateException("Broken block callback");
+                }
+            };
+            old[0] = support.observe(first, Debugging.Capture.INSTRUCTION);
+            assertTrue(support.begin());
+            assertTrue(support.canBatchInstructions());
+
+            support.endBlock(BLOCK);
+            assertEquals(replace, support.isActive());
+            assertTrue(replacement.failures.isEmpty());
+            assertEquals(replace ? 0 : 1, first.failures.size());
+            if (replace) handle[0].close();
+        }
+    }
 
     @Test
     public void inactiveStepsDoNotCaptureInstructionsOrPresentation() {
@@ -526,6 +693,14 @@ public class DebuggingSupportTest {
 
     private static StepView view() {
         return new StepView("jump", "jump", OptionalInt.of(7), List.of());
+    }
+
+    private static class BatchObserver extends Observer {
+        final List<ExecutedBlock> blocks = new ArrayList<>();
+        int beforeCalls, batchQueries;
+        @Override public boolean beforeStep() { beforeCalls++; return super.beforeStep(); }
+        @Override public boolean canBatchInstructions() { batchQueries++; return true; }
+        @Override public void afterBlock(ExecutedBlock block) { blocks.add(block); }
     }
 
     private static class Observer implements Debugging.Observer {

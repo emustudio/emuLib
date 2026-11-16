@@ -27,7 +27,7 @@ public final class DebuggingSupport {
     // Confined to the execution thread; rich captures belong to one registration's complete step.
     private Registration step;
     private Debugging.Capture stepCapture;
-    private boolean instructionCaptured, fullCapturePrepared;
+    private boolean instructionCaptured, fullCapturePrepared, batchInstructions;
 
     private static final class Registration {
         final Debugging.Observer observer;
@@ -73,6 +73,7 @@ public final class DebuggingSupport {
         step = null;
         instructionCaptured = false;
         fullCapturePrepared = false;
+        batchInstructions = false;
         Registration current = readyRegistration(null);
         if (current == null) return true;
         try {
@@ -103,6 +104,7 @@ public final class DebuggingSupport {
     public boolean end(boolean completed, Optional<DecodedInstruction> instruction, OptionalInt nextAddress) {
         Registration current = step;
         step = null;
+        batchInstructions = false;
         if (!sameObserver(current, registration.get())) return false;
         Optional<StepView> view = Optional.empty();
         if (stepCapture == Debugging.Capture.FULL && fullCapturePrepared && registration.get() == current) {
@@ -118,6 +120,43 @@ public final class DebuggingSupport {
             failed(current, "After-step observer failed", failure);
             detach(current);
             return false;
+        }
+    }
+
+    /** Queries opt-in after begin and before guest effects; a successful result authorizes this step's block. */
+    public boolean canBatchInstructions() {
+        batchInstructions = false;
+        Registration current = step;
+        Registration latest = registration.get();
+        if (!instructionCaptured || stepCapture != Debugging.Capture.INSTRUCTION
+                || !sameObserver(current, latest) || latest.capture != Debugging.Capture.INSTRUCTION) return false;
+        try {
+            boolean supported = current.observer.canBatchInstructions();
+            latest = registration.get();
+            batchInstructions = supported && step == current && sameObserver(current, latest)
+                    && latest.capture == Debugging.Capture.INSTRUCTION;
+        } catch (RuntimeException failure) {
+            failed(current, "Instruction batching query failed", failure);
+        }
+        return batchInstructions;
+    }
+
+    /** Completes a block previously authorized by canBatchInstructions; mode changes cannot erase executed facts. */
+    public void endBlock(ExecutedBlock block) {
+        Registration current = step;
+        step = null;
+        boolean authorized = batchInstructions;
+        batchInstructions = false;
+        if (!sameObserver(current, registration.get())) return;
+        if (!authorized) {
+            failed(current, "Instruction block was not authorized", new IllegalStateException("Batching requires observer opt-in"));
+            return;
+        }
+        try {
+            current.observer.afterBlock(Objects.requireNonNull(block));
+        } catch (RuntimeException failure) {
+            failed(current, "After-block observer failed", failure);
+            detach(current);
         }
     }
 
