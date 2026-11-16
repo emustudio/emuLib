@@ -7,6 +7,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 
@@ -218,6 +226,298 @@ public class DebuggingSupportTest {
         assertTrue(end(support, true, 100));
         current.close();
         assertFalse(support.isActive());
+    }
+
+    @Test
+    public void attachingDuringInactiveStepStartsFullCaptureAtNextBoundary() throws Exception {
+        List<String> captures = new ArrayList<>();
+        DebuggingSupport support = new DebuggingSupport(() -> captures.add("instruction"),
+                () -> captures.add("before"), () -> { captures.add("after"); return view(); }, active -> {});
+        Observer observer = new Observer();
+        assertTrue(support.begin());
+        AutoCloseable handle = support.observe(observer, Debugging.Capture.FULL);
+
+        assertFalse(end(support, true, 100));
+        assertTrue(captures.isEmpty());
+        assertTrue(observer.completions.isEmpty());
+        assertTrue(support.begin());
+        assertFalse(end(support, true, 100));
+        assertEquals(List.of("instruction", "before", "after"), captures);
+        assertEquals(List.of(true), observer.completions);
+        assertTrue(observer.views.get(0).isPresent());
+        handle.close();
+    }
+
+    @Test
+    public void replacementCannotInheritInstructionOrPartialFullCapture() throws Exception {
+        AtomicInteger states = new AtomicInteger(), presentations = new AtomicInteger();
+        DebuggingSupport support = new DebuggingSupport(() -> {}, states::incrementAndGet,
+                () -> { presentations.incrementAndGet(); return view(); }, active -> {});
+        Observer first = new Observer(), replacement = new Observer();
+        AutoCloseable old = support.observe(first, Debugging.Capture.INSTRUCTION);
+        assertTrue(support.begin());
+        old.close();
+        AutoCloseable handle = support.observe(replacement, Debugging.Capture.FULL);
+
+        assertFalse(end(support, true, 100));
+        assertTrue(first.completions.isEmpty());
+        assertTrue(replacement.completions.isEmpty());
+        assertEquals(0, presentations.get());
+        assertTrue(support.begin());
+        assertFalse(end(support, true, 100));
+        assertEquals(1, states.get());
+        assertEquals(1, presentations.get());
+        assertEquals(List.of(true), replacement.completions);
+        old.close();
+        assertTrue(support.isActive());
+        handle.close();
+    }
+
+    @Test
+    public void sameObserverModeChangesKeepInFlightFactsWithoutPartialPresentation() throws Exception {
+        for (Debugging.Capture before : List.of(Debugging.Capture.INSTRUCTION, Debugging.Capture.FULL)) {
+            Debugging.Capture after = before == Debugging.Capture.FULL ? Debugging.Capture.INSTRUCTION : Debugging.Capture.FULL;
+            AtomicInteger states = new AtomicInteger(), presentations = new AtomicInteger();
+            DebuggingSupport support = new DebuggingSupport(() -> {}, states::incrementAndGet,
+                    () -> { presentations.incrementAndGet(); return view(); }, active -> {});
+            Observer observer = new Observer();
+            AutoCloseable old = support.observe(observer, before);
+            assertTrue(support.begin());
+            old.close();
+            AutoCloseable handle = support.observe(observer, after);
+
+            assertFalse(end(support, true, 100));
+            assertEquals(List.of(true), observer.completions);
+            assertSame(INSTRUCTION, observer.instructions.get(0).orElseThrow());
+            assertEquals(100, observer.nextAddresses.get(0).getAsInt());
+            assertTrue(observer.views.get(0).isEmpty());
+            assertEquals(0, presentations.get());
+            assertTrue(support.begin());
+            assertFalse(end(support, true, 101));
+            assertEquals(List.of(true, true), observer.completions);
+            assertEquals(after == Debugging.Capture.FULL, observer.views.get(1).isPresent());
+            assertEquals(1, states.get());
+            assertEquals(after == Debugging.Capture.FULL ? 1 : 0, presentations.get());
+            old.close();
+            assertTrue(support.isActive());
+            handle.close();
+        }
+    }
+
+    @Test
+    public void sameObserverModeChangeInsideBeforeStepKeepsInstructionAndCompleteNewCapture() throws Exception {
+        for (Debugging.Capture before : List.of(Debugging.Capture.INSTRUCTION, Debugging.Capture.FULL)) {
+            Debugging.Capture after = before == Debugging.Capture.FULL ? Debugging.Capture.INSTRUCTION : Debugging.Capture.FULL;
+            AtomicInteger states = new AtomicInteger(), presentations = new AtomicInteger(), beforeCalls = new AtomicInteger();
+            AtomicBoolean change = new AtomicBoolean(true);
+            DebuggingSupport support = new DebuggingSupport(() -> {}, states::incrementAndGet,
+                    () -> { presentations.incrementAndGet(); return view(); }, active -> {});
+            AutoCloseable[] old = new AutoCloseable[1], handle = new AutoCloseable[1];
+            Observer observer = new Observer() {
+                @Override public boolean beforeStep() {
+                    beforeCalls.incrementAndGet();
+                    if (change.getAndSet(false)) {
+                        close(old[0]);
+                        handle[0] = support.observe(this, after);
+                    }
+                    return false;
+                }
+            };
+            old[0] = support.observe(observer, before);
+
+            assertTrue(support.begin());
+            assertFalse(end(support, true, 100));
+            assertEquals(1, beforeCalls.get());
+            assertEquals(List.of(true), observer.completions);
+            assertSame(INSTRUCTION, observer.instructions.get(0).orElseThrow());
+            assertEquals(100, observer.nextAddresses.get(0).getAsInt());
+            assertEquals(after == Debugging.Capture.FULL, observer.views.get(0).isPresent());
+            assertEquals(after == Debugging.Capture.FULL ? 1 : 0, states.get());
+            assertEquals(states.get(), presentations.get());
+            old[0].close();
+            assertTrue(support.isActive());
+            handle[0].close();
+        }
+    }
+
+    @Test
+    public void sameObserverReplacementInsideInstructionCaptureCannotInventBeforeState() throws Exception {
+        Observer observer = new Observer();
+        AutoCloseable[] old = new AutoCloseable[1], handle = new AutoCloseable[1];
+        DebuggingSupport[] support = new DebuggingSupport[1];
+        AtomicBoolean change = new AtomicBoolean(true);
+        AtomicInteger states = new AtomicInteger(), presentations = new AtomicInteger();
+        support[0] = new DebuggingSupport(() -> {
+            if (change.getAndSet(false)) {
+                close(old[0]);
+                handle[0] = support[0].observe(observer, Debugging.Capture.FULL);
+            }
+        }, states::incrementAndGet, () -> { presentations.incrementAndGet(); return view(); }, active -> {});
+        old[0] = support[0].observe(observer, Debugging.Capture.FULL);
+
+        assertTrue(support[0].begin());
+        assertFalse(end(support[0], true, 100));
+        assertEquals(List.of(true), observer.completions);
+        assertSame(INSTRUCTION, observer.instructions.get(0).orElseThrow());
+        assertEquals(100, observer.nextAddresses.get(0).getAsInt());
+        assertTrue(observer.views.get(0).isEmpty());
+        assertEquals(0, states.get());
+        assertEquals(0, presentations.get());
+        assertTrue(support[0].begin());
+        assertFalse(end(support[0], true, 101));
+        assertTrue(observer.views.get(1).isPresent());
+        assertEquals(1, states.get());
+        assertEquals(1, presentations.get());
+        handle[0].close();
+    }
+
+    @Test
+    public void sameObserverReplacementInsideAfterCaptureKeepsFactsButDiscardsOldView() throws Exception {
+        for (Debugging.Capture after : List.of(Debugging.Capture.INSTRUCTION, Debugging.Capture.FULL)) {
+            Observer observer = new Observer();
+            AutoCloseable[] old = new AutoCloseable[1], handle = new AutoCloseable[1];
+            DebuggingSupport[] support = new DebuggingSupport[1];
+            AtomicBoolean change = new AtomicBoolean(true);
+            support[0] = new DebuggingSupport(() -> {}, () -> {}, () -> {
+                if (change.getAndSet(false)) {
+                    close(old[0]);
+                    handle[0] = support[0].observe(observer, after);
+                }
+                return view();
+            }, active -> {});
+            old[0] = support[0].observe(observer, Debugging.Capture.FULL);
+
+            assertTrue(support[0].begin());
+            assertFalse(end(support[0], true, 100));
+            assertEquals(List.of(true), observer.completions);
+            assertSame(INSTRUCTION, observer.instructions.get(0).orElseThrow());
+            assertEquals(100, observer.nextAddresses.get(0).getAsInt());
+            assertTrue(observer.views.get(0).isEmpty());
+            assertTrue(support[0].begin());
+            assertFalse(end(support[0], true, 101));
+            assertEquals(after == Debugging.Capture.FULL, observer.views.get(1).isPresent());
+            handle[0].close();
+        }
+    }
+
+    @Test
+    public void oldObserverFailureCannotDetachReplacement() throws Exception {
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+        AutoCloseable[] old = new AutoCloseable[1], handle = new AutoCloseable[1];
+        Observer replacement = new Observer();
+        Observer first = new Observer() {
+            @Override public boolean afterStep(boolean completed, Optional<DecodedInstruction> instruction,
+                                               OptionalInt nextAddress, Optional<StepView> capture) {
+                close(old[0]);
+                handle[0] = support.observe(replacement, Debugging.Capture.INSTRUCTION);
+                throw new IllegalStateException("Old observer failed");
+            }
+        };
+        old[0] = support.observe(first, Debugging.Capture.INSTRUCTION);
+
+        assertTrue(support.begin());
+        assertFalse(end(support, true, 100));
+        assertTrue(support.isActive());
+        assertTrue(replacement.failures.isEmpty());
+        assertTrue(support.begin());
+        assertFalse(end(support, true, 100));
+        assertEquals(List.of(true), replacement.completions);
+        handle[0].close();
+    }
+
+    @Test
+    public void liveAttachIsVisibleToInactiveExecutionThread() throws Exception {
+        CountDownLatch started = new CountDownLatch(1), observed = new CountDownLatch(1);
+        AtomicBoolean stop = new AtomicBoolean();
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {});
+        ExecutorService execution = Executors.newSingleThreadExecutor();
+        try {
+            Future<?> worker = execution.submit(() -> {
+                started.countDown();
+                while (!stop.get()) {
+                    assertTrue(support.begin());
+                    end(support, true, 100);
+                }
+            });
+            assertTrue(started.await(2, TimeUnit.SECONDS));
+            AutoCloseable handle = support.observe(new Observer() {
+                @Override public boolean beforeStep() { observed.countDown(); return false; }
+            }, Debugging.Capture.INSTRUCTION);
+            assertTrue("Execution must see newly attached observer", observed.await(2, TimeUnit.SECONDS));
+            stop.set(true);
+            worker.get(2, TimeUnit.SECONDS);
+            handle.close();
+        } finally {
+            stop.set(true);
+            execution.shutdownNow();
+        }
+    }
+
+    @Test
+    public void firstFullStepWaitsForAccessInstrumentationWithoutHoldingObserverLock() throws Exception {
+        CountDownLatch configuring = new CountDownLatch(1), configured = new CountDownLatch(1), entering = new CountDownLatch(1);
+        AtomicBoolean ready = new AtomicBoolean();
+        DebuggingSupport support = new DebuggingSupport(() -> assertTrue(ready.get()),
+                () -> assertTrue(ready.get()), DebuggingSupportTest::view, active -> {
+                    if (active) {
+                        configuring.countDown();
+                        await(configured);
+                        ready.set(true);
+                    }
+                });
+        ExecutorService threads = Executors.newFixedThreadPool(2);
+        try {
+            Future<AutoCloseable> handle = threads.submit(() -> support.observe(new Observer(), Debugging.Capture.FULL));
+            assertTrue(configuring.await(2, TimeUnit.SECONDS));
+            Future<Boolean> begin = threads.submit(() -> { entering.countDown(); return support.begin(); });
+            assertTrue(entering.await(2, TimeUnit.SECONDS));
+            assertThrows(TimeoutException.class, () -> begin.get(100, TimeUnit.MILLISECONDS));
+            configured.countDown();
+            assertTrue(begin.get(2, TimeUnit.SECONDS));
+            handle.get(2, TimeUnit.SECONDS).close();
+        } finally {
+            configured.countDown();
+            threads.shutdownNow();
+        }
+    }
+
+    @Test
+    public void concurrentReattachCannotLeaveAccessInstrumentationDisabled() throws Exception {
+        List<Boolean> activity = new ArrayList<>();
+        CountDownLatch disabling = new CountDownLatch(1), disabled = new CountDownLatch(1);
+        AtomicBoolean hold = new AtomicBoolean();
+        DebuggingSupport support = new DebuggingSupport(() -> {}, () -> {}, DebuggingSupportTest::view, active -> {
+            activity.add(active);
+            if (!active && hold.get()) { disabling.countDown(); await(disabled); }
+        });
+        AutoCloseable first = support.observe(new Observer(), Debugging.Capture.FULL);
+        ExecutorService thread = Executors.newSingleThreadExecutor();
+        try {
+            hold.set(true);
+            Future<?> closing = thread.submit(() -> close(first));
+            assertTrue(disabling.await(2, TimeUnit.SECONDS));
+            AutoCloseable replacement = support.observe(new Observer(), Debugging.Capture.FULL);
+            assertTrue(support.isActive());
+            disabled.countDown();
+            closing.get(2, TimeUnit.SECONDS);
+            assertEquals(List.of(true, false, true), activity);
+            assertTrue(support.requiresAccesses());
+            replacement.close();
+            assertFalse(support.requiresAccesses());
+        } finally {
+            disabled.countDown();
+            thread.shutdownNow();
+        }
+    }
+
+    private static void await(CountDownLatch latch) {
+        try { latch.await(); }
+        catch (InterruptedException failure) { Thread.currentThread().interrupt(); throw new AssertionError(failure); }
+    }
+
+    private static void close(AutoCloseable handle) {
+        try { handle.close(); }
+        catch (Exception failure) { throw new AssertionError(failure); }
     }
 
     private static boolean end(DebuggingSupport support, boolean completed, int nextAddress) {
