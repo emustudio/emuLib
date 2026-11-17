@@ -11,12 +11,11 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.MultiResolutionImage;
-import java.lang.reflect.Field;
 
 import static org.junit.Assert.*;
 
 public class GUIIconTest {
-    private static final String ICON = "/net/emustudio/emulib/ui/icons/icon.png";
+    private static final String ICON = "/net/emustudio/emulib/ui/fixtures/icon.png";
 
     @Test
     public void testHighResolutionImageIsUsedWhenPaintingAtDoubleScale() {
@@ -41,14 +40,14 @@ public class GUIIconTest {
 
     @Test
     public void testRelativeResourceIsResolvedAgainstResourceClass() {
-        ImageIcon icon = GUI.loadIcon("icons/icon.png", GUIIconTest.class);
+        ImageIcon icon = GUI.loadIcon("fixtures/icon.png", GUIIconTest.class);
         assertTrue(icon.getImage() instanceof MultiResolutionImage);
         assertEquals(8, icon.getIconWidth());
     }
 
     @Test
     public void testMissingHighResolutionResourceUsesBaseImage() {
-        ImageIcon icon = GUI.loadIcon("icons/single.png", GUIIconTest.class);
+        ImageIcon icon = GUI.loadIcon("fixtures/single.png", GUIIconTest.class);
         assertEquals(8, icon.getIconWidth());
         assertEquals(8, icon.getIconHeight());
         assertFalse(icon.getImage() instanceof MultiResolutionImage);
@@ -56,26 +55,12 @@ public class GUIIconTest {
 
     @Test
     public void testMissingBaseResourceReturnsNull() {
-        assertNull(GUI.loadIcon("icons/missing.png", GUIIconTest.class));
-    }
-
-    @Test
-    public void testStandardIconsHaveHighResolutionVariants() throws IllegalAccessException {
-        for (Field field : StandardIcons.class.getFields()) {
-            if (!field.getName().startsWith("ICON_")) {
-                continue;
-            }
-            ImageIcon icon = GUI.loadIcon((String) field.get(null), StandardIcons.class);
-            assertNotNull(field.getName(), icon);
-            assertEquals(field.getName(), 22, icon.getIconWidth());
-            assertEquals(field.getName(), 22, icon.getIconHeight());
-            assertTrue(field.getName(), icon.getImage() instanceof MultiResolutionImage);
-        }
+        assertNull(GUI.loadIcon("fixtures/missing.png", GUIIconTest.class));
     }
 
     @Test
     public void testHighResolutionResourceAloneDoesNotReplaceMissingBase() {
-        assertNotNull(GUIIconTest.class.getResource("icons/orphan@2x.png"));
-        assertNull(GUI.loadIcon("icons/orphan.png", GUIIconTest.class));
+        assertNotNull(GUIIconTest.class.getResource("fixtures/orphan@2x.png"));
+        assertNull(GUI.loadIcon("fixtures/orphan.png", GUIIconTest.class));
     }
 }

@@ -167,7 +167,7 @@ Container_Boundary(emulib, "emuLib") {
     Component(pluginApi, "Plugin API", "plugin", "Plugin contracts, base classes, contexts, annotations, exchanged data, focused helpers")
     Component(applicationApi, "Application API", "application", "Host facade, context registry, execution state, live annotations, settings, UI contracts")
     Component(generalApi, "General API", "net.emustudio.emulib", "Bits, numbers, radix, locking, sleep, unchecked calls")
-    Component(uiApi, "UI API", "ui", "Shared constants, icons, reusable Swing components")
+    Component(uiApi, "UI API", "ui", "Shared constants and reusable Swing components")
     Component(ioApi, "I/O API", "io", "File loading, Intel HEX and tape formats")
     Component(audioApi, "Audio API", "audio", "PCM sinks and sample playback")
     Component(recordingApi, "Recording API", "recording", "Video and audio recording")
@@ -220,7 +220,7 @@ Rel(uiApi, applicationApi, "Implements UI extension types")
 
 | UI API
 | `ui...`
-| `DialogBase`, `CachedComboBoxModel`, `Constants`, `StandardIcons`
+| `DialogBase`, `CachedComboBoxModel`, `Constants`
 
 | General API
 | `net.emustudio.emulib`
