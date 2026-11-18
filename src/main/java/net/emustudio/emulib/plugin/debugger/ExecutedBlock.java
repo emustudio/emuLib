@@ -9,9 +9,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Immutable instruction and transition facts from an executed optimization block.
+ * Immutable instruction and transition facts contributed by an executed block.
  * The producer supplies facts about actual execution; no transitions or instruction order are inferred.
  * Transition sources belong to the block, including the explicit final last-address to next-address edge.
+ * Unchanged facts already delivered to the same observer may be omitted; consumers accumulate contributions.
  */
 public final class ExecutedBlock {
     private final List<DecodedInstruction> instructions;

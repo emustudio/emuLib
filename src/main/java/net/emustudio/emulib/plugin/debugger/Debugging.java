@@ -39,7 +39,11 @@ public interface Debugging {
          * Access tracking and full presentation capture always retain individual steps.
          */
         default boolean canBatchInstructions() { return false; }
-        /** Receives an executed block authorized before its guest effects; never represents a rich step capture. */
+        /**
+         * Receives an authorized graph contribution, never a rich step capture or an ordered event log.
+         * Previously reported, unchanged facts may be omitted. New observers must receive all facts they need;
+         * every contribution includes the actual final instruction and its resulting PC transition.
+         */
         default void afterBlock(ExecutedBlock block) {
             throw new UnsupportedOperationException("Instruction batching is not supported");
         }
