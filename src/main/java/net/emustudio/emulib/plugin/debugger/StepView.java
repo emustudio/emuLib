@@ -11,10 +11,22 @@ public final class StepView {
     public final OptionalInt programLocation;
     public final List<ViewRow> rows;
 
+    StepView(String summary, String foldKey, OptionalInt programLocation, PackedStep rows) {
+        this.summary = summary;
+        this.foldKey = foldKey;
+        this.programLocation = programLocation;
+        this.rows = rows;
+    }
+
     public StepView(String summary, String foldKey, OptionalInt programLocation, List<ViewRow> rows) {
         this.summary = summary;
         this.foldKey = foldKey;
         this.programLocation = programLocation;
         this.rows = List.copyOf(rows);
+    }
+
+    /** Packed backing when this instruction was captured as raw state. */
+    public PackedStep packed() {
+        return rows instanceof PackedStep ? (PackedStep) rows : null;
     }
 }
