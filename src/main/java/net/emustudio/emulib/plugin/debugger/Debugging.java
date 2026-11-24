@@ -15,6 +15,9 @@ public interface Debugging {
     /** Compiles a machine-specific expression; evaluation and inspection are read-only. */
     Expression compile(String source);
 
+    /** Returns a plain-text reference for the expression syntax, names, and functions accepted by this machine. */
+    String getExpressionsHelp();
+
     /** Installs one observer with the requested observation detail; closing its handle detaches it. */
     AutoCloseable observe(Observer observer, Capture capture);
 

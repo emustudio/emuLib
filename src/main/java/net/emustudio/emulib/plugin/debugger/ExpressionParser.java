@@ -14,6 +14,21 @@ public final class ExpressionParser {
             {"||"}, {"&&"}, {"|"}, {"^"}, {"&"}, {"==", "!="},
             {"<=", ">=", "<", ">"}, {"<<", ">>"}, {"+", "-"}, {"*", "/", "%"}
     };
+    private static final String SYNTAX_HELP = String.join("\n",
+            "Expression syntax",
+            "  Numbers: decimal 42, hexadecimal 0x2A, binary 0b101010",
+            "  Booleans: true, false",
+            "  Strings: \"text\" or 'text' (escapes: \\n, \\r, \\t, \\\\, \\', \\\")",
+            "  Grouping: (expression)",
+            "  Function calls: name(argument) or name[argument]",
+            "",
+            "Operators (highest precedence first)",
+            "  Unary         +  -  ~  !",
+            "  Arithmetic    *  /  %     then +  -",
+            "  Shifts        <<  >>      (>> shifts in zeros)",
+            "  Comparisons   <  <=  >  >= then ==  !=",
+            "  Bitwise       &  ^  |     (in that order)",
+            "  Logical       &&  ||     (short-circuiting)");
     private final String source;
     private final Function<String, Supplier<Object>> variables;
     private final Function<String, Function<List<Object>, Object>> functions;
@@ -25,6 +40,11 @@ public final class ExpressionParser {
         this.source = source;
         this.variables = Objects.requireNonNull(variables);
         this.functions = Objects.requireNonNull(functions);
+    }
+
+    /** Returns plain-text help for the parser's shared syntax. */
+    public static String syntaxHelp() {
+        return SYNTAX_HELP;
     }
 
     public static Debugging.Expression parse(String source, Function<String, Supplier<Object>> variables,
