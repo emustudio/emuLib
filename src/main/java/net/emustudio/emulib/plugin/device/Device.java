@@ -5,6 +5,7 @@ package net.emustudio.emulib.plugin.device;
 import net.emustudio.emulib.plugin.Plugin;
 
 import javax.swing.*;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Device plugin root interface.
@@ -17,6 +18,22 @@ import javax.swing.*;
  */
 @SuppressWarnings("unused")
 public interface Device extends Plugin {
+
+    /**
+     * Starts configured work after reset, independently of the device GUI. Complete the returned
+     * future when the device is ready for the first guest instruction.
+     */
+    default CompletableFuture<Void> startAutomation() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Requests cooperative stop, including when startup failed or was skipped. Return promptly
+     * and complete the future when the device's workers have stopped accessing the machine.
+     */
+    default CompletableFuture<Void> stopAutomation() {
+        return CompletableFuture.completedFuture(null);
+    }
 
     /**
      * Shows GUI of the device.
