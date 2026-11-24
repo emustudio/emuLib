@@ -9,6 +9,7 @@ import javax.swing.*;
 import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Plugin main interface. This interface is available only to emuStudio, not to other plugins. Plugins communicate
@@ -64,6 +65,22 @@ public interface Plugin {
      * Reset plugin to its "initial state", as it was after calling {@link Plugin#initialize()}.
      */
     default void reset() {
+    }
+
+    /**
+     * Starts configured work after reset during automatic emulation, independently of the GUI.
+     * Complete the returned future when the plugin is ready for the first guest instruction.
+     */
+    default CompletableFuture<Void> startAutomation() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    /**
+     * Requests cooperative stop, including when startup failed or was skipped. Return promptly
+     * and complete the future when the plugin's automation workers have stopped accessing the machine.
+     */
+    default CompletableFuture<Void> stopAutomation() {
+        return CompletableFuture.completedFuture(null);
     }
 
     /**

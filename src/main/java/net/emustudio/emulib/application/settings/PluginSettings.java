@@ -24,11 +24,6 @@ public interface PluginSettings {
     String EMUSTUDIO_NO_GUI = EMUSTUDIO_PREFIX + "nogui";
 
     /**
-     * Boolean: emuStudio runs automatic emulation.
-     */
-    String EMUSTUDIO_AUTO = EMUSTUDIO_PREFIX + "auto";
-
-    /**
      * Settings which contain nothing and ignore updates. Used when emuStudio is not available (e.g. in tests).
      */
     PluginSettings UNAVAILABLE = new PluginSettings() {
