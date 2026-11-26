@@ -58,7 +58,10 @@ public class GUIShortenToFitTest {
 
     @Test
     public void testShorteningPreservesCompleteUnicodeCharacters() {
-        for (String character : new String[]{"\uD83D\uDE00", "e\u0301", "\uD83D\uDC69\u200D\uD83D\uDCBB"}) {
+        for (String character : new String[]{
+                "\uD83D\uDE00", "e\u0301", "\uD83D\uDC69\u200D\uD83D\uDCBB",
+                "\uD83D\uDC69\uD83C\uDFFD", "\uD83D\uDC69\uD83C\uDFFD\u200D\uD83D\uDCBB"
+        }) {
             String full = character.repeat(12);
             for (int width = 0; width < 120; width++) {
                 String text = GUI.shortenToFit(full, component, width);

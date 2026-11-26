@@ -130,15 +130,24 @@ public interface GUI {
         int suffixStart = text.length();
         Matcher characters = Pattern.compile("\\X").matcher(text);
         while (characters.find()) {
-            if (characters.end() <= prefixBudget) {
+            if (characters.end() <= prefixBudget && isSafeToShortenAt(text, characters.end())) {
                 prefixEnd = characters.end();
             }
-            if (characters.start() >= suffixBoundary) {
+            if (characters.start() >= suffixBoundary && isSafeToShortenAt(text, characters.start())) {
                 suffixStart = characters.start();
                 break;
             }
         }
         return text.substring(0, prefixEnd) + "..." + text.substring(suffixStart);
+    }
+
+    private static boolean isSafeToShortenAt(String text, int index) {
+        if (index == 0 || index == text.length()) {
+            return true;
+        }
+        // Java 11's grapheme matcher can split an emoji after a joiner or before a skin tone modifier.
+        int next = text.codePointAt(index);
+        return text.charAt(index - 1) != '\u200D' && (next < 0x1F3FB || next > 0x1F3FF);
     }
 
     /**
